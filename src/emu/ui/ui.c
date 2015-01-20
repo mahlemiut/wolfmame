@@ -24,6 +24,7 @@
 #include "ui/viewgfx.h"
 #include "imagedev/cassette.h"
 #include <ctype.h>
+#include "ioport.h"
 
 
 /***************************************************************************
@@ -315,7 +316,7 @@ void ui_manager::display_startup_screens(bool first_time, bool show_disclaimer)
 
 	// disable everything if we are using -str for 300 or fewer seconds, or if we're the empty driver,
 	// or if we are debugging
-	if (!first_time || (str > 0 && str < 60*5) || &machine().system() == &GAME_NAME(___empty) || (machine().debug_flags & DEBUG_FLAG_ENABLED) != 0)
+	if (!first_time || (str > 0 && str < 60*5) || &machine().system() == &GAME_NAME(___empty) || (machine().debug_flags & DEBUG_FLAG_ENABLED) != 0 || machine().ioport().get_record_file()->is_open())
 		show_gameinfo = show_warnings = show_disclaimer = show_mandatory_fileman = FALSE;
 
 	#ifdef SDLMAME_EMSCRIPTEN
@@ -463,6 +464,10 @@ void ui_manager::update_and_render(render_container *container)
 	// cancel takes us back to the ingame handler
 	if (m_handler_param == UI_HANDLER_CANCEL)
 		set_handler(handler_ingame, 0);
+
+ 	// Input viewer
+ 	if(machine().ioport().inpview().get_player() != 0)
+ 		machine().ioport().inpview().render_input();
 }
 
 
@@ -1437,6 +1442,26 @@ void ui_manager::paste()
 	}
 }
 
+bool if_recording_or_playing_back_stop_and_return_true(running_machine& machine)
+{
+	if (machine.ioport().get_playback_file()->is_open() || machine.ioport().get_record_file()->is_open())
+	{
+		char timearray[]="USER TERMINATED %s 100d 00:00:00.00:",bufferx[1000];
+		machine.ioport().sprintframetime(timearray+19);
+		if (machine.ioport().get_playback_file()->is_open())
+		{
+			snprintf(bufferx, sizeof(bufferx), timearray, "PLAYBACK");
+			machine.ioport().playback_end(bufferx);
+		}
+		if (machine.ioport().get_record_file()->is_open())
+		{
+			snprintf(bufferx, sizeof(bufferx), timearray, "RECORD");
+			machine.ioport().record_end(bufferx);
+		}
+		return TRUE;
+	}
+	return FALSE;
+}
 
 //-------------------------------------------------
 //  image_handler_ingame - execute display
@@ -1553,12 +1578,14 @@ UINT32 ui_manager::handler_ingame(running_machine &machine, render_container *co
 
 	// handle a reset request
 	if (ui_input_pressed(machine, IPT_UI_RESET_MACHINE))
-		machine.schedule_hard_reset();
+		if (!if_recording_or_playing_back_stop_and_return_true(machine))
+			machine.schedule_hard_reset();
 	if (ui_input_pressed(machine, IPT_UI_SOFT_RESET))
-		machine.schedule_soft_reset();
+		if (!if_recording_or_playing_back_stop_and_return_true(machine))
+			machine.schedule_soft_reset();
 
 	// handle a request to display graphics/palette
-	if (ui_input_pressed(machine, IPT_UI_SHOW_GFX))
+	if (ui_input_pressed(machine, IPT_UI_SHOW_GFX) && !machine.ioport().get_record_file()->is_open())
 	{
 		if (!is_paused)
 			machine.pause();
@@ -1586,14 +1613,14 @@ UINT32 ui_manager::handler_ingame(running_machine &machine, render_container *co
 	}
 
 	// handle a save state request
-	if (ui_input_pressed(machine, IPT_UI_SAVE_STATE))
+	if (ui_input_pressed(machine, IPT_UI_SAVE_STATE) && !machine.ioport().get_record_file()->is_open())
 	{
 		machine.pause();
 		return machine.ui().set_handler(handler_load_save, LOADSAVE_SAVE);
 	}
 
 	// handle a load state request
-	if (ui_input_pressed(machine, IPT_UI_LOAD_STATE))
+	if (ui_input_pressed(machine, IPT_UI_LOAD_STATE) && !machine.ioport().get_record_file()->is_open())
 	{
 		machine.pause();
 		return machine.ui().set_handler(handler_load_save, LOADSAVE_LOAD);
@@ -1604,7 +1631,7 @@ UINT32 ui_manager::handler_ingame(running_machine &machine, render_container *co
 		machine.video().save_active_screen_snapshots();
 
 	// toggle pause
-	if (ui_input_pressed(machine, IPT_UI_PAUSE))
+	if (ui_input_pressed(machine, IPT_UI_PAUSE) && !machine.ioport().get_record_file()->is_open())
 	{
 		// with a shift key, it is single step
 		if (is_paused && (machine.input().code_pressed(KEYCODE_LSHIFT) || machine.input().code_pressed(KEYCODE_RSHIFT)))
@@ -1641,11 +1668,11 @@ UINT32 ui_manager::handler_ingame(running_machine &machine, render_container *co
 		machine.ui().decrease_frameskip();
 
 	// toggle throttle?
-	if (ui_input_pressed(machine, IPT_UI_THROTTLE))
+	if (ui_input_pressed(machine, IPT_UI_THROTTLE) && !machine.ioport().get_record_file()->is_open())
 		machine.video().toggle_throttle();
 
 	// check for fast forward
-	if (machine.ioport().type_pressed(IPT_UI_FAST_FORWARD))
+	if (machine.ioport().type_pressed(IPT_UI_FAST_FORWARD) && !machine.ioport().get_record_file()->is_open())
 	{
 		machine.video().set_fastforward(true);
 		machine.ui().show_fps_temp(0.5);

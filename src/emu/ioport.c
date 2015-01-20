@@ -109,6 +109,9 @@
 // field completely wipes out the previous definition
 #define INPUT_PORT_OVERRIDE_FULLY_NUKES_PREVIOUS    1
 
+/* recorded speed read from an INP file */
+double rec_speed;
+int sprintframetime(char *timearray, running_machine& machine);
 
 //**************************************************************************
 //  DEBUGGING
@@ -2455,7 +2458,8 @@ ioport_manager::ioport_manager(running_machine &machine)
 		m_record_file(machine.options().input_directory(), OPEN_FLAG_WRITE | OPEN_FLAG_CREATE | OPEN_FLAG_CREATE_PATHS),
 		m_playback_file(machine.options().input_directory(), OPEN_FLAG_READ),
 		m_playback_accumulated_speed(0),
-		m_playback_accumulated_frames(0)
+		m_playback_accumulated_frames(0),
+		m_inpview(machine)
 {
 	memset(m_type_to_entry, 0, sizeof(m_type_to_entry));
 }
@@ -2558,6 +2562,8 @@ time_t ioport_manager::initialize()
 				for (const rom_entry *rom = device->rom_region(); !ROMENTRY_ISEND(rom); rom++)
 					if (ROMENTRY_ISSYSTEM_BIOS(rom)) { m_has_bioses= true; break; }
 	}
+
+	inpview().inpview_set_data(machine().options().inpview(),machine().options().inplayout());
 
 	// open playback and record files if specified
 	time_t basetime = playback_init();
@@ -2880,8 +2886,10 @@ g_profiler.start(PROFILER_INPUT);
 
 	// record/playback information about the current frame
 	attotime curtime = machine().time();
-	playback_frame(curtime);
-	record_frame(curtime);
+	if(m_playback_file)  // avoid re-recording - coz that's cheating. ;)
+		playback_frame(curtime);
+	else
+		record_frame(curtime);
 
 	// track the duration of the previous frame
 	m_last_delta_nsec = (curtime - m_last_frame_time).as_attoseconds() / ATTOSECONDS_PER_NANOSECOND;
@@ -3373,6 +3381,8 @@ bool ioport_manager::playback_read<bool>(bool &result)
 
 time_t ioport_manager::playback_init()
 {
+	char timearray[]="100d 00:00:00.00:";
+
 	// if no file, nothing to do
 	const char *filename = machine().options().playback();
 	if (filename[0] == 0)
@@ -3390,6 +3400,11 @@ time_t ioport_manager::playback_init()
 		fatalerror("Input file invalid or in an older, unsupported format\n");
 	if (header[0x10] != INP_HEADER_MAJVERSION)
 		fatalerror("Input file format version mismatch\n");
+
+	// must be called once at playback to initialize fps value,
+	// when playback_end is called the machine screen has already been destroyed
+	// making it impossible to get the refresh rate
+	sprintframetime(timearray);
 
 	// output info to console
 	osd_printf_info("Input file: %s\n", filename);
@@ -3418,16 +3433,25 @@ void ioport_manager::playback_end(const char *message)
 	// only applies if we have a live file
 	if (m_playback_file.is_open())
 	{
+		char timearray[]="100d 00:00:00.00:";
+
+		sprintframetime(timearray);
 		// close the file
 		m_playback_file.close();
 
+		// display speed stats
+		if (m_playback_accumulated_frames)
+			m_playback_accumulated_speed /= m_playback_accumulated_frames;
+		else
+			m_playback_accumulated_speed = 0;
+
 		// pop a message
 		if (message != NULL)
-			popmessage("Playback Ended\nReason: %s", message);
+			popmessage("Playback Ended - %u Frames (%s) - Speed %d%%\nReason: %s",
+				(UINT32)m_playback_accumulated_frames, timearray, UINT32((m_playback_accumulated_speed * 200 + 1) >> 21), message);
 
 		// display speed stats
-		m_playback_accumulated_speed /= m_playback_accumulated_frames;
-		osd_printf_info("Total playback frames: %d\n", UINT32(m_playback_accumulated_frames));
+		osd_printf_info("Total playback frames: %d (%s)\n", (UINT32)m_playback_accumulated_frames,timearray);
 		osd_printf_info("Average recorded speed: %d%%\n", UINT32((m_playback_accumulated_speed * 200 + 1) >> 21));
 	}
 }
@@ -3440,6 +3464,8 @@ void ioport_manager::playback_end(const char *message)
 
 void ioport_manager::playback_frame(const attotime &curtime)
 {
+	UINT32 speed;
+
 	// if playing back, fetch the information and verify
 	if (m_playback_file.is_open())
 	{
@@ -3452,7 +3478,9 @@ void ioport_manager::playback_frame(const attotime &curtime)
 
 		// then the speed
 		UINT32 curspeed;
-		m_playback_accumulated_speed += playback_read(curspeed);
+		speed = playback_read(curspeed);
+		m_playback_accumulated_speed += speed;
+		rec_speed = (double)speed / (1 << 20);
 		m_playback_accumulated_frames++;
 	}
 }
@@ -3516,10 +3544,19 @@ void ioport_manager::record_write<bool>(bool value)
 
 void ioport_manager::record_init()
 {
+	astring error;
+
 	// if no file, nothing to do
 	const char *filename = machine().options().record();
 	if (filename[0] == 0)
 		return;
+
+	/* if in debug mode, don't start recording */
+	if(machine().debug_flags & DEBUG_FLAG_ENABLED)
+		return;
+
+	/* disable cheats */
+	machine().options().set_value(OPTION_CHEAT, 0, OPTION_PRIORITY_HIGH, error);
 
 	// open the record file
 	file_error filerr = m_record_file.open(filename);
@@ -3562,6 +3599,22 @@ void ioport_manager::record_end(const char *message)
 	// only applies if we have a live file
 	if (m_record_file.is_open())
 	{
+		// write end date to header
+		system_time systime;
+		UINT8 data[8];
+		machine().current_datetime(systime);
+		m_record_file.compress(FCOMPRESS_NONE);  // disable compression
+		m_record_file.seek(0x38,SEEK_SET);		
+		data[0x00] = systime.time >> 0;
+		data[0x01] = systime.time >> 8;
+		data[0x02] = systime.time >> 16;
+		data[0x03] = systime.time >> 24;
+		data[0x04] = systime.time >> 32;
+		data[0x05] = systime.time >> 40;
+		data[0x06] = systime.time >> 48;
+		data[0x07] = systime.time >> 56;
+		m_record_file.write(data,8);
+
 		// close the file
 		m_record_file.close();
 
@@ -4360,6 +4413,15 @@ float analog_field::crosshair_read()
 	return float(rawvalue - m_adjmin) / float(m_adjmax - m_adjmin);
 }
 
+ioport_value ioport_manager::get_digital(ioport_port* port) 
+{ 
+	return port->live().digital;
+}
+
+ioport_value ioport_manager::get_defvalue(ioport_port* port) 
+{ 
+	return port->live().defvalue;
+}
 
 
 /***************************************************************************
@@ -4423,7 +4485,42 @@ input_seq_type ioport_manager::token_to_seq_type(const char *string)
 	return SEQ_TYPE_INVALID;
 }
 
-
+int ioport_manager::sprintframetime(char *timearray)
+{
+	char *tptr=timearray;
+	int seconds;
+	int minutes;
+	double fps=ATTOSECONDS_TO_HZ((machine().first_screen()->frame_period().attoseconds));
+	seconds = (fps) ? m_playback_accumulated_frames/fps : 0;
+	if (seconds >= 24*60*60)
+	{
+		int days = seconds/(24*60*60);
+		seconds -= days*(24*60*60);
+		tptr += sprintf(tptr, "%dd ", days);
+	}
+	if (seconds >= 60*60)
+	{
+		int hours = seconds/(60*60);
+		seconds -= hours*(60*60);
+		*tptr++ = '0'+hours/10;
+		*tptr++ = '0'+hours%10;
+		*tptr++ = ':';
+	}
+	/* always display minutes seconds and centiseconds */					
+	minutes = seconds/(60);
+	seconds -= minutes*(60);
+	*tptr++ = '0'+minutes/10;
+	*tptr++ = '0'+minutes%10;
+	*tptr++ = ':';
+	*tptr++ = '0'+seconds/10;
+	*tptr++ = '0'+seconds%10;
+	seconds = 100*fmod(m_playback_accumulated_frames,fps)/fps;
+	*tptr++ = '.';
+	*tptr++ = '0'+seconds/10;
+	*tptr++ = '0'+seconds%10;
+	*tptr=0;
+	return tptr-timearray;
+}
 
 //-------------------------------------------------
 //  validate_natural_keyboard_statics -

@@ -17,6 +17,7 @@
 #include "crsshair.h"
 #include "rendersw.inc"
 #include "output.h"
+#include "ioport.h"
 
 #include "snap.lh"
 
@@ -258,6 +259,10 @@ astring &video_manager::speed_text(astring &string)
 
 	// if we're paused, just display Paused
 	bool paused = machine().paused();
+
+	/* show frame counter */
+	string.catprintf("[%i] : ",(UINT32)m_machine.first_screen()->frame_number());
+
 	if (paused)
 		string.cat("paused");
 
@@ -284,6 +289,9 @@ astring &video_manager::speed_text(astring &string)
 		partials += screen->partial_updates();
 	if (partials > 1)
 		string.catprintf("\n%d partial updates", partials);
+
+	if(machine().ioport().get_playback_file()->is_open())
+		string.catprintf("\nRecorded speed: %f%%",100 * machine().ioport().rec_speed);
 
 	return string;
 }

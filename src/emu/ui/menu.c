@@ -18,7 +18,7 @@
 #include "ui/mainmenu.h"
 #include "ui/miscmenu.h"
 #include <ctype.h>
-
+#include "ioport.h"
 
 
 /***************************************************************************
@@ -895,7 +895,7 @@ void ui_menu::handle_keys(UINT32 flags)
 	}
 
 	// pause enables/disables pause
-	if (!ignorepause && exclusive_input_pressed(IPT_UI_PAUSE, 0))
+	if (!ignorepause && exclusive_input_pressed(IPT_UI_PAUSE, 0) && !machine().ioport().get_record_file()->is_open())
 	{
 		if (machine().paused())
 			machine().resume();

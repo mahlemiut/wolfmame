@@ -37,7 +37,7 @@ const int MAX_PLAYERS = 8;
 // INP file parameters
 const UINT32 INP_HEADER_SIZE = 64;
 const UINT32 INP_HEADER_MAJVERSION = 3;
-const UINT32 INP_HEADER_MINVERSION = 0;
+const UINT32 INP_HEADER_MINVERSION = 5;
 
 // unicode constants
 const unicode_char UCHAR_PRIVATE = 0x100000;
@@ -691,9 +691,12 @@ struct inp_header
 	UINT8                       minversion;     // +11: minor INP version
 	UINT8                       reserved[2];    // +12: must be zero
 	char                        gamename[12];   // +14: game name string, NULL-terminated
-	char                        version[32];    // +20: system version string, NULL-terminated
+	char                        version[24];    // +20: system version string, NULL-terminated
+	UINT64                      endtime;        // +38: end time of recording
 };
 
+void playback_end(running_machine& machine, const char *message);
+void record_end(running_machine& machine, const char *message);
 
 // ======================> input_device_default
 
@@ -1352,6 +1355,25 @@ struct ioport_port_live
 	ioport_value            outputvalue;        // current value for outputs
 };
 
+class input_viewer
+{
+	DISABLE_COPYING(input_viewer);
+public:
+	input_viewer(running_machine& machine);
+	~input_viewer() {}
+	void render_input();
+	void render_dips();
+	void inpview_set_data(int,const char*);
+	int get_player(void);
+	int input_port_used(int type,int player);
+	running_machine &machine() const { return m_machine; }
+private:
+	unsigned int convert_txt(char*);
+	running_machine& m_machine;
+	int m_player;
+	int m_layout;
+};
+
 
 // ======================> ioport_manager
 
@@ -1390,6 +1412,9 @@ public:
 	bool type_class_present(ioport_type_class inputclass);
 
 	// other helpers
+	ioport_value get_digital(ioport_port* port);
+	ioport_value get_defvalue(ioport_port* port);
+	input_viewer& inpview() { return m_inpview; }
 	digital_joystick &digjoystick(int player, int joysticknum);
 	int count_players() const;
 	bool crosshair_position(int player, float &x, float &y);
@@ -1398,6 +1423,14 @@ public:
 	INT32 frame_interpolate(INT32 oldval, INT32 newval);
 	ioport_type token_to_input_type(const char *string, int &player) const;
 	const char *input_type_to_token(astring &string, ioport_type type, int player);
+
+	/* recorded speed read from an INP file */
+	double rec_speed;
+	int sprintframetime(char *timearray);
+	void record_end(const char *message = NULL);
+	void playback_end(const char *message = NULL);
+	emu_file* get_record_file() { return &m_record_file; }
+	emu_file* get_playback_file() { return &m_playback_file; }
 
 private:
 	// internal helpers
@@ -1425,13 +1458,11 @@ private:
 
 	template<typename _Type> _Type playback_read(_Type &result);
 	time_t playback_init();
-	void playback_end(const char *message = NULL);
 	void playback_frame(const attotime &curtime);
 	void playback_port(ioport_port &port);
 
 	template<typename _Type> void record_write(_Type value);
 	void record_init();
-	void record_end(const char *message = NULL);
 	void record_frame(const attotime &curtime);
 	void record_port(ioport_port &port);
 
@@ -1463,8 +1494,14 @@ private:
 	bool                    m_has_analog;
 	bool                    m_has_dips;
 	bool                    m_has_bioses;
+
+	// Input viewer
+	input_viewer m_inpview;
 };
 
+/* helper function to access INP file handles.  **shakes fist at MAMEdev** */
+emu_file* get_record_file(running_machine& machine);
+emu_file* get_playback_file(running_machine& machine);
 
 // ======================> ioport_configurer
 

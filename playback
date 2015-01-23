@@ -1,0 +1,11 @@
+#!/bin/bash
+
+mv cfg/$1.cfg cfg/$1.bak
+mv nvram/$1.nv nvram/$1.bak
+mv diff/$1.dif diff/$1.bak
+
+./mame $1 -playback $2.inp $3 $4 $5 $6 $7 $8 $9 -nvram_directory /dev/null
+
+mv cfg/$1.bak cfg/$1.cfg
+mv nvram/$1.bak nvram/$1.nv
+mv diff/$1.bak diff/$1.dif

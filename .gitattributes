@@ -25,11 +25,15 @@ Makefile svneol=native#text/plain
 *.rc svneol=CRLF#text/plain eol=crlf
 *.m svneol=native#text/plain
 *.sh svneol=LF#text/plain eol=lf
+record svneol=LF#text/plain eol=lf
+playback svneol=LF#text/plain eol=lf
+*.tcl svneol=native#text/plain
 src/osd/sdl/man/* svneol=LF#text/plain eol=lf
 src/osd/sdl/shader/*.vsh svneol=native#text/plain
 src/osd/sdl/shader/*.fsh svneol=native#text/plain
 *.py svneol=native#text/plain
 *.cmd svneol=CRLF#text/plain eol=crlf
+*.bat svneol=CRLF#text/plain eol=crlf
 *.html svneol=native#text/html
 *.gif -text svneol=unset#image/gif
 *.css svneol=native#text/css

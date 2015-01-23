@@ -1,0 +1,51 @@
+------------------------------------------------------------------------------------------------
+WolfMAME 0.157                                                                       04/Jan/2015
+Based on the MAME(tm)/MESS 0.157 source, modified by Barry Rodewald
+------------------------------------------------------------------------------------------------
+
+
+New in 0.153
+------------
+
+ - Changed the INP version number to 3.5, as a point of difference to regular MAME INPs.
+ - Source diffs are now based off of the MAME SVN, for (hopefully) easier updating.  Input
+   viewer source is now included in the main diff.
+
+
+Usage
+-----
+
+Same as MAME.  Read the docs included with standard MAME for a guide, or go to 
+http://www.mameworld.info/easyemu/ if you're completely clueless.
+
+Also included, is ui.tcl.  This is a very simple Tcl/Tk script, to aid in making INPs for MARP,
+including disabling NVRAM use for you.  It also has the advantage of working on multiple platforms
+without needing any changes (not tested on OS X).  Windows users will need a Tcl interpreter
+to be installed to be able to run it, Linux/Unix/OS X/BSD users should be able to just run it as is.
+
+Eventually, I'll rewrite the INP recording and playback guide (again) available at MARP to be more up 
+to date.
+
+
+
+MARP specific tips
+------------------
+
+  - NVRAM is not allowed to be used at MARP, so you'll need to use -nvram_directory NUL or set the
+    relevant option in mame.ini.  Substitute "NUL" for "/dev/null" if you're a Unix/Linux/BSD/OS X user.
+    It is recommended that you use the supplied batch files for recording and playback.
+
+  - Remember the speed rules, your average emulation speed during must not be less than 90%.  You can
+    view your current speed (and the recorded speed if you're playing back an INP) with F11.
+
+  - Pausing is not allowed.  Period.  While the pause functions are disabled when recording, it is still
+    possible in other ways.  Don't do it.  We can tell.
+
+
+
+Acknowledgements
+----------------
+
+Everyone involved in MAME(tm), past and present
+Zwaxy (aka Chris Moore), creator of the MAME Action Replay Page
+Mark Longridge, for TGMAME

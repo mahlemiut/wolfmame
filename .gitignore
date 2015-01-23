@@ -5,6 +5,12 @@
 !/.gitignore
 !/makefile
 !/*.md
+!/record.bat
+!/playback.bat
+!/record
+!/playback
+!/wolfmame.txt
+!/ui.tcl
 /cfg
 /diff
 /ini

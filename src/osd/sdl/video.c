@@ -154,9 +154,9 @@ void sdlvideo_monitor_refresh(sdl_monitor_info *monitor)
 
 	#if defined(SDLMAME_WIN32)
 	SDL_GetDesktopDisplayMode(monitor->handle, &dmode);
-    #else
-    SDL_GetCurrentDisplayMode(monitor->handle, &dmode);
-    #endif
+	#else
+	SDL_GetCurrentDisplayMode(monitor->handle, &dmode);
+	#endif
 	monitor->monitor_width = dmode.w;
 	monitor->monitor_height = dmode.h;
 	monitor->center_width = dmode.w;
@@ -227,7 +227,7 @@ void sdlvideo_monitor_refresh(sdl_monitor_info *monitor)
 			SDL_VideoDriverName(monitor->monitor_device, sizeof(monitor->monitor_device)-1);
 			if (first_call==0)
 			{
-				char *dimstr = osd_getenv(SDLENV_DESKTOPDIM);
+				const char *dimstr = osd_getenv(SDLENV_DESKTOPDIM);
 				const SDL_VideoInfo *sdl_vi;
 
 				sdl_vi = SDL_GetVideoInfo();
@@ -648,7 +648,7 @@ void sdl_osd_interface::extract_video_config(running_machine &machine)
 	stemp = options().video();
 	if (strcmp(stemp, "auto") == 0)
 	{
-#ifdef SDLMAME_MACOSX
+#if (defined SDLMAME_MACOSX || defined SDLMAME_WIN32)
 		stemp = "opengl";
 #else
 		stemp = "soft";

@@ -130,11 +130,10 @@ void ui_menu_sliders::handle()
 
 void ui_menu_sliders::populate()
 {
-	const slider_state *curslider;
 	astring tempstring;
 
-	/* add all sliders */
-	for (curslider = machine().ui().get_slider_list(); curslider != NULL; curslider = curslider->next)
+	/* add UI sliders */
+	for (const slider_state *curslider = machine().ui().get_slider_list(); curslider != NULL; curslider = curslider->next)
 	{
 		INT32 curval = (*curslider->update)(machine(), curslider->arg, &tempstring, SLIDER_NOCHANGE);
 		UINT32 flags = 0;
@@ -148,8 +147,8 @@ void ui_menu_sliders::populate()
 			break;
 	}
 
-	/* add all sliders */
-	for (curslider = (slider_state*)machine().osd().get_slider_list(); curslider != NULL; curslider = curslider->next)
+	/* add OSD sliders */
+	for (const slider_state *curslider = (slider_state*)machine().osd().get_slider_list(); curslider != NULL; curslider = curslider->next)
 	{
 		INT32 curval = (*curslider->update)(machine(), curslider->arg, &tempstring, SLIDER_NOCHANGE);
 		UINT32 flags = 0;
@@ -243,18 +242,18 @@ void ui_menu_sliders::custom_render(void *selectedref, float top, float bottom, 
 UINT32 ui_menu_sliders::ui_handler(running_machine &machine, render_container *container, UINT32 state)
 {
 	UINT32 result;
-	
+
 	/* if this is the first call, push the sliders menu */
 	if (state)
 		ui_menu::stack_push(auto_alloc_clear(machine, ui_menu_sliders(machine, container, true)));
-	
+
 	/* handle standard menus */
 	result = ui_menu::ui_handler(machine, container, state);
-	
+
 	/* if we are cancelled, pop the sliders menu */
 	if (result == UI_HANDLER_CANCEL)
 		ui_menu::stack_pop(machine);
-	
+
 	ui_menu_sliders *uim = dynamic_cast<ui_menu_sliders *>(menu_stack);
 	return uim && uim->menuless_mode ? 0 : UI_HANDLER_CANCEL;
 }

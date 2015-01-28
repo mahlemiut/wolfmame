@@ -18,6 +18,7 @@
 #include "unicode.h"
 #include "cliopts.h"
 
+
 // forward references
 class input_type_entry;     // FIXME: including emu.h does not work because emu.h includes osdepend.h
 
@@ -31,20 +32,14 @@ class input_type_entry;     // FIXME: including emu.h does not work because emu.
 class osd_font
 {
 public:
-    virtual ~osd_font() {}
+	virtual ~osd_font() {}
 
-    virtual bool open(const char *font_path, const char *name, int &height) = 0;
-    virtual void close() = 0;
-    virtual bool get_bitmap(unicode_char chnum, bitmap_argb32 &bitmap, INT32 &width, INT32 &xoffs, INT32 &yoffs) = 0;
+	virtual bool open(const char *font_path, const char *name, int &height) = 0;
+	virtual void close() = 0;
+	virtual bool get_bitmap(unicode_char chnum, bitmap_argb32 &bitmap, INT32 &width, INT32 &xoffs, INT32 &yoffs) = 0;
 };
 
 // ======================> osd_interface
-
-/* FIXME: this should be replaced by a proper module implementation
- * For the time being only one font provider can be linked
- */
-
-osd_font *osd_font_alloc();
 
 // description of the currently-running machine
 class osd_interface
@@ -71,9 +66,7 @@ public:
 	virtual void *get_slider_list() = 0; // FIXME: returns slider_state *
 
 	// font interface
-
-	// font is allocated with global_alloc; therefore use global_free!
-	osd_font *font_alloc() { return osd_font_alloc(); }
+	virtual osd_font *font_alloc() = 0;
 
 	// command option overrides
 	virtual bool execute_command(const char *command) = 0;

@@ -27,7 +27,7 @@ Makefile svneol=native#text/plain
 *.sh svneol=LF#text/plain eol=lf
 record svneol=LF#text/plain eol=lf
 playback svneol=LF#text/plain eol=lf
-*.tcl svneol=native#text/plain
+*.tcl svneol=native#text/x-tcl
 src/osd/sdl/man/* svneol=LF#text/plain eol=lf
 src/osd/sdl/shader/*.vsh svneol=native#text/plain
 src/osd/sdl/shader/*.fsh svneol=native#text/plain

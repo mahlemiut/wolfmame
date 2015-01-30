@@ -48,7 +48,7 @@ if { [string match "*.inp" [.inppath get]] == 0} {
         tk_messageBox -message "INP filenames require the .inp extension"
         return
 }
-sset index [lindex $sel 0]
+set index [lindex $sel 0]
 set command $cmdfilename
 append command " "
 append command [lindex $gamelistshortnames $index]

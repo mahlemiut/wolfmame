@@ -1368,7 +1368,6 @@ public:
 	int input_port_used(int type,int player);
 	running_machine &machine() const { return m_machine; }
 private:
-	unsigned int convert_txt(char*);
 	running_machine& m_machine;
 	int m_player;
 	int m_layout;

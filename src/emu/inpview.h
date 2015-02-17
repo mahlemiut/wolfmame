@@ -16,21 +16,6 @@
 
 #define BGCOL       rgb_t(0x80, 0x80, 0x00, 0x00)
 
-// uncomment if you plan to use MAME's built-in font
-//#define OLD_UI_FONT 1
-
-#ifndef OLD_UI_FONT
-#define DIRECTION_LEFT   0x2190
-#define DIRECTION_UP     0x2191
-#define DIRECTION_RIGHT  0x2192
-#define DIRECTION_DOWN   0x2193
-#else
-#define DIRECTION_LEFT   'L'
-#define DIRECTION_UP     'U'
-#define DIRECTION_RIGHT  'R'
-#define DIRECTION_DOWN   'D'
-#endif
-
 struct inputs
 {
 	char text[6];  // character(s) to display
@@ -71,10 +56,10 @@ static const struct _input_type_definition
 			{"8",  IPT_BUTTON8, 1, 34, 0, 1, COL_WHITE},
 			{"9",  IPT_BUTTON9, 1, 36, 0, 1, COL_WHITE},
 			{"0",  IPT_BUTTON10, 1, 38, 0, 1, COL_WHITE},
-			{"_L",  IPT_JOYSTICK_LEFT, 1, 10, 0, 1, COL_WHITE},
-			{"_R",  IPT_JOYSTICK_RIGHT, 1, 12, 0, 1, COL_WHITE},
-			{"_U",  IPT_JOYSTICK_UP, 1, 14, 0, 1, COL_WHITE},
-			{"_D",  IPT_JOYSTICK_DOWN, 1, 16, 0, 1, COL_WHITE},
+			{UTF8_LEFT,  IPT_JOYSTICK_LEFT,  1, 10, 0, 1, COL_WHITE},
+			{UTF8_RIGHT, IPT_JOYSTICK_RIGHT, 1, 12, 0, 1, COL_WHITE},
+			{UTF8_UP,    IPT_JOYSTICK_UP,    1, 14, 0, 1, COL_WHITE},
+			{UTF8_DOWN,  IPT_JOYSTICK_DOWN,  1, 16, 0, 1, COL_WHITE},
 			{"Tilt",  IPT_TILT, 1, 75, 0, 0, COL_RED},
 			{"Test",  IPT_SERVICE, 1, 75, 0, 1, COL_GREEN},
 			{"NULL", -1, 0,0,0,0,0}
@@ -142,14 +127,14 @@ static const struct _input_type_definition
 			{"8",  IPT_BUTTON8, 1, 44, 0, 1, COL_WHITE},
 			{"9",  IPT_BUTTON9, 1, 46, 0, 1, COL_WHITE},
 			{"0",  IPT_BUTTON10, 1, 48, 0, 1, COL_WHITE},
-			{"_L",  IPT_JOYSTICKLEFT_LEFT,   1, 6, 0, 1, COL_WHITE},
-			{"_R",  IPT_JOYSTICKLEFT_RIGHT,  1, 8, 0, 1, COL_WHITE},
-			{"_U",  IPT_JOYSTICKLEFT_UP,     1, 10, 0, 1, COL_WHITE},
-			{"_D",  IPT_JOYSTICKLEFT_DOWN,   1, 12, 0, 1, COL_WHITE},
-			{"_L",  IPT_JOYSTICKRIGHT_LEFT,  1, 18, 0, 1, COL_WHITE},
-			{"_R",  IPT_JOYSTICKRIGHT_RIGHT, 1, 20, 0, 1, COL_WHITE},
-			{"_U",  IPT_JOYSTICKRIGHT_UP,    1, 22, 0, 1, COL_WHITE},
-			{"_D",  IPT_JOYSTICKRIGHT_DOWN,  1, 24, 0, 1, COL_WHITE},
+			{UTF8_LEFT,  IPT_JOYSTICKLEFT_LEFT,   1, 6,  0, 1, COL_WHITE},
+			{UTF8_RIGHT, IPT_JOYSTICKLEFT_RIGHT,  1, 8,  0, 1, COL_WHITE},
+			{UTF8_UP,    IPT_JOYSTICKLEFT_UP,     1, 10, 0, 1, COL_WHITE},
+			{UTF8_DOWN,  IPT_JOYSTICKLEFT_DOWN,   1, 12, 0, 1, COL_WHITE},
+			{UTF8_LEFT,  IPT_JOYSTICKRIGHT_LEFT,  1, 18, 0, 1, COL_WHITE},
+			{UTF8_RIGHT, IPT_JOYSTICKRIGHT_RIGHT, 1, 20, 0, 1, COL_WHITE},
+			{UTF8_UP,    IPT_JOYSTICKRIGHT_UP,    1, 22, 0, 1, COL_WHITE},
+			{UTF8_DOWN,  IPT_JOYSTICKRIGHT_DOWN,  1, 24, 0, 1, COL_WHITE},
 			{"Tilt",  IPT_TILT, 1, 75, 0, 0, COL_RED},
 			{"Test",  IPT_SERVICE, 1, 75, 0, 1, COL_GREEN},
 			{"NULL", -1, 0,0,0,0,0}
@@ -165,10 +150,10 @@ static const struct _input_type_definition
 			{"B",  IPT_BUTTON2, 2, 29, 0, 1, COL_YELLOW},
 			{"C",  IPT_BUTTON3, 2, 32, 0, 1, COL_GREEN},
 			{"D",  IPT_BUTTON4, 1, 35, 0, 1, COL_BLUE},
-			{"_L",  IPT_JOYSTICK_LEFT, 1, 15, 0, 1, COL_WHITE},
-			{"_R",  IPT_JOYSTICK_RIGHT, 1, 19, 0, 1, COL_WHITE},
-			{"_U",  IPT_JOYSTICK_UP, 2, 17, 0, 1, COL_WHITE},
-			{"_D",  IPT_JOYSTICK_DOWN, 1, 17, 0, 1, COL_WHITE},
+			{UTF8_LEFT,  IPT_JOYSTICK_LEFT,  1, 10, 0, 1, COL_WHITE},
+			{UTF8_RIGHT, IPT_JOYSTICK_RIGHT, 1, 12, 0, 1, COL_WHITE},
+			{UTF8_UP,    IPT_JOYSTICK_UP,    1, 14, 0, 1, COL_WHITE},
+			{UTF8_DOWN,  IPT_JOYSTICK_DOWN,  1, 16, 0, 1, COL_WHITE},
 			{"Tilt",  IPT_TILT, 2, 75, 0, 0, COL_RED},
 			{"Test",  IPT_SERVICE, 1, 75, 0, 1, COL_GREEN},
 			{"NULL", -1, 0,0,0,0,0}
@@ -186,10 +171,10 @@ static const struct _input_type_definition
 			{"4",  IPT_BUTTON4, 1, 30, 0, 1, COL_WHITE},
 			{"5",  IPT_BUTTON5, 1, 33, 0, 1, COL_WHITE},
 			{"6",  IPT_BUTTON6, 1, 36, 0, 1, COL_WHITE},
-			{"_L",  IPT_JOYSTICK_LEFT, 1, 15, 0, 1, COL_WHITE},
-			{"_R",  IPT_JOYSTICK_RIGHT, 1, 19, 0, 1, COL_WHITE},
-			{"_U",  IPT_JOYSTICK_UP, 2, 17, 0, 1, COL_WHITE},
-			{"_D",  IPT_JOYSTICK_DOWN, 1, 17, 0, 1, COL_WHITE},
+			{UTF8_LEFT,  IPT_JOYSTICK_LEFT,  1, 10, 0, 1, COL_WHITE},
+			{UTF8_RIGHT, IPT_JOYSTICK_RIGHT, 1, 12, 0, 1, COL_WHITE},
+			{UTF8_UP,    IPT_JOYSTICK_UP,    1, 14, 0, 1, COL_WHITE},
+			{UTF8_DOWN,  IPT_JOYSTICK_DOWN,  1, 16, 0, 1, COL_WHITE},
 			{"Tilt",  IPT_TILT, 2, 75, 0, 0, COL_RED},
 			{"Test",  IPT_SERVICE, 1, 75, 0, 1, COL_GREEN},
 			{"NULL", -1, 0,0,0,0,0}

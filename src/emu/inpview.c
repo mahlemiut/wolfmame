@@ -36,24 +36,16 @@ void input_viewer::render_input()
 		{
 			if(input_port_used(inptype[m_layout].inp[port].port,0) != 0)
 			{
-				int ch = convert_txt(txt);
 				int col = inptype[m_layout].inp[port].colour;
-				if(ch == 0)
-					machine().ui().draw_text_full(ui,txt,(float)(inptype[m_layout].inp[port].x * CHARACTER_WIDTH),1.0f - (float)(height * inptype[m_layout].inp[port].line),1.0f,JUSTIFY_LEFT,WRAP_NEVER,DRAW_OPAQUE,col,0,NULL,NULL);
-				else
-					machine().render().ui_container().add_char((float)(inptype[m_layout].inp[port].x * CHARACTER_WIDTH),1.0f - (float)(height * inptype[m_layout].inp[port].line),height,machine().render().ui_aspect(),col,*(machine().ui().get_font()),ch);
+				machine().ui().draw_text_full(ui,txt,(float)(inptype[m_layout].inp[port].x * CHARACTER_WIDTH),1.0f - (float)(height * inptype[m_layout].inp[port].line),1.0f,JUSTIFY_LEFT,WRAP_NEVER,DRAW_OPAQUE,col,0,NULL,NULL);
 			}
 		}
 		else
 		{
 			if(input_port_used(inptype[m_layout].inp[port].port,m_player-1) != 0)
 			{
-				int ch = convert_txt(txt);
 				int col = inptype[m_layout].inp[port].colour;
-				if(ch == 0)
-					machine().ui().draw_text_full(ui,txt,(float)(inptype[m_layout].inp[port].x * CHARACTER_WIDTH),1.0f - (float)(height * inptype[m_layout].inp[port].line),1.0f,JUSTIFY_LEFT,WRAP_NEVER,DRAW_OPAQUE,col,0,NULL,NULL);
-				else
-					machine().render().ui_container().add_char((float)(inptype[m_layout].inp[port].x * CHARACTER_WIDTH),1.0f - (float)(height * inptype[m_layout].inp[port].line),height,machine().render().ui_aspect(),col,*(machine().ui().get_font()),ch);
+				machine().ui().draw_text_full(ui,txt,(float)(inptype[m_layout].inp[port].x * CHARACTER_WIDTH),1.0f - (float)(height * inptype[m_layout].inp[port].line),1.0f,JUSTIFY_LEFT,WRAP_NEVER,DRAW_OPAQUE,col,0,NULL,NULL);
 			}
 		}
 		port++;
@@ -175,18 +167,5 @@ int input_viewer::input_port_used(int type,int player)
 	return 0;
 }
 
-
-unsigned int input_viewer::convert_txt(char* txt)
-{
-		if(strcmp(txt,"_L") == 0)
-			return DIRECTION_LEFT;
-		if(strcmp(txt,"_R") == 0)
-			return DIRECTION_RIGHT;
-		if(strcmp(txt,"_U") == 0)
-			return DIRECTION_UP;
-		if(strcmp(txt,"_D") == 0)
-			return DIRECTION_DOWN;
-	return 0;
-}
 
 

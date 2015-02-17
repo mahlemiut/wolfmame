@@ -75,6 +75,8 @@ static const struct _input_type_definition
 			{"_R",  IPT_JOYSTICK_RIGHT, 1, 12, 0, 1, COL_WHITE},
 			{"_U",  IPT_JOYSTICK_UP, 1, 14, 0, 1, COL_WHITE},
 			{"_D",  IPT_JOYSTICK_DOWN, 1, 16, 0, 1, COL_WHITE},
+			{"Tilt",  IPT_TILT, 1, 75, 0, 0, COL_RED},
+			{"Test",  IPT_SERVICE, 1, 75, 0, 1, COL_GREEN},
 			{"NULL", -1, 0,0,0,0,0}
 		}
 	},
@@ -113,6 +115,8 @@ static const struct _input_type_definition
 			{"KAN",  IPT_MAHJONG_KAN, 2, 42, 0, 1, COL_WHITE},
 			{"RON",  IPT_MAHJONG_RON, 2, 50, 0, 1, COL_WHITE},
 			{"BET",  IPT_MAHJONG_BET, 2, 58, 0, 1, COL_WHITE},
+			{"Tilt",  IPT_TILT, 2, 75, 0, 0, COL_RED},
+			{"Test",  IPT_SERVICE, 1, 75, 0, 1, COL_GREEN},
 			{"NULL", -1, 0,0,0,0,0}
 		}
 	},
@@ -146,6 +150,8 @@ static const struct _input_type_definition
 			{"_R",  IPT_JOYSTICKRIGHT_RIGHT, 1, 20, 0, 1, COL_WHITE},
 			{"_U",  IPT_JOYSTICKRIGHT_UP,    1, 22, 0, 1, COL_WHITE},
 			{"_D",  IPT_JOYSTICKRIGHT_DOWN,  1, 24, 0, 1, COL_WHITE},
+			{"Tilt",  IPT_TILT, 1, 75, 0, 0, COL_RED},
+			{"Test",  IPT_SERVICE, 1, 75, 0, 1, COL_GREEN},
 			{"NULL", -1, 0,0,0,0,0}
 		}
 	},
@@ -163,6 +169,8 @@ static const struct _input_type_definition
 			{"_R",  IPT_JOYSTICK_RIGHT, 1, 19, 0, 1, COL_WHITE},
 			{"_U",  IPT_JOYSTICK_UP, 2, 17, 0, 1, COL_WHITE},
 			{"_D",  IPT_JOYSTICK_DOWN, 1, 17, 0, 1, COL_WHITE},
+			{"Tilt",  IPT_TILT, 2, 75, 0, 0, COL_RED},
+			{"Test",  IPT_SERVICE, 1, 75, 0, 1, COL_GREEN},
 			{"NULL", -1, 0,0,0,0,0}
 		}
 	},
@@ -182,6 +190,8 @@ static const struct _input_type_definition
 			{"_R",  IPT_JOYSTICK_RIGHT, 1, 19, 0, 1, COL_WHITE},
 			{"_U",  IPT_JOYSTICK_UP, 2, 17, 0, 1, COL_WHITE},
 			{"_D",  IPT_JOYSTICK_DOWN, 1, 17, 0, 1, COL_WHITE},
+			{"Tilt",  IPT_TILT, 2, 75, 0, 0, COL_RED},
+			{"Test",  IPT_SERVICE, 1, 75, 0, 1, COL_GREEN},
 			{"NULL", -1, 0,0,0,0,0}
 		}
 	}

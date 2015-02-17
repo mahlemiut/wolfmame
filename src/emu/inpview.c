@@ -131,7 +131,8 @@ void input_viewer::inpview_set_data(int ply, const char* lay)
 	{
 		if(strcmp(inptype[m_layout].name,lay) == 0)
 		{
-			printf("INPVIEW: using layout type '%s' for player %i\n",lay,ply);
+			if(ply != 0)
+				printf("INPVIEW: using layout type '%s' for player %i\n",lay,ply);
 			return;
 		}
 		m_layout++;

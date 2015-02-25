@@ -281,6 +281,9 @@ BUILD_MIDILIB = 1
 # uncomment to enable OpenMP optimized code
 # OPENMP = 1
 
+# uncomment to compile c++ code as C++11
+# CPP11 = 1
+
 # specify optimization level or leave commented to use the default
 # (default is OPTIMIZE = 3 normally, or OPTIMIZE = 0 with symbols)
 # OPTIMIZE = 3
@@ -369,7 +372,6 @@ RM = @rm -f
 OBJDUMP = @objdump
 PYTHON = @python
 
-
 #-------------------------------------------------
 # form the name of the executable
 #-------------------------------------------------
@@ -415,7 +417,7 @@ NAME = $(TARGET)$(SUBTARGET)
 endif
 
 # fullname is prefix+name+suffix+suffix64+suffixdebug
-FULLNAME ?= $(PREFIX)$(PREFIXSDL)$(NAME)$(SUFFIX)$(SUFFIX64)$(SUFFIXDEBUG)$(SUFFIXPROFILE)
+FULLNAME ?= $(BIN)$(PREFIX)$(PREFIXSDL)$(NAME)$(SUFFIX)$(SUFFIX64)$(SUFFIXDEBUG)$(SUFFIXPROFILE)
 
 # add an EXE suffix to get the final emulator name
 EMULATOR = $(FULLNAME)$(EXE)
@@ -526,7 +528,11 @@ CFLAGS = $(CCOMFLAGS) $(CPPONLYFLAGS) $(INCPATH)
 # we compile C-only to C89 standard with GNU extensions
 # we compile C++ code to C++98 standard with GNU extensions
 CONLYFLAGS += -std=gnu89
+ifdef CPP11
+CPPONLYFLAGS += -x c++ -std=gnu++11
+else
 CPPONLYFLAGS += -x c++ -std=gnu++98
+endif
 COBJFLAGS += -x objective-c++
 
 # this speeds it up a bit by piping between the preprocessor/compiler/assembler
@@ -650,9 +656,6 @@ ifeq ($(COMMAND_MODE),"legacy")
 ARFLAGS = -crs
 endif
 endif
-ifeq ($(TARGETOS),emscripten)
-ARFLAGS = cr
-endif
 
 
 #-------------------------------------------------
@@ -711,7 +714,7 @@ endif
 # this variable
 #-------------------------------------------------
 
-OBJDIRS = $(OBJ) $(OBJ)/$(TARGET)/$(SUBTARGET)
+OBJDIRS += $(OBJ) $(OBJ)/$(TARGET)/$(SUBTARGET)
 
 
 #-------------------------------------------------
@@ -756,6 +759,7 @@ INCPATH += -I$(3RDPARTY)/zlib
 ZLIB = $(OBJ)/libz.a
 else
 LIBS += -lz
+BASELIBS += -lz
 ZLIB =
 endif
 
@@ -766,6 +770,7 @@ FLAC_LIB = $(OBJ)/libflac.a
 # $(OBJ)/libflac++.a
 else
 LIBS += -lFLAC
+BASELIBS += -lFLAC
 FLAC_LIB =
 endif
 
@@ -797,6 +802,9 @@ else
 LIBS += -lsqlite3
 SQLITE3_LIB =
 endif
+
+# add BGFX library - this is one in sdl.mak / windows.mak
+# BGFX_LIB = $(OBJ)/libbgfx.a
 
 # add PortMidi MIDI library
 ifeq ($(BUILD_MIDILIB),1)
@@ -927,14 +935,25 @@ $(sort $(OBJDIRS)):
 
 ifndef EXECUTABLE_DEFINED
 
-$(EMULATOR): $(EMUINFOOBJ) $(DRIVLISTOBJ) $(DRVLIBS) $(LIBOSD) $(LIBBUS) $(LIBOPTIONAL) $(LIBEMU) $(LIBDASM) $(LIBUTIL) $(EXPAT) $(SOFTFLOAT) $(JPEG_LIB) $(FLAC_LIB) $(7Z_LIB) $(FORMATS_LIB) $(LUA_LIB) $(SQLITE3_LIB) $(WEB_LIB) $(ZLIB) $(LIBOCORE) $(MIDI_LIB) $(RESFILE)
-	$(CC) $(CDEFS) $(CFLAGS) -c $(SRC)/version.c -o $(VERSIONOBJ)
+ifeq ($(BUSES),)
+LIBBUS =
+endif
+
+EMULATOROBJLIST = $(EMUINFOOBJ) $(DRIVLISTOBJ) $(DRVLIBS) $(LIBOSD) $(LIBBUS) $(LIBOPTIONAL) $(LIBEMU) $(LIBDASM) $(LIBUTIL) $(EXPAT) $(SOFTFLOAT) $(JPEG_LIB) $(FLAC_LIB) $(7Z_LIB) $(FORMATS_LIB) $(LUA_LIB) $(SQLITE3_LIB) $(WEB_LIB) $(BGFX_LIB) $(ZLIB) $(LIBOCORE) $(MIDI_LIB) $(RESFILE)
+
+ifeq ($(TARGETOS),emscripten)
+EMULATOROBJ = $(EMULATOROBJLIST:.a=.bc)
+else
+EMULATOROBJ = $(EMULATOROBJLIST)
+endif
+
+$(EMULATOR): $(VERSIONOBJ) $(EMULATOROBJ)
 	@echo Linking $@...
 ifeq ($(TARGETOS),emscripten)
-	# Emscripten's linker seems to be stricter about the ordering of .a files
-	$(LD) $(LDFLAGS) $(LDFLAGSEMULATOR) $(VERSIONOBJ) -Wl,--start-group $^ -Wl,--end-group $(LIBS) -o $@
+# Emscripten's linker seems to be stricter about the ordering of files
+	$(LD) $(LDFLAGS) $(LDFLAGSEMULATOR) $(VERSIONOBJ) -Wl,--start-group $(EMULATOROBJ) -Wl,--end-group $(LIBS) -o $@
 else
-	$(LD) $(LDFLAGS) $(LDFLAGSEMULATOR) $(VERSIONOBJ) $^ $(LIBS) -o $@
+	$(LD) $(LDFLAGS) $(LDFLAGSEMULATOR) $(VERSIONOBJ) $(EMULATOROBJ) $(LIBS) -o $@
 endif
 ifeq ($(TARGETOS),win32)
 ifdef SYMBOLS
@@ -996,14 +1015,24 @@ ifdef CPPCHECK
 	@$(CPPCHECK) $(CPPCHECKFLAGS) $<
 endif
 
-$(DRIVLISTSRC): $(SRC)/$(TARGET)/$(SUBTARGET).lst $(MAKELIST_TARGET)
+$(DRIVLISTSRC): $(SRC)/$(TARGET)/$(SUBTARGET).lst $(SRC)/build/makelist.py
 	@echo Building driver list $<...
-	@$(MAKELIST) $< >$@
+	$(PYTHON) $(SRC)/build/makelist.py $< >$@
 
+ifeq ($(TARGETOS),emscripten)
+# Avoid using .a files with Emscripten, link to bitcode instead
+$(OBJ)/%.a:
+	@echo Linking $@...
+	$(RM) $@
+	$(LD) $^ -o $@
+$(OBJ)/%.bc: $(OBJ)/%.a
+	@cp $< $@
+else
 $(OBJ)/%.a:
 	@echo Archiving $@...
 	$(RM) $@
 	$(AR) $(ARFLAGS) $@ $^
+endif
 
 ifeq ($(TARGETOS),macosx)
 $(OBJ)/%.o: $(SRC)/%.m | $(OSPREBUILD)

@@ -260,11 +260,11 @@ void emu_timer::register_save()
 	}
 
 	// save the bits
-	machine().save().save_item("timer", name, index, NAME(m_param));
-	machine().save().save_item("timer", name, index, NAME(m_enabled));
-	machine().save().save_item("timer", name, index, NAME(m_period));
-	machine().save().save_item("timer", name, index, NAME(m_start));
-	machine().save().save_item("timer", name, index, NAME(m_expire));
+	machine().save().save_item(m_device, "timer", name, index, NAME(m_param));
+	machine().save().save_item(m_device, "timer", name, index, NAME(m_enabled));
+	machine().save().save_item(m_device, "timer", name, index, NAME(m_period));
+	machine().save().save_item(m_device, "timer", name, index, NAME(m_start));
+	machine().save().save_item(m_device, "timer", name, index, NAME(m_expire));
 }
 
 
@@ -460,7 +460,7 @@ void device_scheduler::timeslice()
 				{
 					// compute how many cycles we want to execute
 					int ran = exec->m_cycles_running = divu_64x32((UINT64)delta >> exec->m_divshift, exec->m_divisor);
-					LOG(("  cpu '%s': %"I64FMT"d (%d cycles)\n", exec->device().tag(), delta, exec->m_cycles_running));
+					LOG(("  cpu '%s': %" I64FMT"d (%d cycles)\n", exec->device().tag(), delta, exec->m_cycles_running));
 
 					// if we're not suspended, actually execute
 					if (exec->m_suspend == 0)

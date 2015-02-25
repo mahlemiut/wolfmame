@@ -33,6 +33,12 @@ OBJDIRS += \
 	$(LIBOBJ)/mongoose \
 	$(LIBOBJ)/jsoncpp \
 	$(LIBOBJ)/sqlite3 \
+	$(LIBOBJ)/bgfx \
+	$(LIBOBJ)/bgfx/common \
+	$(LIBOBJ)/bgfx/common/entry \
+	$(LIBOBJ)/bgfx/common/font \
+	$(LIBOBJ)/bgfx/common/imgui \
+	$(LIBOBJ)/bgfx/common/nanovg \
 
 #-------------------------------------------------
 # utility library objects
@@ -177,7 +183,6 @@ FORMATSOBJS = \
 	$(LIBOBJ)/formats/m20_dsk.o     \
 	$(LIBOBJ)/formats/m5_dsk.o      \
 	$(LIBOBJ)/formats/mbee_cas.o    \
-	$(LIBOBJ)/formats/mbee_dsk.o    \
 	$(LIBOBJ)/formats/mm_dsk.o      \
 	$(LIBOBJ)/formats/msx_dsk.o     \
 	$(LIBOBJ)/formats/mfi_dsk.o     \
@@ -593,4 +598,91 @@ endif
 
 $(LIBOBJ)/sqlite3/sqlite3.o: $(3RDPARTY)/sqlite3/sqlite3.c | $(OSPREBUILD)
 	@echo Compiling $<...
-	$(CC) $(CDEFS) $(CONLYFLAGS) -Wno-bad-function-cast -I$(3RDPARTY)/sqlite3 $(SQLITE3_FLAGS) -c $< -o $@
+	$(CC) $(CDEFS) $(CCOMFLAGS) $(CONLYFLAGS) -Wno-bad-function-cast -Wno-undef -I$(3RDPARTY)/sqlite3 $(SQLITE3_FLAGS) -c $< -o $@
+
+#-------------------------------------------------
+# BGFX library objects
+#-------------------------------------------------
+
+BGFXOBJS = \
+	$(LIBOBJ)/bgfx/bgfx.o \
+	$(LIBOBJ)/bgfx/glcontext_egl.o \
+	$(LIBOBJ)/bgfx/glcontext_glx.o \
+	$(LIBOBJ)/bgfx/glcontext_ppapi.o \
+	$(LIBOBJ)/bgfx/glcontext_wgl.o \
+	$(LIBOBJ)/bgfx/image.o \
+	$(LIBOBJ)/bgfx/renderer_d3d12.o \
+	$(LIBOBJ)/bgfx/renderer_d3d11.o \
+	$(LIBOBJ)/bgfx/renderer_d3d9.o \
+	$(LIBOBJ)/bgfx/renderer_gl.o \
+	$(LIBOBJ)/bgfx/renderer_null.o \
+	$(LIBOBJ)/bgfx/renderdoc.o \
+	$(LIBOBJ)/bgfx/vertexdecl.o \
+	$(LIBOBJ)/bgfx/common/bgfx_utils.o \
+	$(LIBOBJ)/bgfx/common/bounds.o \
+	$(LIBOBJ)/bgfx/common/camera.o \
+	$(LIBOBJ)/bgfx/common/cube_atlas.o \
+	$(LIBOBJ)/bgfx/common/font/font_manager.o \
+	$(LIBOBJ)/bgfx/common/font/text_buffer_manager.o \
+	$(LIBOBJ)/bgfx/common/font/text_metrics.o \
+	$(LIBOBJ)/bgfx/common/font/utf8.o \
+	$(LIBOBJ)/bgfx/common/imgui/imgui.o \
+	$(LIBOBJ)/bgfx/common/nanovg/nanovg.o \
+	$(LIBOBJ)/bgfx/common/nanovg/nanovg_bgfx.o \
+#   $(LIBOBJ)/bgfx/common/entry/cmd.o \
+#   $(LIBOBJ)/bgfx/common/entry/dbg.o \
+#   $(LIBOBJ)/bgfx/common/entry/entry.o \
+#   $(LIBOBJ)/bgfx/common/entry/entry_android.o \
+#   $(LIBOBJ)/bgfx/common/entry/entry_asmjs.o \
+#   $(LIBOBJ)/bgfx/common/entry/entry_linux.o \
+#   $(LIBOBJ)/bgfx/common/entry/entry_nacl.o \
+#   $(LIBOBJ)/bgfx/common/entry/entry_qnx.o \
+#   $(LIBOBJ)/bgfx/common/entry/entry_sdl.o \
+#   $(LIBOBJ)/bgfx/common/entry/entry_windows.o \
+#   $(LIBOBJ)/bgfx/common/entry/input.o \
+
+ifeq ($(TARGETOS),macosx)
+	BGFXOBJS += $(LIBOBJ)/bgfx/glcontext_eagl.o
+	BGFXOBJS += $(LIBOBJ)/bgfx/glcontext_nsgl.o
+endif
+
+$(OBJ)/libbgfx.a: $(BGFXOBJS)
+
+BGFXINC = -I$(3RDPARTY)/bgfx/include -I$(3RDPARTY)/bgfx/3rdparty -I$(3RDPARTY)/bx/include -I$(3RDPARTY)/bgfx/3rdparty/khronos
+ifdef MSVC_BUILD
+	BGFXINC += -I$(3RDPARTY)/bx/include/compat/msvc /EHsc
+else
+	ifeq ($(TARGETOS),win32)
+		BGFXINC += -I$(3RDPARTY)/bx/include/compat/mingw
+		ifeq ($(PTR64),1)
+		BGFXINC += -L$(3RDPARTY)/dxsdk/lib/x64 -D_WIN32_WINNT=0x601
+		else
+		BGFXINC += -L$(3RDPARTY)/dxsdk/lib/x86 -D_WIN32_WINNT=0x601
+		endif
+	endif
+	ifeq ($(TARGETOS),freebsd)
+		BGFXINC += -I$(3RDPARTY)/bx/include/compat/freebsd
+	endif
+	ifeq ($(TARGETOS),macosx)
+		BGFXINC += -I$(3RDPARTY)/bx/include/compat/osx
+	endif
+endif
+
+ifeq ($(TARGETOS),win32)
+BGFXINC += -I$(3RDPARTY)/dxsdk/Include
+endif
+
+$(LIBOBJ)/bgfx/%.o: $(3RDPARTY)/bgfx/src/%.cpp | $(OSPREBUILD)
+	@echo Compiling $<...
+	$(CC) $(CDEFS) $(CCOMFLAGS) $(BGFXINC) -D__STDC_LIMIT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_CONSTANT_MACROS -c $< -o $@
+
+$(LIBOBJ)/bgfx/common/%.o: $(3RDPARTY)/bgfx/examples/common/%.cpp | $(OSPREBUILD)
+	@echo Compiling $<...
+	$(CC) $(CDEFS) $(CCOMFLAGS) $(BGFXINC) -D__STDC_LIMIT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_CONSTANT_MACROS -c $< -o $@
+
+ifeq ($(TARGETOS),macosx)
+$(LIBOBJ)/bgfx/%.o: $(3RDPARTY)/bgfx/src/%.mm | $(OSPREBUILD)
+	@echo Objective-C compiling $<...
+	$(CC) $(CDEFS) $(COBJFLAGS) $(CCOMFLAGS) $(BGFXINC) -D__STDC_LIMIT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_CONSTANT_MACROS -c $< -o $@
+
+endif

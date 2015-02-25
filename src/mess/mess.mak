@@ -134,6 +134,8 @@ CPUS += ALTO2
 #CPUS += W65816
 CPUS += ARC
 CPUS += ARCOMPACT
+CPUS += AMIS2000
+CPUS += UCOM4
 
 #-------------------------------------------------
 # specify available sound cores; some of these are
@@ -325,6 +327,7 @@ VIDEOS += UPD7227
 VIDEOS += V9938
 VIDEOS += VIC4567
 #VIDEOS += VOODOO
+VIDEOS += SCN2674
 
 #-------------------------------------------------
 # specify available machine cores
@@ -634,6 +637,7 @@ BUSES += SEGA8
 BUSES += SMS_CTRL
 BUSES += SMS_EXP
 BUSES += SNES
+BUSES += SNES_CTRL
 BUSES += SPC1000
 BUSES += TI99PEB
 BUSES += TVC
@@ -1088,7 +1092,7 @@ $(MESSOBJ)/cbm.a:               \
 	$(MESS_DRIVERS)/c128.o      \
 	$(MESS_DRIVERS)/c64.o       \
 	$(MESS_DRIVERS)/c64dtv.o    \
-	$(MESS_DRIVERS)/c65.o $(MESS_MACHINE)/c65.o \
+	$(MESS_DRIVERS)/c65.o \
 	$(MESS_DRIVERS)/c900.o      \
 	$(MESS_DRIVERS)/cbm2.o      \
 	$(MESS_DRIVERS)/clcd.o      \
@@ -1128,6 +1132,7 @@ $(MESSOBJ)/coleco.a:            \
 	$(MESS_DRIVERS)/coleco.o    \
 	$(MESS_MACHINE)/coleco.o    \
 	$(MESS_DRIVERS)/amaztron.o  \
+	$(MESS_DRIVERS)/tc4.o       \
 
 $(MESSOBJ)/cromemco.a:          \
 	$(MESS_DRIVERS)/c10.o       \
@@ -1226,6 +1231,7 @@ $(MESSOBJ)/entex.a:             \
 	$(MESS_DRIVERS)/advision.o $(MESS_MACHINE)/advision.o $(MESS_VIDEO)/advision.o \
 
 $(MESSOBJ)/epoch.a:             \
+	$(MESS_DRIVERS)/edracula.o  \
 	$(MESS_DRIVERS)/gamepock.o $(MESS_MACHINE)/gamepock.o \
 	$(MESS_DRIVERS)/scv.o $(MESS_AUDIO)/upd1771.o \
 
@@ -1498,6 +1504,7 @@ $(MESSOBJ)/parker.a:            \
 	$(MESS_DRIVERS)/merlin.o    \
 	$(MESS_DRIVERS)/splitsec.o  \
 	$(MESS_DRIVERS)/stopthie.o  \
+	$(MESS_DRIVERS)/wildfire.o  \
 
 $(MESSOBJ)/pitronic.a:          \
 	$(MESS_DRIVERS)/beta.o      \
@@ -1557,6 +1564,7 @@ $(MESSOBJ)/roland.a:            \
 	$(MESS_DRIVERS)/rmt32.o     \
 	$(MESS_DRIVERS)/rd110.o     \
 	$(MESS_DRIVERS)/rsc55.o     \
+	$(MESS_DRIVERS)/tb303.o     \
 
 $(MESSOBJ)/rockwell.a:          \
 	$(MESS_DRIVERS)/aim65.o $(MESS_MACHINE)/aim65.o \
@@ -1784,6 +1792,8 @@ $(MESSOBJ)/tiki.a:              \
 	$(MESS_DRIVERS)/tiki100.o   \
 
 $(MESSOBJ)/tomy.a:              \
+	$(MESS_DRIVERS)/alnchase.o  \
+	$(MESS_DRIVERS)/tmtennis.o  \
 	$(MESS_DRIVERS)/tutor.o     \
 
 $(MESSOBJ)/toshiba.a:           \
@@ -1940,7 +1950,7 @@ $(MESSOBJ)/skeleton.a:          \
 	$(MESS_DRIVERS)/fc100.o     \
 	$(MESS_DRIVERS)/fk1.o       \
 	$(MESS_DRIVERS)/ft68m.o     \
-	$(MESS_DRIVERS)/gamate.o    \
+	$(MESS_DRIVERS)/gamate.o    $(MESS_AUDIO)/gamate.o    \
 	$(MESS_DRIVERS)/gameking.o  \
 	$(MESS_DRIVERS)/gimix.o     \
 	$(MESS_DRIVERS)/grfd2301.o  \
@@ -2090,6 +2100,7 @@ $(MESS_DRIVERS)/acrnsys1.o: $(MESS_LAYOUT)/acrnsys1.lh
 $(MESS_DRIVERS)/aim65.o:    $(MESS_LAYOUT)/aim65.lh
 $(MESS_DRIVERS)/aim65_40.o: $(MESS_LAYOUT)/aim65_40.lh
 $(MESS_DRIVERS)/alesis.o:   $(MESS_LAYOUT)/sr16.lh
+$(MESS_DRIVERS)/alnchase.o: $(MESS_LAYOUT)/alnchase.lh
 $(MESS_DRIVERS)/amaztron.o: $(MESS_LAYOUT)/amaztron.lh
 $(MESS_DRIVERS)/amico2k.o:  $(MESS_LAYOUT)/amico2k.lh
 $(MESS_DRIVERS)/amiga.o:    $(MESS_LAYOUT)/amiga.lh
@@ -2119,6 +2130,7 @@ $(MESS_DRIVERS)/digel804.o: $(MESS_LAYOUT)/digel804.lh
 $(MESS_DRIVERS)/dmv.o:      $(MESS_LAYOUT)/dmv.lh
 $(MESS_DRIVERS)/dolphunk.o: $(MESS_LAYOUT)/dolphunk.lh
 $(MESS_DRIVERS)/eacc.o:     $(MESS_LAYOUT)/eacc.lh
+$(MESS_DRIVERS)/edracula.o: $(MESS_LAYOUT)/edracula.lh
 $(MESS_DRIVERS)/elecdet.o:  $(MESS_LAYOUT)/elecdet.lh
 $(MESS_DRIVERS)/elekscmp.o: $(MESS_LAYOUT)/elekscmp.lh
 $(MESS_DRIVERS)/elf.o:      $(MESS_LAYOUT)/elf2.lh
@@ -2181,7 +2193,8 @@ $(MESS_DRIVERS)/simon.o:    $(MESS_LAYOUT)/simon.lh
 $(MESS_DRIVERS)/sitcom.o:   $(MESS_LAYOUT)/sitcom.lh
 $(MESS_DRIVERS)/slc1.o:     $(MESS_LAYOUT)/slc1.lh
 $(MESS_DRIVERS)/sms.o:      $(MESS_LAYOUT)/sms1.lh
-$(MESS_DRIVERS)/splitsec.o: $(MESS_LAYOUT)/splitsec.lh
+$(MESS_DRIVERS)/splitsec.o: $(MESS_LAYOUT)/bankshot.lh \
+							$(MESS_LAYOUT)/splitsec.lh
 $(MESS_DRIVERS)/starwbc.o:  $(MESS_LAYOUT)/starwbc.lh
 $(MESS_DRIVERS)/stopthie.o: $(MESS_LAYOUT)/stopthie.lh
 $(MESS_DRIVERS)/super80.o:  $(MESS_LAYOUT)/super80.lh
@@ -2191,6 +2204,8 @@ $(MESS_DRIVERS)/svmu.o:     $(MESS_LAYOUT)/svmu.lh
 $(MESS_DRIVERS)/sym1.o:     $(MESS_LAYOUT)/sym1.lh
 $(MESS_DRIVERS)/tandy12.o:  $(MESS_LAYOUT)/tandy12.lh
 $(MESS_DRIVERS)/tavernie.o: $(MESS_LAYOUT)/tavernie.lh
+$(MESS_DRIVERS)/tb303.o:    $(MESS_LAYOUT)/tb303.lh
+$(MESS_DRIVERS)/tc4.o:      $(MESS_LAYOUT)/tc4.lh
 $(MESS_DRIVERS)/tec1.o:     $(MESS_LAYOUT)/tec1.lh
 $(MESS_DRIVERS)/tecnbras.o: $(MESS_LAYOUT)/tecnbras.lh
 $(MESS_DRIVERS)/ti74.o:     $(MESS_LAYOUT)/ti74.lh \
@@ -2204,6 +2219,7 @@ $(MESS_DRIVERS)/tispeak.o:  $(MESS_LAYOUT)/lantutor.lh \
 $(MESS_DRIVERS)/tk80.o:     $(MESS_LAYOUT)/tk80.lh
 $(MESS_DRIVERS)/tm990189.o: $(MESS_LAYOUT)/tm990189.lh \
 							$(MESS_LAYOUT)/tm990189v.lh
+$(MESS_DRIVERS)/tmtennis.o: $(MESS_LAYOUT)/tmtennis.lh
 $(MESS_DRIVERS)/unixpc.o:   $(MESS_LAYOUT)/unixpc.lh
 $(MESS_DRIVERS)/ut88.o:     $(MESS_LAYOUT)/ut88mini.lh
 $(MESS_DRIVERS)/vboy.o:     $(MESS_LAYOUT)/vboy.lh
@@ -2214,6 +2230,7 @@ $(MESS_DRIVERS)/votrtnt.o:  $(MESS_LAYOUT)/votrtnt.lh
 $(MESS_DRIVERS)/vk100.o:    $(MESS_LAYOUT)/vk100.lh
 $(MESS_DRIVERS)/vt100.o:    $(MESS_LAYOUT)/vt100.lh
 $(MESS_DRIVERS)/wicat.o:    $(MESS_LAYOUT)/wicat.lh
+$(MESS_DRIVERS)/wildfire.o: $(MESS_LAYOUT)/wildfire.lh
 $(MESS_DRIVERS)/wswan.o:    $(MESS_LAYOUT)/wswan.lh
 $(MESS_DRIVERS)/x68k.o:     $(MESS_LAYOUT)/x68000.lh
 $(MESS_DRIVERS)/z80dev.o:   $(MESS_LAYOUT)/z80dev.lh

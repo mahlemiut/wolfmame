@@ -503,7 +503,7 @@ static void output_oslog(running_machine &machine, const char *buffer)
 //============================================================
 
 windows_osd_interface::windows_osd_interface(windows_options &options)
-: osd_common_t(options)
+: osd_common_t(options), m_options(options)
 {
 }
 
@@ -526,6 +526,7 @@ void windows_osd_interface::video_register()
 	video_options_add("gdi", NULL);
 	video_options_add("ddraw", NULL);
 	video_options_add("d3d", NULL);
+	video_options_add("bgfx", NULL);
 	//video_options_add("auto", NULL); // making d3d video default one
 }
 
@@ -589,10 +590,8 @@ void windows_osd_interface::init(running_machine &machine)
 	astring tempstring;
 	for (win_window_info *info = win_window_list; info != NULL; info = info->m_next)
 	{
-		char *tmp = utf8_from_tstring(info->m_monitor->info.szDevice);
-		tempstring.printf("Orientation(%s)", tmp);
+		tempstring.printf("Orientation(%s)", info->m_monitor->devicename());
 		output_set_value(tempstring, info->m_targetorient);
-		osd_free(tmp);
 	}
 
 	// hook up the debugger log

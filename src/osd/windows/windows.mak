@@ -66,6 +66,9 @@
 # uncomment next line to use SDL library for sound and video output
 # USE_SDL = 1
 
+# uncomment next line to compile OpenGL video renderer
+# USE_OPENGL = 1
+
 # uncomment next line to use QT debugger
 # USE_QTDEBUG = 1
 
@@ -92,6 +95,8 @@ OBJDIRS += $(WINOBJ) \
 	$(OSDOBJ)/modules/lib \
 	$(OSDOBJ)/modules/midi \
 	$(OSDOBJ)/modules/font \
+	$(OSDOBJ)/modules/netdev \
+	$(OSDOBJ)/modules/debugger/win
 
 ifdef USE_QTDEBUG
 OBJDIRS += $(OSDOBJ)/modules/debugger/qt
@@ -370,6 +375,7 @@ OSDOBJS = \
 	$(WINOBJ)/d3dhlsl.o \
 	$(WINOBJ)/drawdd.o \
 	$(WINOBJ)/drawgdi.o \
+	$(WINOBJ)/drawbgfx.o \
 	$(WINOBJ)/drawnone.o \
 	$(WINOBJ)/input.o \
 	$(WINOBJ)/output.o \
@@ -382,21 +388,33 @@ OSDOBJS = \
 	$(WINOBJ)/winmenu.o \
 	$(WINOBJ)/winmain.o \
 	$(OSDOBJ)/modules/midi/portmidi.o \
+	$(OSDOBJ)/modules/midi/none.o \
 	$(OSDOBJ)/modules/lib/osdobj_common.o  \
 	$(OSDOBJ)/modules/font/font_sdl.o \
 	$(OSDOBJ)/modules/font/font_windows.o \
 	$(OSDOBJ)/modules/font/font_osx.o \
 	$(OSDOBJ)/modules/font/font_none.o \
+	$(OSDOBJ)/modules/netdev/pcap.o \
+	$(OSDOBJ)/modules/netdev/taptun.o \
+	$(OSDOBJ)/modules/netdev/none.o \
+
+ifdef USE_OPENGL
+OSDOBJS +=  $(WINOBJ)/../sdl/drawogl.o $(WINOBJ)/../sdl/gl_shader_tool.o $(WINOBJ)/../sdl/gl_shader_mgr.o
+OBJDIRS += $(WINOBJ)/../sdl
+
+DEFS += -DUSE_OPENGL=1
+LIBS += -lopengl32
+
+else
+DEFS += -DUSE_OPENGL=0
+endif
 
 ifdef USE_SDL
-OSDOBJS += \
-	$(OSDOBJ)/modules/sound/sdl_sound.o
+DEFS += -DUSE_SDL_SOUND
 endif
 
 ifndef DONT_USE_NETWORK
-OSDOBJS += \
-	$(WINOBJ)/netdev.o \
-	$(WINOBJ)/netdev_pcap.o
+DEFS += -DSDLMAME_NET_PCAP
 endif
 
 CCOMFLAGS += -DDIRECT3D_VERSION=0x0900
@@ -408,12 +426,28 @@ $(WINOBJ)/drawgdi.o :   $(SRC)/emu/rendersw.inc
 # add debug-specific files
 OSDOBJS += \
 	$(OSDOBJ)/modules/debugger/debugwin.o \
+	$(OSDOBJ)/modules/debugger/win/consolewininfo.o \
+	$(OSDOBJ)/modules/debugger/win/debugbaseinfo.o \
+	$(OSDOBJ)/modules/debugger/win/debugviewinfo.o \
+	$(OSDOBJ)/modules/debugger/win/debugwininfo.o \
+	$(OSDOBJ)/modules/debugger/win/disasmbasewininfo.o \
+	$(OSDOBJ)/modules/debugger/win/disasmviewinfo.o \
+	$(OSDOBJ)/modules/debugger/win/disasmwininfo.o \
+	$(OSDOBJ)/modules/debugger/win/editwininfo.o \
+	$(OSDOBJ)/modules/debugger/win/logwininfo.o \
+	$(OSDOBJ)/modules/debugger/win/memoryviewinfo.o \
+	$(OSDOBJ)/modules/debugger/win/memorywininfo.o \
+	$(OSDOBJ)/modules/debugger/win/pointswininfo.o \
+	$(OSDOBJ)/modules/debugger/win/uimetrics.o \
 	$(OSDOBJ)/modules/debugger/debugint.o \
 	$(OSDOBJ)/modules/debugger/debugqt.o \
-	$(OSDOBJ)/modules/debugger/none.o \
+	$(OSDOBJ)/modules/debugger/none.o
 
 # add a stub resource file
 RESFILE = $(WINOBJ)/mame.res
+
+BGFX_LIB = $(OBJ)/libbgfx.a
+INCPATH += -I$(3RDPARTY)/bgfx/include -I$(3RDPARTY)/bx/include
 
 #-------------------------------------------------
 # QT Debug library
@@ -426,7 +460,7 @@ INCPATH += -I$(QT_INSTALL_HEADERS)/QtCore -I$(QT_INSTALL_HEADERS)/QtGui -I$(QT_I
 
 MOC = @moc
 $(OSDOBJ)/%.moc.c: $(OSDSRC)/%.h
-	$(MOC) $(INCPATH) $(DEFS) $< -o $@
+	$(MOC) $(INCPATH) $< -o $@
 
 OSDOBJS += \
 	$(OSDOBJ)/modules/debugger/qt/debugqtview.o \
@@ -468,7 +502,7 @@ $(LIBOSD): $(OSDOBJS)
 # rule for making the ledutil sample
 #-------------------------------------------------
 
-LEDUTIL = ledutil$(EXE)
+LEDUTIL = $(BIN)ledutil$(EXE)
 TOOLS += $(LEDUTIL)
 
 LEDUTILOBJS = \
@@ -496,6 +530,6 @@ $(WINOBJ)/%.res: $(WINSRC)/%.rc | $(OSPREBUILD)
 
 $(RESFILE): $(WINSRC)/mame.rc $(WINOBJ)/mamevers.rc
 
-$(WINOBJ)/mamevers.rc: $(BUILDOUT)/verinfo$(BUILD_EXE) $(SRC)/version.c
+$(WINOBJ)/mamevers.rc: $(SRC)/build/verinfo.py $(SRC)/version.c
 	@echo Emitting $@...
-	@"$(BUILDOUT)/verinfo$(BUILD_EXE)" -b mame $(SRC)/version.c > $@
+	$(PYTHON) $(SRC)/build/verinfo.py -b mame -o $@ $(SRC)/version.c

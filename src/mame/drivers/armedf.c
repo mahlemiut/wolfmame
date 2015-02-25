@@ -35,6 +35,7 @@ Notes:
   - ship rays on Armed F title screen;
   - gameplay in Armed F abuses of this effect (shots, player ship lights etc.);
   - Terra Force helmet during the intro;
+  - Invincibility flickering of main character in Kozure Ookami;
 - (1) Kozure Ookami timer over bug:
       010118: lea     $63510.l, A0
       01011E: tst.w   (A0) ;check time variable, in BCD format
@@ -48,7 +49,8 @@ Notes:
       01016E: btst    #$7, $60621.l ;check dsw2 ram copy bit 15 (debug feature?)
       010176: bne     $1017e
       010178: bra     $f9f0 ;timer over event occurs
-  btanb perhaps?
+  btanb perhaps? Currently patched to work, might also be that DSW2 bit 7 is actually a MCU bit ready flag, so it
+  definitely needs PCB tests.
 
 
 Stephh's notes (based on the games M68000 code and some tests) :
@@ -291,7 +293,6 @@ Notes:
 #include "sound/dac.h"
 #include "sound/3812intf.h"
 #include "includes/armedf.h"
-#include "includes/nb1414m4.h"
 
 #define LEGION_HACK 0
 
@@ -316,7 +317,7 @@ Notes:
 WRITE16_MEMBER(armedf_state::terraf_io_w)
 {
 	if(data & 0x4000 && ((m_vreg & 0x4000) == 0)) //0 -> 1 transition
-		nb_1414m4_exec(space,(m_text_videoram[0] << 8) | (m_text_videoram[1] & 0xff),m_text_videoram,m_fg_scrollx,m_fg_scrolly,m_tx_tilemap);
+		m_nb1414m4->exec((m_text_videoram[0] << 8) | (m_text_videoram[1] & 0xff),m_text_videoram,m_fg_scrollx,m_fg_scrolly,m_tx_tilemap);
 
 
 	COMBINE_DATA(&m_vreg);
@@ -412,7 +413,7 @@ static ADDRESS_MAP_START( kozure_map, AS_PROGRAM, 16, armedf_state )
 	AM_RANGE(0x061000, 0x063fff) AM_RAM
 //  AM_RANGE(0x07c000, 0x07c001) AM_WRITE(kozure_io_w)
 //  AM_RANGE(0x0c0000, 0x0c0001) AM_WRITENOP /* watchdog? */
-//  AM_RANGE(0xffd000, 0xffd001) AM_WRITENOP /* ? */
+//  AM_RANGE(0xffd000, 0xffd001) AM_WRITENOP /* passes crc ROM information to MCU, I guess */
 	AM_IMPORT_FROM( terraf_map )
 ADDRESS_MAP_END
 
@@ -475,7 +476,7 @@ static ADDRESS_MAP_START( legiono_map, AS_PROGRAM, 16, armedf_state )
 	AM_RANGE(0x060000, 0x060fff) AM_RAM AM_SHARE("spriteram")
 	AM_RANGE(0x061000, 0x063fff) AM_RAM
 	AM_RANGE(0x064000, 0x064fff) AM_RAM_DEVWRITE("palette", palette_device, write) AM_SHARE("palette")
-	AM_RANGE(0x068000, 0x069fff) AM_READWRITE8(nb1414m4_text_videoram_r,nb1414m4_text_videoram_w,0x00ff)
+	AM_RANGE(0x068000, 0x069fff) AM_READWRITE8(armedf_text_videoram_r,armedf_text_videoram_w,0x00ff)
 	AM_RANGE(0x06a000, 0x06a9ff) AM_RAM
 	AM_RANGE(0x06c000, 0x06cfff) AM_RAM AM_SHARE("spr_pal_clut")
 	AM_RANGE(0x070000, 0x070fff) AM_RAM_WRITE(armedf_fg_videoram_w) AM_SHARE("fg_videoram")
@@ -943,7 +944,9 @@ static INPUT_PORTS_START( kozure )
 	PORT_DIPNAME( 0x40, 0x40, DEF_STR( Allow_Continue ) )       PORT_DIPLOCATION("SW2:7")
 	PORT_DIPSETTING(    0x00, DEF_STR( No ) )
 	PORT_DIPSETTING(    0x40, DEF_STR( Yes ) )
-	PORT_DIPUNUSED_DIPLOC( 0x80, 0x80, "SW2:8" )
+	PORT_DIPNAME( 0x80, 0x80, "Infinite Timer (Cheat)" )       PORT_DIPLOCATION("SW2:8")
+	PORT_DIPSETTING(    0x80, DEF_STR( No ) )
+	PORT_DIPSETTING(    0x00, DEF_STR( Yes ) )
 INPUT_PORTS_END
 
 static INPUT_PORTS_START( cclimbr2 )
@@ -1176,6 +1179,8 @@ static MACHINE_CONFIG_START( terraf, armedf_state )
 	MCFG_MACHINE_START_OVERRIDE(armedf_state,armedf)
 	MCFG_MACHINE_RESET_OVERRIDE(armedf_state,armedf)
 
+	MCFG_DEVICE_ADD("nb1414m4", NB1414M4, 0)
+
 	/* video hardware */
 	MCFG_SCREEN_ADD("screen", RASTER)
 	MCFG_SCREEN_REFRESH_RATE(57)
@@ -1273,6 +1278,8 @@ static MACHINE_CONFIG_START( kozure, armedf_state )
 	MCFG_MACHINE_START_OVERRIDE(armedf_state,armedf)
 	MCFG_MACHINE_RESET_OVERRIDE(armedf_state,armedf)
 
+	MCFG_DEVICE_ADD("nb1414m4", NB1414M4, 0)
+
 	/* video hardware */
 	MCFG_SCREEN_ADD("screen", RASTER)
 	MCFG_SCREEN_REFRESH_RATE(60)
@@ -1365,6 +1372,8 @@ static MACHINE_CONFIG_START( cclimbr2, armedf_state )
 	MCFG_MACHINE_START_OVERRIDE(armedf_state,armedf)
 	MCFG_MACHINE_RESET_OVERRIDE(armedf_state,armedf)
 
+	MCFG_DEVICE_ADD("nb1414m4", NB1414M4, 0)
+
 	/* video hardware */
 	MCFG_SCREEN_ADD("screen", RASTER)
 	MCFG_SCREEN_REFRESH_RATE(60)
@@ -1411,6 +1420,8 @@ static MACHINE_CONFIG_START( legion, armedf_state )
 	MCFG_MACHINE_START_OVERRIDE(armedf_state,armedf)
 	MCFG_MACHINE_RESET_OVERRIDE(armedf_state,armedf)
 
+	MCFG_DEVICE_ADD("nb1414m4", NB1414M4, 0)
+
 	/* video hardware */
 	MCFG_SCREEN_ADD("screen", RASTER)
 	MCFG_SCREEN_REFRESH_RATE(60)
@@ -1456,6 +1467,7 @@ static MACHINE_CONFIG_START( legiono, armedf_state )
 
 	MCFG_MACHINE_START_OVERRIDE(armedf_state,armedf)
 	MCFG_MACHINE_RESET_OVERRIDE(armedf_state,armedf)
+
 
 	/* video hardware */
 	MCFG_SCREEN_ADD("screen", RASTER)
@@ -1576,7 +1588,7 @@ ROM_START( legion )
 	ROM_LOAD( "legion.1k", 0x000000, 0x010000, CRC(ff5a0db9) SHA1(9308deb363d3b7686cc69485ec14201dd68f9a97) ) // lg12
 	ROM_LOAD( "legion.1j", 0x010000, 0x010000, CRC(bae220c8) SHA1(392ae0fb0351dcad7b0e8e0ed4a1dc6e07f493df) ) // lg11
 
-	ROM_REGION( 0x4000, "blit_data", 0 )    /* data for mcu/blitter */
+	ROM_REGION( 0x4000, "nb1414m4", 0 )    /* data for mcu/blitter */
 	ROM_LOAD ( "lg7.bin", 0x0000, 0x4000, CRC(533e2b58) SHA1(a13ea4a530038760ffa87713903c59a932452717) )
 ROM_END
 
@@ -1633,7 +1645,7 @@ ROM_START( terraf )
 	ROM_LOAD( "12.7d", 0x00000, 0x10000, CRC(2d1f2ceb) SHA1(77544e1c4bda06feac135a96bb76af7c79278dc0) ) /* sprites */
 	ROM_LOAD( "13.9d", 0x10000, 0x10000, CRC(1d2f92d6) SHA1(e842c6bf95a5958a6ca2c85e68b9bc3cc15211a4) )
 
-	ROM_REGION( 0x4000, "blit_data", 0 )    /* data for mcu/blitter */
+	ROM_REGION( 0x4000, "nb1414m4", 0 )    /* data for mcu/blitter */
 	ROM_LOAD( "10.11c", 0x0000, 0x4000, CRC(ac705812) SHA1(65be46ee959d8478cb6dffb25e61f7742276997b) )
 
 	ROM_REGION( 0x0100, "proms", 0 )    /* Unknown use */
@@ -1667,7 +1679,7 @@ ROM_START( terrafu ) /* Bootleg of the USA version?, uses some roms common to bo
 	ROM_LOAD( "tf-003.7d", 0x00000, 0x10000, CRC(d74085a1) SHA1(3f6ba85dbd6e48a502c115b2d322a586fc4f56c9) ) /* sprites */
 	ROM_LOAD( "tf-002.9d", 0x10000, 0x10000, CRC(148aa0c5) SHA1(8d8a565540e91b384a9c154522501921b7da4d4e) )
 
-	ROM_REGION( 0x4000, "blit_data", 0 )    /* data for mcu/blitter */
+	ROM_REGION( 0x4000, "nb1414m4", 0 )    /* data for mcu/blitter */
 	ROM_LOAD( "10.11c", 0x0000, 0x4000, CRC(ac705812) SHA1(65be46ee959d8478cb6dffb25e61f7742276997b) )
 
 	ROM_REGION( 0x0100, "proms", 0 )    /* Unknown use */
@@ -1701,7 +1713,7 @@ ROM_START( terrafj )
 	ROM_LOAD( "tfj-12.7d", 0x00000, 0x10000, CRC(d74085a1) SHA1(3f6ba85dbd6e48a502c115b2d322a586fc4f56c9) ) /* sprites */
 	ROM_LOAD( "tfj-13.9d", 0x10000, 0x10000, CRC(148aa0c5) SHA1(8d8a565540e91b384a9c154522501921b7da4d4e) )
 
-	ROM_REGION( 0x4000, "blit_data", 0 )    /* data for mcu/blitter */
+	ROM_REGION( 0x4000, "nb1414m4", 0 )    /* data for mcu/blitter */
 	ROM_LOAD( "10.11c", 0x0000, 0x4000, CRC(ac705812) SHA1(65be46ee959d8478cb6dffb25e61f7742276997b) )
 
 	ROM_REGION( 0x0100, "proms", 0 )    /* Unknown use */
@@ -1842,7 +1854,7 @@ ROM_START( kozure )
 	ROM_LOAD( "kozure12.8d", 0x00000, 0x20000, CRC(15f4021d) SHA1(b2ba6fda1a7bdaae97de4b0157b9b656b4385e08) )   /* sprites */
 	ROM_LOAD( "kozure13.9d", 0x20000, 0x20000, CRC(b3b6c753) SHA1(9ad061cac9558320b5cfd1ac1ac8d7f1788270cc) )
 
-	ROM_REGION( 0x4000, "blit_data", 0 )    /* data for mcu/blitter */
+	ROM_REGION( 0x4000, "nb1414m4", 0 )    /* data for mcu/blitter */
 	ROM_LOAD( "kozure10.11c", 0x0000, 0x4000, CRC(f48be21d) SHA1(5d6db049f30cab98f672814a86a06609c1fa8fb4) )
 
 	ROM_REGION( 0x0100, "proms", 0 )    /* Unknown use */
@@ -1879,7 +1891,7 @@ ROM_START( cclimbr2 )
 	ROM_LOAD( "13.bin", 0x20000, 0x10000, CRC(6b6ec999) SHA1(7749ce435f497732bd1b6958974cd95e960fc9fe) )
 	ROM_LOAD( "14.bin", 0x30000, 0x10000, CRC(f426a4ad) SHA1(facccb21ca73c560d3a38e05e677782516d5b0c0) )
 
-	ROM_REGION( 0x4000, "blit_data", 0 )    /* data for mcu/blitter */
+	ROM_REGION( 0x4000, "nb1414m4", 0 )    /* data for mcu/blitter */
 	ROM_LOAD( "9.bin",  0x0000, 0x4000, CRC(740d260f) SHA1(5b4487930c7a1fb0a796aec2243bec631b1b5104) )
 ROM_END
 
@@ -1913,7 +1925,7 @@ ROM_START( cclimbr2a )
 	ROM_LOAD( "13.bin", 0x20000, 0x10000, CRC(6b6ec999) SHA1(7749ce435f497732bd1b6958974cd95e960fc9fe) )
 	ROM_LOAD( "14.bin", 0x30000, 0x10000, CRC(f426a4ad) SHA1(facccb21ca73c560d3a38e05e677782516d5b0c0) )
 
-	ROM_REGION( 0x4000, "blit_data", 0 )    /* data for mcu/blitter */
+	ROM_REGION( 0x4000, "nb1414m4", 0 )    /* data for mcu/blitter */
 	ROM_LOAD( "9.bin",  0x0000, 0x4000, CRC(740d260f) SHA1(5b4487930c7a1fb0a796aec2243bec631b1b5104) )
 ROM_END
 
@@ -2075,6 +2087,12 @@ DRIVER_INIT_MEMBER(armedf_state,armedf)
 
 DRIVER_INIT_MEMBER(armedf_state,kozure)
 {
+	UINT16 *ROM = (UINT16 *)memregion("maincpu")->base();
+
+	/* patch "time over" bug, see notes on top. */
+	ROM[0x1016c/2] = 0x4e71;
+	/* ROM check at POST. */
+	ROM[0x04fc6/2] = 0x4e71;
 	m_scroll_type = 0;
 
 	m_maincpu->space(AS_PROGRAM).install_write_handler(0x07c000, 0x07c001, write16_delegate(FUNC(armedf_state::terraf_io_w),this));
@@ -2086,7 +2104,7 @@ DRIVER_INIT_MEMBER(armedf_state,legion)
 #if LEGION_HACK
 	/* This is a hack to allow you to use the extra features
 	     of 3 of the "Unused" Dip Switches (see notes above). */
-	UINT16 *RAM = (UINT16 *)memregion("maincpu")->base();
+	UINT16 *ROM = (UINT16 *)memregion("maincpu")->base();
 	RAM[0x0001d6 / 2] = 0x0001;
 	/* To avoid checksum error */
 	RAM[0x000488 / 2] = 0x4e71;
@@ -2110,6 +2128,8 @@ DRIVER_INIT_MEMBER(armedf_state,legiono)
 	m_maincpu->space(AS_PROGRAM).install_write_handler(0x07c000, 0x07c001, write16_delegate(FUNC(armedf_state::bootleg_io_w),this));
 
 	m_scroll_type = 2;
+
+	save_item(NAME(m_legion_cmd));
 }
 
 DRIVER_INIT_MEMBER(armedf_state,cclimbr2)
@@ -2138,7 +2158,7 @@ GAME( 1987, terrafu,  terraf,   terraf,   terraf,   armedf_state,   terrafu,  RO
 GAME( 1987, terrafj,  terraf,   terraf,   terraf,   armedf_state,   terrafu,  ROT0,   "Nichibutsu Japan",              "Terra Force (Japan)", GAME_SUPPORTS_SAVE )
 GAME( 1987, terrafjb, terraf,   terrafjb, terraf,   armedf_state,   terrafjb, ROT0,   "bootleg",                       "Terra Force (Japan bootleg with additional Z80)", GAME_SUPPORTS_SAVE )
 GAME( 1987, terrafb,  terraf,   terraf,   terraf,   armedf_state,   terraf,   ROT0,   "bootleg",                       "Terra Force (Japan bootleg set 2)", GAME_SUPPORTS_SAVE )
-GAME( 1987, kozure,   0,        kozure,   kozure,   armedf_state,   kozure,   ROT0,   "Nichibutsu",                    "Kozure Ookami (Japan)", GAME_SUPPORTS_SAVE | GAME_NOT_WORKING )
+GAME( 1987, kozure,   0,        kozure,   kozure,   armedf_state,   kozure,   ROT0,   "Nichibutsu",                    "Kozure Ookami (Japan)", GAME_SUPPORTS_SAVE )
 GAME( 1988, cclimbr2, 0,        cclimbr2, cclimbr2, armedf_state,   cclimbr2, ROT0,   "Nichibutsu",                    "Crazy Climber 2 (Japan)", GAME_SUPPORTS_SAVE )
 GAME( 1988, cclimbr2a,cclimbr2, cclimbr2, cclimbr2, armedf_state,   cclimbr2, ROT0,   "Nichibutsu",                    "Crazy Climber 2 (Japan, Harder)", GAME_SUPPORTS_SAVE  )
 GAME( 1988, armedf,   0,        armedf,   armedf,   armedf_state,   armedf,   ROT270, "Nichibutsu",                    "Armed Formation", GAME_SUPPORTS_SAVE )

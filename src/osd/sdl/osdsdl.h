@@ -6,7 +6,6 @@
 #include "watchdog.h"
 #include "clifront.h"
 #include "modules/lib/osdobj_common.h"
-#include "video.h"
 #include "modules/osdmodule.h"
 #include "modules/font/font_module.h"
 
@@ -14,22 +13,19 @@
 //  System dependent defines
 //============================================================
 
-// Process events in worker thread
-#if defined(SDLMAME_WIN32) || (SDLMAME_SDL2)
-#define SDLMAME_EVENTS_IN_WORKER_THREAD (1)
-#else
-#define SDLMAME_EVENTS_IN_WORKER_THREAD (0)
-#endif
 
 #if defined(SDLMAME_WIN32)
 	#if (SDLMAME_SDL2)
-		#define SDLMAME_INIT_IN_WORKER_THREAD   (0) //FIXME: breaks mt
-		#define SDL13_COMBINE_RESIZE (1)
+		#define SDLMAME_EVENTS_IN_WORKER_THREAD (0)
+		#define SDLMAME_INIT_IN_WORKER_THREAD   (0)
+		#define SDL13_COMBINE_RESIZE (0) //(1) no longer needed
 	#else
+		#define SDLMAME_EVENTS_IN_WORKER_THREAD (0)
 		#define SDLMAME_INIT_IN_WORKER_THREAD   (1)
 		#define SDL13_COMBINE_RESIZE (0)
 	#endif
 #else
+	#define SDLMAME_EVENTS_IN_WORKER_THREAD (0)
 	#define SDLMAME_INIT_IN_WORKER_THREAD   (0)
 	#define SDL13_COMBINE_RESIZE (0)
 #endif
@@ -82,12 +78,10 @@
 #define SDLOPTION_RENDERDRIVER          "renderdriver"
 #define SDLOPTION_GL_LIB                "gl_lib"
 
-#define SDLOPTVAL_NONE                  "none"
-#define SDLOPTVAL_AUTO                  "auto"
-
 #define SDLOPTVAL_OPENGL                "opengl"
 #define SDLOPTVAL_SOFT                  "soft"
 #define SDLOPTVAL_SDL2ACCEL             "accel"
+#define SDLOPTVAL_BGFX                  "bgfx"
 
 #define SDLMAME_LED(x)                  "led" #x
 
@@ -109,7 +103,7 @@
 /* Vas Crabb: Default GL-lib for MACOSX */
 #define SDLOPTVAL_GLLIB                 "/System/Library/Frameworks/OpenGL.framework/Libraries/libGL.dylib"
 #else
-#define SDLOPTVAL_GLLIB                 SDLOPTVAL_AUTO
+#define SDLOPTVAL_GLLIB                 OSDOPTVAL_AUTO
 #endif
 
 
@@ -196,18 +190,12 @@ public:
 	virtual void input_pause();
 	virtual void input_resume();
 	virtual bool output_init();
-	#ifdef USE_NETWORK
-	virtual bool network_init();
-	#endif
 	//virtual bool midi_init();
 
 	virtual void video_exit();
 	virtual void window_exit();
 	virtual void input_exit();
 	virtual void output_exit();
-	#ifdef USE_NETWORK
-	virtual void network_exit();
-	#endif
 	//virtual void midi_exit();
 
 	sdl_options &options() { return m_options; }
@@ -215,10 +203,7 @@ public:
 private:
 	virtual void osd_exit();
 
-	void extract_window_config(int index, sdl_window_config *conf);
-
-	// FIXME: remove machine usage
-	void extract_video_config(running_machine &machine);
+	void extract_video_config();
 
 	sdl_options &m_options;
 

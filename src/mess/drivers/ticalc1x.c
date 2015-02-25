@@ -37,14 +37,14 @@ public:
 	UINT16 m_o;
 	bool m_power_on;
 
-	UINT16 m_leds_state[0x10];
-	UINT16 m_leds_cache[0x10];
-	UINT8 m_leds_decay[0x100];
+	UINT16 m_display_state[0x10];
+	UINT16 m_display_cache[0x10];
+	UINT8 m_display_decay[0x100];
 
 	DECLARE_READ8_MEMBER(tisr16_read_k);
 	DECLARE_WRITE16_MEMBER(tisr16_write_o);
 	DECLARE_WRITE16_MEMBER(tisr16_write_r);
-	void tisr16_leds_update();
+	void tisr16_display_update();
 
 	DECLARE_READ8_MEMBER(ti1270_read_k);
 	DECLARE_WRITE16_MEMBER(ti1270_write_o);
@@ -61,8 +61,8 @@ public:
 	DECLARE_INPUT_CHANGED_MEMBER(power_button);
 	DECLARE_WRITE_LINE_MEMBER(auto_power_off);
 
-	TIMER_DEVICE_CALLBACK_MEMBER(leds_decay_tick);
-	void leds_update();
+	TIMER_DEVICE_CALLBACK_MEMBER(display_decay_tick);
+	void display_update();
 
 	virtual void machine_reset();
 	virtual void machine_start();
@@ -72,17 +72,17 @@ public:
 
 /***************************************************************************
 
-  LEDs
+  LED Display
 
 ***************************************************************************/
 
 // Devices with TMS09x0 strobe the outputs very fast, it is unnoticeable to the user.
 // To prevent flickering here, we need to simulate a decay.
 
-// decay time, in steps of 10ms
-#define LEDS_DECAY_TIME 5
+// decay time, in steps of 1ms
+#define DISPLAY_DECAY_TIME 50
 
-void ticalc1x_state::leds_update()
+void ticalc1x_state::display_update()
 {
 	UINT16 active_state[0x10];
 
@@ -94,19 +94,19 @@ void ticalc1x_state::leds_update()
 		{
 			int di = j << 4 | i;
 
-			// turn on powered leds
-			if (m_power_on && m_leds_state[i] >> j & 1)
-				m_leds_decay[di] = LEDS_DECAY_TIME;
+			// turn on powered segments
+			if (m_power_on && m_display_state[i] >> j & 1)
+				m_display_decay[di] = DISPLAY_DECAY_TIME;
 
 			// determine active state
-			int ds = (m_leds_decay[di] != 0) ? 1 : 0;
+			int ds = (m_display_decay[di] != 0) ? 1 : 0;
 			active_state[i] |= (ds << j);
 		}
 	}
 
 	// on difference, send to output
 	for (int i = 0; i < 0x10; i++)
-		if (m_leds_cache[i] != active_state[i])
+		if (m_display_cache[i] != active_state[i])
 		{
 			output_set_digit_value(i, active_state[i]);
 
@@ -114,17 +114,17 @@ void ticalc1x_state::leds_update()
 				output_set_lamp_value(i*10 + j, active_state[i] >> j & 1);
 		}
 
-	memcpy(m_leds_cache, active_state, sizeof(m_leds_cache));
+	memcpy(m_display_cache, active_state, sizeof(m_display_cache));
 }
 
-TIMER_DEVICE_CALLBACK_MEMBER(ticalc1x_state::leds_decay_tick)
+TIMER_DEVICE_CALLBACK_MEMBER(ticalc1x_state::display_decay_tick)
 {
-	// slowly turn off unpowered leds
+	// slowly turn off unpowered segments
 	for (int i = 0; i < 0x100; i++)
-		if (!(m_leds_state[i & 0xf] >> (i>>4) & 1) && m_leds_decay[i])
-			m_leds_decay[i]--;
+		if (!(m_display_state[i & 0xf] >> (i>>4) & 1) && m_display_decay[i])
+			m_display_decay[i]--;
 
-	leds_update();
+	display_update();
 }
 
 
@@ -137,19 +137,19 @@ TIMER_DEVICE_CALLBACK_MEMBER(ticalc1x_state::leds_decay_tick)
 
 // SR-16: TMS1000 MCU labeled TMS1001NL. die labeled 1001A
 
-void ticalc1x_state::tisr16_leds_update()
+void ticalc1x_state::tisr16_display_update()
 {
 	// update leds state
 	for (int i = 0; i < 11; i++)
 		if (m_r >> i & 1)
-			m_leds_state[i] = m_o;
+			m_display_state[i] = m_o;
 
 	// exponent sign (not 100% sure this is correct)
-	m_leds_state[11] = (m_leds_state[0] | m_leds_state[1]) ? 0x40 : 0;
+	m_display_state[11] = (m_display_state[0] | m_display_state[1]) ? 0x40 : 0;
 
 	// send to output
 	for (int i = 0; i < 12; i++)
-		output_set_digit_value(i, m_leds_state[i]);
+		output_set_digit_value(i, m_display_state[i]);
 }
 
 READ8_MEMBER(ticalc1x_state::tisr16_read_k)
@@ -170,7 +170,7 @@ WRITE16_MEMBER(ticalc1x_state::tisr16_write_r)
 	// R0-R10: select digit (right-to-left)
 	m_r = data;
 
-	tisr16_leds_update();
+	tisr16_display_update();
 }
 
 WRITE16_MEMBER(ticalc1x_state::tisr16_write_o)
@@ -178,7 +178,7 @@ WRITE16_MEMBER(ticalc1x_state::tisr16_write_o)
 	// O0-O7: digit segments
 	m_o = data;
 
-	tisr16_leds_update();
+	tisr16_display_update();
 }
 
 
@@ -200,9 +200,9 @@ WRITE16_MEMBER(ticalc1x_state::ti1270_write_r)
 {
 	// R0-R7: select digit (right-to-left)
 	for (int i = 0; i < 8; i++)
-		m_leds_state[i] = (data >> i & 1) ? m_o : 0;
+		m_display_state[i] = (data >> i & 1) ? m_o : 0;
 
-	leds_update();
+	display_update();
 }
 
 WRITE16_MEMBER(ticalc1x_state::ti1270_write_o)
@@ -232,12 +232,12 @@ WRITE16_MEMBER(ticalc1x_state::wizatron_write_r)
 	// R0-R8: select digit (right-to-left)
 	// note: 3rd digit is custom(not 7seg), for math symbols
 	for (int i = 0; i < 9; i++)
-		m_leds_state[i] = (data >> i & 1) ? m_o : 0;
+		m_display_state[i] = (data >> i & 1) ? m_o : 0;
 
 	// 6th digit only has A and G for =
-	m_leds_state[3] &= 0x41;
+	m_display_state[3] &= 0x41;
 
-	leds_update();
+	display_update();
 }
 
 WRITE16_MEMBER(ticalc1x_state::wizatron_write_o)
@@ -271,12 +271,12 @@ WRITE16_MEMBER(ticalc1x_state::ti30_write_r)
 	// R0-R8: select digit
 	UINT8 o = BITSWAP8(m_o,7,5,2,1,4,0,6,3);
 	for (int i = 0; i < 9; i++)
-		m_leds_state[i] = (data >> i & 1) ? o : 0;
+		m_display_state[i] = (data >> i & 1) ? o : 0;
 
 	// 1st digit only has segments B,F,G,DP
-	m_leds_state[0] &= 0xe2;
+	m_display_state[0] &= 0xe2;
 
-	leds_update();
+	display_update();
 }
 
 WRITE16_MEMBER(ticalc1x_state::ti30_write_o)
@@ -340,19 +340,19 @@ static INPUT_PORTS_START( tisr16 )
 	PORT_START("IN.6") // R6
 	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_UNUSED )
 	PORT_BIT( 0x02, IP_ACTIVE_HIGH, IPT_KEYBOARD ) PORT_CODE(KEYCODE_X) PORT_NAME("1/x")
-	PORT_BIT( 0x04, IP_ACTIVE_HIGH, IPT_KEYBOARD ) PORT_CODE(KEYCODE_Y) PORT_NAME("y"UTF8_POW_X)
+	PORT_BIT( 0x04, IP_ACTIVE_HIGH, IPT_KEYBOARD ) PORT_CODE(KEYCODE_Y) PORT_NAME("y" UTF8_POW_X)
 	PORT_BIT( 0x08, IP_ACTIVE_HIGH, IPT_KEYBOARD ) PORT_CODE(KEYCODE_6) PORT_CODE(KEYCODE_6_PAD) PORT_NAME("6")
 
 	PORT_START("IN.7") // R7
 	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_UNUSED )
-	PORT_BIT( 0x02, IP_ACTIVE_HIGH, IPT_KEYBOARD ) PORT_CODE(KEYCODE_Q) PORT_NAME("x"UTF8_POW_2)
+	PORT_BIT( 0x02, IP_ACTIVE_HIGH, IPT_KEYBOARD ) PORT_CODE(KEYCODE_Q) PORT_NAME("x" UTF8_POW_2)
 	PORT_BIT( 0x04, IP_ACTIVE_HIGH, IPT_UNUSED )
 	PORT_BIT( 0x08, IP_ACTIVE_HIGH, IPT_KEYBOARD ) PORT_CODE(KEYCODE_7) PORT_CODE(KEYCODE_7_PAD) PORT_NAME("7")
 
 	PORT_START("IN.8") // R8
 	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_UNUSED )
-	PORT_BIT( 0x02, IP_ACTIVE_HIGH, IPT_KEYBOARD ) PORT_CODE(KEYCODE_T) PORT_NAME("10"UTF8_POW_X)
-	PORT_BIT( 0x04, IP_ACTIVE_HIGH, IPT_KEYBOARD ) PORT_CODE(KEYCODE_E) PORT_NAME("e"UTF8_POW_X)
+	PORT_BIT( 0x02, IP_ACTIVE_HIGH, IPT_KEYBOARD ) PORT_CODE(KEYCODE_T) PORT_NAME("10" UTF8_POW_X)
+	PORT_BIT( 0x04, IP_ACTIVE_HIGH, IPT_KEYBOARD ) PORT_CODE(KEYCODE_E) PORT_NAME("e" UTF8_POW_X)
 	PORT_BIT( 0x08, IP_ACTIVE_HIGH, IPT_KEYBOARD ) PORT_CODE(KEYCODE_8) PORT_CODE(KEYCODE_8_PAD) PORT_NAME("8")
 
 	PORT_START("IN.9") // R9
@@ -405,7 +405,7 @@ static INPUT_PORTS_START( ti1270 )
 
 	PORT_START("IN.6") // O7
 	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_KEYBOARD ) PORT_CODE(KEYCODE_X) PORT_NAME("1/x")
-	PORT_BIT( 0x02, IP_ACTIVE_HIGH, IPT_KEYBOARD ) PORT_CODE(KEYCODE_Q) PORT_NAME("x"UTF8_POW_2)
+	PORT_BIT( 0x02, IP_ACTIVE_HIGH, IPT_KEYBOARD ) PORT_CODE(KEYCODE_Q) PORT_NAME("x" UTF8_POW_2)
 	PORT_BIT( 0x04, IP_ACTIVE_HIGH, IPT_KEYBOARD ) PORT_CODE(KEYCODE_R) PORT_NAME(UTF8_SQUAREROOT"x")
 	PORT_BIT( 0x08, IP_ACTIVE_HIGH, IPT_KEYBOARD ) PORT_CODE(KEYCODE_MINUS) PORT_NAME("+/-")
 INPUT_PORTS_END
@@ -440,10 +440,10 @@ INPUT_PORTS_END
 
 static INPUT_PORTS_START( ti30 )
 	PORT_START("IN.0") // O0
-	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_KEYBOARD ) PORT_CODE(KEYCODE_Y) PORT_NAME("y"UTF8_POW_X)
+	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_KEYBOARD ) PORT_CODE(KEYCODE_Y) PORT_NAME("y" UTF8_POW_X)
 	PORT_BIT( 0x02, IP_ACTIVE_HIGH, IPT_KEYBOARD ) PORT_CODE(KEYCODE_K) PORT_NAME("K")
 	PORT_BIT( 0x04, IP_ACTIVE_HIGH, IPT_KEYBOARD ) PORT_CODE(KEYCODE_O) PORT_NAME("log")
-	PORT_BIT( 0x08, IP_ACTIVE_HIGH, IPT_KEYBOARD ) PORT_CODE(KEYCODE_TILDE) PORT_NAME("EE"UTF8_DOWN)
+	PORT_BIT( 0x08, IP_ACTIVE_HIGH, IPT_KEYBOARD ) PORT_CODE(KEYCODE_TILDE) PORT_NAME("EE" UTF8_DOWN)
 	PORT_BIT( 0x10, IP_ACTIVE_HIGH, IPT_KEYBOARD ) PORT_CODE(KEYCODE_L) PORT_NAME("ln(x)")
 
 	PORT_START("IN.1") // O1
@@ -496,7 +496,7 @@ static INPUT_PORTS_START( ti30 )
 	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_KEYBOARD ) PORT_CODE(KEYCODE_PGUP) PORT_CODE(KEYCODE_DEL) PORT_NAME("ON/C") PORT_CHANGED_MEMBER(DEVICE_SELF, ticalc1x_state, power_button, (void *)true)
 	PORT_BIT( 0x02, IP_ACTIVE_HIGH, IPT_KEYBOARD ) PORT_CODE(KEYCODE_X) PORT_NAME("1/x")
 	PORT_BIT( 0x04, IP_ACTIVE_HIGH, IPT_KEYBOARD ) PORT_CODE(KEYCODE_R) PORT_NAME(UTF8_SQUAREROOT"x")
-	PORT_BIT( 0x08, IP_ACTIVE_HIGH, IPT_KEYBOARD ) PORT_CODE(KEYCODE_Q) PORT_NAME("x"UTF8_POW_2)
+	PORT_BIT( 0x08, IP_ACTIVE_HIGH, IPT_KEYBOARD ) PORT_CODE(KEYCODE_Q) PORT_NAME("x" UTF8_POW_2)
 	PORT_BIT( 0x10, IP_ACTIVE_HIGH, IPT_KEYBOARD ) PORT_CODE(KEYCODE_PGDN) PORT_NAME("OFF") PORT_CHANGED_MEMBER(DEVICE_SELF, ticalc1x_state, power_button, (void *)false)
 INPUT_PORTS_END
 
@@ -567,8 +567,8 @@ INPUT_PORTS_END
 static INPUT_PORTS_START( tibusan1 )
 	// PORT_NAME lists functions under [2nd] as secondaries.
 	PORT_START("IN.0") // O0
-	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_KEYBOARD ) PORT_CODE(KEYCODE_Y) PORT_NAME("y"UTF8_POW_X"  "UTF8_POW_X""UTF8_SQUAREROOT"y") // 2nd one implies xth root of y
-	PORT_BIT( 0x02, IP_ACTIVE_HIGH, IPT_KEYBOARD ) PORT_CODE(KEYCODE_SLASH) PORT_NAME("%  "UTF8_CAPITAL_DELTA"%")
+	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_KEYBOARD ) PORT_CODE(KEYCODE_Y) PORT_NAME("y" UTF8_POW_X"  " UTF8_POW_X"" UTF8_SQUAREROOT"y") // 2nd one implies xth root of y
+	PORT_BIT( 0x02, IP_ACTIVE_HIGH, IPT_KEYBOARD ) PORT_CODE(KEYCODE_SLASH) PORT_NAME("%  " UTF8_CAPITAL_DELTA"%")
 	PORT_BIT( 0x04, IP_ACTIVE_HIGH, IPT_KEYBOARD ) PORT_CODE(KEYCODE_S) PORT_NAME("SEL")
 	PORT_BIT( 0x08, IP_ACTIVE_HIGH, IPT_KEYBOARD ) PORT_CODE(KEYCODE_C) PORT_NAME("CST")
 	PORT_BIT( 0x10, IP_ACTIVE_HIGH, IPT_KEYBOARD ) PORT_CODE(KEYCODE_M) PORT_NAME("MAR")
@@ -592,14 +592,14 @@ static INPUT_PORTS_START( tibusan1 )
 
 	PORT_START("IN.4") // O4
 	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_KEYBOARD ) PORT_CODE(KEYCODE_SLASH_PAD) PORT_NAME(UTF8_DIVIDE)
-	PORT_BIT( 0x02, IP_ACTIVE_HIGH, IPT_KEYBOARD ) PORT_CODE(KEYCODE_EQUALS) PORT_NAME(UTF8_CAPITAL_SIGMA"+  "UTF8_CAPITAL_SIGMA"-")
+	PORT_BIT( 0x02, IP_ACTIVE_HIGH, IPT_KEYBOARD ) PORT_CODE(KEYCODE_EQUALS) PORT_NAME(UTF8_CAPITAL_SIGMA"+  " UTF8_CAPITAL_SIGMA"-")
 	PORT_BIT( 0x04, IP_ACTIVE_HIGH, IPT_KEYBOARD ) PORT_CODE(KEYCODE_OPENBRACE) PORT_NAME("(  AN-CI\"")
 	PORT_BIT( 0x08, IP_ACTIVE_HIGH, IPT_KEYBOARD ) PORT_CODE(KEYCODE_COMMA) PORT_NAME("x<>y  L.R.")
 	PORT_BIT( 0x10, IP_ACTIVE_HIGH, IPT_KEYBOARD ) PORT_CODE(KEYCODE_CLOSEBRACE) PORT_NAME(")  1/x")
 
 	PORT_START("IN.5") // O5
 	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_KEYBOARD ) PORT_CODE(KEYCODE_PLUS_PAD) PORT_NAME("+")
-	PORT_BIT( 0x02, IP_ACTIVE_HIGH, IPT_KEYBOARD ) PORT_CODE(KEYCODE_X) PORT_NAME("SUM  x"UTF8_PRIME)
+	PORT_BIT( 0x02, IP_ACTIVE_HIGH, IPT_KEYBOARD ) PORT_CODE(KEYCODE_X) PORT_NAME("SUM  x" UTF8_PRIME)
 	PORT_BIT( 0x04, IP_ACTIVE_HIGH, IPT_KEYBOARD ) PORT_CODE(KEYCODE_2) PORT_CODE(KEYCODE_2_PAD) PORT_NAME("2")
 	PORT_BIT( 0x08, IP_ACTIVE_HIGH, IPT_KEYBOARD ) PORT_CODE(KEYCODE_1) PORT_CODE(KEYCODE_1_PAD) PORT_NAME("1")
 	PORT_BIT( 0x10, IP_ACTIVE_HIGH, IPT_KEYBOARD ) PORT_CODE(KEYCODE_3) PORT_CODE(KEYCODE_3_PAD) PORT_NAME("3")
@@ -613,7 +613,7 @@ static INPUT_PORTS_START( tibusan1 )
 
 	PORT_START("IN.7") // O7
 	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_KEYBOARD ) PORT_CODE(KEYCODE_ENTER) PORT_CODE(KEYCODE_ENTER_PAD) PORT_NAME("=")
-	PORT_BIT( 0x02, IP_ACTIVE_HIGH, IPT_KEYBOARD ) PORT_CODE(KEYCODE_E) PORT_NAME("EXC  x"UTF8_PRIME)
+	PORT_BIT( 0x02, IP_ACTIVE_HIGH, IPT_KEYBOARD ) PORT_CODE(KEYCODE_E) PORT_NAME("EXC  x" UTF8_PRIME)
 	PORT_BIT( 0x04, IP_ACTIVE_HIGH, IPT_KEYBOARD ) PORT_CODE(KEYCODE_STOP) PORT_CODE(KEYCODE_DEL_PAD) PORT_NAME(".")
 	PORT_BIT( 0x08, IP_ACTIVE_HIGH, IPT_KEYBOARD ) PORT_CODE(KEYCODE_0) PORT_CODE(KEYCODE_0_PAD) PORT_NAME("0")
 	PORT_BIT( 0x10, IP_ACTIVE_HIGH, IPT_KEYBOARD ) PORT_CODE(KEYCODE_MINUS) PORT_NAME("+/-")
@@ -622,8 +622,8 @@ static INPUT_PORTS_START( tibusan1 )
 	PORT_START("IN.8") // Vss!
 	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_KEYBOARD ) PORT_CODE(KEYCODE_PGUP) PORT_CODE(KEYCODE_DEL) PORT_NAME("ON/C") PORT_CHANGED_MEMBER(DEVICE_SELF, ticalc1x_state, power_button, (void *)true)
 	PORT_BIT( 0x02, IP_ACTIVE_HIGH, IPT_KEYBOARD ) PORT_CODE(KEYCODE_LSHIFT) PORT_CODE(KEYCODE_RSHIFT) PORT_NAME("2nd")
-	PORT_BIT( 0x04, IP_ACTIVE_HIGH, IPT_KEYBOARD ) PORT_CODE(KEYCODE_Q) PORT_NAME("x"UTF8_POW_2"  "UTF8_SQUAREROOT"x")
-	PORT_BIT( 0x08, IP_ACTIVE_HIGH, IPT_KEYBOARD ) PORT_CODE(KEYCODE_L) PORT_NAME("ln(x)  e"UTF8_POW_X)
+	PORT_BIT( 0x04, IP_ACTIVE_HIGH, IPT_KEYBOARD ) PORT_CODE(KEYCODE_Q) PORT_NAME("x" UTF8_POW_2"  " UTF8_SQUAREROOT"x")
+	PORT_BIT( 0x08, IP_ACTIVE_HIGH, IPT_KEYBOARD ) PORT_CODE(KEYCODE_L) PORT_NAME("ln(x)  e" UTF8_POW_X)
 	PORT_BIT( 0x10, IP_ACTIVE_HIGH, IPT_KEYBOARD ) PORT_CODE(KEYCODE_PGDN) PORT_NAME("OFF") PORT_CHANGED_MEMBER(DEVICE_SELF, ticalc1x_state, power_button, (void *)false)
 INPUT_PORTS_END
 
@@ -654,18 +654,18 @@ void ticalc1x_state::machine_reset()
 void ticalc1x_state::machine_start()
 {
 	// zerofill
-	memset(m_leds_state, 0, sizeof(m_leds_state));
-	memset(m_leds_cache, 0, sizeof(m_leds_cache));
-	memset(m_leds_decay, 0, sizeof(m_leds_decay));
+	memset(m_display_state, 0, sizeof(m_display_state));
+	memset(m_display_cache, 0, sizeof(m_display_cache));
+	memset(m_display_decay, 0, sizeof(m_display_decay));
 
 	m_r = 0;
 	m_o = 0;
 	m_power_on = false;
 
 	// register for savestates
-	save_item(NAME(m_leds_state));
-	save_item(NAME(m_leds_cache));
-	save_item(NAME(m_leds_decay));
+	save_item(NAME(m_display_state));
+	save_item(NAME(m_display_cache));
+	save_item(NAME(m_display_decay));
 
 	save_item(NAME(m_r));
 	save_item(NAME(m_o));
@@ -688,7 +688,7 @@ MACHINE_CONFIG_END
 static MACHINE_CONFIG_START( t9base, ticalc1x_state )
 
 	/* basic machine hardware */
-	MCFG_TIMER_DRIVER_ADD_PERIODIC("leds_decay", ticalc1x_state, leds_decay_tick, attotime::from_msec(10))
+	MCFG_TIMER_DRIVER_ADD_PERIODIC("display_decay", ticalc1x_state, display_decay_tick, attotime::from_msec(1))
 
 	/* no video! */
 

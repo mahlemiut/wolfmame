@@ -1,8 +1,15 @@
 ------------------------------------------------------------------------------------------------
-WolfMAME 0.158                                                                       28/Jan/2015
-Based on the MAME(tm)/MESS 0.158 source, modified by Barry Rodewald
+WolfMAME 0.159                                                                       25/Feb/2015
+Based on the MAME(tm)/MESS 0.159 source, modified by Barry Rodewald
 ------------------------------------------------------------------------------------------------
 
+
+New in 0.159
+------------
+
+ - Fixed ui.tcl recording.
+ - Removed option of using non-UTF8 characters, since default fonts these days include those
+   used by the input viewer.
 
 New in 0.153
 ------------

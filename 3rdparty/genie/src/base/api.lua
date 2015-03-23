@@ -17,7 +17,7 @@
 			kind  = "string",
 			scope = "config",
 		},
-		
+
 		basedir =
 		{
 			kind  = "path",
@@ -42,7 +42,19 @@
 			scope = "config",
 		},
 
+		buildoptions_c =
+		{
+			kind  = "list",
+			scope = "config",
+		},
+
 		buildoptions_cpp =
+		{
+			kind  = "list",
+			scope = "config",
+		},
+
+		buildoptions_objc =
 		{
 			kind  = "list",
 			scope = "config",
@@ -97,6 +109,12 @@
 			scope = "config",
 		},
 
+		removefiles =
+		{
+			kind  = "filelist",
+			scope = "config",
+		},
+
 		flags =
 		{
 			kind  = "list",
@@ -130,6 +148,7 @@
 					NoNativeWChar = 1,
 					NoPCH = 1,
 					NoRTTI = 1,
+					SingleOutputDir = 1,
 					Optimize = 1,
 					OptimizeSize = 1,
 					OptimizeSpeed = 1,
@@ -176,7 +195,7 @@
 			}
 		},
 
-		forcedincludes = 
+		forcedincludes =
 		{
 			kind  = "absolutefilelist",
 			scope = "config",
@@ -292,7 +311,7 @@
 			kind = "list",
 			scope = "config",
 		},
-		
+
 
 		messageskip =
 		{
@@ -322,25 +341,31 @@
 		{
 			kind  = "string",
 			scope = "config",
-		},		
+		},
 
 		msgcompile =
 		{
 			kind  = "string",
 			scope = "config",
-		},		
+		},
+
+		msgcompile_objc =
+		{
+			kind  = "string",
+			scope = "config",
+		},
 
 		msgresource =
 		{
 			kind  = "string",
 			scope = "config",
-		},		
+		},
 
 		msglinking =
 		{
 			kind  = "string",
 			scope = "config",
-		},		
+		},
 
 		objdir =
 		{
@@ -516,6 +541,7 @@
 --
 
 
+	premake.check_paths = false
 
 --
 -- Check to see if a value exists in a list of values, using a
@@ -620,7 +646,7 @@
 		if value then
 			add(value, 5)
 		end
-		
+
 		return obj[fieldname]
 	end
 
@@ -642,7 +668,11 @@
 				end
 			elseif type(value) == "string" then
 				if value:find("*") then
-					makeabsolute(matchfunc(value), depth + 1)
+					local arr = matchfunc(value);
+					if (premake.check_paths) and (#arr == 0) then
+						error("Can't find matching files for pattern :" .. value)
+					end
+					makeabsolute(arr, depth + 1)
 				else
 					table.insert(result, path.getabsolute(value))
 				end
@@ -746,7 +776,7 @@
 			end
 		end
 
-		-- find the container for the value	
+		-- find the container for the value
 		local container, err = premake.getobject(scope)
 		if (not container) then
 			error(err, 3)
@@ -780,10 +810,10 @@
 		end
 
 		-- list value types get a remove() call too
-		if info.kind == "list" or 
-		   info.kind == "dirlist" or 
+		if info.kind == "list" or
+		   info.kind == "dirlist" or
 		   info.kind == "filelist" or
-		   info.kind == "absolutefilelist" 
+		   info.kind == "absolutefilelist"
 		then
 			_G["remove"..name] = function(value)
 				premake.remove(name, value)
@@ -871,7 +901,7 @@
 --    the path to create groups from (i.e. "Examples/Simple")
 -- @param sln
 --    the solution to add the groups to
--- @returns 
+-- @returns
 --    the group object for the deepest folder
 --
 
@@ -936,7 +966,7 @@
 		prj.basedir        = os.getcwd()
 		prj.uuid           = os.uuid(prj.name)
 		prj.blocks         = { }
-		prj.usage		   = isUsage
+		prj.usage          = isUsage
 		prj.group          = group
 
 		return prj;
@@ -961,46 +991,46 @@
 			error("no active solution", 2)
 		end
 
-  		-- if this is a new project, or the project in that slot doesn't have a usage, create it
-  		if((not sln.projects[name]) or
-  			((not sln.projects[name].usage) and (not sln.projects[name].usageProj))) then
-  			premake.CurrentContainer = createproject(name, sln, true)
-  		else
-  			premake.CurrentContainer = iff(sln.projects[name].usage,
-  				sln.projects[name], sln.projects[name].usageProj)
-  		end
-
-  		-- add an empty, global configuration to the project
-  		configuration { }
-
-  		return premake.CurrentContainer
-  	end
-
-  	function project(name)
-  		if (not name) then
-  			--Only return non-usage projects
-  			if(type(premake.CurrentContainer) ~= "project") then return nil end
-  			if(premake.CurrentContainer.usage) then return nil end
-  			return premake.CurrentContainer
+		-- if this is a new project, or the project in that slot doesn't have a usage, create it
+		if((not sln.projects[name]) or
+			((not sln.projects[name].usage) and (not sln.projects[name].usageProj))) then
+			premake.CurrentContainer = createproject(name, sln, true)
+		else
+			premake.CurrentContainer = iff(sln.projects[name].usage,
+			sln.projects[name], sln.projects[name].usageProj)
 		end
 
-  		-- identify the parent solution
-  		local sln
-  		if (type(premake.CurrentContainer) == "project") then
-  			sln = premake.CurrentContainer.solution
-  		else
-  			sln = premake.CurrentContainer
-  		end
-  		if (type(sln) ~= "solution") then
-  			error("no active solution", 2)
-  		end
+		-- add an empty, global configuration to the project
+		configuration { }
 
-  		-- if this is a new project, or the old project is a usage project, create it
-  		if((not sln.projects[name]) or sln.projects[name].usage) then
-  			premake.CurrentContainer = createproject(name, sln)
-  		else
-  			premake.CurrentContainer = sln.projects[name];
-  		end
+		return premake.CurrentContainer
+	end
+
+	function project(name)
+		if (not name) then
+			--Only return non-usage projects
+			if(type(premake.CurrentContainer) ~= "project") then return nil end
+			if(premake.CurrentContainer.usage) then return nil end
+			return premake.CurrentContainer
+		end
+
+		-- identify the parent solution
+		local sln
+		if (type(premake.CurrentContainer) == "project") then
+			sln = premake.CurrentContainer.solution
+		else
+			sln = premake.CurrentContainer
+		end
+		if (type(sln) ~= "solution") then
+			error("no active solution", 2)
+		end
+
+		-- if this is a new project, or the old project is a usage project, create it
+		if((not sln.projects[name]) or sln.projects[name].usage) then
+			premake.CurrentContainer = createproject(name, sln)
+		else
+			premake.CurrentContainer = sln.projects[name];
+		end
 
 		-- add an empty, global configuration to the project
 		configuration { }
@@ -1031,7 +1061,7 @@
 
 
 	function group(name)
-		if not name then 
+		if not name then
 			return premake.CurrentGroup
 		end
 		premake.CurrentGroup = name

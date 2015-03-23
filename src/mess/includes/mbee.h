@@ -10,6 +10,7 @@
 #include "emu.h"
 #include "imagedev/snapquik.h"
 #include "machine/z80pio.h"
+#include "machine/8530scc.h"
 #include "imagedev/cassette.h"
 #include "machine/buffer.h"
 #include "bus/centronics/ctronics.h"
@@ -27,9 +28,7 @@ class mbee_state : public driver_device
 public:
 	enum
 	{
-		TIMER_MBEE_NEWKB,
-		TIMER_MBEE_RTC_IRQ,
-		TIMER_MBEE_BOOT
+		TIMER_MBEE_NEWKB
 	};
 
 	mbee_state(const machine_config &mconfig, device_type type, const char *tag)
@@ -47,50 +46,38 @@ public:
 		, m_floppy0(*this, "fdc:0")
 		, m_floppy1(*this, "fdc:1")
 		, m_rtc(*this, "rtc")
-		, m_boot(*this, "boot")
 		, m_pak(*this, "pak")
 		, m_telcom(*this, "telcom")
 		, m_basic(*this, "basic")
-		, m_io_extra(*this, "EXTRA")
-		, m_io_config(*this, "CONFIG")
+		, m_io_x7(*this, "X.7")
 		, m_io_oldkb(*this, "X")
 		, m_io_newkb(*this, "Y")
+		, m_io_config(*this, "CONFIG")
 		, m_screen(*this, "screen")
 	{ }
 
-	DECLARE_WRITE8_MEMBER(mbee_04_w);
-	DECLARE_WRITE8_MEMBER(mbee_06_w);
-	DECLARE_READ8_MEMBER(mbee_07_r);
-	DECLARE_READ8_MEMBER(mbeeic_0a_r);
-	DECLARE_WRITE8_MEMBER(mbeeic_0a_w);
-	DECLARE_READ8_MEMBER(mbeepc_telcom_low_r);
-	DECLARE_READ8_MEMBER(mbeepc_telcom_high_r);
-	DECLARE_READ8_MEMBER(mbee256_speed_low_r);
-	DECLARE_READ8_MEMBER(mbee256_speed_high_r);
-	DECLARE_READ8_MEMBER(mbee256_18_r);
+	DECLARE_WRITE8_MEMBER(port04_w);
+	DECLARE_WRITE8_MEMBER(port06_w);
+	DECLARE_READ8_MEMBER(port07_r);
+	DECLARE_READ8_MEMBER(port08_r);
+	DECLARE_WRITE8_MEMBER(port08_w);
+	DECLARE_WRITE8_MEMBER(port0a_w);
+	DECLARE_WRITE8_MEMBER(port0b_w);
+	DECLARE_READ8_MEMBER(port18_r);
+	DECLARE_READ8_MEMBER(port1c_r);
+	DECLARE_WRITE8_MEMBER(port1c_w);
 	DECLARE_WRITE8_MEMBER(mbee128_50_w);
 	DECLARE_WRITE8_MEMBER(mbee256_50_w);
-	DECLARE_READ8_MEMBER(m6545_status_r);
+	DECLARE_READ8_MEMBER(telcom_low_r);
+	DECLARE_READ8_MEMBER(telcom_high_r);
+	DECLARE_READ8_MEMBER(speed_low_r);
+	DECLARE_READ8_MEMBER(speed_high_r);
 	DECLARE_WRITE8_MEMBER(m6545_index_w);
-	DECLARE_READ8_MEMBER(m6545_data_r);
 	DECLARE_WRITE8_MEMBER(m6545_data_w);
-	DECLARE_READ8_MEMBER(mbee_low_r);
-	DECLARE_READ8_MEMBER(mbee_high_r);
-	DECLARE_READ8_MEMBER(mbeeic_high_r);
-	DECLARE_WRITE8_MEMBER(mbeeic_high_w);
-	DECLARE_WRITE8_MEMBER(mbee_low_w);
-	DECLARE_WRITE8_MEMBER(mbee_high_w);
-	DECLARE_READ8_MEMBER(mbeeic_08_r);
-	DECLARE_WRITE8_MEMBER(mbeeic_08_w);
-	DECLARE_READ8_MEMBER(mbee_0b_r);
-	DECLARE_WRITE8_MEMBER(mbee_0b_w);
-	DECLARE_READ8_MEMBER(mbeeppc_1c_r);
-	DECLARE_WRITE8_MEMBER(mbeeppc_1c_w);
-	DECLARE_WRITE8_MEMBER(mbee256_1c_w);
-	DECLARE_READ8_MEMBER(mbeeppc_low_r);
-	DECLARE_READ8_MEMBER(mbeeppc_high_r);
-	DECLARE_WRITE8_MEMBER(mbeeppc_high_w);
-	DECLARE_WRITE8_MEMBER(mbeeppc_low_w);
+	DECLARE_READ8_MEMBER(video_low_r);
+	DECLARE_READ8_MEMBER(video_high_r);
+	DECLARE_WRITE8_MEMBER(video_low_w);
+	DECLARE_WRITE8_MEMBER(video_high_w);
 	DECLARE_WRITE8_MEMBER(pio_port_b_w);
 	DECLARE_READ8_MEMBER(pio_port_b_r);
 	DECLARE_WRITE_LINE_MEMBER(pio_ardy);
@@ -111,7 +98,6 @@ public:
 	DECLARE_VIDEO_START(standard);
 	DECLARE_VIDEO_START(premium);
 	DECLARE_PALETTE_INIT(standard);
-	DECLARE_PALETTE_INIT(mbeepc85b);
 	DECLARE_PALETTE_INIT(premium);
 	DECLARE_MACHINE_RESET(mbee56);
 	DECLARE_MACHINE_RESET(mbee128);
@@ -119,49 +105,44 @@ public:
 	DECLARE_MACHINE_RESET(mbeett);
 	UINT32 screen_update_mbee(screen_device &screen, bitmap_rgb32 &bitmap, const rectangle &cliprect);
 	TIMER_CALLBACK_MEMBER(timer_newkb);
-	TIMER_CALLBACK_MEMBER(timer_rtc_irq);
-	TIMER_CALLBACK_MEMBER(timer_boot);
 	DECLARE_QUICKLOAD_LOAD_MEMBER(mbee);
 	DECLARE_QUICKLOAD_LOAD_MEMBER(mbee_z80bin);
+	WRITE_LINE_MEMBER(rtc_irq_w);
 	WRITE_LINE_MEMBER(fdc_intrq_w);
 	WRITE_LINE_MEMBER(fdc_drq_w);
-	UINT8 *m_p_videoram;
-	UINT8 *m_p_gfxram;
-	UINT8 *m_p_colorram;
-	UINT8 *m_p_attribram;
-	UINT8 m_framecnt;
-	UINT8 m_08;
-	UINT8 m_1c;
-	void mbee_video_kbd_scan(int param);
-	UINT8 m_sy6545_cursor[16];
-
-	MC6845_UPDATE_ROW(mono_update_row);
-	MC6845_UPDATE_ROW(colour_update_row);
+	MC6845_UPDATE_ROW(crtc_update_row);
 	MC6845_ON_UPDATE_ADDR_CHANGED(crtc_update_addr);
 
 	required_device<palette_device> m_palette;
 private:
+	UINT8 *m_p_videoram;
+	UINT8 *m_p_gfxram;
+	UINT8 *m_p_colorram;
+	UINT8 *m_p_attribram;
 	bool m_is_premium;
 	bool m_has_oldkb;
 	size_t m_size;
 	bool m_b7_rtc;
 	bool m_b7_vs;
 	bool m_b2;
-	bool m_is_mbeett;
+	UINT8 m_framecnt;
+	UINT8 m_08;
+	UINT8 m_0a;
+	UINT8 m_0b;
+	UINT8 m_1c;
+	UINT8 m_sy6545_cursor[16];
 	UINT8 m_mbee256_was_pressed[15];
 	UINT8 m_mbee256_q[20];
 	UINT8 m_mbee256_q_pos;
-	UINT8 m_0a;
-	UINT8 m_0b;
-	UINT8 m_sy6545_status;
 	UINT8 m_sy6545_reg[32];
 	UINT8 m_sy6545_ind;
 	UINT8 m_fdc_rq;
 	UINT8 m_bank_array[33];
 	void setup_banks(UINT8 data, bool first_time, UINT8 b_mask);
 	void sy6545_cursor_configure();
-	void keyboard_matrix_r(int offs);
-	void machine_reset_common_disk();
+	void oldkb_scan(UINT16 param);
+	void oldkb_matrix_r(UINT16 offs);
+	void machine_reset_common();
 	virtual void device_timer(emu_timer &timer, device_timer_id id, int param, void *ptr);
 	required_device<cpu_device> m_maincpu;
 	required_device<z80pio_device> m_pio;
@@ -175,14 +156,13 @@ private:
 	optional_device<floppy_connector> m_floppy0;
 	optional_device<floppy_connector> m_floppy1;
 	optional_device<mc146818_device> m_rtc;
-	optional_memory_bank m_boot;
 	optional_memory_bank m_pak;
 	optional_memory_bank m_telcom;
 	optional_memory_bank m_basic;
-	optional_ioport m_io_extra;
-	required_ioport m_io_config;
+	optional_ioport m_io_x7;
 	optional_ioport_array<8> m_io_oldkb;
 	optional_ioport_array<15> m_io_newkb;
+	required_ioport m_io_config;
 	required_device<screen_device> m_screen;
 };
 

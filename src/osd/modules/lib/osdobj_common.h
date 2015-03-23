@@ -55,6 +55,19 @@
 #define OSDOPTION_SOUND                 "sound"
 #define OSDOPTION_AUDIO_LATENCY         "audio_latency"
 
+#define OSDOPTION_FILTER                "filter"
+#define OSDOPTION_PRESCALE              "prescale"
+
+#define OSDOPTION_SHADER_MAME           "glsl_shader_mame"
+#define OSDOPTION_SHADER_SCREEN         "glsl_shader_screen"
+#define OSDOPTION_GLSL_FILTER           "gl_glsl_filter"
+#define OSDOPTION_GL_GLSL               "gl_glsl"
+#define OSDOPTION_GL_PBO                "gl_pbo"
+#define OSDOPTION_GL_VBO                "gl_vbo"
+#define OSDOPTION_GL_NOTEXTURERECT      "gl_notexturerect"
+#define OSDOPTION_GL_FORCEPOW2TEXTURE   "gl_forcepow2texture"
+
+
 #define OSDOPTVAL_AUTO                  "auto"
 #define OSDOPTVAL_NONE                  "none"
 
@@ -106,6 +119,20 @@ public:
 	const char *sound() const { return value(OSDOPTION_SOUND); }
 	int audio_latency() const { return int_value(OSDOPTION_AUDIO_LATENCY); }
 
+	// video options
+	bool filter() const { return bool_value(OSDOPTION_FILTER); }
+	int prescale() const { return int_value(OSDOPTION_PRESCALE); }
+
+	// OpenGL specific options
+	bool gl_force_pow2_texture() const { return bool_value(OSDOPTION_GL_FORCEPOW2TEXTURE); }
+	bool gl_no_texture_rect() const { return bool_value(OSDOPTION_GL_NOTEXTURERECT); }
+	bool gl_vbo() const { return bool_value(OSDOPTION_GL_VBO); }
+	bool gl_pbo() const { return bool_value(OSDOPTION_GL_PBO); }
+	bool gl_glsl() const { return bool_value(OSDOPTION_GL_GLSL); }
+	bool glsl_filter() const { return bool_value(OSDOPTION_GLSL_FILTER); }
+	const char *shader_mame(int index) const { astring temp; return value(temp.format("%s%d", OSDOPTION_SHADER_MAME, index)); }
+	const char *shader_screen(int index) const { astring temp; return value(temp.format("%s%d", OSDOPTION_SHADER_SCREEN, index)); }
+
 private:
 	static const options_entry s_option_entries[];
 };
@@ -113,7 +140,7 @@ private:
 // ======================> osd_interface
 
 // description of the currently-running machine
-class osd_common_t : public osd_interface
+class osd_common_t : public osd_interface, osd_output
 {
 public:
 	// construction/destruction
@@ -183,6 +210,9 @@ public:
 	virtual void video_options_add(const char *name, void *type);
 
 	osd_options &options() { return m_options; }
+
+	// osd_output interface ...
+	virtual void output_callback(osd_output_channel channel, const char *msg, va_list args);
 
 protected:
 	virtual bool input_init();

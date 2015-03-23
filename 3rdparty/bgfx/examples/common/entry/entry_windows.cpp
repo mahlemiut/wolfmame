@@ -706,7 +706,7 @@ namespace entry
 						ScreenToClient(_hwnd, &pt);
 						int32_t mx = pt.x;
 						int32_t my = pt.y;
-						m_mz += GET_WHEEL_DELTA_WPARAM(_wparam);
+						m_mz += GET_WHEEL_DELTA_WPARAM(_wparam)/WHEEL_DELTA;
 						m_eventQueue.postMouseEvent(findHandle(_hwnd), mx, my, m_mz);
 					}
 					break;
@@ -1065,6 +1065,11 @@ namespace entry
 	void toggleWindowFrame(WindowHandle _handle)
 	{
 		PostMessage(s_ctx.m_hwnd[0], WM_USER_WINDOW_TOGGLE_FRAME, _handle.idx, 0);
+	}
+
+	void toggleFullscreen(WindowHandle _handle)
+	{
+		BX_UNUSED(_handle);
 	}
 
 	void setMouseLock(WindowHandle _handle, bool _lock)

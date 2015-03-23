@@ -2,7 +2,6 @@
 
 from __future__ import with_statement
 
-import os
 import re
 import sys
 
@@ -24,13 +23,13 @@ def parse_args():
         elif flags and (sys.argv[i] == '-p'):
             format = 'plist'
         elif flags and (sys.argv[i] == '-b'):
-            i += 1;
+            i += 1
             if (i >= len(sys.argv)) or (sys.argv[i] not in ('mame', 'mess', 'ume')):
                 usage()
             else:
                 target = sys.argv[i]
         elif flags and (sys.argv[i] == '-o'):
-            i += 1;
+            i += 1
             if (i >= len(sys.argv)) or (output is not None):
                 usage()
             else:
@@ -85,13 +84,13 @@ else:
 
 if build == "mess":
     # MESS
-    author = "MESS Team";
-    comments = "Multi Emulation Super System";
-    company_name = "MESS Team";
-    file_description = "Multi Emulation Super System";
-    internal_name = "MESS";
-    original_filename = "MESS";
-    product_name = "MESS";
+    author = "MESS Team"
+    comments = "Multi Emulation Super System"
+    company_name = "MESS Team"
+    file_description = "Multi Emulation Super System"
+    internal_name = "MESS"
+    original_filename = "MESS"
+    product_name = "MESS"
     bundle_identifier = "org.mamedev.mess"
 elif build == "ume":
     # UME
@@ -121,7 +120,7 @@ if outfmt == 'rc':
     fp.write('\tFILEVERSION %s,%s,%s,%s\n' % (version_major, version_minor, version_build, version_subbuild))
     fp.write('\tPRODUCTVERSION %s,%s,%s,%s\n' % (version_major, version_minor, version_build, version_subbuild))
     fp.write('\tFILEFLAGSMASK 0x3fL\n')
-    if (version_build == 0):
+    if version_build == 0:
         fp.write('\tFILEFLAGS 0x0L\n')
     else:
         fp.write('\tFILEFLAGS VS_FF_PRERELEASE\n')

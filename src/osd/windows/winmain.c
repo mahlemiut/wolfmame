@@ -192,10 +192,34 @@ private:
 
 	UINT8           m_stack_depth;
 	UINT8           m_entry_stride;
-	UINT32          m_max_seconds;
 	dynamic_array<FPTR> m_buffer;
 	FPTR *          m_buffer_ptr;
 	FPTR *          m_buffer_end;
+};
+
+//============================================================
+//  winui_output_error
+//============================================================
+
+class winui_output_error : public osd_output
+{
+public:
+	virtual void output_callback(osd_output_channel channel, const char *msg, va_list args)
+	{
+		if (channel == OSD_OUTPUT_CHANNEL_ERROR)
+		{
+			char buffer[1024];
+
+			// if we are in fullscreen mode, go to windowed mode
+			if ((video_config.windowed == 0) && (win_window_list != NULL))
+				winwindow_toggle_full_screen();
+
+			vsnprintf(buffer, ARRAY_LENGTH(buffer), msg, args);
+			win_message_box_utf8(win_window_list ? win_window_list->m_hwnd : NULL, buffer, emulator_info::get_appname(), MB_OK);
+		}
+		else
+			chain_output(channel, msg, args);
+	}
 };
 
 
@@ -237,7 +261,6 @@ static BOOL WINAPI control_handler(DWORD type);
 static int is_double_click_start(int argc);
 static DWORD WINAPI watchdog_thread_entry(LPVOID lpParameter);
 static LONG WINAPI exception_filter(struct _EXCEPTION_POINTERS *info);
-static void winui_output_error(delegate_late_bind *__dummy, const char *format, va_list argptr);
 
 
 
@@ -260,16 +283,11 @@ const options_entry windows_options::s_option_entries[] =
 
 	// video options
 	{ NULL,                                           NULL,       OPTION_HEADER,     "WINDOWS VIDEO OPTIONS" },
-	{ WINOPTION_PRESCALE,                             "1",        OPTION_INTEGER,    "scale screen rendering by this amount in software" },
 	{ WINOPTION_MENU,                                 "0",        OPTION_BOOLEAN,    "enable menu bar if available by UI implementation" },
 
 	// DirectDraw-specific options
 	{ NULL,                                           NULL,       OPTION_HEADER,     "DIRECTDRAW-SPECIFIC OPTIONS" },
 	{ WINOPTION_HWSTRETCH ";hws",                     "1",        OPTION_BOOLEAN,    "enable hardware stretching" },
-
-	// Direct3D-specific options
-	{ NULL,                                           NULL,       OPTION_HEADER,     "DIRECT3D-SPECIFIC OPTIONS" },
-	{ WINOPTION_FILTER ";d3dfilter;flt",              "1",        OPTION_BOOLEAN,    "enable bilinear filtering on screen output" },
 
 	// post-processing options
 	{ NULL,                                                     NULL,        OPTION_HEADER,     "DIRECT3D POST-PROCESSING OPTIONS" },
@@ -396,24 +414,27 @@ int main(int argc, char *argv[])
 	extern void (*s_debugger_stack_crawler)();
 	s_debugger_stack_crawler = winmain_dump_stack;
 
-	// if we're a GUI app, out errors to message boxes
-	if (win_is_gui_application() || is_double_click_start(argc))
-	{
-		// if we are a GUI app, output errors to message boxes
-		osd_set_output_channel(OSD_OUTPUT_CHANNEL_ERROR, output_delegate(FUNC(winui_output_error), (delegate_late_bind *)0));
-
-		// make sure any console window that opened on our behalf is nuked
-		FreeConsole();
-	}
 
 	// parse config and cmdline options
 	DWORD result = 0;
 	{
 		windows_options options;
 		windows_osd_interface osd(options);
+		// if we're a GUI app, out errors to message boxes
+		// Initialize this after the osd interface so that we are first in the
+		// output order
+		winui_output_error winerror;
+		if (win_is_gui_application() || is_double_click_start(argc))
+		{
+			// if we are a GUI app, output errors to message boxes
+			osd_output::push(&winerror);
+			// make sure any console window that opened on our behalf is nuked
+			FreeConsole();
+		}
 		osd.register_options();
 		cli_frontend frontend(options, osd);
 		result = frontend.execute(argc, argv);
+		osd_output::pop(&winerror);
 	}
 	// free symbols
 	symbols = NULL;
@@ -468,22 +489,6 @@ static BOOL WINAPI control_handler(DWORD type)
 	return TRUE;
 }
 
-
-//============================================================
-//  winui_output_error
-//============================================================
-
-static void winui_output_error(delegate_late_bind *param, const char *format, va_list argptr)
-{
-	char buffer[1024];
-
-	// if we are in fullscreen mode, go to windowed mode
-	if ((video_config.windowed == 0) && (win_window_list != NULL))
-		winwindow_toggle_full_screen();
-
-	vsnprintf(buffer, ARRAY_LENGTH(buffer), format, argptr);
-	win_message_box_utf8(win_window_list ? win_window_list->m_hwnd : NULL, buffer, emulator_info::get_appname(), MB_OK);
-}
 
 
 
@@ -1353,7 +1358,6 @@ sampling_profiler::sampling_profiler(UINT32 max_seconds, UINT8 stack_depth = 0)
 		m_thread_exit(false),
 		m_stack_depth(stack_depth),
 		m_entry_stride(stack_depth + 2),
-		m_max_seconds(max_seconds),
 		m_buffer(max_seconds * 1000 * m_entry_stride),
 		m_buffer_ptr(m_buffer),
 		m_buffer_end(m_buffer + max_seconds * 1000 * m_entry_stride)

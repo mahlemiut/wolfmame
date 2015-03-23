@@ -82,6 +82,41 @@ const options_entry osd_options::s_option_entries[] =
 	{ OSDOPTION_SOUND,                        OSDOPTVAL_AUTO, OPTION_STRING,     "sound output method: " },
 	{ OSDOPTION_AUDIO_LATENCY "(1-5)",        "2",   OPTION_INTEGER,    "set audio latency (increase to reduce glitches, decrease for responsiveness)" },
 
+	{ NULL,                                   NULL,   OPTION_HEADER,  "OSD VIDEO OPTIONS" },
+	{ OSDOPTION_FILTER ";glfilter;flt",       "1",    OPTION_BOOLEAN, "enable bilinear filtering on screen output" },
+	{ OSDOPTION_PRESCALE,                     "1",    OPTION_INTEGER,                 "scale screen rendering by this amount in software" },
+
+#if USE_OPENGL
+	// OpenGL specific options
+	{ NULL,                                   NULL,   OPTION_HEADER,  "OpenGL-SPECIFIC OPTIONS" },
+	{ OSDOPTION_GL_FORCEPOW2TEXTURE,          "0",    OPTION_BOOLEAN, "force power of two textures  (default no)" },
+	{ OSDOPTION_GL_NOTEXTURERECT,             "0",    OPTION_BOOLEAN, "don't use OpenGL GL_ARB_texture_rectangle (default on)" },
+	{ OSDOPTION_GL_VBO,                       "1",    OPTION_BOOLEAN, "enable OpenGL VBO,  if available (default on)" },
+	{ OSDOPTION_GL_PBO,                       "1",    OPTION_BOOLEAN, "enable OpenGL PBO,  if available (default on)" },
+	{ OSDOPTION_GL_GLSL,                      "0",    OPTION_BOOLEAN, "enable OpenGL GLSL, if available (default off)" },
+	{ OSDOPTION_GLSL_FILTER,                  "1",    OPTION_STRING,  "enable OpenGL GLSL filtering instead of FF filtering 0-plain, 1-bilinear (default)" },
+	{ OSDOPTION_SHADER_MAME "0",     OSDOPTVAL_NONE,  OPTION_STRING,  "custom OpenGL GLSL shader set mame bitmap 0" },
+	{ OSDOPTION_SHADER_MAME "1",     OSDOPTVAL_NONE,  OPTION_STRING,  "custom OpenGL GLSL shader set mame bitmap 1" },
+	{ OSDOPTION_SHADER_MAME "2",     OSDOPTVAL_NONE,  OPTION_STRING,  "custom OpenGL GLSL shader set mame bitmap 2" },
+	{ OSDOPTION_SHADER_MAME "3",     OSDOPTVAL_NONE,  OPTION_STRING,  "custom OpenGL GLSL shader set mame bitmap 3" },
+	{ OSDOPTION_SHADER_MAME "4",     OSDOPTVAL_NONE,  OPTION_STRING,  "custom OpenGL GLSL shader set mame bitmap 4" },
+	{ OSDOPTION_SHADER_MAME "5",     OSDOPTVAL_NONE,  OPTION_STRING,  "custom OpenGL GLSL shader set mame bitmap 5" },
+	{ OSDOPTION_SHADER_MAME "6",     OSDOPTVAL_NONE,  OPTION_STRING,  "custom OpenGL GLSL shader set mame bitmap 6" },
+	{ OSDOPTION_SHADER_MAME "7",     OSDOPTVAL_NONE,  OPTION_STRING,  "custom OpenGL GLSL shader set mame bitmap 7" },
+	{ OSDOPTION_SHADER_MAME "8",     OSDOPTVAL_NONE,  OPTION_STRING,  "custom OpenGL GLSL shader set mame bitmap 8" },
+	{ OSDOPTION_SHADER_MAME "9",     OSDOPTVAL_NONE,  OPTION_STRING,  "custom OpenGL GLSL shader set mame bitmap 9" },
+	{ OSDOPTION_SHADER_SCREEN "0",   OSDOPTVAL_NONE,  OPTION_STRING,  "custom OpenGL GLSL shader screen bitmap 0" },
+	{ OSDOPTION_SHADER_SCREEN "1",   OSDOPTVAL_NONE,  OPTION_STRING,  "custom OpenGL GLSL shader screen bitmap 1" },
+	{ OSDOPTION_SHADER_SCREEN "2",   OSDOPTVAL_NONE,  OPTION_STRING,  "custom OpenGL GLSL shader screen bitmap 2" },
+	{ OSDOPTION_SHADER_SCREEN "3",   OSDOPTVAL_NONE,  OPTION_STRING,  "custom OpenGL GLSL shader screen bitmap 3" },
+	{ OSDOPTION_SHADER_SCREEN "4",   OSDOPTVAL_NONE,  OPTION_STRING,  "custom OpenGL GLSL shader screen bitmap 4" },
+	{ OSDOPTION_SHADER_SCREEN "5",   OSDOPTVAL_NONE,  OPTION_STRING,  "custom OpenGL GLSL shader screen bitmap 5" },
+	{ OSDOPTION_SHADER_SCREEN "6",   OSDOPTVAL_NONE,  OPTION_STRING,  "custom OpenGL GLSL shader screen bitmap 6" },
+	{ OSDOPTION_SHADER_SCREEN "7",   OSDOPTVAL_NONE,  OPTION_STRING,  "custom OpenGL GLSL shader screen bitmap 7" },
+	{ OSDOPTION_SHADER_SCREEN "8",   OSDOPTVAL_NONE,  OPTION_STRING,  "custom OpenGL GLSL shader screen bitmap 8" },
+	{ OSDOPTION_SHADER_SCREEN "9",   OSDOPTVAL_NONE,  OPTION_STRING,  "custom OpenGL GLSL shader screen bitmap 9" },
+#endif
+
 	// End of list
 	{ NULL }
 };
@@ -98,12 +133,24 @@ osd_options::osd_options()
 //-------------------------------------------------
 
 osd_common_t::osd_common_t(osd_options &options)
-	: m_machine(NULL),
+	: osd_output(), m_machine(NULL),
 		m_options(options),
 		m_sound(NULL),
 		m_debugger(NULL)
-
 {
+	osd_output::push(this);
+}
+
+//-------------------------------------------------
+//  osd_interface - destructor
+//-------------------------------------------------
+
+osd_common_t::~osd_common_t()
+{
+	for(int i= 0; i < m_video_names.count(); ++i)
+		osd_free(const_cast<char*>(m_video_names[i]));
+	//m_video_options,reset();
+	osd_output::pop(this);
 }
 
 #define REGISTER_MODULE(_O, _X ) { extern const module_type _X; _O . register_module( _X ); }
@@ -132,7 +179,9 @@ void osd_common_t::register_options()
 	REGISTER_MODULE(m_mod_man, NETDEV_PCAP);
 	REGISTER_MODULE(m_mod_man, NETDEV_NONE);
 
+#ifndef NO_USE_MIDI
 	REGISTER_MODULE(m_mod_man, MIDI_PM);
+#endif
 	REGISTER_MODULE(m_mod_man, MIDI_NONE);
 
 	// after initialization we know which modules are supported
@@ -193,17 +242,32 @@ void osd_common_t::update_option(const char * key, dynamic_array<const char *> &
 	m_options.set_description(key, core_strdup(current_value.cat(new_option_value).cstr()));
 }
 
-//-------------------------------------------------
-//  osd_interface - destructor
-//-------------------------------------------------
 
-osd_common_t::~osd_common_t()
+//-------------------------------------------------
+//  output_callback  - callback for osd_printf_...
+//-------------------------------------------------
+void osd_common_t::output_callback(osd_output_channel channel, const char *msg, va_list args)
 {
-	for(int i= 0; i < m_video_names.count(); ++i)
-		osd_free(const_cast<char*>(m_video_names[i]));
-	//m_video_options,reset();
+	switch (channel)
+	{
+		case OSD_OUTPUT_CHANNEL_ERROR:
+		case OSD_OUTPUT_CHANNEL_WARNING:
+			vfprintf(stderr, msg, args);
+			break;
+		case OSD_OUTPUT_CHANNEL_INFO:
+		case OSD_OUTPUT_CHANNEL_VERBOSE:
+		case OSD_OUTPUT_CHANNEL_LOG:
+			vfprintf(stdout, msg, args);
+			break;
+		case OSD_OUTPUT_CHANNEL_DEBUG:
+#ifdef MAME_DEBUG
+			vfprintf(stdout, msg, args);
+#endif
+			break;
+		default:
+			break;
+	}
 }
-
 
 //-------------------------------------------------
 //  init - initialize the OSD system.

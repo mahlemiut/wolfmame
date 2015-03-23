@@ -931,6 +931,7 @@ BUSOBJS += $(BUSOBJ)/a2bus/corvfdc01.o
 BUSOBJS += $(BUSOBJ)/a2bus/corvfdc02.o
 BUSOBJS += $(BUSOBJ)/a2bus/ramcard16k.o
 BUSOBJS += $(BUSOBJ)/a2bus/ramcard128k.o
+BUSOBJS += $(BUSOBJ)/a2bus/ezcgi.o
 endif
 
 #-------------------------------------------------
@@ -1453,6 +1454,7 @@ BUSOBJS += $(BUSOBJ)/scsi/d9060hd.o
 BUSOBJS += $(BUSOBJ)/scsi/sa1403d.o
 BUSOBJS += $(BUSOBJ)/scsi/s1410.o
 BUSOBJS += $(BUSOBJ)/scsi/pc9801_sasi.o
+BUSOBJS += $(BUSOBJ)/scsi/omti5100.o
 endif
 
 #-------------------------------------------------

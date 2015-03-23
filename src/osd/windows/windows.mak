@@ -61,13 +61,16 @@
 # CYGWIN_BUILD = 1
 
 # set this to the minimum DirectInput version to support (7 or 8)
-# DIRECTINPUT = 8
+DIRECTINPUT = 8
 
 # uncomment next line to use SDL library for sound and video output
 # USE_SDL = 1
 
 # uncomment next line to compile OpenGL video renderer
-# USE_OPENGL = 1
+USE_OPENGL = 1
+
+# uncomment the next line to build a binary using GL-dispatching.
+USE_DISPATCH_GL = 1
 
 # uncomment next line to use QT debugger
 # USE_QTDEBUG = 1
@@ -96,6 +99,8 @@ OBJDIRS += $(WINOBJ) \
 	$(OSDOBJ)/modules/midi \
 	$(OSDOBJ)/modules/font \
 	$(OSDOBJ)/modules/netdev \
+	$(OSDOBJ)/modules/render \
+	$(OSDOBJ)/modules/render/d3d \
 	$(OSDOBJ)/modules/debugger/win
 
 ifdef USE_QTDEBUG
@@ -232,10 +237,8 @@ endif
 # explicitly set the entry point for UNICODE builds
 LDFLAGS += /ENTRY:wmainCRTStartup
 
-ifdef MSVC_BUILD
 ifdef DEBUG
 LDFLAGS += /NODEFAULTLIB:LIBCMT
-endif
 endif
 
 # add some VC++-specific defines
@@ -249,7 +252,7 @@ msvcclean:
 	$(RM) *.lib
 	$(RM) *.exp
 
-endif
+endif # MSVC_BUILD
 
 
 #-------------------------------------------------
@@ -370,13 +373,13 @@ OSDCOREOBJS = \
 #-------------------------------------------------
 
 OSDOBJS = \
-	$(WINOBJ)/d3d9intf.o \
-	$(WINOBJ)/drawd3d.o \
-	$(WINOBJ)/d3dhlsl.o \
-	$(WINOBJ)/drawdd.o \
-	$(WINOBJ)/drawgdi.o \
-	$(WINOBJ)/drawbgfx.o \
-	$(WINOBJ)/drawnone.o \
+	$(OSDOBJ)/modules/render/drawd3d.o \
+	$(OSDOBJ)/modules/render/d3d/d3d9intf.o \
+	$(OSDOBJ)/modules/render/d3d/d3dhlsl.o \
+	$(OSDOBJ)/modules/render/drawdd.o \
+	$(OSDOBJ)/modules/render/drawgdi.o \
+	$(OSDOBJ)/modules/render/drawbgfx.o \
+	$(OSDOBJ)/modules/render/drawnone.o \
 	$(WINOBJ)/input.o \
 	$(WINOBJ)/output.o \
 	$(OSDOBJ)/modules/sound/js_sound.o  \
@@ -399,11 +402,21 @@ OSDOBJS = \
 	$(OSDOBJ)/modules/netdev/none.o \
 
 ifdef USE_OPENGL
-OSDOBJS +=  $(WINOBJ)/../sdl/drawogl.o $(WINOBJ)/../sdl/gl_shader_tool.o $(WINOBJ)/../sdl/gl_shader_mgr.o
-OBJDIRS += $(WINOBJ)/../sdl
+OSDOBJS += \
+	$(OSDOBJ)/modules/render/drawogl.o \
+	$(OSDOBJ)/modules/opengl/gl_shader_tool.o \
+	$(OSDOBJ)/modules/opengl/gl_shader_mgr.o
+	
+OBJDIRS += \
+	$(OSDOBJ)/modules/opengl 
 
 DEFS += -DUSE_OPENGL=1
+
+ifdef USE_DISPATCH_GL
+DEFS += -DUSE_DISPATCH_GL=1
+else
 LIBS += -lopengl32
+endif
 
 else
 DEFS += -DUSE_OPENGL=0
@@ -463,24 +476,24 @@ $(OSDOBJ)/%.moc.c: $(OSDSRC)/%.h
 	$(MOC) $(INCPATH) $< -o $@
 
 OSDOBJS += \
-	$(OSDOBJ)/modules/debugger/qt/debugqtview.o \
-	$(OSDOBJ)/modules/debugger/qt/debugqtwindow.o \
-	$(OSDOBJ)/modules/debugger/qt/debugqtlogwindow.o \
-	$(OSDOBJ)/modules/debugger/qt/debugqtdasmwindow.o \
-	$(OSDOBJ)/modules/debugger/qt/debugqtmainwindow.o \
-	$(OSDOBJ)/modules/debugger/qt/debugqtmemorywindow.o \
-	$(OSDOBJ)/modules/debugger/qt/debugqtbreakpointswindow.o \
-	$(OSDOBJ)/modules/debugger/qt/debugqtdeviceswindow.o \
-	$(OSDOBJ)/modules/debugger/qt/debugqtdeviceinformationwindow.o \
-	$(OSDOBJ)/modules/debugger/qt/debugqtview.moc.o \
-	$(OSDOBJ)/modules/debugger/qt/debugqtwindow.moc.o \
-	$(OSDOBJ)/modules/debugger/qt/debugqtlogwindow.moc.o \
-	$(OSDOBJ)/modules/debugger/qt/debugqtdasmwindow.moc.o \
-	$(OSDOBJ)/modules/debugger/qt/debugqtmainwindow.moc.o \
-	$(OSDOBJ)/modules/debugger/qt/debugqtmemorywindow.moc.o \
-	$(OSDOBJ)/modules/debugger/qt/debugqtbreakpointswindow.moc.o \
-	$(OSDOBJ)/modules/debugger/qt/debugqtdeviceswindow.moc.o \
-	$(OSDOBJ)/modules/debugger/qt/debugqtdeviceinformationwindow.moc.o
+	$(OSDOBJ)/modules/debugger/qt/debuggerview.o \
+	$(OSDOBJ)/modules/debugger/qt/windowqt.o \
+	$(OSDOBJ)/modules/debugger/qt/logwindow.o \
+	$(OSDOBJ)/modules/debugger/qt/dasmwindow.o \
+	$(OSDOBJ)/modules/debugger/qt/mainwindow.o \
+	$(OSDOBJ)/modules/debugger/qt/memorywindow.o \
+	$(OSDOBJ)/modules/debugger/qt/breakpointswindow.o \
+	$(OSDOBJ)/modules/debugger/qt/deviceswindow.o \
+	$(OSDOBJ)/modules/debugger/qt/deviceinformationwindow.o \
+	$(OSDOBJ)/modules/debugger/qt/debuggerview.moc.o \
+	$(OSDOBJ)/modules/debugger/qt/windowqt.moc.o \
+	$(OSDOBJ)/modules/debugger/qt/logwindow.moc.o \
+	$(OSDOBJ)/modules/debugger/qt/dasmwindow.moc.o \
+	$(OSDOBJ)/modules/debugger/qt/mainwindow.moc.o \
+	$(OSDOBJ)/modules/debugger/qt/memorywindow.moc.o \
+	$(OSDOBJ)/modules/debugger/qt/breakpointswindow.moc.o \
+	$(OSDOBJ)/modules/debugger/qt/deviceswindow.moc.o \
+	$(OSDOBJ)/modules/debugger/qt/deviceinformationwindow.moc.o
 endif
 
 #-------------------------------------------------

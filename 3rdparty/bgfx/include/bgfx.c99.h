@@ -19,8 +19,10 @@ typedef enum bgfx_renderer_type
     BGFX_RENDERER_TYPE_NULL,
     BGFX_RENDERER_TYPE_DIRECT3D9,
     BGFX_RENDERER_TYPE_DIRECT3D11,
-    BGFX_RENDERER_TYPE_OPENGLES = 4,
+    BGFX_RENDERER_TYPE_DIRECT3D12,
+    BGFX_RENDERER_TYPE_OPENGLES,
     BGFX_RENDERER_TYPE_OPENGL,
+    BGFX_RENDERER_TYPE_VULKAN,
 
     BGFX_RENDERER_TYPE_COUNT
 
@@ -104,6 +106,7 @@ typedef enum bgfx_texture_format
     BGFX_TEXTURE_FORMAT_RG32,
     BGFX_TEXTURE_FORMAT_RG32F,
     BGFX_TEXTURE_FORMAT_BGRA8,
+    BGFX_TEXTURE_FORMAT_RGBA8,
     BGFX_TEXTURE_FORMAT_RGBA16,
     BGFX_TEXTURE_FORMAT_RGBA16F,
     BGFX_TEXTURE_FORMAT_RGBA32,
@@ -287,14 +290,16 @@ typedef struct bgfx_caps
     uint64_t supported;
 
     uint16_t maxTextureSize;    /* < Maximum texture size.             */
+    uint16_t maxViews;          /* < Maximum views.                    */
     uint16_t maxDrawCalls;      /* < Maximum draw calls.               */
     uint8_t  maxFBAttachments;  /* < Maximum frame buffer attachments. */
 
     /**
      *  Supported texture formats.
-     *    0 - not supported
-     *    1 - supported
-     *    2 - emulated
+     *   `BGFX_CAPS_FORMAT_TEXTURE_NONE` - not supported
+     *   `BGFX_CAPS_FORMAT_TEXTURE_COLOR` - supported
+     *   `BGFX_CAPS_FORMAT_TEXTURE_EMULATED` - emulated
+     *   `BGFX_CAPS_FORMAT_TEXTURE_VERTEX` - supported vertex texture
      */
     uint8_t formats[BGFX_TEXTURE_FORMAT_COUNT];
 
@@ -1358,12 +1363,12 @@ BGFX_C_API uint32_t bgfx_submit(uint8_t _id, int32_t _depth);
 /**
  *
  */
-BGFX_C_API void bgfx_set_image(uint8_t _stage, bgfx_uniform_handle_t _sampler, bgfx_texture_handle_t _handle, uint8_t _mip, bgfx_texture_format_t _format, bgfx_access_t _access);
+BGFX_C_API void bgfx_set_image(uint8_t _stage, bgfx_uniform_handle_t _sampler, bgfx_texture_handle_t _handle, uint8_t _mip, bgfx_access_t _access, bgfx_texture_format_t _format);
 
 /**
  *
  */
-BGFX_C_API void bgfx_set_image_from_frame_buffer(uint8_t _stage, bgfx_uniform_handle_t _sampler, bgfx_frame_buffer_handle_t _handle, uint8_t _attachment, bgfx_texture_format_t _format, bgfx_access_t _access);
+BGFX_C_API void bgfx_set_image_from_frame_buffer(uint8_t _stage, bgfx_uniform_handle_t _sampler, bgfx_frame_buffer_handle_t _handle, uint8_t _attachment, bgfx_access_t _access, bgfx_texture_format_t _format);
 
 /**
  * Dispatch compute.

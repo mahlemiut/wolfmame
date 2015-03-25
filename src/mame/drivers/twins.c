@@ -39,17 +39,18 @@ video is not banked in this case instead palette data is sent to the ports
 strange palette format.
 
 todo:
-hook up eeprom
-takes a long time to boot (eeprom?)
-
+hook up eeprom (doesn't seem to work when hooked up??)
+Twins set 1 takes a long time to boot (eeprom?)
+Improve blitter / clear logic for Spider.
 
 Electronic Devices was printed on rom labels
 1994 date string is in ROM
 
-Spider seems to have some kind of sprites / blitter that works the same as as Table Tennis Champ (ttchamp.c)
-Spider must also have some ROM banking, or the blitter must be able to access non-cpu visible space, the title logo is at 0x00000 in ROM
+Spider PCB appears almost identical but uses additional 'blitter' features.
+It is possible the Twins PCB has them too and doesn't use them.
 
-Twins (set 2) is significantly changed hardware.
+
+Twins (set 2) is significantly changed hardware, uses a regular RAMDAC hookup for plaette etc.
 
 
 */
@@ -122,15 +123,15 @@ void twins_state::machine_start()
 READ16_MEMBER(twins_state::twins_port4_r)
 {
 // doesn't work??
-//	printf("%08x: twins_port4_r %04x\n", space.device().safe_pc(), mem_mask);
-//	return m_i2cmem->read_sda();// | 0xfffe;
+//  printf("%08x: twins_port4_r %04x\n", space.device().safe_pc(), mem_mask);
+//  return m_i2cmem->read_sda();// | 0xfffe;
 
 	return 0x0001;
 }
 
 WRITE16_MEMBER(twins_state::twins_port4_w)
 {
-//	printf("%08x: twins_port4_w %04x %04x\n", space.device().safe_pc(), data, mem_mask);
+//  printf("%08x: twins_port4_w %04x %04x\n", space.device().safe_pc(), data, mem_mask);
 	int i2c_clk = BIT(data, 1);
 	int i2c_mem = BIT(data, 0);
 	m_i2cmem->write_scl(i2c_clk);
@@ -164,7 +165,7 @@ WRITE16_MEMBER(twins_state::twins_pal_w)
 /* ??? weird ..*/
 WRITE16_MEMBER(twins_state::porte_paloff0_w)
 {
-//	printf("porte_paloff0_w %04x\n", data);
+//  printf("porte_paloff0_w %04x\n", data);
 	m_paloff = 0;
 }
 
@@ -204,14 +205,14 @@ WRITE16_MEMBER(twins_state::spider_blitter_w)
 
 	if (m_spritesinit == 1)
 	{
-	//	printf("spider_blitter_w %08x %04x %04x (init?) (base?)\n", offset * 2, data, mem_mask);
+	//  printf("spider_blitter_w %08x %04x %04x (init?) (base?)\n", offset * 2, data, mem_mask);
 
 		m_spritesinit = 2;
 		m_spritesaddr = offset;
 	}
 	else if (m_spritesinit == 2)
 	{
-	//	printf("spider_blitter_w %08x %04x %04x (init2) (width?)\n", offset * 2, data, mem_mask);
+	//  printf("spider_blitter_w %08x %04x %04x (init2) (width?)\n", offset * 2, data, mem_mask);
 		m_spriteswidth = offset & 0xff;
 		if (m_spriteswidth == 0)
 			m_spriteswidth = 80;
@@ -233,26 +234,26 @@ WRITE16_MEMBER(twins_state::spider_blitter_w)
 		{
 			UINT8 *src = m_rom8;
 
-		//	printf("spider_blitter_w %08x %04x %04x (previous data width %d address %08x)\n", offset * 2, data, mem_mask, m_spriteswidth, m_spritesaddr);
+		//  printf("spider_blitter_w %08x %04x %04x (previous data width %d address %08x)\n", offset * 2, data, mem_mask, m_spriteswidth, m_spritesaddr);
 			offset &= 0x7fff;
 
 			for (int i = 0; i < m_spriteswidth; i++)
 			{
 				UINT8 data;
-				
+
 				data = (src[(m_spritesaddr * 2) + 1]);
-	
+
 				if (data)
 					vram[offset] = (vram[offset] & 0x00ff) | data << 8;
 
 
 				data = src[(m_spritesaddr*2)];
-			
+
 				if (data)
 					vram[offset] = (vram[offset] & 0xff00) | data;
 
 
-				m_spritesaddr ++;				
+				m_spritesaddr ++;
 				offset++;
 
 				offset &= 0x7fff;
@@ -281,8 +282,18 @@ ADDRESS_MAP_END
 VIDEO_START_MEMBER(twins_state,twins)
 {
 	save_item(NAME(m_paloff));
-	m_paloff = 0;
+
+	save_item(NAME(m_spritesinit));
+	save_item(NAME(m_spriteswidth));
+	save_item(NAME(m_spritesaddr));
+	save_item(NAME(m_mainram));
+	save_item(NAME(m_videoram));
+	save_item(NAME(m_videoram2));
+	save_item(NAME(m_videorambank));
 }
+
+
+
 
 UINT32 twins_state::screen_update_twins(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect)
 {
@@ -375,7 +386,7 @@ static MACHINE_CONFIG_START( twins, twins_state )
 	MCFG_SCREEN_VISIBLE_AREA(0, 320-1, 0, 200-1)
 	MCFG_SCREEN_UPDATE_DRIVER(twins_state, screen_update_twins)
 	MCFG_SCREEN_PALETTE("palette")
-	
+
 	MCFG_24C02_ADD("i2cmem")
 
 	MCFG_PALETTE_ADD("palette", 0x100)
@@ -399,6 +410,7 @@ VIDEO_START_MEMBER(twins_state,twinsa)
 	save_item(NAME(m_paloff));
 	m_paloff = 0;
 }
+
 
 
 static ADDRESS_MAP_START( twinsa_io, AS_IO, 16, twins_state )
@@ -435,7 +447,7 @@ static MACHINE_CONFIG_START( twinsa, twins_state )
 	MCFG_PALETTE_ADD("palette", 256)
 	MCFG_RAMDAC_ADD("ramdac", ramdac_map, "palette")
 	MCFG_RAMDAC_SPLIT_READ(0)
-	
+
 	MCFG_24C02_ADD("i2cmem")
 
 	MCFG_VIDEO_START_OVERRIDE(twins_state,twinsa)
@@ -465,9 +477,9 @@ WRITE16_MEMBER(twins_state::spider_pal_w)
 	}
 	else
 	{
-	//	printf("first palette write %04x\n", data);
+	//  printf("first palette write %04x\n", data);
 	}
-	
+
 	m_paloff++;
 
 	if (m_paloff == 0x101)
@@ -491,7 +503,7 @@ WRITE16_MEMBER(twins_state::spider_port_1c_w)
 {
 	// done before the 'sprite' read / writes
 	// might clear a buffer?
-	
+
 	// game is only animating sprites at 30fps, maybe there's some double buffering too?
 
 	UINT16* vram;
@@ -563,7 +575,7 @@ static MACHINE_CONFIG_START( spider, twins_state )
 	MCFG_PALETTE_ADD("palette", 0x100)
 
 	MCFG_VIDEO_START_OVERRIDE(twins_state,twins)
-	
+
 	MCFG_24C02_ADD("i2cmem")
 
 	/* sound hardware */
@@ -616,4 +628,4 @@ ROM_END
 GAME( 1994, twins,  0,     twins,  twins, driver_device, 0, ROT0, "Electronic Devices", "Twins (set 1)", GAME_SUPPORTS_SAVE )
 GAME( 1994, twinsa, twins, twinsa, twins, driver_device, 0, ROT0, "Electronic Devices", "Twins (set 2)", GAME_SUPPORTS_SAVE )
 
-GAME( 1994, spider,  0,     spider,  twins, driver_device, 0, ROT0, "Buena Vision", "Spider", GAME_NOT_WORKING )
+GAME( 1994, spider,  0,     spider,  twins, driver_device, 0, ROT0, "Buena Vision", "Spider", GAME_IMPERFECT_GRAPHICS )

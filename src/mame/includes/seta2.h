@@ -10,7 +10,6 @@ public:
 		: driver_device(mconfig, type, tag),
 		m_maincpu(*this,"maincpu"),
 		m_tmp68301(*this, "tmp68301"),
-		m_x1(*this, "x1snd"),
 		m_oki(*this, "oki"),
 		m_eeprom(*this, "eeprom"),
 		m_gfxdecode(*this, "gfxdecode"),
@@ -24,13 +23,12 @@ public:
 
 	required_device<cpu_device> m_maincpu;
 	optional_device<tmp68301_device> m_tmp68301;
-	optional_device<x1_010_device> m_x1;
 	optional_device<okim9810_device> m_oki;
 	optional_device<eeprom_serial_93cxx_device> m_eeprom;
 	required_device<gfxdecode_device> m_gfxdecode;
 	required_device<screen_device> m_screen;
 	required_device<palette_device> m_palette;
-	
+
 	optional_shared_ptr<UINT16> m_nvram;
 	optional_shared_ptr<UINT16> m_spriteram;
 	optional_shared_ptr<UINT16> m_vregs;
@@ -41,7 +39,7 @@ public:
 	int m_yoffset;
 	int m_keyboard_row;
 	UINT16 *m_buffered_spriteram;
-	
+
 	UINT64 m_funcube_coin_start_cycles;
 	UINT8 m_funcube_hopper_motor;
 

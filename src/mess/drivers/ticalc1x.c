@@ -8,8 +8,8 @@
 
 
   TODO:
-  - MCU clocks are unknown
-  - lilprof equals-sign is always on
+  - MCU clocks are unknown where noted
+  - lilprof78 equals-sign is always on
 
 ***************************************************************************/
 
@@ -59,8 +59,8 @@ public:
 	int m_display_wait;                 // led/lamp off-delay in microseconds (default 33ms)
 	int m_display_maxy;                 // display matrix number of rows
 	int m_display_maxx;                 // display matrix number of columns
-	
-	UINT32 m_display_state[0x20];	    // display matrix rows data
+
+	UINT32 m_display_state[0x20];       // display matrix rows data
 	UINT16 m_display_segmask[0x20];     // if not 0, display matrix row is a digit, mask indicates connected segments
 	UINT32 m_display_cache[0x20];       // (internal use)
 	UINT8 m_display_decay[0x20][0x20];  // (internal use)
@@ -68,9 +68,9 @@ public:
 	TIMER_DEVICE_CALLBACK_MEMBER(display_decay_tick);
 	void display_update();
 	void display_matrix_seg(int maxx, int maxy, UINT32 setx, UINT32 sety, UINT16 segmask);
-	
+
 	// calculator-specific handlers
-	void tisr16_display_update();
+	void tisr16_display();
 	DECLARE_WRITE16_MEMBER(tisr16_write_o);
 	DECLARE_WRITE16_MEMBER(tisr16_write_r);
 	DECLARE_READ8_MEMBER(tisr16_read_k);
@@ -84,8 +84,11 @@ public:
 	DECLARE_READ8_MEMBER(wizatron_read_k);
 
 	DECLARE_WRITE16_MEMBER(lilprof_write_o);
-	DECLARE_WRITE16_MEMBER(lilprof_write_r);
 	DECLARE_READ8_MEMBER(lilprof_read_k);
+
+	DECLARE_WRITE16_MEMBER(lilprof78_write_o);
+	DECLARE_WRITE16_MEMBER(lilprof78_write_r);
+	DECLARE_READ8_MEMBER(lilprof78_read_k);
 
 	DECLARE_WRITE16_MEMBER(ti30_write_o);
 	DECLARE_WRITE16_MEMBER(ti30_write_r);
@@ -102,7 +105,7 @@ void ticalc1x_state::machine_start()
 	memset(m_display_cache, ~0, sizeof(m_display_cache));
 	memset(m_display_decay, 0, sizeof(m_display_decay));
 	memset(m_display_segmask, ~0, sizeof(m_display_segmask)); // !
-	
+
 	m_o = 0;
 	m_r = 0;
 	m_inp_mux = 0;
@@ -169,7 +172,15 @@ void ticalc1x_state::display_update()
 
 			const int mul = (m_display_maxx <= 10) ? 10 : 100;
 			for (int x = 0; x < m_display_maxx; x++)
-				output_set_lamp_value(y * mul + x, active_state[y] >> x & 1);
+			{
+				int state = active_state[y] >> x & 1;
+				output_set_lamp_value(y * mul + x, state);
+
+				// bit coords for svg2lay
+				char buf[10];
+				sprintf(buf, "%d.%d", y, x);
+				output_set_value(buf, state);
+			}
 		}
 
 	memcpy(m_display_cache, active_state, sizeof(m_display_cache));
@@ -182,7 +193,7 @@ TIMER_DEVICE_CALLBACK_MEMBER(ticalc1x_state::display_decay_tick)
 		for (int x = 0; x < m_display_maxx; x++)
 			if (m_display_decay[y][x] != 0)
 				m_display_decay[y][x]--;
-	
+
 	display_update();
 }
 
@@ -198,7 +209,7 @@ void ticalc1x_state::display_matrix_seg(int maxx, int maxy, UINT32 setx, UINT32 
 		m_display_segmask[y] &= segmask;
 		m_display_state[y] = (sety >> y & 1) ? (setx & colmask) : 0;
 	}
-	
+
 	display_update();
 }
 
@@ -248,7 +259,7 @@ INPUT_CHANGED_MEMBER(ticalc1x_state::power_button)
 
 ***************************************************************************/
 
-void ticalc1x_state::tisr16_display_update()
+void ticalc1x_state::tisr16_display()
 {
 	// update leds state
 	for (int y = 0; y < 11; y++)
@@ -267,14 +278,14 @@ WRITE16_MEMBER(ticalc1x_state::tisr16_write_r)
 	// R0-R10: input mux
 	// R0-R10: select digit (right-to-left)
 	m_r = m_inp_mux = data;
-	tisr16_display_update();
+	tisr16_display();
 }
 
 WRITE16_MEMBER(ticalc1x_state::tisr16_write_o)
 {
 	// O0-O7: digit segments
 	m_o = data;
-	tisr16_display_update();
+	tisr16_display();
 }
 
 READ8_MEMBER(ticalc1x_state::tisr16_read_k)
@@ -467,12 +478,17 @@ MACHINE_CONFIG_END
 
 WRITE16_MEMBER(ticalc1x_state::wizatron_write_r)
 {
-	// note: 6th digit is custom(not 7seg), for math symbols, and 3rd digit
-	// only has A and G for =, though some newer revisions use a custom digit too.
+	// 6th digit is custom(not 7seg), for math symbols, like this:
+	//   \./    GAB
+	//   ---     F
+	//   /.\    EDC
+
+	// 3rd digit only has A and G for =, though some newer hardware revisions
+	// (goes for both wizatron and lilprof) use a custom equals-sign digit here
 	m_display_segmask[3] = 0x41;
-	
+
 	// R0-R8: select digit (right-to-left)
-	display_matrix_seg(8, 9, m_o, data, 0x7f);
+	display_matrix_seg(7, 9, m_o, data, 0x7f);
 }
 
 WRITE16_MEMBER(ticalc1x_state::wizatron_write_o)
@@ -492,7 +508,7 @@ READ8_MEMBER(ticalc1x_state::wizatron_read_k)
 
 static INPUT_PORTS_START( wizatron )
 	PORT_START("IN.0") // O1
-	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_KEYBOARD ) PORT_CODE(KEYCODE_DEL) PORT_CODE(KEYCODE_DEL_PAD) PORT_NAME("CLEAR")
+	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_KEYBOARD ) PORT_CODE(KEYCODE_DEL) PORT_NAME("Clear")
 	PORT_BIT( 0x02, IP_ACTIVE_HIGH, IPT_KEYBOARD ) PORT_CODE(KEYCODE_0) PORT_CODE(KEYCODE_0_PAD) PORT_NAME("0")
 	PORT_BIT( 0x04, IP_ACTIVE_HIGH, IPT_KEYBOARD ) PORT_CODE(KEYCODE_ENTER) PORT_CODE(KEYCODE_ENTER_PAD) PORT_NAME("=")
 	PORT_BIT( 0x08, IP_ACTIVE_HIGH, IPT_KEYBOARD ) PORT_CODE(KEYCODE_PLUS_PAD) PORT_NAME("+")
@@ -539,37 +555,19 @@ MACHINE_CONFIG_END
 
 /***************************************************************************
 
-  TI Little Professor '78
-  * TMS1990 MCU labeled TMC1993NL. die labeled 1990C-c3C
+  TI Little Professor (1976 version)
+  * TMS0970 MCU labeled TMS0975NL ZA0356, GP0975CS. die labeled 0970D-75C
+
+  The hardware is nearly identical to Wiz-A-Tron (or vice versa, since this
+  one is older).
 
 ***************************************************************************/
 
-WRITE16_MEMBER(ticalc1x_state::lilprof_write_r)
-{
-	// update leds state
-	UINT8 o = BITSWAP8(m_o,7,4,3,2,1,0,6,5) & 0x7f;
-	UINT16 r = (data & 7) | (data << 1 & 0x1f0);
-
-	for (int y = 0; y < 9; y++)
-		m_display_state[y] = (r >> y & 1) ? o : 0;
-
-	// 3rd digit A/G(equals sign) is from O7
-	m_display_state[3] = (m_o & 0x80) ? 0x41 : 0;
-	
-	// 6th digit is a custom 7seg for math symbols
-	m_display_state[6] = BITSWAP8(m_display_state[6],7,6,1,4,2,3,5,0);
-
-	m_display_maxx = 8;
-	m_display_maxy = 9;
-	display_update();
-}
-
 WRITE16_MEMBER(ticalc1x_state::lilprof_write_o)
 {
-	// O0-O3,O5: input mux
+	// O1-O4,O7: input mux
 	// O0-O6: digit segments A-G
-	// O7: 6th digit
-	m_inp_mux = (data & 0xf) | (data >> 1 & 0x10);
+	m_inp_mux = (data >> 1 & 0xf) | (data >> 3 & 0x10);
 	m_o = data;
 }
 
@@ -580,6 +578,84 @@ READ8_MEMBER(ticalc1x_state::lilprof_read_k)
 
 
 static INPUT_PORTS_START( lilprof )
+	PORT_INCLUDE( wizatron )
+
+	PORT_MODIFY("IN.0")
+	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_KEYBOARD ) PORT_CODE(KEYCODE_S) PORT_CODE(KEYCODE_DEL) PORT_NAME("Set")
+	PORT_BIT( 0x04, IP_ACTIVE_HIGH, IPT_KEYBOARD ) PORT_CODE(KEYCODE_ENTER) PORT_CODE(KEYCODE_ENTER_PAD) PORT_NAME("Go")
+
+	PORT_START("IN.4") // O7
+	PORT_CONFNAME( 0x0f, 0x01, "Level")
+	PORT_CONFSETTING(    0x01, "1" )
+	PORT_CONFSETTING(    0x02, "2" )
+	PORT_CONFSETTING(    0x04, "3" )
+	PORT_CONFSETTING(    0x08, "4" )
+INPUT_PORTS_END
+
+
+static MACHINE_CONFIG_START( lilprof, ticalc1x_state )
+
+	/* basic machine hardware */
+	MCFG_CPU_ADD("maincpu", TMS0970, 250000) // guessed
+	MCFG_TMS1XXX_READ_K_CB(READ8(ticalc1x_state, lilprof_read_k))
+	MCFG_TMS1XXX_WRITE_O_CB(WRITE16(ticalc1x_state, lilprof_write_o))
+	MCFG_TMS1XXX_WRITE_R_CB(WRITE16(ticalc1x_state, wizatron_write_r))
+
+	MCFG_TIMER_DRIVER_ADD_PERIODIC("display_decay", ticalc1x_state, display_decay_tick, attotime::from_msec(1))
+	MCFG_DEFAULT_LAYOUT(layout_wizatron)
+
+	/* no video! */
+
+	/* no sound! */
+MACHINE_CONFIG_END
+
+
+
+
+
+/***************************************************************************
+
+  TI Little Professor (1978 version, same as 1980 version)
+  * TMS1990 MCU labeled TMC1993NL. die labeled 1990C-c3C
+
+***************************************************************************/
+
+WRITE16_MEMBER(ticalc1x_state::lilprof78_write_r)
+{
+	// update leds state
+	UINT8 o = BITSWAP8(m_o,7,4,3,2,1,0,6,5) & 0x7f;
+	UINT16 r = (data & 7) | (data << 1 & 0x1f0);
+
+	for (int y = 0; y < 9; y++)
+		m_display_state[y] = (r >> y & 1) ? o : 0;
+
+	// 3rd digit A/G(equals sign) is from O7
+	m_display_state[3] = (m_o & 0x80) ? 0x41 : 0;
+
+	// 6th digit is a custom 7seg for math symbols (see wizatron_write_r)
+	m_display_state[6] = BITSWAP8(m_display_state[6],7,6,1,4,2,3,5,0);
+
+	m_display_maxx = 7;
+	m_display_maxy = 9;
+	display_update();
+}
+
+WRITE16_MEMBER(ticalc1x_state::lilprof78_write_o)
+{
+	// O0-O3,O5: input mux
+	// O0-O6: digit segments A-G
+	// O7: 6th digit
+	m_inp_mux = (data & 0xf) | (data >> 1 & 0x10);
+	m_o = data;
+}
+
+READ8_MEMBER(ticalc1x_state::lilprof78_read_k)
+{
+	return read_inputs(5);
+}
+
+
+static INPUT_PORTS_START( lilprof78 )
 	PORT_START("IN.0") // O0
 	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_KEYBOARD ) PORT_CODE(KEYCODE_1) PORT_CODE(KEYCODE_1_PAD) PORT_NAME("1")
 	PORT_BIT( 0x02, IP_ACTIVE_HIGH, IPT_KEYBOARD ) PORT_CODE(KEYCODE_2) PORT_CODE(KEYCODE_2_PAD) PORT_NAME("2")
@@ -613,13 +689,13 @@ static INPUT_PORTS_START( lilprof )
 INPUT_PORTS_END
 
 
-static MACHINE_CONFIG_START( lilprof, ticalc1x_state )
+static MACHINE_CONFIG_START( lilprof78, ticalc1x_state )
 
 	/* basic machine hardware */
 	MCFG_CPU_ADD("maincpu", TMS1990, 250000) // guessed
-	MCFG_TMS1XXX_READ_K_CB(READ8(ticalc1x_state, lilprof_read_k))
-	MCFG_TMS1XXX_WRITE_O_CB(WRITE16(ticalc1x_state, lilprof_write_o))
-	MCFG_TMS1XXX_WRITE_R_CB(WRITE16(ticalc1x_state, lilprof_write_r))
+	MCFG_TMS1XXX_READ_K_CB(READ8(ticalc1x_state, lilprof78_read_k))
+	MCFG_TMS1XXX_WRITE_O_CB(WRITE16(ticalc1x_state, lilprof78_write_o))
+	MCFG_TMS1XXX_WRITE_R_CB(WRITE16(ticalc1x_state, lilprof78_write_r))
 
 	MCFG_TIMER_DRIVER_ADD_PERIODIC("display_decay", ticalc1x_state, display_decay_tick, attotime::from_msec(1))
 	MCFG_DEFAULT_LAYOUT(layout_wizatron)
@@ -887,7 +963,7 @@ ROM_END
 
 ROM_START( ti1270 )
 	ROM_REGION( 0x0400, "maincpu", 0 )
-	ROM_LOAD( "tms0974nl", 0x0000, 0x0400, CRC(48e09b4b) SHA1(17f27167164df223f9f06082ece4c3fc3900eda3) )
+	ROM_LOAD( "za0355", 0x0000, 0x0400, CRC(48e09b4b) SHA1(17f27167164df223f9f06082ece4c3fc3900eda3) )
 
 	ROM_REGION( 782, "maincpu:ipla", 0 )
 	ROM_LOAD( "tms0970_ti1270_ipla.pla", 0, 782, CRC(05306ef8) SHA1(60a0a3c49ce330bce0c27f15f81d61461d0432ce) )
@@ -902,7 +978,7 @@ ROM_END
 
 ROM_START( wizatron )
 	ROM_REGION( 0x0400, "maincpu", 0 )
-	ROM_LOAD( "dp0907bs", 0x0000, 0x0400, CRC(5a6af094) SHA1(b1f27e1f13f4db3b052dd50fb08dbf9c4d8db26e) )
+	ROM_LOAD( "za0379", 0x0000, 0x0400, CRC(5a6af094) SHA1(b1f27e1f13f4db3b052dd50fb08dbf9c4d8db26e) )
 
 	ROM_REGION( 782, "maincpu:ipla", 0 )
 	ROM_LOAD( "tms0970_wizatron_ipla.pla", 0, 782, CRC(05306ef8) SHA1(60a0a3c49ce330bce0c27f15f81d61461d0432ce) )
@@ -916,6 +992,21 @@ ROM_END
 
 
 ROM_START( lilprof )
+	ROM_REGION( 0x0400, "maincpu", 0 )
+	ROM_LOAD( "za0356", 0x0000, 0x0400, CRC(fef9dd39) SHA1(5c9614c9c5092d55dabeee2d6e0387d50d6ad4d5) )
+
+	ROM_REGION( 782, "maincpu:ipla", 0 )
+	ROM_LOAD( "tms0970_lilprof_ipla.pla", 0, 782, BAD_DUMP CRC(05306ef8) SHA1(60a0a3c49ce330bce0c27f15f81d61461d0432ce) ) // not verified
+	ROM_REGION( 860, "maincpu:mpla", 0 )
+	ROM_LOAD( "tms0970_lilprof_mpla.pla", 0, 860, BAD_DUMP CRC(6ff5d51d) SHA1(59d3e5de290ba57694068ddba78d21a0c1edf427) ) // not verified
+	ROM_REGION( 352, "maincpu:opla", 0 )
+	ROM_LOAD( "tms0970_lilprof_opla.pla", 0, 352, BAD_DUMP CRC(c74daf97) SHA1(c4948000196171b34d4fe9cdd2962a945da9883d) ) // not verified
+	ROM_REGION( 157, "maincpu:spla", 0 )
+	ROM_LOAD( "tms0970_lilprof_spla.pla", 0, 157, CRC(56c37a4f) SHA1(18ecc20d2666e89673739056483aed5a261ae927) )
+ROM_END
+
+
+ROM_START( lilprof78 )
 	ROM_REGION( 0x0400, "maincpu", 0 )
 	ROM_LOAD( "tmc1993nl", 0x0000, 0x0400, CRC(e941316b) SHA1(7e1542045d1e731cea81a639c9ac9e91bb233b15) )
 
@@ -981,7 +1072,8 @@ COMP( 1974, tisr16,    0,        0, tisr16,    tisr16,    driver_device, 0, "Tex
 
 COMP( 1976, ti1270,    0,        0, ti1270,    ti1270,    driver_device, 0, "Texas Instruments", "TI-1270", GAME_SUPPORTS_SAVE | GAME_NO_SOUND_HW )
 COMP( 1977, wizatron,  0,        0, wizatron,  wizatron,  driver_device, 0, "Texas Instruments", "Wiz-A-Tron", GAME_SUPPORTS_SAVE | GAME_NO_SOUND_HW )
-COMP( 1978, lilprof,   0,        0, lilprof,   lilprof,   driver_device, 0, "Texas Instruments", "Little Professor (1978 version)", GAME_SUPPORTS_SAVE | GAME_NO_SOUND_HW ) // original is from 1976
+COMP( 1976, lilprof,   0,        0, lilprof,   lilprof,   driver_device, 0, "Texas Instruments", "Little Professor (1976 version)", GAME_SUPPORTS_SAVE | GAME_NO_SOUND_HW )
+COMP( 1978, lilprof78, lilprof,  0, lilprof78, lilprof78, driver_device, 0, "Texas Instruments", "Little Professor (1978 version)", GAME_SUPPORTS_SAVE | GAME_NO_SOUND_HW )
 
 COMP( 1976, ti30,      0,        0, ti30,      ti30,      driver_device, 0, "Texas Instruments", "TI-30", GAME_SUPPORTS_SAVE | GAME_NO_SOUND_HW )
 COMP( 1977, tiprog,    0,        0, ti30,      tiprog,    driver_device, 0, "Texas Instruments", "TI Programmer", GAME_SUPPORTS_SAVE | GAME_NO_SOUND_HW )

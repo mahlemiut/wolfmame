@@ -326,8 +326,8 @@ public:
 	int m_display_wait;                 // led/lamp off-delay in microseconds (default 33ms)
 	int m_display_maxy;                 // display matrix number of rows
 	int m_display_maxx;                 // display matrix number of columns
-	
-	UINT32 m_display_state[0x20];	    // display matrix rows data
+
+	UINT32 m_display_state[0x20];       // display matrix rows data
 	UINT16 m_display_segmask[0x20];     // if not 0, display matrix row is a digit, mask indicates connected segments
 	UINT32 m_display_cache[0x20];       // (internal use)
 	UINT8 m_display_decay[0x20][0x20];  // (internal use)
@@ -433,7 +433,15 @@ void tispeak_state::display_update()
 
 			const int mul = (m_display_maxx <= 10) ? 10 : 100;
 			for (int x = 0; x < m_display_maxx; x++)
-				output_set_lamp_value(y * mul + x, active_state[y] >> x & 1);
+			{
+				int state = active_state[y] >> x & 1;
+				output_set_lamp_value(y * mul + x, state);
+
+				// bit coords for svg2lay
+				char buf[10];
+				sprintf(buf, "%d.%d", y, x);
+				output_set_value(buf, state);
+			}
 		}
 
 	memcpy(m_display_cache, active_state, sizeof(m_display_cache));
@@ -446,7 +454,7 @@ TIMER_DEVICE_CALLBACK_MEMBER(tispeak_state::display_decay_tick)
 		for (int x = 0; x < m_display_maxx; x++)
 			if (m_display_decay[y][x] != 0)
 				m_display_decay[y][x]--;
-	
+
 	display_update();
 }
 
@@ -462,7 +470,7 @@ void tispeak_state::display_matrix_seg(int maxx, int maxy, UINT32 setx, UINT32 s
 		m_display_segmask[y] &= segmask;
 		m_display_state[y] = (sety >> y & 1) ? (setx & colmask) : 0;
 	}
-	
+
 	display_update();
 }
 
@@ -493,7 +501,7 @@ WRITE16_MEMBER(tispeak_state::snspell_write_r)
 {
 	// R15: filament on
 	m_filament_on = data & 0x8000;
-	
+
 	// R13: power-off request, on falling edge
 	if ((m_r >> 13 & 1) && !(data >> 13 & 1))
 		power_off();
@@ -793,7 +801,7 @@ static MACHINE_CONFIG_START( snmath, tispeak_state )
 	MCFG_TMS5110_ADDR_CB(DEVWRITE8("tms6100", tms6100_device, tms6100_addr_w))
 	MCFG_TMS5110_DATA_CB(DEVREADLINE("tms6100", tms6100_device, tms6100_data_r))
 	MCFG_TMS5110_ROMCLK_CB(DEVWRITELINE("tms6100", tms6100_device, tms6100_romclock_w))
-	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 1.0)
+	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 0.5)
 MACHINE_CONFIG_END
 
 static MACHINE_CONFIG_DERIVED( snspell, snmath )

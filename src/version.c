@@ -13,4 +13,4 @@
 extern const char bare_build_version[];
 extern const char build_version[];
 const char bare_build_version[] = BARE_BUILD_VERSION;
-const char build_version[] = BARE_BUILD_VERSION "/W 25/2/15";
+const char build_version[] = BARE_BUILD_VERSION "/W 26/3/15";

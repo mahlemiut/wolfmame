@@ -75,8 +75,8 @@ BUSES["CENTRONICS"] = true
 -- in tiny.c
 --------------------------------------------------
 
-function createProjects(_target, _subtarget)
-	project ("tiny")
+function createProjects_mame_tiny(_target, _subtarget)
+	project ("mame_tiny")
 	targetsubdir(_target .."_" .. _subtarget)
 	kind "StaticLib"
 	uuid (os.uuid("drv-mame-tiny"))
@@ -86,6 +86,7 @@ function createProjects(_target, _subtarget)
 	}
 	
 	includedirs {
+		MAME_DIR .. "src/osd",
 		MAME_DIR .. "src/emu",
 		MAME_DIR .. "src/mame",
 		MAME_DIR .. "src/lib",
@@ -94,8 +95,6 @@ function createProjects(_target, _subtarget)
 		MAME_DIR .. "3rdparty/zlib",
 		GEN_DIR  .. "mame/layout",
 	}	
-
-	includeosd()
 
 	files{
 		MAME_DIR .. "src/mame/machine/ticket.c",
@@ -137,10 +136,32 @@ function createProjects(_target, _subtarget)
 		MAME_DIR .. "src/mame/drivers/looping.c",
 		MAME_DIR .. "src/mame/drivers/supertnk.c",
 	}
+	
+	--------------------------------------------------
+	-- layout dependencies
+	--------------------------------------------------
+
+	dependency {
+		{ MAME_DIR .. "src/mame/drivers/astrocde.c", GEN_DIR .. "mame/layout/gorf.lh" },
+		{ MAME_DIR .. "src/mame/drivers/astrocde.c", GEN_DIR .. "mame/layout/seawolf2.lh" },
+		{ MAME_DIR .. "src/mame/drivers/astrocde.c", GEN_DIR .. "mame/layout/spacezap.lh" },
+		{ MAME_DIR .. "src/mame/drivers/astrocde.c", GEN_DIR .. "mame/layout/tenpindx.lh" },
+		{ MAME_DIR .. "src/mame/drivers/circus.c", GEN_DIR .. "mame/layout/circus.lh" },
+		{ MAME_DIR .. "src/mame/drivers/circus.c", GEN_DIR .. "mame/layout/crash.lh" },	
+	}
+
+	custombuildtask {
+		layoutbuildtask("mame/layout", "crash"),
+		layoutbuildtask("mame/layout", "circus"),
+		layoutbuildtask("mame/layout", "tenpindx"),
+		layoutbuildtask("mame/layout", "spacezap"),
+		layoutbuildtask("mame/layout", "seawolf2"),
+		layoutbuildtask("mame/layout", "gorf"),
+	}	
 end
 
-function linkProjects(_target, _subtarget)
+function linkProjects_mame_tiny(_target, _subtarget)
 	links {
-		"tiny",
+		"mame_tiny",
 	}
 end

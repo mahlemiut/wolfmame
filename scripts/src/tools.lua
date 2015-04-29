@@ -10,8 +10,13 @@ options {
 	"ForceCPP",
 }
 
-configuration { }
+flags {
+	"Symbols", -- always include minimum symbols for executables 	
+}
+
+if _OPTIONS["SEPARATE_BIN"]~="1" then 
 	targetdir(MAME_DIR)
+end
 
 links {
 	"utils",
@@ -21,10 +26,9 @@ links {
 }
 
 includedirs {
+	MAME_DIR .. "src/osd",
 	MAME_DIR .. "src/lib/util",
 }
-
-includeosd()
 
 files {
 	MAME_DIR .. "src/tools/romcmp.c",
@@ -42,8 +46,13 @@ options {
 	"ForceCPP",
 }
 
-configuration { }
+flags {
+	"Symbols", -- always include minimum symbols for executables 	
+}
+
+if _OPTIONS["SEPARATE_BIN"]~="1" then 
 	targetdir(MAME_DIR)
+end
 
 links {
 	"utils",
@@ -55,11 +64,10 @@ links {
 }
 
 includedirs {
+	MAME_DIR .. "src/osd",
 	MAME_DIR .. "src/lib/util",
 	MAME_DIR .. "3rdparty",
 }
-
-includeosd()
 
 files {
 	MAME_DIR .. "src/tools/chdman.c",
@@ -78,8 +86,13 @@ options {
 	"ForceCPP",
 }
 
-configuration { }
+flags {
+	"Symbols", -- always include minimum symbols for executables 	
+}
+
+if _OPTIONS["SEPARATE_BIN"]~="1" then 
 	targetdir(MAME_DIR)
+end
 
 links {
 	"utils",
@@ -89,10 +102,9 @@ links {
 }
 
 includedirs {
+	MAME_DIR .. "src/osd",
 	MAME_DIR .. "src/lib/util",
 }
-
-includeosd()
 
 files {
 	MAME_DIR .. "src/tools/jedutil.c",
@@ -101,6 +113,45 @@ files {
 --------------------------------------------------
 -- unidasm
 --------------------------------------------------
+
+project("unidasm")
+uuid ("65f81d3b-299a-4b08-a3fa-d5241afa9fd1")
+kind "ConsoleApp"	
+
+options {
+	"ForceCPP",
+}
+
+flags {
+	"Symbols", -- always include minimum symbols for executables 	
+}
+
+if _OPTIONS["SEPARATE_BIN"]~="1" then 
+	targetdir(MAME_DIR)
+end
+
+links {
+	"dasm",
+	"emu",
+	"utils",
+	"expat",
+	"zlib",
+	"flac",
+	"7z",	
+	"ocore_" .. _OPTIONS["osd"],
+}
+
+includedirs {
+	MAME_DIR .. "src/osd",
+	MAME_DIR .. "src/emu",
+	MAME_DIR .. "src/lib/util",
+	MAME_DIR .. "3rdparty",
+}
+
+files {
+	MAME_DIR .. "src/tools/unidasm.c",
+}
+
 
 --------------------------------------------------
 -- ldresample
@@ -114,8 +165,13 @@ options {
 	"ForceCPP",
 }
 
-configuration { }
+flags {
+	"Symbols", -- always include minimum symbols for executables 	
+}
+
+if _OPTIONS["SEPARATE_BIN"]~="1" then 
 	targetdir(MAME_DIR)
+end
 
 links {
 	"utils",
@@ -127,11 +183,10 @@ links {
 }
 
 includedirs {
+	MAME_DIR .. "src/osd",
 	MAME_DIR .. "src/lib/util",
 	MAME_DIR .. "3rdparty",
 }
-
-includeosd()
 
 files {
 	MAME_DIR .. "src/tools/ldresample.c",
@@ -149,8 +204,13 @@ options {
 	"ForceCPP",
 }
 
-configuration { }
+flags {
+	"Symbols", -- always include minimum symbols for executables 	
+}
+
+if _OPTIONS["SEPARATE_BIN"]~="1" then 
 	targetdir(MAME_DIR)
+end
 
 links {
 	"utils",
@@ -162,11 +222,10 @@ links {
 }
 
 includedirs {
+	MAME_DIR .. "src/osd",
 	MAME_DIR .. "src/lib/util",
 	MAME_DIR .. "3rdparty",
 }
-
-includeosd()
 
 files {
 	MAME_DIR .. "src/tools/ldverify.c",
@@ -184,8 +243,13 @@ options {
 	"ForceCPP",
 }
 
-configuration { }
+flags {
+	"Symbols", -- always include minimum symbols for executables 	
+}
+
+if _OPTIONS["SEPARATE_BIN"]~="1" then 
 	targetdir(MAME_DIR)
+end
 
 links {
 	"utils",
@@ -195,10 +259,9 @@ links {
 }
 
 includedirs {
+	MAME_DIR .. "src/osd",
 	MAME_DIR .. "src/lib/util",
 }
-
-includeosd()
 
 files {
 	MAME_DIR .. "src/tools/regrep.c",
@@ -216,8 +279,13 @@ options {
 	"ForceCPP",
 }
 
-configuration { }
+flags {
+	"Symbols", -- always include minimum symbols for executables 	
+}
+
+if _OPTIONS["SEPARATE_BIN"]~="1" then 
 	targetdir(MAME_DIR)
+end
 
 links {
 	"utils",
@@ -227,10 +295,9 @@ links {
 }
 
 includedirs {
+	MAME_DIR .. "src/osd",
 	MAME_DIR .. "src/lib/util",
 }
-
-includeosd()
 
 files {
 	MAME_DIR .. "src/tools/srcclean.c",
@@ -248,8 +315,13 @@ options {
 	"ForceCPP",
 }
 
-configuration { }
+flags {
+	"Symbols", -- always include minimum symbols for executables 	
+}
+
+if _OPTIONS["SEPARATE_BIN"]~="1" then 
 	targetdir(MAME_DIR)
+end
 
 links {
 	"utils",
@@ -259,10 +331,9 @@ links {
 }
 
 includedirs {
+	MAME_DIR .. "src/osd",
 	MAME_DIR .. "src/lib/util",
 }
-
-includeosd()
 
 files {
 	MAME_DIR .. "src/tools/src2html.c",
@@ -280,8 +351,13 @@ options {
 	"ForceCPP",
 }
 
-configuration { }
+flags {
+	"Symbols", -- always include minimum symbols for executables 	
+}
+
+if _OPTIONS["SEPARATE_BIN"]~="1" then 
 	targetdir(MAME_DIR)
+end
 
 links {
 	"utils",
@@ -293,10 +369,9 @@ links {
 }
 
 includedirs {
+	MAME_DIR .. "src/osd",
 	MAME_DIR .. "src/lib/util",
 }
-
-includeosd()
 
 files {
 	MAME_DIR .. "src/tools/split.c",
@@ -314,8 +389,13 @@ options {
 	"ForceCPP",
 }
 
-configuration { }
+flags {
+	"Symbols", -- always include minimum symbols for executables 	
+}
+
+if _OPTIONS["SEPARATE_BIN"]~="1" then 
 	targetdir(MAME_DIR)
+end
 
 links {
 	"utils",
@@ -325,10 +405,9 @@ links {
 }
 
 includedirs {
+	MAME_DIR .. "src/osd",
 	MAME_DIR .. "src/lib/util",
 }
-
-includeosd()
 
 files {
 	MAME_DIR .. "src/tools/pngcmp.c",
@@ -346,8 +425,13 @@ options {
 	"ForceCPP",
 }
 
-configuration { }
+flags {
+	"Symbols", -- always include minimum symbols for executables 	
+}
+
+if _OPTIONS["SEPARATE_BIN"]~="1" then 
 	targetdir(MAME_DIR)
+end
 
 links {
 	"utils",
@@ -359,17 +443,19 @@ links {
 }
 
 includedirs {
+	MAME_DIR .. "src/osd",
 	MAME_DIR .. "src/lib/util",
 	MAME_DIR .. "src/emu",
 }
 
-includeosd()
-
 files {
 	MAME_DIR .. "src/tools/nltool.c",
-	MAME_DIR .. "src/emu/netlist/**.*",
 }
 
+dofile("netlist.lua")
+
+
+if (_OPTIONS["target"]=="mess") then
 --------------------------------------------------
 -- castool
 --------------------------------------------------
@@ -382,8 +468,13 @@ options {
 	"ForceCPP",
 }
 
-configuration { }
+flags {
+	"Symbols", -- always include minimum symbols for executables 	
+}
+
+if _OPTIONS["SEPARATE_BIN"]~="1" then 
 	targetdir(MAME_DIR)
+end
 
 links {
 	"formats",
@@ -396,11 +487,10 @@ links {
 }
 
 includedirs {
+	MAME_DIR .. "src/osd",
 	MAME_DIR .. "src/lib",	
 	MAME_DIR .. "src/lib/util",
 }
-
-includeosd()
 
 files {
 	MAME_DIR .. "src/mess/tools/castool/main.c",
@@ -418,8 +508,13 @@ options {
 	"ForceCPP",
 }
 
-configuration { }
+flags {
+	"Symbols", -- always include minimum symbols for executables 	
+}
+
+if _OPTIONS["SEPARATE_BIN"]~="1" then 
 	targetdir(MAME_DIR)
+end
 
 links {
 	"formats",
@@ -433,11 +528,10 @@ links {
 }
 
 includedirs {
+	MAME_DIR .. "src/osd",
 	MAME_DIR .. "src/lib",	
 	MAME_DIR .. "src/lib/util",
 }
-
-includeosd()
 
 files {
 	MAME_DIR .. "src/mess/tools/floptool/main.c",
@@ -455,8 +549,13 @@ options {
 	"ForceCPP",
 }
 
-configuration { }
+flags {
+	"Symbols", -- always include minimum symbols for executables 	
+}
+
+if _OPTIONS["SEPARATE_BIN"]~="1" then 
 	targetdir(MAME_DIR)
+end
 
 links {
 	"formats",
@@ -470,15 +569,46 @@ links {
 }
 
 includedirs {
+	MAME_DIR .. "src/osd",
 	MAME_DIR .. "src/lib",	
 	MAME_DIR .. "src/lib/util",
 	MAME_DIR .. "3rdparty/zlib",
 	MAME_DIR .. "src/mess/tools/imgtool",	
 }
 
-includeosd()
-
 files {
-	MAME_DIR .. "src/mess/tools/imgtool/**.*",
+	MAME_DIR .. "src/mess/tools/imgtool/main.c",
+	MAME_DIR .. "src/mess/tools/imgtool/stream.c",
+	MAME_DIR .. "src/mess/tools/imgtool/library.c",
+	MAME_DIR .. "src/mess/tools/imgtool/modules.c",
+	MAME_DIR .. "src/mess/tools/imgtool/iflopimg.c",
+	MAME_DIR .. "src/mess/tools/imgtool/filter.c",
+	MAME_DIR .. "src/mess/tools/imgtool/filteoln.c",
+	MAME_DIR .. "src/mess/tools/imgtool/filtbas.c",
+	MAME_DIR .. "src/mess/tools/imgtool/imgtool.c",
+	MAME_DIR .. "src/mess/tools/imgtool/imgterrs.c",
+	MAME_DIR .. "src/mess/tools/imgtool/imghd.c", 
+	MAME_DIR .. "src/mess/tools/imgtool/charconv.c",
+	MAME_DIR .. "src/mess/tools/imgtool/modules/amiga.c",
+	MAME_DIR .. "src/mess/tools/imgtool/modules/macbin.c",
+	MAME_DIR .. "src/mess/tools/imgtool/modules/rsdos.c",
+	MAME_DIR .. "src/mess/tools/imgtool/modules/os9.c",
+	MAME_DIR .. "src/mess/tools/imgtool/modules/mac.c",
+	MAME_DIR .. "src/mess/tools/imgtool/modules/ti99.c", 
+	MAME_DIR .. "src/mess/tools/imgtool/modules/ti990hd.c",
+	MAME_DIR .. "src/mess/tools/imgtool/modules/concept.c",
+	MAME_DIR .. "src/mess/tools/imgtool/modules/fat.c",
+	MAME_DIR .. "src/mess/tools/imgtool/modules/pc_flop.c",
+	MAME_DIR .. "src/mess/tools/imgtool/modules/pc_hard.c",
+	MAME_DIR .. "src/mess/tools/imgtool/modules/prodos.c",
+	MAME_DIR .. "src/mess/tools/imgtool/modules/vzdos.c",
+	MAME_DIR .. "src/mess/tools/imgtool/modules/thomson.c",
+	MAME_DIR .. "src/mess/tools/imgtool/modules/macutil.c",
+	MAME_DIR .. "src/mess/tools/imgtool/modules/cybiko.c",
+	MAME_DIR .. "src/mess/tools/imgtool/modules/cybikoxt.c",
+	MAME_DIR .. "src/mess/tools/imgtool/modules/psion.c",
+	MAME_DIR .. "src/mess/tools/imgtool/modules/bml3.c",
+	MAME_DIR .. "src/mess/tools/imgtool/modules/hp48.c",
 }
 
+end

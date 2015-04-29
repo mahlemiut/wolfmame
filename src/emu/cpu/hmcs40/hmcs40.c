@@ -144,12 +144,12 @@ hd44828_device::hd44828_device(const machine_config &mconfig, const char *tag, d
 
 
 // disasm
-void hmcs40_cpu_device::state_string_export(const device_state_entry &entry, astring &string)
+void hmcs40_cpu_device::state_string_export(const device_state_entry &entry, std::string &str)
 {
 	switch (entry.index())
 	{
 		case STATE_GENFLAGS:
-			string.printf("%c%c",
+			strprintf(str, "%c%c",
 				m_c ? 'C':'c',
 				m_s ? 'S':'s'
 			);
@@ -291,6 +291,12 @@ void hmcs40_cpu_device::device_reset()
 	m_pc = m_pcmask;
 	m_prev_op = m_op = 0;
 
+	// clear interrupts
+	m_cf = 0;
+	m_ie = 0;
+	m_iri = m_irt = 0;
+	m_if[0] = m_if[1] = m_tf = 1;
+
 	// clear i/o
 	m_d = m_polarity;
 	for (int i = 0; i < 16; i++)
@@ -298,12 +304,6 @@ void hmcs40_cpu_device::device_reset()
 
 	for (int i = 0; i < 8; i++)
 		hmcs40_cpu_device::write_r(i, 0);
-
-	// clear interrupts
-	m_cf = 0;
-	m_ie = 0;
-	m_iri = m_irt = 0;
-	m_if[0] = m_if[1] = m_tf = 1;
 }
 
 
@@ -502,7 +502,7 @@ void hmcs40_cpu_device::execute_set_input(int line, int state)
 void hmcs40_cpu_device::reset_prescaler()
 {
 	// reset 6-bit timer prescaler
-	attotime base = attotime::from_hz(unscaled_clock() / 4 / 64);
+	attotime base = attotime::from_ticks(4 * 64, unscaled_clock());
 	m_timer->adjust(base);
 }
 

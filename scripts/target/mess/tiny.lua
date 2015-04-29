@@ -6,8 +6,8 @@ VIDEOS["TMS9928A"] = true
 
 BUSES["COLECO"] = true
 
-function createProjects(_target, _subtarget)
-	project ("tiny")
+function createProjects_mess_tiny(_target, _subtarget)
+	project ("mess_tiny")
 	targetsubdir(_target .."_" .. _subtarget)
 	kind "StaticLib"
 	uuid (os.uuid("drv-mess-tiny"))
@@ -17,6 +17,7 @@ function createProjects(_target, _subtarget)
 	}
 	
 	includedirs {
+		MAME_DIR .. "src/osd",
 		MAME_DIR .. "src/emu",
 		MAME_DIR .. "src/mess",
 		MAME_DIR .. "src/lib",
@@ -26,16 +27,14 @@ function createProjects(_target, _subtarget)
 		GEN_DIR  .. "mess/layout",
 	}	
 
-	includeosd()
-
 	files{
 		MAME_DIR .. "src/mess/drivers/coleco.c",
 		MAME_DIR .. "src/mess/machine/coleco.c",
 	}
 end
 
-function linkProjects(_target, _subtarget)
+function linkProjects_mess_tiny(_target, _subtarget)
 	links {
-		"tiny",
+		"mess_tiny",
 	}
 end

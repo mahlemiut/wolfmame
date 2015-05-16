@@ -1,6 +1,10 @@
+-- license:BSD-3-Clause
+-- copyright-holders:MAMEdev Team
+
 premake.check_paths = true
 premake.make.override = { "TARGET" }
 MAME_DIR = (path.getabsolute("..") .. "/")
+MAME_DIR = string.gsub(MAME_DIR, "(%s)", "\\%1")
 local MAME_BUILD_DIR = (MAME_DIR .. "build/")
 local naclToolchain = ""
 
@@ -82,6 +86,11 @@ newoption {
 		{ "haiku",         "Haiku"                  },
 		{ "solaris",       "Solaris SunOS"          },
 	},
+}
+
+newoption {
+    trigger = 'with-bundled-expat',
+    description = 'Build bundled Expat library',
 }
 
 newoption {
@@ -332,7 +341,11 @@ if (_OPTIONS["subtarget"] == nil) then return false end
 if (_OPTIONS["target"] == _OPTIONS["subtarget"]) then
 	solution (_OPTIONS["target"])
 else
-	solution (_OPTIONS["target"] .. _OPTIONS["subtarget"])
+	if (_OPTIONS["subtarget"]=="mess") then
+		solution (_OPTIONS["subtarget"])
+	else
+		solution (_OPTIONS["target"] .. _OPTIONS["subtarget"])
+	end	
 end
 
 configurations {
@@ -356,6 +369,8 @@ flags {
 configuration { "vs*" }
 	flags {
 		"ExtraWarnings",
+		"NoEditAndContinue",
+		"EnableMinimalRebuild",
 	}
 	if not _OPTIONS["NOWERROR"] then
 		flags{
@@ -651,6 +666,12 @@ if _OPTIONS["VERBOSE"] then
 	}
 end
 
+-- only show shadow warnings when enabled
+if (_OPTIONS["SHADOW_CHECK"]=="1") then
+	buildoptions {
+		"-Wshadow"
+	}
+
 -- only show deprecation warnings when enabled
 if _OPTIONS["DEPRECATED"]~="1" then
 	buildoptions {
@@ -819,10 +840,6 @@ end
 				}
 			end
 		else
-			if (_OPTIONS["SHADOW_CHECK"]=="1") then
-				buildoptions {
-					"-Wshadow"
-				}			
 			end
 			if (version == 40201) then
 				buildoptions {
@@ -1106,7 +1123,11 @@ dofile(path.join("src", "main.lua"))
 if (_OPTIONS["target"] == _OPTIONS["subtarget"]) then
 	startproject (_OPTIONS["target"])
 else
-	startproject (_OPTIONS["target"] .. _OPTIONS["subtarget"])
+	if (_OPTIONS["subtarget"]=="mess") then
+		startproject (_OPTIONS["subtarget"])
+	else
+		startproject (_OPTIONS["target"] .. _OPTIONS["subtarget"])
+	end
 end
 mainProject(_OPTIONS["target"],_OPTIONS["subtarget"])
 

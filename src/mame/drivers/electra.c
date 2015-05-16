@@ -1,3 +1,5 @@
+// license:???
+// copyright-holders:Fabio Priuli
 /***************************************************************************
 
  Electra discrete hardware games

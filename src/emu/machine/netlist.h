@@ -1,47 +1,10 @@
+// license:GPL-2.0+
+// copyright-holders:Couriersud
 /***************************************************************************
 
     netlist.h
 
     Discrete netlist implementation.
-
-****************************************************************************
-
-    Couriersud reserves the right to license the code under a less restrictive
-    license going forward.
-
-    Copyright Nicola Salmoria and the MAME team
-    All rights reserved.
-
-    Redistribution and use of this code or any derivative works are permitted
-    provided that the following conditions are met:
-
-    * Redistributions may not be sold, nor may they be used in a commercial
-    product or activity.
-
-    * Redistributions that are modified from the original source must include the
-    complete source code, including the source code for all components used by a
-    binary built from the modified sources. However, as a special exception, the
-    source code distributed need not include anything that is normally distributed
-    (in either source or binary form) with the major components (compiler, kernel,
-    and so on) of the operating system on which the executable runs, unless that
-    component itself accompanies the executable.
-
-    * Redistributions must reproduce the above copyright notice, this list of
-    conditions and the following disclaimer in the documentation and/or other
-    materials provided with the distribution.
-
-    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-    AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-    IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-    ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
-    LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-    CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-    SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-    INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-    CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-    ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-    POSSIBILITY OF SUCH DAMAGE.
-
 
 ****************************************************************************/
 
@@ -561,10 +524,12 @@ public:
 	{
 		register_input("IN", m_in);
 		m_cpu_device = downcast<netlist_mame_cpu_device_t *>(&downcast<netlist_mame_t &>(netlist()).parent());
+		save(NLNAME(m_last));
 	}
 
 	ATTR_COLD void reset()
 	{
+		m_last = 0.0;
 	}
 
 	ATTR_COLD void register_callback(netlist_analog_output_delegate callback)
@@ -574,15 +539,24 @@ public:
 
 	ATTR_HOT void update()
 	{
-		m_cpu_device->update_time_x();
-		m_callback(INPANALOG(m_in), m_cpu_device->local_time());
-		m_cpu_device->check_mame_abort_slice();
+		nl_double cur = INPANALOG(m_in);
+
+		// FIXME: make this a parameter
+		// avoid calls due to noise
+		if (fabs(cur - m_last) > 1e-6)
+		{
+			m_cpu_device->update_time_x();
+			m_callback(cur, m_cpu_device->local_time());
+			m_cpu_device->check_mame_abort_slice();
+			m_last = cur;
+		}
 	}
 
 private:
 	netlist_analog_input_t m_in;
 	netlist_analog_output_delegate m_callback;
 	netlist_mame_cpu_device_t *m_cpu_device;
+	nl_double m_last;
 };
 
 // ----------------------------------------------------------------------------------------
@@ -731,8 +705,8 @@ public:
 	netlist_time m_inc;
 
 private:
-	netlist_ttl_input_t m_feedback;
-	netlist_ttl_output_t m_Q;
+	netlist_logic_input_t m_feedback;
+	netlist_logic_output_t m_Q;
 
 	int m_pos;
 	int m_num_channel;

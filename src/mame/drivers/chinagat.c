@@ -1,3 +1,5 @@
+// license:BSD-3-Clause
+// copyright-holders:Nicola Salmoria,Paul Hampson
 /*
 China Gate.
 By Paul Hampson from First Principles

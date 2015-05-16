@@ -1,3 +1,5 @@
+// license:???
+// copyright-holders:???
 /* Sega SP (Spider)
 
  Naomi derived platform
@@ -21,6 +23,9 @@ public:
 	DECLARE_READ64_MEMBER(sp_io_r);
 	DECLARE_READ64_MEMBER(sn_93c46a_r);
 	DECLARE_WRITE64_MEMBER(sn_93c46a_w);
+	DECLARE_READ64_MEMBER(sp_bank_r);
+	DECLARE_WRITE64_MEMBER(sp_bank_w);
+	UINT16 m_sp_bank;
 
 protected:
 };

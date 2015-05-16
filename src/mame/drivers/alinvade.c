@@ -1,3 +1,5 @@
+// license:BSD-3-Clause
+// copyright-holders:David Haywood, Mariusz Wojcieszek
 /*
 
  tiny bartop b&w Space Invaders type game with colour overlay

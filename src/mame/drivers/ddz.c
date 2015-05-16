@@ -1,3 +1,5 @@
+// license:???
+// copyright-holders:Xing Xing
 /*
     Dou Di Zhu (by IGS?)
 

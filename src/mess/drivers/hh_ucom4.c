@@ -43,8 +43,9 @@
  @209     uPD553C  1982, Tomy Caveman (TN-12)
  @258     uPD553C  1984, Tomy Alien Chase (TN-16)
 
+ *060     uPD650C  1979, Mattel Computer Gin
  *085     uPD650C  1980, Roland TR-808
- *127     uPD650C  198?  Sony OA-S1100 Typecorder (subcpu, have dump)
+ *127     uPD650C  198?, Sony OA-S1100 Typecorder (subcpu, have dump)
  *128     uPD650C  1982, Roland TR-606
   133     uPD650C  1982, Roland TB-303 -> tb303.c
 
@@ -57,8 +58,10 @@
 #include "sound/speaker.h"
 
 // internal artwork
+#include "efball.lh"
 #include "mvbfree.lh"
-#include "hh_ucom4_test.lh" // test-layout - use external artwork
+
+#include "hh_ucom4_test.lh" // common test-layout - use external artwork
 
 
 class hh_ucom4_state : public driver_device
@@ -1114,8 +1117,6 @@ MACHINE_CONFIG_END
   - USA: Electronic Football (aka Pro-Bowl Football)
   - Japan: American Football
 
-  NOTE!: MESS external artwork is recommended
-
 ***************************************************************************/
 
 class efball_state : public hh_ucom4_state
@@ -1169,20 +1170,20 @@ static INPUT_PORTS_START( efball )
 	PORT_CONFNAME( 0x02, 0x02, "Players" )
 	PORT_CONFSETTING(    0x02, "1" )
 	PORT_CONFSETTING(    0x00, "2" )
-	PORT_BIT( 0x04, IP_ACTIVE_HIGH, IPT_BUTTON1 ) PORT_NAME("P1 Down Field")
-	PORT_BIT( 0x08, IP_ACTIVE_HIGH, IPT_BUTTON3 ) PORT_NAME("P1 Score/Time")
+	PORT_BIT( 0x04, IP_ACTIVE_HIGH, IPT_START ) PORT_NAME("P1 Down-Field")
+	PORT_BIT( 0x08, IP_ACTIVE_HIGH, IPT_SELECT ) PORT_NAME("P1 Score-Time")
 
 	PORT_START("IN.1") // port B
 	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_JOYSTICK_UP ) PORT_16WAY
 	PORT_BIT( 0x02, IP_ACTIVE_HIGH, IPT_JOYSTICK_DOWN ) PORT_16WAY
-	PORT_BIT( 0x04, IP_ACTIVE_HIGH, IPT_BUTTON2 ) PORT_NAME("P1 Pass")
-	PORT_BIT( 0x08, IP_ACTIVE_HIGH, IPT_BUTTON4 ) PORT_NAME("P1 Kick")
+	PORT_BIT( 0x04, IP_ACTIVE_HIGH, IPT_JOYSTICK_RIGHT ) PORT_16WAY PORT_NAME("P1 Left/Right")
+	PORT_BIT( 0x08, IP_ACTIVE_HIGH, IPT_BUTTON1 ) PORT_NAME("P1 Pass")
 
 	PORT_START("IN.2") // port C
 	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_JOYSTICK_DOWN ) PORT_COCKTAIL PORT_16WAY
 	PORT_BIT( 0x02, IP_ACTIVE_HIGH, IPT_JOYSTICK_UP ) PORT_COCKTAIL PORT_16WAY
-	PORT_BIT( 0x04, IP_ACTIVE_HIGH, IPT_BUTTON1 ) PORT_COCKTAIL PORT_NAME("P2 Return")
-	PORT_BIT( 0x08, IP_ACTIVE_HIGH, IPT_JOYSTICK_RIGHT ) PORT_16WAY PORT_NAME("P1 Left/Right")
+	PORT_BIT( 0x04, IP_ACTIVE_HIGH, IPT_BUTTON1 ) PORT_COCKTAIL PORT_NAME("P2 Kick Return")
+	PORT_BIT( 0x08, IP_ACTIVE_HIGH, IPT_BUTTON2 ) PORT_NAME("P1 Kick")
 INPUT_PORTS_END
 
 static MACHINE_CONFIG_START( efball, efball_state )
@@ -1200,7 +1201,7 @@ static MACHINE_CONFIG_START( efball, efball_state )
 	MCFG_UCOM4_WRITE_I_CB(WRITE8(efball_state, plate_w))
 
 	MCFG_TIMER_DRIVER_ADD_PERIODIC("display_decay", hh_ucom4_state, display_decay_tick, attotime::from_msec(1))
-	MCFG_DEFAULT_LAYOUT(layout_hh_ucom4_test)
+	MCFG_DEFAULT_LAYOUT(layout_efball)
 
 	/* no video! */
 
@@ -2446,7 +2447,7 @@ CONS( 1980, splasfgt, 0,        0, splasfgt, splasfgt, driver_device, 0, "Bambin
 CONS( 1982, bcclimbr, 0,        0, bcclimbr, bcclimbr, driver_device, 0, "Bandai", "Crazy Climber (Bandai)", GAME_SUPPORTS_SAVE | GAME_REQUIRES_ARTWORK )
 
 CONS( 1980, invspace, 0,        0, invspace, invspace, driver_device, 0, "Epoch", "Invader From Space", GAME_SUPPORTS_SAVE | GAME_REQUIRES_ARTWORK )
-CONS( 1980, efball,   0,        0, efball,   efball,   driver_device, 0, "Epoch", "Electronic Football (Epoch)", GAME_SUPPORTS_SAVE | GAME_REQUIRES_ARTWORK )
+CONS( 1980, efball,   0,        0, efball,   efball,   driver_device, 0, "Epoch", "Electronic Football (Epoch)", GAME_SUPPORTS_SAVE )
 CONS( 1981, galaxy2,  0,        0, galaxy2,  galaxy2,  driver_device, 0, "Epoch", "Galaxy II", GAME_SUPPORTS_SAVE | GAME_REQUIRES_ARTWORK )
 CONS( 1982, astrocmd, 0,        0, astrocmd, astrocmd, driver_device, 0, "Epoch", "Astro Command", GAME_SUPPORTS_SAVE | GAME_REQUIRES_ARTWORK )
 CONS( 1982, edracula, 0,        0, edracula, edracula, driver_device, 0, "Epoch", "Dracula (Epoch)", GAME_SUPPORTS_SAVE | GAME_REQUIRES_ARTWORK )

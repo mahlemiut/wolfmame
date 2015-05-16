@@ -1,3 +1,5 @@
+// license:BSD-3-Clause
+// copyright-holders:Brad Oliver, Bernd Wiebelt, Allard Van Der Bas
 
 #ifndef BWIDOW_H_
 #define BWIDOW_H_

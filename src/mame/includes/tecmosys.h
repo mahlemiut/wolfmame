@@ -1,3 +1,5 @@
+// license:BSD-3-Clause
+// copyright-holders:Farfetch,David Haywood,Tomasz Slanina
 /***************************************************************************
 
     tecmosys protection simulation

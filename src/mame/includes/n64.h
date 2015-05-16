@@ -1,3 +1,5 @@
+// license:???
+// copyright-holders:???
 #ifndef _INCLUDES_N64_H_
 #define _INCLUDES_N64_H_
 
@@ -122,6 +124,10 @@ public:
 	bool dd_present;
 	bool disk_present;
 	bool cart_present;
+
+	// Mouse X2/Y2 for delta position
+	int mouse_x2[4];
+	int mouse_y2[4];
 
 	void poll_reset_button(bool button);
 

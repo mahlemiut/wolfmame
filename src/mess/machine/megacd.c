@@ -1,3 +1,5 @@
+// license:BSD-3-Clause
+// copyright-holders:David Haywood
 #include "emu.h"
 #include "machine/megacd.h"
 #include "machine/nvram.h"

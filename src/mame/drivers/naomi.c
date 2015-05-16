@@ -1,4 +1,4 @@
-// license:?
+// license:LGPL-2.1+
 // copyright-holders:Angelo Salese, Olivier Galibert, David Haywood, Samuele Zannoli, R. Belmont, ElSemi
 /*
 
@@ -4131,6 +4131,15 @@ ROM_START( mtkob2 )
 	ROM_LOAD32_WORD( "mpr-24223.ic22",  0x3000002, 0x0800000, CRC(eca13c90) SHA1(26a66906bf4ebda8697140d89eb5e493e941e8b2) )
 
 	ROM_COPY( "rom_board", 0x1000000, 0x400000, 0xc00000 )
+
+
+	// MUSHIKING
+	// The King of Beetle
+	// TYPE-1
+	// 800
+	// note: this dump from "empty/dead" Management Chip with no game run count left
+	ROM_REGION( 0x80, "rf_tag", 0 )
+	ROM_LOAD( "mushi_type1.bin", 0, 0x80, CRC(8f36572b) SHA1(87e00e56d07a961e9180c7da02e35f7fd216dbae) )
 
 	// 840-0150    2003     317-0394-COM   Naomi
 	ROM_PARAMETER( ":rom_board:key", "3892fb3a" )

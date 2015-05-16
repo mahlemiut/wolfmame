@@ -4,6 +4,7 @@
 !/.gitattributes
 !/.gitignore
 !/makefile
+!/mame.doxygen 
 !/*.md
 !/record.bat
 !/playback.bat
@@ -24,3 +25,4 @@ src/regtests/jedutil/output
 /sta
 *.pyc
 /build
+/documentation

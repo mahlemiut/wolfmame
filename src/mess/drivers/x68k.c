@@ -1,3 +1,6 @@
+// license:BSD-3-Clause
+// copyright-holders:Barry Rodewald,Carl
+
 // Preliminary X68000 driver for MESS
 // Started 18/11/2006
 // Written by Barry Rodewald

@@ -1,3 +1,5 @@
+// license:BSD-3-Clause
+// copyright-holders:Mathis Rosenhauer
 #include "machine/6522via.h"
 #include "cpu/m6809/m6809.h"
 

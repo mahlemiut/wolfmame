@@ -603,7 +603,7 @@ BUSES["ISA"] = true
 --BUSES["KC"] = true
 --BUSES["LPCI"] = true
 --BUSES["MACPDS"] = true
---BUSES["MIDI"] = true
+BUSES["MIDI"] = true
 --BUSES["MEGADRIVE"] = true
 --BUSES["MSX_SLOT"] = true
 BUSES["NEOGEO"] = true
@@ -612,7 +612,7 @@ BUSES["NEOGEO"] = true
 --BUSES["O2"] = true
 --BUSES["ORICEXT"] = true
 --BUSES["PCE"] = true
---BUSES["PC_JOY"] = true
+BUSES["PC_JOY"] = true
 --BUSES["PC_KBD"] = true
 --BUSES["PET"] = true
 --BUSES["PLUS4"] = true
@@ -2077,9 +2077,7 @@ files {
 	MAME_DIR .. "src/mame/video/neogeo.c",
 	MAME_DIR .. "src/mame/drivers/neogeo_noslot.c",
 	MAME_DIR .. "src/mame/video/neogeo_spr.c",
-	MAME_DIR .. "src/mame/machine/neoboot.c",
 	MAME_DIR .. "src/mame/machine/neocrypt.c",
-	MAME_DIR .. "src/mame/machine/neoprot.c",
 	MAME_DIR .. "src/mame/machine/ng_memcard.c",
 }
 

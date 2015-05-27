@@ -1,5 +1,5 @@
-// license:???
-// copyright-holders:Paul Daniels, Colin Howell, R.Belmont
+// license:BSD-3-Clause
+// copyright-holders:Paul Daniels, Colin Howell, R. Belmont
 /***************************************************************************
 
   apple1.c

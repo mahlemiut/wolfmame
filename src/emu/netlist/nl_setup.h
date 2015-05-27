@@ -9,7 +9,6 @@
 #define NLSETUP_H_
 
 #include "nl_base.h"
-//#include "nl_factory.h"
 
 //============================================================
 //  MACROS / inline netlist definitions
@@ -22,8 +21,6 @@
 
 #define ALIAS(_alias, _name)                                                        \
 	setup.register_alias(# _alias, # _name);
-
-//#define NET_NEW(_type)  setup.factory().new_device_by_classname(NETLIB_NAME_STR(_type), setup)
 
 #define NET_REGISTER_DEV(_type, _name)                                              \
 		setup.register_dev(NETLIB_NAME_STR(_type), # _name);
@@ -104,7 +101,7 @@ public:
 	typedef pnamedlist_t<link_t> tagmap_nstring_t;
 	typedef pnamedlist_t<netlist_param_t *> tagmap_param_t;
 	typedef pnamedlist_t<netlist_core_terminal_t *> tagmap_terminal_t;
-	typedef plinearlist_t<link_t> tagmap_link_t;
+	typedef plist_t<link_t> tagmap_link_t;
 
 	netlist_setup_t(netlist_base_t &netlist);
 	~netlist_setup_t();
@@ -129,7 +126,7 @@ public:
 	void register_param(const pstring &param, const double value);
 
 	void register_object(netlist_device_t &dev, const pstring &name, netlist_object_t &obj);
-	void connect(netlist_core_terminal_t &t1, netlist_core_terminal_t &t2);
+	bool connect(netlist_core_terminal_t &t1, netlist_core_terminal_t &t2);
 
 	netlist_core_terminal_t *find_terminal(const pstring &outname_in, bool required = true);
 	netlist_core_terminal_t *find_terminal(const pstring &outname_in, netlist_object_t::type_t atype, bool required = true);
@@ -167,7 +164,7 @@ private:
 
 	netlist_factory_t *m_factory;
 
-	plinearlist_t<pstring> m_models;
+	plist_t<pstring> m_models;
 
 	int m_proxy_cnt;
 
@@ -175,15 +172,16 @@ private:
 
 
 	void connect_terminals(netlist_core_terminal_t &in, netlist_core_terminal_t &out);
-	void connect_input_output(netlist_input_t &in, netlist_output_t &out);
-	void connect_terminal_output(netlist_terminal_t &in, netlist_output_t &out);
-	void connect_terminal_input(netlist_terminal_t &term, netlist_input_t &inp);
+	void connect_input_output(netlist_core_terminal_t &in, netlist_core_terminal_t &out);
+	void connect_terminal_output(netlist_terminal_t &in, netlist_core_terminal_t &out);
+	void connect_terminal_input(netlist_terminal_t &term, netlist_core_terminal_t &inp);
+	bool connect_input_input(netlist_core_terminal_t &t1, netlist_core_terminal_t &t2);
 
 	// helpers
 	pstring objtype_as_astr(netlist_object_t &in) const;
 
 	const pstring resolve_alias(const pstring &name) const;
-	nld_base_d_to_a_proxy *get_d_a_proxy(netlist_output_t &out);
+	nld_base_proxy *get_d_a_proxy(netlist_core_terminal_t &out);
 };
 
 #endif /* NLSETUP_H_ */

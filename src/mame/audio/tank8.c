@@ -1,5 +1,5 @@
 // license:???
-// copyright-holders:???
+// copyright-holders:Hans Andersson
 /*************************************************************************
 
     audio\tank8.c

@@ -23,7 +23,7 @@
 		static const char *m_desc[];                                                \
 	}
 
-
+#if 0
 static inline UINT32 remove_first_bit(UINT32 v)
 {
 	for (int i=0; i<32; i++)
@@ -31,26 +31,31 @@ static inline UINT32 remove_first_bit(UINT32 v)
 			return v & ~(1<<i);
 	return v;
 }
+#endif
 
 struct truthtable_desc_t
 {
 	truthtable_desc_t(int NO, int NI, int has_state, bool *initialized,
 			UINT32 *outs, UINT8 *timing, netlist_time *timing_nt)
 	: m_NO(NO), m_NI(NI), /*m_has_state(has_state),*/ m_initialized(initialized),
-	  m_outs(outs), m_timing(timing), m_timing_nt(timing_nt),
-	  m_num_bits(m_NI + has_state * (m_NI + m_NO)),
-	  m_size(1 << (m_num_bits))
+		m_outs(outs), m_timing(timing), m_timing_nt(timing_nt),
+		m_num_bits(m_NI + has_state * (m_NI + m_NO)),
+		m_size(1 << (m_num_bits))
 	{
 	}
 
-	ATTR_COLD void setup(const char **truthtable);
+	ATTR_COLD void setup(const char **truthtable, UINT32 disabled_ignore);
 
 private:
-	ATTR_COLD void help(int cur, nl_util::pstring_list list,
+	ATTR_COLD void help(unsigned cur, nl_util::pstring_list list,
 			UINT64 state,UINT16 val, UINT8 *timing_index);
+	static unsigned count_bits(UINT32 v);
+	static UINT32 set_bits(UINT32 v, UINT32 b);
+	UINT32 get_ignored_simple(UINT32 i);
+	UINT32 get_ignored_extended(UINT32 i);
 
-	int m_NO;
-	int m_NI;
+	unsigned m_NO;
+	unsigned m_NI;
 	//int m_has_state;
 	bool *m_initialized;
 	UINT32 *m_outs;
@@ -64,7 +69,7 @@ private:
 
 };
 
-template<int m_NI, int m_NO, int has_state>
+template<unsigned m_NI, unsigned m_NO, int has_state>
 class nld_truthtable_t : public netlist_device_t
 {
 public:
@@ -88,17 +93,17 @@ public:
 	{
 	}
 
-	ATTR_COLD virtual void start()
+	/* ATTR_COLD */ virtual void start()
 	{
 		pstring ttline = pstring(m_desc[0]);
 
 		nl_util::pstring_list io = nl_util::split(ttline,"|");
 		// checks
-		nl_assert_always(io.count() == 2, "too many '|'");
+		nl_assert_always(io.size() == 2, "too many '|'");
 		nl_util::pstring_list inout = nl_util::split(io[0], ",");
-		nl_assert_always(inout.count() == m_num_bits, "bitcount wrong");
+		nl_assert_always(inout.size() == m_num_bits, "bitcount wrong");
 		nl_util::pstring_list out = nl_util::split(io[1], ",");
-		nl_assert_always(out.count() == m_NO, "output count wrong");
+		nl_assert_always(out.size() == m_NO, "output count wrong");
 
 		for (int i=0; i < m_NI; i++)
 		{
@@ -110,22 +115,27 @@ public:
 			out[i] = out[i].trim();
 			register_output(out[i], m_Q[i]);
 		}
+		// Connect output "Q" to input "_Q" if this exists
+		// This enables timed state without having explicit state ....
+		UINT32 disabled_ignore = 0;
+		for (int i=0; i < m_NO; i++)
 		{
-			// Connect output "Q" to input "_Q" if this exists
-			// This enables timed state without having explicit state ....
-			for (int i=0; i < m_NO; i++)
+			pstring tmp = "_" + out[i];
+			const int idx = inout.indexof(tmp);
+			if (idx>=0)
 			{
-				pstring tmp = "_" + out[i];
-				const int idx = inout.indexof(tmp);
-				if (idx>=0)
-				{
-					//printf("connecting %s %d\n", out[i].cstr(), idx);
-					connect(m_Q[i], m_i[idx]);
-				}
+				//printf("connecting %s %d\n", out[i].cstr(), idx);
+				connect(m_Q[i], m_i[idx]);
+				// disable ignore for this inputs altogether.
+				// FIXME: This shouldn't be necessary
+				disabled_ignore |= (1<<idx);
 			}
 		}
+
 		m_ign = 0;
-		m_ttp->m_desc.setup(m_desc);
+
+		m_ttp->m_desc.setup(m_desc, disabled_ignore * 0);
+
 #if 0
 		printf("%s\n", name().cstr());
 		for (int j=0; j < m_size; j++)
@@ -135,27 +145,33 @@ public:
 			printf("%d %f\n", k, m_ttp->m_timing_nt[k].as_double() * 1000000.0);
 #endif
 		// FIXME: save state
+		save(NLNAME(m_last_state));
+		save(NLNAME(m_ign));
+		save(NLNAME(m_active));
+
 	}
 
 	ATTR_COLD void reset()
 	{
-		m_active = 1;
+		m_active = 0;
+		for (int i=0; i<m_NO;i++)
+			if (this->m_Q[i].net().num_cons()>0)
+				m_active++;
 		m_last_state = 0;
 	}
 
 	template<bool doOUT>
 	ATTR_HOT inline void process()
 	{
-
 		netlist_time mt = netlist_time::zero;
 
 		UINT32 state = 0;
-		for (int i = 0; i < m_NI; i++)
+		for (unsigned i = 0; i < m_NI; i++)
 		{
 			if (!doOUT || (m_ign & (1<<i)) != 0)
 				m_i[i].activate();
 		}
-		for (int i = 0; i < m_NI; i++)
+		for (unsigned i = 0; i < m_NI; i++)
 		{
 			state |= (INPLOGIC(m_i[i]) << i);
 			if (!doOUT)
@@ -169,10 +185,11 @@ public:
 		if (has_state)
 			m_last_state = (state << m_NO) | out;
 
+#if 0
 		for (int i = 0; i < m_NI; i++)
 			if (m_ign & (1 << i))
 				m_i[i].inactivate();
-
+#endif
 		const UINT32 timebase = nstate * m_NO;
 		if (doOUT)
 		{
@@ -183,9 +200,13 @@ public:
 			for (int i = 0; i < m_NO; i++)
 				m_Q[i].net().set_Q_time((out >> i) & 1, mt + m_ttp->m_timing_nt[m_ttp->m_timing[timebase + i]]);
 
+		for (int i = 0; i < m_NI; i++)
+			if (m_ign & (1 << i))
+				m_i[i].inactivate();
+
 	}
 
-	ATTR_HOT ATTR_ALIGN void update()
+	ATTR_HOT void update()
 	{
 		process<true>();
 	}
@@ -195,7 +216,9 @@ public:
 		nl_assert(netlist().use_deactivate());
 		if (has_state == 0)
 			if (++m_active == 1)
+			{
 				process<false>();
+			}
 	}
 
 	ATTR_HOT void dec_active()
@@ -203,8 +226,10 @@ public:
 		nl_assert(netlist().use_deactivate());
 		if (has_state == 0)
 			if (--m_active == 0)
+			{
 				for (int i = 0; i< m_NI; i++)
 					m_i[i].inactivate();
+			}
 	}
 
 	netlist_logic_input_t m_i[m_NI];

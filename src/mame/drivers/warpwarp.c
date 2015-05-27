@@ -1,5 +1,5 @@
-// license:???
-// copyright-holders:???
+// license:BSD-3-Clause
+// copyright-holders:Chris Hardy
 /***************************************************************************
 
 Namco early 8080-based games

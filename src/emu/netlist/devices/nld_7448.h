@@ -40,11 +40,7 @@
 		NET_REGISTER_DEV(7448_dip, _name)
 
 /*
- * FIXME: Big FIXME
- * The truthtable will ignore BIQ for certain states.
- * This causes a severe issue in pongf when USE_DEACTIVATE is used.
- * For now, just use the old implementation.
- *
+ * FIXME: Using truthtable is a lot slower than the explicit device
  */
 #if (0 && USE_TRUTHTABLE)
 #include "nld_truthtable.h"
@@ -67,11 +63,6 @@ NETLIB_SUBDEVICE(7448_sub,
 
 	netlist_logic_output_t m_Q[7];  /* a .. g */
 
-	// FIXME: doesn't work
-/*
-	ATTR_HOT void inc_active();
-	ATTR_HOT void dec_active();
-*/
 );
 
 NETLIB_DEVICE(7448,
@@ -82,7 +73,6 @@ public:
 	netlist_logic_input_t m_BIQ;
 );
 #endif
-NETLIB_DEVICE_DERIVED(7448_dip, 7448,
-);
+NETLIB_DEVICE_DERIVED_PURE(7448_dip, 7448);
 
 #endif /* NLD_7448_H_ */

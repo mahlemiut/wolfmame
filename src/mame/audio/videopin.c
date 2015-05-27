@@ -1,5 +1,5 @@
-// license:???
-// copyright-holders:Sebastien Monassa
+// license:BSD-3-Clause
+// copyright-holders:Derrick Renaud
 /*************************************************************************
 
     audio\videopin.c

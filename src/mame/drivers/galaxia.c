@@ -1,6 +1,6 @@
-// license:???
-// copyright-holders:???
-/* Galaxia
+// license:BSD-3-Clause
+// copyright-holders:David Haywood, hap
+/*
 
 Galaxia by Zaccaria (1979)
 

@@ -28,6 +28,7 @@
  @88      HD38800A  1984, Tomy Tron (THN-02)
 
  @01      HD38800B  1982, Gakken Crazy Kong
+ *19      HD38800B  1982, Bandai Zaxxon
  @23      HD38800B  1982, Tomy Kingman (THF-01II)
  *24      HD38800B  1982, Actronics(Hanzawa) Wanted G-Man
  *29      HD38800B  1984, Tomy Portable 6000 Bombman
@@ -46,9 +47,13 @@
  @45      HD38820A  1982, Coleco Donkey Kong
  @49      HD38820A  1983, Bandai Zackman
  @61      HD38820A  1983, Coleco Ms. Pac-Man
+ *63      HD38820A  1983, Bandai Pengo
+ *65      HD38820A  1983, Bandai Burger Time
  @69      HD38820A  1983, Gakken Dig Dug
  @70      HD38820A  1983, Parker Brothers Q*Bert
  @85      HD38820A  1984, Bandai Machine Man (PT-438)
+ *88      HD38820A  1984, Bandai Pair Match (1/2)
+ *89      HD38820A  1984, Bandai Pair Match (2/2)
 
   (* denotes not yet emulated by MESS, @ denotes it's in this driver)
 
@@ -2065,7 +2070,7 @@ void eturtles_state::prepare_display()
 WRITE8_MEMBER(eturtles_state::plate_w)
 {
 	m_r[offset] = data;
-	
+
 	// R0x-R6x: vfd matrix plate
 	int shift = offset * 4;
 	m_plate = (m_plate & ~(0xf << shift)) | (data << shift);
@@ -2075,7 +2080,7 @@ WRITE8_MEMBER(eturtles_state::plate_w)
 WRITE16_MEMBER(eturtles_state::grid_w)
 {
 	m_d = data;
-	
+
 	// D1-D6: input mux
 	UINT8 inp_mux = data >> 1 & 0x3f;
 	if (inp_mux != m_inp_mux)
@@ -2167,7 +2172,7 @@ INPUT_CHANGED_MEMBER(eturtles_state::input_changed)
 void eturtles_state::machine_start()
 {
 	hh_hmcs40_state::machine_start();
-	
+
 	// register for savestates
 	save_item(NAME(m_cop_irq));
 }

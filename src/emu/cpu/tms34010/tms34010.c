@@ -1,5 +1,5 @@
-// license:???
-// copyright-holders:Zsolt Vasvari
+// license:BSD-3-Clause
+// copyright-holders:Alex Pasadyn,Zsolt Vasvari
 /***************************************************************************
 
     TMS34010: Portable Texas Instruments TMS34010 emulator
@@ -651,7 +651,7 @@ void tms340x0_device::device_reset()
 	/* HALT the CPU if requested, and remember to re-read the starting PC */
 	/* the first time we are run */
 	m_reset_deferred = m_halt_on_reset;
-	
+
 	if (m_reset_deferred)
 	{
 		io_register_w(*m_program, REG_HSTCTLH, 0x8000, 0xffff);

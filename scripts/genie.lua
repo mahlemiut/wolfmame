@@ -671,6 +671,7 @@ if (_OPTIONS["SHADOW_CHECK"]=="1") then
 	buildoptions {
 		"-Wshadow"
 	}
+end
 
 -- only show deprecation warnings when enabled
 if _OPTIONS["DEPRECATED"]~="1" then
@@ -819,7 +820,6 @@ end
 				"-Wno-cast-align",
 				"-Wno-tautological-compare",
 				"-Wno-dynamic-class-memaccess",
-				"-Wno-self-assign-field",
 			}
 			if (version >= 30200) then
 				buildoptions {
@@ -828,7 +828,6 @@ end
 			end
 			if (version >= 30400) then
 				buildoptions {
-					"-Wno-inline-new-delete",
 					"-Wno-constant-logical-operand",
 				}
 			end
@@ -840,7 +839,6 @@ end
 				}
 			end
 		else
-			end
 			if (version == 40201) then
 				buildoptions {
 					"-Wno-cast-align"

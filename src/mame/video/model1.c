@@ -1,5 +1,5 @@
-// license:???
-// copyright-holders:???
+// license:BSD-3-Clause
+// copyright-holders:Olivier Galibert
 #include "emu.h"
 #include "video/segaic24.h"
 #include "cpu/mb86233/mb86233.h"
@@ -37,19 +37,19 @@ struct view {
 	struct lightparam lightparams[32];
 };
 
-struct spoint {
+struct m1_spoint {
 	INT32 x, y;
 };
 
-struct point {
+struct m1_point {
 	float x, y, z;
 	float xx, yy;
-	struct spoint s;
+	struct m1_spoint s;
 };
 
 
 struct quad_m1 {
-	struct point *p[4];
+	struct m1_point *p[4];
 	float z;
 	int col;
 };
@@ -71,9 +71,9 @@ static float readf(const UINT16 *adr)
 	return u2f(readi(adr));
 }
 
-static void _transform_point(struct view *view, struct point *p)
+static void _transform_point(struct view *view, struct m1_point *p)
 {
-	struct point q = *p;
+	struct m1_point q = *p;
 	float *trans = view->trans_mat;
 	float xx, zz;
 	xx = trans[0]*q.x+trans[3]*q.y+trans[6]*q.z+trans[9]+view->vxx;
@@ -107,7 +107,7 @@ static float mult_vector(const struct vector_t *p, const struct vector_t *q)
 	return p->x*q->x+p->y*q->y+p->z*q->z;
 }
 
-static float view_determinant(const struct point *p1, const struct point *p2, const struct point *p3)
+static float view_determinant(const struct m1_point *p1, const struct m1_point *p2, const struct m1_point *p3)
 {
 	float x1 = p2->x - p1->x;
 	float y1 = p2->y - p1->y;
@@ -120,7 +120,7 @@ static float view_determinant(const struct point *p1, const struct point *p2, co
 }
 
 
-static void project_point(struct view *view, struct point *p)
+static void project_point(struct view *view, struct m1_point *p)
 {
 	p->xx = p->x / p->z;
 	p->yy = p->y / p->z;
@@ -128,7 +128,7 @@ static void project_point(struct view *view, struct point *p)
 	p->s.y = view->yc-(p->yy*view->zoomy+view->transy);
 }
 
-static void project_point_direct(struct view *view, struct point *p)
+static void project_point_direct(struct view *view, struct m1_point *p)
 {
 	p->xx = p->x /*/ p->z*/;
 	p->yy = p->y /*/ p->z*/;
@@ -241,7 +241,7 @@ static void fill_quad(bitmap_rgb32 &bitmap, struct view *view, const struct quad
 {
 	INT32 sl1, sl2, cury, limy, x1, x2;
 	int pmin, pmax, i, ps1, ps2;
-	struct spoint p[8];
+	struct m1_spoint p[8];
 	int color = q->col;
 
 	if(color < 0) {
@@ -502,12 +502,12 @@ static void recompute_frustrum(struct view *view)
 	view->a_top    = (-view->y2+view->yc-view->transy)/view->zoomy;
 }
 
-static int fclip_isc_bottom(struct view *view, struct point *p)
+static int fclip_isc_bottom(struct view *view, struct m1_point *p)
 {
 	return p->y > p->z*view->a_bottom;
 }
 
-static void fclip_clip_bottom(struct view *view, struct point *pt, struct point *p1, struct point *p2)
+static void fclip_clip_bottom(struct view *view, struct m1_point *pt, struct m1_point *p1, struct m1_point *p2)
 {
 	float t = (p2->z*view->a_bottom-p2->y)/((p2->z-p1->z)*view->a_bottom-(p2->y-p1->y));
 	pt->x = p1->x*t + p2->x*(1-t);
@@ -516,12 +516,12 @@ static void fclip_clip_bottom(struct view *view, struct point *pt, struct point 
 	project_point(view, pt);
 }
 
-static int fclip_isc_top(struct view *view, struct point *p)
+static int fclip_isc_top(struct view *view, struct m1_point *p)
 {
 	return p->y < p->z*view->a_top;
 }
 
-static void fclip_clip_top(struct view *view, struct point *pt, struct point *p1, struct point *p2)
+static void fclip_clip_top(struct view *view, struct m1_point *pt, struct m1_point *p1, struct m1_point *p2)
 {
 	float t = (p2->z*view->a_top-p2->y)/((p2->z-p1->z)*view->a_top-(p2->y-p1->y));
 	pt->x = p1->x*t + p2->x*(1-t);
@@ -530,12 +530,12 @@ static void fclip_clip_top(struct view *view, struct point *pt, struct point *p1
 	project_point(view, pt);
 }
 
-static int fclip_isc_left(struct view *view, struct point *p)
+static int fclip_isc_left(struct view *view, struct m1_point *p)
 {
 	return p->x < p->z*view->a_left;
 }
 
-static void fclip_clip_left(struct view *view, struct point *pt, struct point *p1, struct point *p2)
+static void fclip_clip_left(struct view *view, struct m1_point *pt, struct m1_point *p1, struct m1_point *p2)
 {
 	float t = (p2->z*view->a_left-p2->x)/((p2->z-p1->z)*view->a_left-(p2->x-p1->x));
 	pt->x = p1->x*t + p2->x*(1-t);
@@ -544,12 +544,12 @@ static void fclip_clip_left(struct view *view, struct point *pt, struct point *p
 	project_point(view, pt);
 }
 
-static int fclip_isc_right(struct view *view, struct point *p)
+static int fclip_isc_right(struct view *view, struct m1_point *p)
 {
 	return p->x > p->z*view->a_right;
 }
 
-static void fclip_clip_right(struct view *view, struct point *pt, struct point *p1, struct point *p2)
+static void fclip_clip_right(struct view *view, struct m1_point *pt, struct m1_point *p1, struct m1_point *p2)
 {
 	float t = (p2->z*view->a_right-p2->x)/((p2->z-p1->z)*view->a_right-(p2->x-p1->x));
 	pt->x = p1->x*t + p2->x*(1-t);
@@ -559,8 +559,8 @@ static void fclip_clip_right(struct view *view, struct point *pt, struct point *
 }
 
 static const struct {
-	int (*isclipped)(struct view *view, struct point *p);
-	void (*clip)(struct view *view, struct point *pt, struct point *p1, struct point *p2);
+	int (*isclipped)(struct view *view, struct m1_point *p);
+	void (*clip)(struct view *view, struct m1_point *pt, struct m1_point *p1, struct m1_point *p2);
 } clipfn[4] = {
 	{ fclip_isc_bottom, fclip_clip_bottom },
 	{ fclip_isc_top,    fclip_clip_top },
@@ -569,7 +569,7 @@ static const struct {
 };
 
 void model1_state::fclip_push_quad_next(int level, struct quad_m1 *q,
-									struct point *p1, struct point *p2, struct point *p3, struct point *p4)
+									struct m1_point *p1, struct m1_point *p2, struct m1_point *p3, struct m1_point *p4)
 {
 	struct quad_m1 q2;
 	q2.col = q->col;
@@ -586,9 +586,9 @@ void model1_state::fclip_push_quad(int level, struct quad_m1 *q)
 {
 	struct view *view = m_view;
 	int i, j;
-	struct point *pt[4], *pi1, *pi2;
+	struct m1_point *pt[4], *pi1, *pi2;
 	int is_out[4], is_out2[4];
-	void (*fclip_point)(struct view *view, struct point *pt, struct point *p1, struct point *p2);
+	void (*fclip_point)(struct view *view, struct m1_point *pt, struct m1_point *p1, struct m1_point *p2);
 
 	if(level == 4) {
 		LOG_TGP(("VIDEOCQ %d", level));
@@ -729,7 +729,7 @@ void model1_state::push_object(UINT32 tex_adr, UINT32 poly_adr, UINT32 size)
 	struct view *view = m_view;
 	int i;
 	UINT32 flags;
-	struct point *old_p0, *old_p1, *p0, *p1;
+	struct m1_point *old_p0, *old_p1, *p0, *p1;
 	struct vector_t vn;
 	int link, type;
 #if 0
@@ -900,8 +900,8 @@ void model1_state::push_object(UINT32 tex_adr, UINT32 poly_adr, UINT32 size)
 #endif
 			float dif=mult_vector(&vn, &view->light);
 			float spec=compute_specular(&vn,&view->light,dif,lightmode);
-			float ln=view->lightparams[lightmode].a + view->lightparams[lightmode].d*MAX(0.0,dif) + spec;
-			int lumval=255.0*MIN(1.0,ln);
+			float ln=view->lightparams[lightmode].a + view->lightparams[lightmode].d*MAX(0.0f,dif) + spec;
+			int lumval=255.0f*MIN(1.0f,ln);
 			int color=m_paletteram16[0x1000|(m_tgp_ram[tex_adr-0x40000] & 0x3ff)];
 			int r=(color>>0x0)&0x1f;
 			int g=(color>>0x5)&0x1f;
@@ -943,7 +943,7 @@ UINT16 *model1_state::push_direct(UINT16 *list)
 	struct view *view = m_view;
 	UINT32 flags;
 	UINT32 tex_adr, lum; //, v1, v2;
-	struct point *old_p0, *old_p1, *p0, *p1;
+	struct m1_point *old_p0, *old_p1, *p0, *p1;
 	int link, type;
 	float z;
 	struct quad_m1 cquad;
@@ -1059,7 +1059,7 @@ UINT16 *model1_state::push_direct(UINT16 *list)
 		cquad.p[3] = p1;
 		cquad.z    = z;
 		{
-			int lumval=((float) (lum>>24)) * 2.0;
+			int lumval=((float) (lum>>24)) * 2.0f;
 			int color=m_paletteram16[0x1000|(m_tgp_ram[tex_adr-0x40000] & 0x3ff)];
 			int r=(color>>0x0)&0x1f;
 			int g=(color>>0x5)&0x1f;
@@ -1265,9 +1265,9 @@ void model1_state::tgp_render(bitmap_rgb32 &bitmap, const rectangle &cliprect)
 				for(i=0;i<len;++i)
 				{
 					int v=readi(list+6+i*2);
-					view->lightparams[i+adr].d=((float) (v&0xff))/255.0;
-					view->lightparams[i+adr].a=((float) ((v>>8)&0xff))/255.0;
-					view->lightparams[i+adr].s=((float) ((v>>16)&0xff))/255.0;
+					view->lightparams[i+adr].d=((float) (v&0xff))/255.0f;
+					view->lightparams[i+adr].a=((float) ((v>>8)&0xff))/255.0f;
+					view->lightparams[i+adr].s=((float) ((v>>16)&0xff))/255.0f;
 					view->lightparams[i+adr].p=(v>>24)&0xff;
 				}
 				list += 6+len*2;
@@ -1398,9 +1398,9 @@ void model1_state::tgp_scan()
 				for(i=0;i<len;++i)
 				{
 					int v=readi(list+6+i*2);
-					view->lightparams[i+adr].d=((float) (v&0xff))/255.0;
-					view->lightparams[i+adr].a=((float) ((v>>8)&0xff))/255.0;
-					view->lightparams[i+adr].s=((float) ((v>>16)&0xff))/255.0;
+					view->lightparams[i+adr].d=((float) (v&0xff))/255.0f;
+					view->lightparams[i+adr].a=((float) ((v>>8)&0xff))/255.0f;
+					view->lightparams[i+adr].s=((float) ((v>>16)&0xff))/255.0f;
 					view->lightparams[i+adr].p=(v>>24)&0xff;
 					//LOG_TGP(("         %02X\n",v));
 				}
@@ -1446,7 +1446,7 @@ VIDEO_START_MEMBER(model1_state,model1)
 	m_poly_rom = (UINT32 *)memregion("user1")->base();
 	m_poly_ram = auto_alloc_array_clear(machine(), UINT32, 0x400000);
 	m_tgp_ram = auto_alloc_array_clear(machine(), UINT16, 0x100000-0x40000);
-	m_pointdb = auto_alloc_array_clear(machine(), struct point, 1000000*2);
+	m_pointdb = auto_alloc_array_clear(machine(), struct m1_point, 1000000*2);
 	m_quaddb  = auto_alloc_array_clear(machine(), struct quad_m1, 1000000);
 	m_quadind = auto_alloc_array_clear(machine(), struct quad_m1 *, 1000000);
 

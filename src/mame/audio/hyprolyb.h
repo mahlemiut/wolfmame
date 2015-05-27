@@ -1,5 +1,5 @@
-// license:???
-// copyright-holders:???
+// license:BSD-3-Clause
+// copyright-holders:Chris Hardy
 #include "sound/msm5205.h"
 
 class hyprolyb_adpcm_device : public device_t,

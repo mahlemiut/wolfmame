@@ -1,5 +1,5 @@
 // license:???
-// copyright-holders:???
+// copyright-holders:Roberto Fresca
 /**************************************************************************************************
 
   WMS 360 / 550 (also 3601?) CPU 1.5 Plus board
@@ -21,7 +21,7 @@
   1x Cirrus Logic CL-GD5429-86QC-C (VGA Graphics Controller) [U32]
   1x QuickLogic QL2003-XPF144C FPGA [U21]
 
-  4x (1-2-4/8 Mb selectable through jumper) program ROM sockets. [XU02, XU03, XU04, XU05] 
+  4x (1-2-4/8 Mb selectable through jumper) program ROM sockets. [XU02, XU03, XU04, XU05]
   4x (1-2-4/8 Mb selectable through jumper) sound ROM sockets. [XU17, XU18, XU30, XU31]
   1x unknown serial EEPROM (DIP8) (currently missing) [XU27]
 
@@ -77,7 +77,7 @@
 #define VIDEO_CLOCK       XTAL_14_31818MHz    // Pletronics MP49 14.31818 MHz. Crystal. Used in common VGA ISA cards.
 
 #define UART_CLOCK        XTAL_1_8432MHz      // Seems UART clock, since allows integer division to common baud rates.
-                                              // (16 * 115200 baud, 192 * 9600 baud, 1536 * 1200 baud, etc...)
+												// (16 * 115200 baud, 192 * 9600 baud, 1536 * 1200 baud, etc...)
 
 
 #include "emu.h"
@@ -174,7 +174,7 @@ static MACHINE_CONFIG_START( wms, wms_state )
 	MCFG_DEVICE_DISABLE()
 	MCFG_CPU_PROGRAM_MAP(adsp_program_map)
 	MCFG_CPU_DATA_MAP(adsp_data_map)
-	
+
 	MCFG_SCREEN_ADD("screen", RASTER)
 	MCFG_SCREEN_REFRESH_RATE(60)
 	MCFG_SCREEN_VBLANK_TIME(ATTOSECONDS_IN_USEC(0))
@@ -560,7 +560,7 @@ DRIVER_INIT_MEMBER(wms_state,wms)
 *                Game Drivers                *
 *********************************************/
 
-//    YEAR  NAME        PARENT    MACHINE  INPUT     STATS      INIT  ROT    COMPANY  FULLNAME                          FLAGS
+//    YEAR  NAME        PARENT    MACHINE  INPUT     STATE      INIT  ROT    COMPANY  FULLNAME                          FLAGS
 
 GAME( 200?, wms,        0,        wms,     wms,      wms_state, wms,  ROT0, "WMS",   "WMS SetUp/Clear Chips (set 1)",   GAME_IS_SKELETON )
 GAME( 200?, wmsa,       wms,      wms,     wms,      wms_state, wms,  ROT0, "WMS",   "WMS SetUp/Clear Chips (set 2)",   GAME_IS_SKELETON )

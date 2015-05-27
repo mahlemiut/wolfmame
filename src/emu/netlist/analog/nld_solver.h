@@ -14,6 +14,9 @@
 //#define ATTR_ALIGNED(N) __attribute__((aligned(N)))
 #define ATTR_ALIGNED(N) ATTR_ALIGN
 
+#define SOLVER_VERBOSE_OUT(x) do {} while (0)
+//#define SOLVER_VERBOSE_OUT(x) printf x
+
 // ----------------------------------------------------------------------------------------
 // Macros
 // ----------------------------------------------------------------------------------------
@@ -41,10 +44,11 @@ struct netlist_solver_parameters_t
 	int m_gs_loops;
 	int m_nr_loops;
 	netlist_time m_nt_sync_delay;
+	bool m_log_stats;
 };
 
 
-class ATTR_ALIGNED(64) terms_t
+class terms_t
 {
 	NETLIST_PREVENT_COPYING(terms_t)
 
@@ -61,32 +65,32 @@ class ATTR_ALIGNED(64) terms_t
 
 	ATTR_COLD void add(netlist_terminal_t *term, int net_other);
 
-	ATTR_HOT inline int count() { return m_term.count(); }
+	ATTR_HOT inline int count() { return m_term.size(); }
 
-	ATTR_HOT inline netlist_terminal_t **terms() { return m_term; }
-	ATTR_HOT inline int *net_other() { return m_net_other; }
-	ATTR_HOT inline nl_double *gt() { return m_gt; }
-	ATTR_HOT inline nl_double *go() { return m_go; }
-	ATTR_HOT inline nl_double *Idr() { return m_Idr; }
-	ATTR_HOT inline nl_double **other_curanalog() { return m_other_curanalog; }
+	ATTR_HOT inline netlist_terminal_t **terms() { return m_term.data(); }
+	ATTR_HOT inline int *net_other() { return m_net_other.data(); }
+	ATTR_HOT inline nl_double *gt() { return m_gt.data(); }
+	ATTR_HOT inline nl_double *go() { return m_go.data(); }
+	ATTR_HOT inline nl_double *Idr() { return m_Idr.data(); }
+	ATTR_HOT inline nl_double **other_curanalog() { return m_other_curanalog.data(); }
 
 	ATTR_COLD void set_pointers();
 
 	int m_railstart;
 
 private:
-	plinearlist_t<netlist_terminal_t *> m_term;
-	plinearlist_t<int> m_net_other;
-	plinearlist_t<nl_double> m_go;
-	plinearlist_t<nl_double> m_gt;
-	plinearlist_t<nl_double> m_Idr;
-	plinearlist_t<nl_double *> m_other_curanalog;
+	plist_t<netlist_terminal_t *> m_term;
+	plist_t<int> m_net_other;
+	plist_t<nl_double> m_go;
+	plist_t<nl_double> m_gt;
+	plist_t<nl_double> m_Idr;
+	plist_t<nl_double *> m_other_curanalog;
 };
 
 class netlist_matrix_solver_t : public netlist_device_t
 {
 public:
-	typedef plinearlist_t<netlist_matrix_solver_t *> list_t;
+	typedef plist_t<netlist_matrix_solver_t *> list_t;
 	typedef netlist_core_device_t::list_t dev_list_t;
 
 	enum eSolverType
@@ -96,17 +100,17 @@ public:
 	};
 
 	ATTR_COLD netlist_matrix_solver_t(const eSolverType type, const netlist_solver_parameters_t &params);
-	ATTR_COLD virtual ~netlist_matrix_solver_t();
+	/* ATTR_COLD */ virtual ~netlist_matrix_solver_t();
 
-	ATTR_COLD virtual void vsetup(netlist_analog_net_t::list_t &nets) = 0;
+	/* ATTR_COLD */ virtual void vsetup(netlist_analog_net_t::list_t &nets) = 0;
 
 	template<class C>
 	void solve_base(C *p);
 
 	ATTR_HOT nl_double solve();
 
-	ATTR_HOT inline bool is_dynamic() { return m_dynamic_devices.count() > 0; }
-	ATTR_HOT inline bool is_timestep() { return m_step_devices.count() > 0; }
+	ATTR_HOT inline bool is_dynamic() { return m_dynamic_devices.size() > 0; }
+	ATTR_HOT inline bool is_timestep() { return m_step_devices.size() > 0; }
 
 	ATTR_HOT void update_forced();
 	ATTR_HOT inline void update_after(const netlist_time after)
@@ -116,13 +120,13 @@ public:
 
 	/* netdevice functions */
 	ATTR_HOT  virtual void update();
-	ATTR_COLD virtual void start();
-	ATTR_COLD virtual void reset();
+	/* ATTR_COLD */ virtual void start();
+	/* ATTR_COLD */ virtual void reset();
 
 	ATTR_COLD int get_net_idx(netlist_net_t *net);
-	ATTR_COLD virtual void log_stats() {};
+	/* ATTR_COLD */ virtual void log_stats() {};
 
-	inline const eSolverType type() const { return m_type; }
+	inline eSolverType type() const { return m_type; }
 
 protected:
 
@@ -132,10 +136,10 @@ protected:
 	// should return next time step
 	ATTR_HOT virtual nl_double vsolve() = 0;
 
-	ATTR_COLD virtual void  add_term(int net_idx, netlist_terminal_t *term) = 0;
+	/* ATTR_COLD */ virtual void  add_term(int net_idx, netlist_terminal_t *term) = 0;
 
-	plinearlist_t<netlist_analog_net_t *> m_nets;
-	plinearlist_t<netlist_analog_output_t *> m_inps;
+	plist_t<netlist_analog_net_t *> m_nets;
+	plist_t<netlist_analog_output_t *> m_inps;
 
 	int m_stat_calculations;
 	int m_stat_newton_raphson;
@@ -143,7 +147,7 @@ protected:
 
 	const netlist_solver_parameters_t &m_params;
 
-	ATTR_HOT inline const nl_double current_timestep() { return m_cur_ts; }
+	ATTR_HOT inline nl_double current_timestep() { return m_cur_ts; }
 private:
 
 	netlist_time m_last_step;
@@ -163,15 +167,16 @@ private:
 
 
 
-class ATTR_ALIGNED(64) NETLIB_NAME(solver) : public netlist_device_t
+class NETLIB_NAME(solver) : public netlist_device_t
 {
 public:
 	NETLIB_NAME(solver)()
 	: netlist_device_t()    { }
 
-	ATTR_COLD virtual ~NETLIB_NAME(solver)();
+	/* ATTR_COLD */ virtual ~NETLIB_NAME(solver)();
 
 	ATTR_COLD void post_start();
+	ATTR_COLD void stop();
 
 	ATTR_HOT inline nl_double gmin() { return m_gmin.Value(); }
 
@@ -197,6 +202,8 @@ protected:
 	netlist_param_int_t m_gs_loops;
 	netlist_param_int_t m_gs_threshold;
 	netlist_param_int_t m_parallel;
+
+	netlist_param_logic_t  m_log_stats;
 
 	netlist_matrix_solver_t::list_t m_mat_solvers;
 private:

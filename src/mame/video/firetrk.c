@@ -1,5 +1,5 @@
-// license:???
-// copyright-holders:???
+// license:BSD-3-Clause
+// copyright-holders:Phil Stroffolino
 /***************************************************************************
 
 Atari Fire Truck + Super Bug + Monte Carlo video emulation

@@ -1,10 +1,10 @@
-// license:???
-// copyright-holders:Keith Wilkins, D.Renaud, F.Palazzolo, Couriersud
+// license:BSD-3-Clause
+// copyright-holders:K.Wilkins, Derrick Renaud, Frank Palazzolo, Couriersud
 /************************************************************************
  *
  *  MAME - Discrete sound system emulation library
  *
- *  Written by Keith Wilkins (mame@esplexo.co.uk)
+ *  Written by K.Wilkins (mame@esplexo.co.uk)
  *
  *  (c) K.Wilkins 2000
  *
@@ -648,7 +648,7 @@ void discrete_device::display_profiling(void)
 		discrete_step_interface *step;
 		if ((*node)->interface(step))
 			if (step->run_time > tresh)
-				printf("%3d: %20s %8.2f %10.2f\n", (*node)->index(), (*node)->module_name(), (float) step->run_time / (float) total * 100.0, ((float) step->run_time) / (float) m_total_samples);
+				printf("%3d: %20s %8.2f %10.2f\n", (*node)->index(), (*node)->module_name(), (double) step->run_time / (double) total * 100.0, ((double) step->run_time) / (double) m_total_samples);
 	}
 
 	/* Task information */

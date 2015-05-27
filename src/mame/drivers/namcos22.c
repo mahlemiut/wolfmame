@@ -1,5 +1,5 @@
-// license:???
-// copyright-holders:Phil Stroffolino, hap, R.Belmont
+// license:BSD-3-Clause
+// copyright-holders:Phil Stroffolino, hap, R. Belmont
 /**
  * This driver describes Namco's System22 and Super System 22 hardware.
  *

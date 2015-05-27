@@ -1,5 +1,5 @@
-// license:???
-// copyright-holders:???
+// license:BSD-3-Clause
+// copyright-holders:Phil Stroffolino, Aaron Giles, Alex W. Jackson
 #pragma once
 
 #ifndef __C45_H__

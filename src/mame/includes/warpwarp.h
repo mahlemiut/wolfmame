@@ -1,5 +1,5 @@
-// license:???
-// copyright-holders:???
+// license:BSD-3-Clause
+// copyright-holders:Chris Hardy
 #include "audio/warpwarp.h"
 
 class warpwarp_state : public driver_device

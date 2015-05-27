@@ -8,13 +8,11 @@
 #ifndef NLD_MS_GAUSS_SEIDEL_H_
 #define NLD_MS_GAUSS_SEIDEL_H_
 
-#include <cmath>
-
 #include "nld_solver.h"
 #include "nld_ms_direct.h"
 
 template <int m_N, int _storage_N>
-class ATTR_ALIGNED(64) netlist_matrix_solver_SOR_t: public netlist_matrix_solver_direct_t<m_N, _storage_N>
+class netlist_matrix_solver_SOR_t: public netlist_matrix_solver_direct_t<m_N, _storage_N>
 {
 public:
 
@@ -24,7 +22,7 @@ public:
 		, m_gs_fail(0)
 		, m_gs_total(0)
 		{
-			const char *p = osd_getenv("NETLIST_STATS");
+			const char *p = osd_getenv("NL_STATS");
 			if (p != NULL)
 				m_log_stats = (bool) atoi(p);
 			else
@@ -33,7 +31,7 @@ public:
 
 	virtual ~netlist_matrix_solver_SOR_t() {}
 
-	ATTR_COLD virtual void log_stats();
+	/* ATTR_COLD */ virtual void log_stats();
 
 	ATTR_HOT inline int vsolve_non_dynamic();
 protected:

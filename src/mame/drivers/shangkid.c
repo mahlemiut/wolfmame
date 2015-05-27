@@ -1,5 +1,5 @@
-// license:???
-// copyright-holders:???
+// license:BSD-3-Clause
+// copyright-holders:Phil Stroffolino
 /*
 Dynamic Ski
 (c)1984 Taiyo

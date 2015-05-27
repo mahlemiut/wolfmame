@@ -1,5 +1,5 @@
-// license:???
-// copyright-holders:Carlos A. Lozano
+// license:BSD-3-Clause
+// copyright-holders:Carlos A. Lozano, Uki
 /****************************************************************************
 
 Formation Z / Aeroboto

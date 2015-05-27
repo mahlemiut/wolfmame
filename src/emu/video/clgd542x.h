@@ -66,13 +66,15 @@ protected:
 	UINT16 m_blt_width;
 	UINT32 m_blt_source_current;
 	UINT32 m_blt_dest_current;
+	UINT16 m_blt_trans_colour;
+	UINT16 m_blt_trans_colour_mask;
 
-	bool m_blt_system_transfer;  // blit from system memory 
+	bool m_blt_system_transfer;  // blit from system memory
 	UINT8 m_blt_system_count;
 	UINT32 m_blt_system_buffer;
 	UINT16 m_blt_pixel_count;
 	UINT16 m_blt_scan_count;
-	
+
 	UINT8 m_scratchpad1;
 	UINT8 m_scratchpad2;
 	UINT8 m_scratchpad3;
@@ -93,6 +95,7 @@ private:
 	void start_reverse_bitblt();
 	void start_system_bitblt();
 	void blit_dword();
+	void blit_byte();  // used for colour expanded system-to-vram bitblts
 	void copy_pixel(UINT8 src, UINT8 dst);
 };
 

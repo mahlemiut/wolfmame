@@ -1,5 +1,5 @@
-// license:???
-// copyright-holders:Mike Balfour
+// license:BSD-3-Clause
+// copyright-holders:Derrick Renaud
 /*************************************************************************
 
     audio\skydiver.c

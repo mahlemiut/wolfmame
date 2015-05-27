@@ -1,12 +1,12 @@
 // license:BSD-3-Clause
-// copyright-holders:R.Belmont,Ryan Holtz
+// copyright-holders:R. Belmont,Ryan Holtz
 /***************************************************************************
 
-	gba.c
+    gba.c
 
-	File to handle emulation of the video hardware of the Game Boy Advance
+    File to handle emulation of the video hardware of the Game Boy Advance
 
-	By R. Belmont, MooglyGuy
+    By R. Belmont, MooglyGuy
 
 ***************************************************************************/
 

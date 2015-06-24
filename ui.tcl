@@ -100,11 +100,11 @@ tk_messageBox -title "Console output" -message $output
 }
 
 # figure out if we're using a 32-bit or 64-bit version of MAME
-set cmdfilename "|./mame"
+set cmdfilename "|./mamearcade"
 
-if { [catch {exec ./mame -help}] } {
-	set cmdfilename "|./mame64"
-	if { [catch {exec ./mame64 -help}] } {
+if { [catch {exec ./mamearcade -help}] } {
+	set cmdfilename "|./mamearcade64"
+	if { [catch {exec ./mamearcade64 -help}] } {
 		set cmdfilename "none"
 		tk_messageBox -title "Error" -type ok -message "Cannot find a MAME executable."
 		exit 1

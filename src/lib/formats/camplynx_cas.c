@@ -23,7 +23,7 @@ Each byte is 8 bits (MSB first) with no start or stop bits.
 
 ********************************************************************/
 
-#include <assert.h>
+#include "emu.h"   // for popmessage and <string>
 
 #include "camplynx_cas.h"
 
@@ -81,34 +81,49 @@ static int camplynx_output_byte(INT16 *buffer, int sample_pos, UINT8 byte)
 static int camplynx_handle_cassette(INT16 *buffer, const UINT8 *bytes)
 {
 	UINT32 sample_count = 0;
-	UINT32 byte_count = 1;
+	UINT32 byte_count = 0;
 	UINT32 i;
-
 
 	/* header zeroes */
 	for (i=0; i<555; i++)
 		sample_count += camplynx_output_byte(buffer, sample_count, 0);
 
-	sample_count += camplynx_output_byte(buffer, sample_count, 0xA5);
-	sample_count += camplynx_output_byte(buffer, sample_count, bytes[0]); // should be 0x22
-
-	/* program name - include protection in case tape is corrupt */
-	for (int i=1; bytes[i]!=0x22; i++)
+	if (bytes[0] == 0x22)
 	{
-		if (i < camplynx_image_size)
-			sample_count += camplynx_output_byte(buffer, sample_count, bytes[i]);
-		else
-			return sample_count;
+		std::string pgmname = " LOAD \"";
 		byte_count++;
+		sample_count += camplynx_output_byte(buffer, sample_count, 0xA5);
+		sample_count += camplynx_output_byte(buffer, sample_count, 0x22);
+
+		/* program name - include protection in case tape is corrupt */
+		for (i=1; bytes[i]!=0x22; i++)
+		{
+			if (i < camplynx_image_size)
+			{
+				sample_count += camplynx_output_byte(buffer, sample_count, bytes[i]);
+				pgmname.append(1, (char)bytes[i]);
+			}
+			else
+				return sample_count;
+			byte_count++;
+		}
+
+		pgmname.append(1, (char)0x22);
+		sample_count += camplynx_output_byte(buffer, sample_count, bytes[byte_count++]); // should be 0x22
+
+		// if a machine-language program, say to use MLOAD
+		if (bytes[byte_count] == 0x4D)
+			pgmname[0] = (char)0x4D;
+
+		// Tell user how to load the tape
+		popmessage("%s",pgmname.c_str());
+
+		/* data zeroes */
+		for (i=0; i<555; i++)
+			sample_count += camplynx_output_byte(buffer, sample_count, 0);
+
+		sample_count += camplynx_output_byte(buffer, sample_count, 0xA5);
 	}
-
-	sample_count += camplynx_output_byte(buffer, sample_count, bytes[byte_count++]); // should be 0x22
-
-	/* data zeroes */
-	for (i=0; i<555; i++)
-		sample_count += camplynx_output_byte(buffer, sample_count, 0);
-
-	sample_count += camplynx_output_byte(buffer, sample_count, 0xA5);
 
 	/* data */
 	for (i=byte_count; i<camplynx_image_size; i++)

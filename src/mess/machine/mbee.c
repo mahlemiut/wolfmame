@@ -1,13 +1,13 @@
-// license:GPL-2.0+
-// copyright-holders:Juergen Buchmueller, Robbbert
+// license:BSD-3-Clause
+// copyright-holders:Robbbert
 /***************************************************************************
 
     microbee.c
 
     machine driver
-    Juergen Buchmueller <pullmoll@t-online.de>, Jan 2000
+    Originally written by Juergen Buchmueller, Jan 2000
 
-    Rewritten by Robbbert
+    Rewritten by Robbbert (see notes in driver file).
 
 ****************************************************************************/
 
@@ -116,6 +116,11 @@ WRITE8_MEMBER( mbee_state::fdc_motor_w )
     d1..d0 drive select (0 to 3) */
 
 	floppy_image_device *floppy = NULL;
+	floppy = m_floppy0->get_device();
+	floppy->mon_w(0); // motor on always
+	floppy = m_floppy1->get_device();
+	floppy->mon_w(0); // motor on always
+
 	if ((data&3)==0)
 		floppy = m_floppy0->get_device();
 	else
@@ -127,7 +132,6 @@ WRITE8_MEMBER( mbee_state::fdc_motor_w )
 
 	if (floppy)
 	{
-		floppy->mon_w(0); // motor on
 		floppy->ss_w(BIT(data, 2)); // inverted on the board
 	}
 }

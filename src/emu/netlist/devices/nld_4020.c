@@ -7,6 +7,8 @@
 
 #include "nld_4020.h"
 
+NETLIB_NAMESPACE_DEVICES_START()
+
 NETLIB_START(4020)
 {
 	register_sub("sub", sub);
@@ -58,7 +60,7 @@ NETLIB_START(4020_sub)
 
 NETLIB_RESET(4020_sub)
 {
-	m_IP.set_state(netlist_logic_t::STATE_INP_HL);
+	m_IP.set_state(logic_t::STATE_INP_HL);
 	m_cnt = 0;
 }
 
@@ -76,7 +78,7 @@ NETLIB_UPDATE(4020)
 	{
 		sub.m_cnt = 0;
 		sub.m_IP.inactivate();
-		static const netlist_time reset_time = netlist_time::from_nsec(140);
+		/* static */ const netlist_time reset_time = netlist_time::from_nsec(140);
 		OUTLOGIC(sub.m_Q[0], 0, reset_time);
 		for (int i=3; i<14; i++)
 			OUTLOGIC(sub.m_Q[i], 0, reset_time);
@@ -87,7 +89,7 @@ NETLIB_UPDATE(4020)
 
 inline NETLIB_FUNC_VOID(4020_sub, update_outputs, (const UINT16 cnt))
 {
-	static const netlist_time out_delayQn[14] = {
+	/* static */ const netlist_time out_delayQn[14] = {
 			NLTIME_FROM_NS(180), NLTIME_FROM_NS(280),
 			NLTIME_FROM_NS(380), NLTIME_FROM_NS(480),
 			NLTIME_FROM_NS(580), NLTIME_FROM_NS(680),
@@ -146,3 +148,5 @@ NETLIB_RESET(4020_dip)
 {
 	NETLIB_NAME(4020)::reset();
 }
+
+NETLIB_NAMESPACE_DEVICES_END()

@@ -57,16 +57,18 @@
 
 #include "../analog/nld_bjt.h"
 #include "../analog/nld_fourterm.h"
-#include "../analog/nld_solver.h"
 #include "../analog/nld_switches.h"
 #include "../analog/nld_twoterm.h"
 #include "../analog/nld_opamps.h"
+#include "../solver/nld_solver.h"
 
 #include "nld_legacy.h"
 
 NETLIST_EXTERNAL(diode_models);
 NETLIST_EXTERNAL(bjt_models);
 
-void nl_initialize_factory(netlist_factory_t &factory);
+namespace netlist {
+	void initialize_factory(netlist::factory_list_t &factory);
+}
 
 #endif

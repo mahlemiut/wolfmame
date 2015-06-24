@@ -5,9 +5,11 @@
  *
  */
 
+#include <solver/nld_solver.h>
 #include "nld_bjt.h"
 #include "../nl_setup.h"
-#include "nld_solver.h"
+
+NETLIB_NAMESPACE_DEVICES_START()
 
 class diode
 {
@@ -41,6 +43,15 @@ private:
 // ----------------------------------------------------------------------------------------
 // nld_Q
 // ----------------------------------------------------------------------------------------
+
+NETLIB_NAME(Q)::NETLIB_NAME(Q)(const family_t afamily)
+: device_t(afamily)
+, m_qtype(BJT_NPN) { }
+
+NETLIB_NAME(Q)::~NETLIB_NAME(Q)()
+{
+}
+
 
 NETLIB_START(Q)
 {
@@ -239,3 +250,5 @@ NETLIB_UPDATE_TERMINALS(QBJT_EB)
 NETLIB_UPDATE_PARAM(QBJT_EB)
 {
 }
+
+NETLIB_NAMESPACE_DEVICES_END()

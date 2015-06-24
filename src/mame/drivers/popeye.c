@@ -1,4 +1,4 @@
-// license:BSD-3-Clause
+// license:???
 // copyright-holders:Marc Lafontaine, Couriersud
 /***************************************************************************
 
@@ -50,6 +50,10 @@ static NETLIST_START(nl_popeye_imp_changer)
 NETLIST_END()
 
 static NETLIST_START(nl_popeye)
+
+	/* register hard coded netlists */
+
+	LOCAL_SOURCE(nl_popeye_imp_changer)
 
 	/* Standard stuff */
 

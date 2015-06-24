@@ -60,6 +60,11 @@ newoption {
 }
 
 newoption {
+	trigger = "with-tests",
+	description = "Enable building tests.",
+}
+
+newoption {
 	trigger = "osd",
 	description = "Choose OSD layer implementation",
 }
@@ -91,6 +96,36 @@ newoption {
 newoption {
     trigger = 'with-bundled-expat',
     description = 'Build bundled Expat library',
+}
+
+newoption {
+    trigger = 'with-bundled-zlib',
+    description = 'Build bundled Zlib library',
+}
+
+newoption {
+    trigger = 'with-bundled-jpeg',
+    description = 'Build bundled JPEG library',
+}
+
+newoption {
+    trigger = 'with-bundled-flac',
+    description = 'Build bundled FLAC library',
+}
+
+newoption {
+    trigger = 'with-bundled-lua',
+    description = 'Build bundled LUA library',
+}
+
+newoption {
+    trigger = 'with-bundled-sqlite3',
+    description = 'Build bundled SQLite library',
+}
+
+newoption {
+    trigger = 'with-bundled-portmidi',
+    description = 'Build bundled PortMidi library',
 }
 
 newoption {
@@ -161,6 +196,11 @@ newoption {
 newoption {
 	trigger = "ARCHOPTS",
 	description = "ARCHOPTS.",
+}
+
+newoption {
+	trigger = "OPT_FLAGS",
+	description = "OPT_FLAGS.",
 }
 
 newoption {
@@ -306,6 +346,26 @@ newoption {
 }
 
 
+newoption {
+	trigger = "SHLIB",
+	description = "Generate shared libs.",
+	allowed = {
+		{ "0",   "Static libs" 	},
+		{ "1",   "Shared libs"  },
+	}
+}
+
+newoption {
+	trigger = "DRIVERS",
+	description = "List of drivers to compile.",
+}
+
+if _OPTIONS["SHLIB"]=="1" then
+	LIBTYPE = "SharedLib"
+else
+	LIBTYPE = "StaticLib"
+end
+
 PYTHON = "python"
 
 if _OPTIONS["PYTHON_EXECUTABLE"]~=nil then
@@ -433,11 +493,16 @@ msgarchiving ("Archiving $(notdir $@)...")
 
 messageskip { "SkipCreatingMessage", "SkipBuildingMessage", "SkipCleaningMessage" }
 
-if (not os.isfile(path.join("target", _OPTIONS["target"],_OPTIONS["subtarget"] .. ".lua"))) then
-	error("File definition for TARGET=" .. _OPTIONS["target"] .. " SUBTARGET=" .. _OPTIONS["subtarget"] .. " does not exist")
+if (_OPTIONS["DRIVERS"] == nil) then 
+	if (not os.isfile(path.join("target", _OPTIONS["target"],_OPTIONS["subtarget"] .. ".lua"))) then
+		error("File definition for TARGET=" .. _OPTIONS["target"] .. " SUBTARGET=" .. _OPTIONS["subtarget"] .. " does not exist")
+	end
+	dofile (path.join("target", _OPTIONS["target"],_OPTIONS["subtarget"] .. ".lua"))
+else
+	OUT_STR = os.outputof( PYTHON .. " " .. MAME_DIR .. "src/build/makedep.py " .. MAME_DIR .. " " .. _OPTIONS["DRIVERS"] .. " target " .. _OPTIONS["subtarget"])
+	load(OUT_STR)()
+	os.outputof( PYTHON .. " " .. MAME_DIR .. "src/build/makedep.py " .. MAME_DIR .. " " .. _OPTIONS["DRIVERS"] .. " drivers " .. _OPTIONS["subtarget"] .. " > ".. GEN_DIR  .. _OPTIONS["target"] .. "/" .. _OPTIONS["subtarget"].."/drivlist.c")
 end
-dofile (path.join("target", _OPTIONS["target"],_OPTIONS["subtarget"] .. ".lua"))
-
 configuration { "gmake" }
 	flags {
 		"SingleOutputDir",
@@ -571,9 +636,29 @@ else
 end
 
 -- need to ensure FLAC functions are statically linked
-defines {
-	"FLAC__NO_DLL",
-}
+if _OPTIONS["with-bundled-flac"] then
+	defines {
+		"FLAC__NO_DLL",
+	}
+	end
+
+if not _OPTIONS["with-bundled-jpeg"] then
+	defines {
+		"USE_SYSTEM_JPEGLIB",
+	}
+	end
+
+if not _OPTIONS["with-bundled-portmidi"] then
+	defines {
+		"USE_SYSTEM_PORTMIDI",
+	}
+	end
+
+if not _OPTIONS["with-bundled-sqlite3"] then
+	defines {
+		"USE_SYSTEM_SQLITE",
+	}
+	end
 
 if _OPTIONS["NOASM"]=="1" then
 	defines {
@@ -645,7 +730,7 @@ end
 		}
 	end
 -- add -g if we need symbols, and ensure we have frame pointers
-if _OPTIONS["SYMBOLS"]~=nil then
+if _OPTIONS["SYMBOLS"]~=nil and _OPTIONS["SYMBOLS"]~="0" then
 	buildoptions {
 		"-g" .. _OPTIONS["SYMLEVEL"],
 		"-fno-omit-frame-pointer",
@@ -690,7 +775,7 @@ if _OPTIONS["PROFILE"] then
 	}
 end
 
-if _OPTIONS["SYMBOLS"]~=nil then
+if _OPTIONS["SYMBOLS"]~=nil and _OPTIONS["SYMBOLS"]~="0" then
 	flags {
 		"Symbols",
 	}
@@ -719,19 +804,40 @@ if _OPTIONS["OPTIMIZE"] then
 			_OPTIONS["ARCHOPTS"]
 		}
 	end
-	if _OPTIONS["LTO"]=="1" then
+	if _OPTIONS["OPT_FLAGS"] then
 		buildoptions {
-			"-flto",
-		}
-		linkoptions {
-			"-flto",
+			_OPTIONS["OPT_FLAGS"]
 		}
 	end
+	if _OPTIONS["LTO"]=="1" then
+-- -flto=4 -> 4 threads, reduce if you are low on memory (less than 8G)
+		buildoptions {
+			"-flto=4",
+		}
+		buildoptions {
+			"-fno-fat-lto-objects",
+		}
+		linkoptions {
+			"-flto=4",
+		}
+		linkoptions {
+			"-fno-fat-lto-objects",
+		}
+		
+		
+	end
+end
+
+if _OPTIONS["SHLIB"] then
+	buildoptions {
+		"-fPIC"
+	}
 end
 
 if _OPTIONS["SSE2"]=="1" then
 	buildoptions {
-		"-msse2",
+		"-msse",
+		"-msse2"
 	}
 end
 
@@ -828,6 +934,7 @@ end
 			end
 			if (version >= 30400) then
 				buildoptions {
+					"-Wno-inline-new-delete",
 					"-Wno-constant-logical-operand",
 				}
 			end
@@ -859,10 +966,15 @@ end
 			if (version >= 40800) then
 				-- array bounds checking seems to be buggy in 4.8.1 (try it on video/stvvdp1.c and video/model1.c without -Wno-array-bounds)
 				buildoptions {
-					"-Wno-unused-variable",
 					"-Wno-array-bounds"
 				}
 			end
+			if (version >= 50000) then
+				buildoptions {
+					"-D__USE_MINGW_ANSI_STDIO=1",							
+				}
+			end
+			
 		end
 	end
 --ifeq ($(findstring arm,$(UNAME)),arm)
@@ -1093,6 +1205,21 @@ configuration { "x64", "vs*" }
 			MAME_DIR .. "3rdparty/dxsdk/lib/x64",
 		}
 
+configuration { "winphone8* or winstore8*" }
+	removelinks {
+		"DelayImp",
+		"gdi32",
+		"psapi"
+	}
+	links {
+		"d3d11",
+		"dxgi"
+	}
+	linkoptions {
+		"/ignore:4264" -- LNK4264: archiving object file compiled with /ZW into a static library; note that when authoring Windows Runtime types it is not recommended to link with a static library that contains Windows Runtime metadata
+	}
+
+
 configuration { }
 
 
@@ -1138,3 +1265,7 @@ if _OPTIONS["with-tools"] then
 	dofile(path.join("src", "tools.lua"))
 end
 
+if _OPTIONS["with-tests"] then
+	group "tests"
+	dofile(path.join("src", "tests.lua"))
+end

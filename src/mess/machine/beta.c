@@ -1,5 +1,5 @@
 // license:BSD-3-Clause
-// copyright-holders:Curt Coder
+// copyright-holders:Miodrag Milanovic, MetalliC
 /*********************************************************************
 
     beta.h
@@ -11,8 +11,7 @@
 *********************************************************************/
 /*
 BUGS:
-- random commands can be sent to FDC, so better keep .trd images write protected for now
-goto TR-DOS, CAT -> files will be shown, CAT again -> NO DISK mesage as result of trash commands
+- due to original firmware bug random commands can be sent to FDC instead of SEEK
 
 */
 #include "emu.h"
@@ -183,7 +182,7 @@ static SLOT_INTERFACE_START( beta_disk_floppies )
 SLOT_INTERFACE_END
 
 static MACHINE_CONFIG_FRAGMENT( beta_disk )
-	MCFG_WD2793x_ADD("wd179x", XTAL_8MHz / 8)   // KR1818VG93 clone of WD1793
+	MCFG_KR1818VG93_ADD("wd179x", XTAL_8MHz / 8)
 	MCFG_FLOPPY_DRIVE_ADD("wd179x:0", beta_disk_floppies, "drive0", beta_disk_device::floppy_formats)
 	MCFG_FLOPPY_DRIVE_ADD("wd179x:1", beta_disk_floppies, "drive1", beta_disk_device::floppy_formats)
 	MCFG_FLOPPY_DRIVE_ADD("wd179x:2", beta_disk_floppies, "drive2", beta_disk_device::floppy_formats)

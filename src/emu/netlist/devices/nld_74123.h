@@ -42,29 +42,30 @@
 #define TTL_74123(_name)                                                        \
 		NET_REGISTER_DEV(74123, _name)
 
+NETLIB_NAMESPACE_DEVICES_START()
 
 NETLIB_DEVICE(74123,
 public:
 	NETLIB_NAME(res_sw) m_RP;
 	NETLIB_NAME(res_sw) m_RN;
 
-	netlist_logic_output_t m_RP_Q;
-	netlist_logic_output_t m_RN_Q;
+	logic_output_t m_RP_Q;
+	logic_output_t m_RN_Q;
 
-	netlist_logic_input_t m_A;
-	netlist_logic_input_t m_B;
-	netlist_logic_input_t m_CLRQ;
-	netlist_logic_output_t m_Q;
-	netlist_logic_output_t m_QQ;
+	logic_input_t m_A;
+	logic_input_t m_B;
+	logic_input_t m_CLRQ;
+	logic_output_t m_Q;
+	logic_output_t m_QQ;
 
-	netlist_analog_input_t m_CV;
+	analog_input_t m_CV;
 
 	netlist_sig_t m_last_trig;
 	UINT8         m_state;
 	double        m_KP;
 
-	netlist_param_double_t m_K;
-	netlist_param_double_t m_RI;
+	param_double_t m_K;
+	param_double_t m_RI;
 
 	int m_dev_type;
 );
@@ -92,6 +93,8 @@ NETLIB_DEVICE(9602_dip,
 	NETLIB_NAME(74123) m_2;
 
 );
+
+NETLIB_NAMESPACE_DEVICES_END()
 
 
 #endif /* NLD_74123_H_ */

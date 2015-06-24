@@ -6,7 +6,9 @@
  */
 
 #include "nld_truthtable.h"
-#include "../plists.h"
+#include "../plib/plists.h"
+
+NETLIB_NAMESPACE_DEVICES_START()
 
 unsigned truthtable_desc_t::count_bits(UINT32 v)
 {
@@ -97,7 +99,7 @@ UINT32 truthtable_desc_t::get_ignored_extended(UINT32 i)
 // desc
 // ----------------------------------------------------------------------------------------
 
-ATTR_COLD void truthtable_desc_t::help(unsigned cur, nl_util::pstring_list list,
+void truthtable_desc_t::help(unsigned cur, pstring_list_t list,
 		UINT64 state,UINT16 val, UINT8 *timing_index)
 {
 	pstring elem = list[cur].trim();
@@ -133,7 +135,7 @@ ATTR_COLD void truthtable_desc_t::help(unsigned cur, nl_util::pstring_list list,
 		{
 			// cutoff previous inputs and outputs for ignore
 			if (m_outs[nstate] != ~0U &&  m_outs[nstate] != val)
-				nl_fatalerror("Error in truthtable: State %04x already set, %d != %d\n",
+				fatalerror_e("Error in truthtable: State %04x already set, %d != %d\n",
 						(UINT32) nstate, m_outs[nstate], val);
 			m_outs[nstate] = val;
 			for (unsigned j=0; j<m_NO; j++)
@@ -142,15 +144,17 @@ ATTR_COLD void truthtable_desc_t::help(unsigned cur, nl_util::pstring_list list,
 	}
 }
 
-ATTR_COLD void truthtable_desc_t::setup(const char **truthtable, UINT32 disabled_ignore)
+void truthtable_desc_t::setup(const pstring_list_t &truthtable, UINT32 disabled_ignore)
 {
+	unsigned line = 0;
+
 	if (*m_initialized)
 		return;
 
-	pstring ttline = pstring(truthtable[0]);
-	truthtable++;
-	ttline = pstring(truthtable[0]);
-	truthtable++;
+	pstring ttline = truthtable[line];
+	line++;
+	ttline = truthtable[line];
+	line++;
 
 	for (unsigned j=0; j < m_size; j++)
 		m_outs[j] = ~0L;
@@ -160,14 +164,14 @@ ATTR_COLD void truthtable_desc_t::setup(const char **truthtable, UINT32 disabled
 
 	while (!ttline.equals(""))
 	{
-		nl_util::pstring_list io = nl_util::split(ttline,"|");
+		pstring_list_t io(ttline,"|");
 		// checks
 		nl_assert_always(io.size() == 3, "io.count mismatch");
-		nl_util::pstring_list inout = nl_util::split(io[0], ",");
+		pstring_list_t inout(io[0], ",");
 		nl_assert_always(inout.size() == m_num_bits, "number of bits not matching");
-		nl_util::pstring_list out = nl_util::split(io[1], ",");
+		pstring_list_t out(io[1], ",");
 		nl_assert_always(out.size() == m_NO, "output count not matching");
-		nl_util::pstring_list times = nl_util::split(io[2], ",");
+		pstring_list_t times(io[2], ",");
 		nl_assert_always(times.size() == m_NO, "timing count not matching");
 
 		UINT16 val = 0;
@@ -189,8 +193,8 @@ ATTR_COLD void truthtable_desc_t::setup(const char **truthtable, UINT32 disabled
 		}
 
 		help(0, inout, 0 , val, tindex.data());
-		ttline = pstring(truthtable[0]);
-		truthtable++;
+		ttline = truthtable[line];
+		line++;
 	}
 
 	// determine ignore
@@ -227,9 +231,43 @@ ATTR_COLD void truthtable_desc_t::setup(const char **truthtable, UINT32 disabled
 	for (UINT32 i=0; i<m_size; i++)
 	{
 		if (m_outs[i] == ~0U)
-			nl_fatalerror("truthtable: found element not set %04x\n", i);
+			fatalerror_e("truthtable: found element not set %04x\n", i);
 		m_outs[i] |= ((ign[i] & ~disabled_ignore)  << m_NO);
 	}
 	*m_initialized = true;
 
 }
+
+#define ENTRYX(_n,_m,_h)    case (_n * 1000 + _m * 10 + _h): \
+	{ typedef netlist_factory_truthtable_t<_n,_m,_h> xtype; \
+		return palloc(xtype,name,classname,def_param); } break
+
+#define ENTRYY(_n,_m)   ENTRYX(_n,_m,0); ENTRYX(_n,_m,1)
+
+#define ENTRY(_n) ENTRYY(_n, 1); ENTRYY(_n, 2); ENTRYY(_n, 3); ENTRYY(_n, 4); ENTRYY(_n, 5); ENTRYY(_n, 6)
+
+netlist_base_factory_truthtable_t *nl_tt_factory_create(const unsigned ni, const unsigned no,
+		const unsigned has_state,
+		const pstring &name, const pstring &classname,
+		const pstring &def_param)
+{
+	switch (ni * 1000 + no * 10 + has_state)
+	{
+		ENTRY(1);
+		ENTRY(2);
+		ENTRY(3);
+		ENTRY(4);
+		ENTRY(5);
+		ENTRY(6);
+		ENTRY(7);
+		ENTRY(8);
+		ENTRY(9);
+		ENTRY(10);
+		default:
+			pstring msg = pstring::sprintf("unable to create truthtable<%d,%d,%d>", ni, no, has_state);
+			nl_assert_always(false, msg.cstr());
+	}
+	return NULL;
+}
+
+NETLIB_NAMESPACE_DEVICES_END()

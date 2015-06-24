@@ -68,7 +68,8 @@
 
 
 #ifdef RES_R
-#warning "Do not include rescap.h in a netlist environment"
+// FIXME: avoid compile fails
+// #warning "Do not include rescap.h in a netlist environment"
 #endif
 
 #define RES_R(res) ((double)(res))
@@ -85,31 +86,33 @@
 // Implementation
 // ----------------------------------------------------------------------------------------
 
+NETLIB_NAMESPACE_DEVICES_START()
+
 // ----------------------------------------------------------------------------------------
 // nld_twoterm
 // ----------------------------------------------------------------------------------------
 
-class NETLIB_NAME(twoterm) : public netlist_device_t
+class NETLIB_NAME(twoterm) : public device_t
 {
 public:
 	ATTR_COLD NETLIB_NAME(twoterm)(const family_t afamily);
 	ATTR_COLD NETLIB_NAME(twoterm)();
 
-	netlist_terminal_t m_P;
-	netlist_terminal_t m_N;
+	terminal_t m_P;
+	terminal_t m_N;
 
 	virtual NETLIB_UPDATE_TERMINALSI()
 	{
 	}
 
-	ATTR_HOT inline void set(const nl_double G, const nl_double V, const nl_double I)
+	ATTR_HOT /* inline */ void set(const nl_double G, const nl_double V, const nl_double I)
 	{
 		/*      GO, GT, I                */
 		m_P.set( G,  G, (  V) * G - I);
 		m_N.set( G,  G, ( -V) * G + I);
 	}
 
-	ATTR_HOT inline nl_double deltaV() const
+	ATTR_HOT /* inline */ nl_double deltaV() const
 	{
 		return m_P.net().as_analog().Q_Analog() - m_N.net().as_analog().Q_Analog();
 	}
@@ -122,8 +125,8 @@ public:
 	}
 
 protected:
-	/* ATTR_COLD */ virtual void start();
-	/* ATTR_COLD */ virtual void reset();
+	virtual void start();
+	virtual void reset();
 	ATTR_HOT void update();
 
 private:
@@ -144,13 +147,13 @@ public:
 	}
 
 protected:
-	/* ATTR_COLD */ virtual void start();
-	/* ATTR_COLD */ virtual void reset();
+	virtual void start();
+	virtual void reset();
 	ATTR_HOT void update();
 };
 
 NETLIB_DEVICE_WITH_PARAMS_DERIVED(R, R_base,
-	netlist_param_double_t m_R;
+	param_double_t m_R;
 );
 
 // ----------------------------------------------------------------------------------------
@@ -161,18 +164,18 @@ NETLIB_DEVICE_WITH_PARAMS(POT,
 	NETLIB_NAME(R_base) m_R1;
 	NETLIB_NAME(R_base) m_R2;
 
-	netlist_param_double_t m_R;
-	netlist_param_double_t m_Dial;
-	netlist_param_logic_t m_DialIsLog;
+	param_double_t m_R;
+	param_double_t m_Dial;
+	param_logic_t m_DialIsLog;
 );
 
 NETLIB_DEVICE_WITH_PARAMS(POT2,
 	NETLIB_NAME(R_base) m_R1;
 
-	netlist_param_double_t m_R;
-	netlist_param_double_t m_Dial;
-	netlist_param_logic_t m_DialIsLog;
-	netlist_param_logic_t m_Reverse;
+	param_double_t m_R;
+	param_double_t m_Dial;
+	param_logic_t m_DialIsLog;
+	param_logic_t m_Reverse;
 );
 
 
@@ -193,12 +196,12 @@ public:
 	}
 
 protected:
-	/* ATTR_COLD */ virtual void start();
-	/* ATTR_COLD */ virtual void reset();
-	/* ATTR_COLD */ virtual void update_param();
+	virtual void start();
+	virtual void reset();
+	virtual void update_param();
 	ATTR_HOT void update();
 
-	netlist_param_double_t m_C;
+	param_double_t m_C;
 
 };
 
@@ -207,10 +210,10 @@ protected:
 // A generic diode model to be used in other devices (Diode, BJT ...)
 // ----------------------------------------------------------------------------------------
 
-class netlist_generic_diode
+class generic_diode
 {
 public:
-	ATTR_COLD netlist_generic_diode();
+	ATTR_COLD generic_diode();
 
 	ATTR_HOT inline void update_diode(const nl_double nVd)
 	{
@@ -254,7 +257,7 @@ public:
 
 	/* owning object must save those ... */
 
-	ATTR_COLD void save(pstring name, netlist_object_t &parent);
+	ATTR_COLD void save(pstring name, object_t &parent);
 
 private:
 	nl_double m_Vd;
@@ -282,15 +285,16 @@ public:
 	NETLIB_UPDATE_TERMINALSI();
 
 protected:
-	/* ATTR_COLD */ virtual void start();
-	/* ATTR_COLD */ virtual void update_param();
+	virtual void start();
+	virtual void update_param();
 	ATTR_HOT void update();
 
-	netlist_param_model_t m_model;
+	param_model_t m_model;
 
-	netlist_generic_diode m_D;
+	generic_diode m_D;
 };
 
 
+NETLIB_NAMESPACE_DEVICES_END()
 
 #endif /* NLD_TWOTERM_H_ */

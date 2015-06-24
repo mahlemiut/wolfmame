@@ -627,13 +627,12 @@ c64_se  // Commodore 64 (Sweden)
 pet64    // Commodore PET 64
 edu64    // Commodore Educator 64
 //clipper  // C64 in a briefcase with 3" floppy, electroluminescent flat screen, thermal printer - roms needed - not in driver
-//tesa6240  //  modified SX64 with label printer - roms needed - not in driver
 sx64
 sx64p
-
 vip64    // Commodore VIP64 (SX64, PAL, Swedish)
 dx64    // Commodore DX-64 - Prototype
-c64c      // Commodore 64C (NTSC)
+tesa6240
+c64c
 c64cp   // Commodore 64C (PAL)
 c64c_es
 c64c_se
@@ -876,6 +875,9 @@ spt1740   // Symbol SPT 1740
 // Osborne
 osborne1  // 1981 Osborne-1
 osbexec // 1982 Osborne Executive
+
+// Regnecentralen
+rc759   // 1984 RC759
 
 // Research Machines
 nimbus  // RM Nimbus 186
@@ -1707,6 +1709,7 @@ hp9k340
 hp9k370
 hp9k380
 hp9k382
+hp64k
 
 // SpectraVideo
 svi318  // SVI-318 (PAL)
@@ -2282,6 +2285,7 @@ elwro800
 fk1
 et3400
 amu880
+i7000
 interact
 jr100
 jr100u
@@ -2681,3 +2685,4 @@ leapstertv
 excali64
 bitgrpha
 bitgrphb
+tvgame

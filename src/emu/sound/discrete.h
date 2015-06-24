@@ -1,4 +1,4 @@
-// license:BSD-3-Clause
+// license:???
 // copyright-holders:K.Wilkins, Derrick Renaud, Frank Palazzolo, Couriersud
 #pragma once
 
@@ -3746,8 +3746,6 @@ enum
  *  linked lists.
  *
  *************************************/
-
-#define for_each(_T, _e, _l) for (_T _e = (_l)->begin_ptr() ;  _e <= (_l)->end_ptr(); _e++)
 
 /*
  * add and delete may be slow - the focus is on access!

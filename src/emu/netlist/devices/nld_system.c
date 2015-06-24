@@ -5,8 +5,10 @@
  *
  */
 
+#include <solver/nld_solver.h>
 #include "nld_system.h"
-#include "../analog/nld_solver.h"
+
+NETLIB_NAMESPACE_DEVICES_START()
 
 // ----------------------------------------------------------------------------------------
 // netlistparams
@@ -76,7 +78,7 @@ NETLIB_START(extclock)
 	connect(m_feedback, m_Q);
 	{
 		netlist_time base = netlist_time::from_hz(m_freq.Value()*2);
-		nl_util::pstring_list pat = nl_util::split(m_pattern.Value(),",");
+		pstring_list_t pat(m_pattern.Value(),",");
 		m_off = netlist_time::from_double(m_offset.Value());
 
 		int pati[256];
@@ -177,7 +179,7 @@ NETLIB_UPDATE_PARAM(analog_input)
 // nld_d_to_a_proxy
 // ----------------------------------------------------------------------------------------
 
-ATTR_COLD void nld_d_to_a_proxy::start()
+void nld_d_to_a_proxy::start()
 {
 	nld_base_d_to_a_proxy::start();
 
@@ -189,13 +191,17 @@ ATTR_COLD void nld_d_to_a_proxy::start()
 	register_subalias("Q", m_RV.m_P);
 
 	connect(m_RV.m_N, m_Q);
-	m_Q.initial(0.0);
+
+	save(NLNAME(m_last_state));
 }
 
-ATTR_COLD void nld_d_to_a_proxy::reset()
+void nld_d_to_a_proxy::reset()
 {
+	m_Q.initial(0.0);
+	m_last_state = -1;
 	m_RV.do_reset();
 	m_is_timestep = m_RV.m_P.net().as_analog().solver()->is_timestep();
+	m_RV.set(NL_FCONST(1.0) / logic_family().m_R_low, logic_family().m_low_V, 0.0);
 }
 
 ATTR_HOT void nld_d_to_a_proxy::update()
@@ -269,3 +275,5 @@ NETLIB_UPDATE_PARAM(res_sw)
 {
 	// nothing, not intended to be called
 }
+
+NETLIB_NAMESPACE_DEVICES_END()

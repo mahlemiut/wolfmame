@@ -54,7 +54,8 @@ public:
 			m_videoram(*this, "videoram"),
 			m_gfxdecode(*this, "gfxdecode"),
 			m_screen(*this, "screen"),
-			m_palette(*this, "palette") { }
+			m_palette(*this, "palette"),
+			m_decrypted_opcodes(*this, "decrypted_opcodes") { }
 
 	required_device<cpu_device> m_maincpu;
 	optional_device<cpu_device> m_audiocpu;
@@ -73,6 +74,7 @@ public:
 	required_device<gfxdecode_device> m_gfxdecode;
 	required_device<screen_device> m_screen;
 	required_device<palette_device> m_palette;
+	optional_shared_ptr<UINT8> m_decrypted_opcodes;
 
 	int m_bullets_base;
 	int m_sprites_base;
@@ -240,6 +242,7 @@ public:
 	DECLARE_DRIVER_INIT(sfx);
 	DECLARE_DRIVER_INIT(atlantis);
 	DECLARE_DRIVER_INIT(scobra);
+	DECLARE_DRIVER_INIT(scobrae);
 	DECLARE_DRIVER_INIT(losttomb);
 	DECLARE_DRIVER_INIT(frogger);
 	DECLARE_DRIVER_INIT(froggrmc);

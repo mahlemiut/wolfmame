@@ -180,13 +180,14 @@ ai1000  // Casio AI-1000
 cfx9850 // Casio CFX-9850
 
 // Coleco
-coleco  // ColecoVision (Original BIOS)
-colecop // Colecovision PAL (Italy)
+coleco   // ColecoVision (Original BIOS)
+colecop  // Colecovision PAL (Italy)
 svi603   // Spectravideo SVI-603 Coleco Game Adapter
 czz50    // Bit Corporation Chuang Zao Zhe 50
-dina      // Telegames Dina
-prsarcde  // Telegames Personal Arcade
-adam      // Coleco Adam
+dina     // Telegames Dina
+prsarcde // Telegames Personal Arcade
+adam     // Coleco Adam
+onyx     // Microdigital ONYX (Brazilian Coleco clone / unreleased prototype)
 
 // NEC
 pce    // PC/Engine NEC 1987-1993
@@ -282,6 +283,9 @@ odyssey3  // Magnavox Odyssey 3 / Command Center (prototype)
 // Makerbot
 replica1  // Makerbot Replicator 1 desktop 3d printer
 
+// Metamaquina
+metamaq2  // Metamaquina 2 desktop 3d printer
+
 // Hartung, Watara, ...
 gmaster   // Hartung Gamemaster
 
@@ -323,7 +327,6 @@ mu100r  // 1997 MU-100 Rackable version
 fb01    // 1986 FB-01
 
 // Roland
-tb303
 mt32
 cm32l
 d110
@@ -423,8 +426,12 @@ dsp5500     // Apollo Server DSP5500 (1991)
 apple1  // Jul 1976 Apple 1
 apple2  // Apr 1977 Apple ][
 apple2p   // Jun 1979 Apple ][+
+elppa   // 198? Victor do Brasil Elppa II+
+maxxi   // 1982 Polymax Maxxi
 prav82  // Pravetz 82
 prav8m  // Pravetz 8M
+uniap2en // 1982 Unitron AP II (in English)
+uniap2pt // 1982 Unitron AP II (in Brazilian Portuguese)
 apple2jp  // ??? ???? Apple ][j+
 apple2e   // Jan 1983 Apple //e
 apple2euk // Jan 1983 Apple //e (UK)
@@ -735,7 +742,6 @@ europc  // 1988 Schneider Euro PC (CGA or Hercules)
 compc1  // 1984 Commodore PC-1
 pc10iii // 1987 Commodore PC-10 III
 pc7000  // 1985 Sharp PC-7000
-olypeopl // Olympia People PC
 sx16    // Sanyo SX-16
 mbc16   // Sanyo MBC-16
 ataripc3
@@ -744,6 +750,7 @@ ssam88s
 // Non-PC msdos
 pcd     // Siemens PC-D
 slicer  // 1983 Slicer Computers
+olypeopl // Olympia People PC
 
 // PC Junior
 ibmpcjr   // 1984 IBM PC Jr
@@ -1035,16 +1042,6 @@ avigo_es     // 1997 Avigo (Spanish)
 avigo_it     // 1997 Avigo (Italian)
 
 // Texas Instruments Calculators
-tisr16    // 1974 SR-16
-tisr16ii
-ti1270
-ti1000
-ti30      // 1976 TI-30
-tiprog
-tibusan1
-wizatron
-lilprof
-lilprof78
 ti73      // 1990 TI-73
 ti74      // 1985 TI-74
 ti95      // 1986 TI-95
@@ -1581,6 +1578,9 @@ hbf9sp
 // MSX Turbo-R
 fsa1gt
 fsa1st
+
+// Microsoft
+xbox	
 
 // NASCOM Microcomputers
 nascom1   // 1978 Nascom 1
@@ -2153,8 +2153,10 @@ bmboxing    // Bambino
 bfriskyt    // Bandai
 packmon     // Bandai
 msthawk     // Bandai/Mattel
+bzaxxon     // Bandai
 zackman     // Bandai
 bdoramon    // Bandai
+bultrman    // Bandai
 machiman    // Bandai
 alnattck    // Coleco
 cdkong      // Coleco
@@ -2178,9 +2180,15 @@ vinvader    // VTech
 
 // hh_melps4
 cfrogger    // Coleco
+gjungler    // Gakken
 
 // hh_pic16
 maniac      // Ideal
+
+// hh_sm510
+ktopgun     // Konami
+ktmnt       // Konami
+gnwmndon    // Nintendo
 
 // hh_tms1k
 mathmagi    // APF
@@ -2199,7 +2207,7 @@ gpoker      // Gakken
 gjackpot    // Gakken
 elecdet     // Ideal
 starwbc     // Kenner
-starwbcp    // Kenner (prototype)
+starwbcp    // Kenner (patent)
 astro       // Kosmos
 comp4       // Milton Bradley
 simon       // Milton Bradley
@@ -2208,7 +2216,7 @@ bigtrak     // Milton Bradley
 cnsector    // Parker Bros
 merlin      // Parker Bros
 stopthie    // Parker Bros
-stopthiep   // Parker Bros (prototype)
+stopthiep   // Parker Bros (patent)
 bankshot    // Parker Bros
 splitsec    // Parker Bros
 mmerlin     // Parker Bros
@@ -2219,7 +2227,7 @@ tbreakup    // Tomy
 elecbowl    // Marx
 mbdtower    // Milton Bradley
 
-// TI snspell
+// hh_tms1k tispeak.c
 snspell
 snspella
 snspellb
@@ -2231,6 +2239,18 @@ snmath
 snmathp
 snread
 lantutor
+
+// hh_tms1k ticalc1x.c
+tisr16
+tisr16ii
+ti1270
+ti1000
+ti30
+tiprog
+tibusan1
+wizatron
+lilprof
+lilprof78
 
 // hh_ucom4
 ufombs      // Bambino
@@ -2250,6 +2270,9 @@ tmtennis    // Tomy
 tmscramb    // Tomy
 tcaveman    // Tomy
 alnchase    // Tomy
+
+// hh_ucom4 derivatives
+tb303       // Roland
 
 // other
 tama        // Bandai
@@ -2277,6 +2300,7 @@ bcs3b
 bcs3c
 bob85
 c80
+ds348 //Sigtron Daruma
 mc1000
 d6809
 mk85
@@ -2286,6 +2310,7 @@ fk1
 et3400
 amu880
 i7000
+icatel
 interact
 jr100
 jr100u
@@ -2422,6 +2447,7 @@ indiana
 vector4
 unistar
 dual68
+sdk80
 sdk85
 rpc86
 isbc86
@@ -2566,6 +2592,7 @@ prose2ko
 eacc
 argo
 applix
+fccpu1
 68ksbc
 lcmate2
 cm1800

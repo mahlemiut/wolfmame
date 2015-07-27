@@ -389,6 +389,7 @@ static MACHINE_CONFIG_START( n64, n64_mess_state )
 
 	/* basic machine hardware */
 	MCFG_CPU_ADD("maincpu", VR4300BE, 93750000)
+	MCFG_FORCE_NO_DRC()
 	MCFG_CPU_CONFIG(config)
 	MCFG_CPU_PROGRAM_MAP(n64_map)
 	MCFG_CPU_VBLANK_INT_DRIVER("screen", n64_mess_state, n64_reset_poll)
@@ -411,9 +412,9 @@ static MACHINE_CONFIG_START( n64, n64_mess_state )
 	MCFG_SCREEN_SIZE(640, 525)
 	MCFG_SCREEN_VISIBLE_AREA(0, 639, 0, 239)
 	MCFG_SCREEN_UPDATE_DRIVER(n64_state, screen_update_n64)
+	MCFG_SCREEN_VBLANK_DRIVER(n64_state, screen_eof_n64)
 
 	MCFG_PALETTE_ADD("palette", 0x1000)
-
 
 	MCFG_SPEAKER_STANDARD_STEREO("lspeaker", "rspeaker")
 
@@ -432,6 +433,8 @@ static MACHINE_CONFIG_START( n64, n64_mess_state )
 
 	/* software lists */
 	MCFG_SOFTWARE_LIST_ADD("cart_list", "n64")
+
+	MCFG_FORCE_NO_DRC()
 MACHINE_CONFIG_END
 
 static MACHINE_CONFIG_DERIVED( n64dd, n64 )

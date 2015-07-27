@@ -1355,6 +1355,10 @@ static ADDRESS_MAP_START( mooncrst_map_base, AS_PROGRAM, 8, galaxian_state )
 	AM_RANGE(0xb800, 0xb800) AM_MIRROR(0x07ff) AM_READ(watchdog_reset_r)
 ADDRESS_MAP_END
 
+static ADDRESS_MAP_START( moonqsr_decrypted_opcodes_map, AS_DECRYPTED_OPCODES, 8, galaxian_state )
+	AM_RANGE(0x0000, 0x3fff) AM_ROM AM_SHARE("decrypted_opcodes")
+ADDRESS_MAP_END
+
 static ADDRESS_MAP_START( mooncrst_map, AS_PROGRAM, 8, galaxian_state )
 	AM_IMPORT_FROM(mooncrst_map_base)
 	AM_IMPORT_FROM(mooncrst_map_discrete)
@@ -1668,6 +1672,10 @@ static ADDRESS_MAP_START( mshuttle_map, AS_PROGRAM, 8, galaxian_state )
 	AM_RANGE(0xb000, 0xb000) AM_READ_PORT("IN2")
 	AM_RANGE(0xb000, 0xb000) AM_DEVWRITE("cclimber_audio", cclimber_audio_device, sample_volume_w)
 	AM_RANGE(0xb800, 0xb800) AM_READ(watchdog_reset_r)
+ADDRESS_MAP_END
+
+static ADDRESS_MAP_START( mshuttle_decrypted_opcodes_map, AS_DECRYPTED_OPCODES, 8, galaxian_state )
+	AM_RANGE(0x0000, 0x7fff) AM_ROM AM_SHARE("decrypted_opcodes")
 ADDRESS_MAP_END
 
 static ADDRESS_MAP_START( mshuttle_portmap, AS_IO, 8, galaxian_state )
@@ -5192,6 +5200,11 @@ static MACHINE_CONFIG_DERIVED( mooncrst, galaxian_base )
 	MCFG_FRAGMENT_ADD(mooncrst_audio)
 MACHINE_CONFIG_END
 
+static MACHINE_CONFIG_DERIVED( moonqsr, mooncrst )
+	MCFG_CPU_MODIFY("maincpu")
+	MCFG_CPU_DECRYPTED_OPCODES_MAP(moonqsr_decrypted_opcodes_map)
+MACHINE_CONFIG_END
+
 
 static MACHINE_CONFIG_DERIVED( fantastc, galaxian_base )
 
@@ -5289,6 +5302,7 @@ static MACHINE_CONFIG_DERIVED( mshuttle, galaxian_base )
 	/* basic machine hardware */
 	MCFG_CPU_MODIFY("maincpu")
 	MCFG_CPU_PROGRAM_MAP(mshuttle_map)
+	MCFG_CPU_DECRYPTED_OPCODES_MAP(mshuttle_decrypted_opcodes_map)
 	MCFG_CPU_IO_MAP(mshuttle_portmap)
 
 	/* sound hardware */
@@ -5965,7 +5979,7 @@ DRIVER_INIT_MEMBER(galaxian_state,mooncrst)
 	common_init(&galaxian_state::galaxian_draw_bullet, &galaxian_state::galaxian_draw_background, &galaxian_state::mooncrst_extend_tile_info, &galaxian_state::mooncrst_extend_sprite_info);
 
 	/* decrypt program code */
-	decode_mooncrst(0x8000, memregion("maincpu")->base());
+	decode_mooncrst(0x4000, memregion("maincpu")->base());
 }
 
 
@@ -5990,15 +6004,11 @@ DRIVER_INIT_MEMBER(galaxian_state,mooncrgx)
 
 DRIVER_INIT_MEMBER(galaxian_state,moonqsr)
 {
-	address_space &space = m_maincpu->space(AS_PROGRAM);
-	UINT8 *decrypt = auto_alloc_array(machine(), UINT8, 0x8000);
-
 	/* video extensions */
 	common_init(&galaxian_state::galaxian_draw_bullet, &galaxian_state::galaxian_draw_background, &galaxian_state::moonqsr_extend_tile_info, &galaxian_state::moonqsr_extend_sprite_info);
 
 	/* decrypt program code */
-	decode_mooncrst(0x8000, decrypt);
-	space.set_decrypted_region(0x0000, 0x7fff, decrypt);
+	decode_mooncrst(0x4000, m_decrypted_opcodes);
 }
 
 WRITE8_MEMBER(galaxian_state::artic_gfxbank_w)
@@ -6253,14 +6263,9 @@ DRIVER_INIT_MEMBER(galaxian_state,kong)
 
 void galaxian_state::mshuttle_decode(const UINT8 convtable[8][16])
 {
-	address_space &space = m_maincpu->space(AS_PROGRAM);
 	UINT8 *rom = memregion("maincpu")->base();
-	UINT8 *decrypt = auto_alloc_array(machine(), UINT8, 0x10000);
-	int A;
 
-	space.set_decrypted_region(0x0000, 0xffff, decrypt);
-
-	for (A = 0x0000;A < 0x10000;A++)
+	for (int A = 0x0000;A < 0x8000;A++)
 	{
 		int i,j;
 		UINT8 src = rom[A];
@@ -6273,7 +6278,7 @@ void galaxian_state::mshuttle_decode(const UINT8 convtable[8][16])
 		j = (src & 0x01) | ((src & 0x04) >> 1) | ((src & 0x10) >> 2) | ((src & 0x40) >> 3);
 
 		/* decode the opcodes */
-		decrypt[A] = (src & 0xaa) | convtable[i][j];
+		m_decrypted_opcodes[A] = (src & 0xaa) | convtable[i][j];
 	}
 }
 
@@ -6505,12 +6510,44 @@ DRIVER_INIT_MEMBER(galaxian_state,atlantis)
 }
 
 
+
+
+
 DRIVER_INIT_MEMBER(galaxian_state,scobra)
 {
 	/* video extensions */
 	common_init(&galaxian_state::scramble_draw_bullet, &galaxian_state::scramble_draw_background, NULL, NULL);
 }
 
+
+
+DRIVER_INIT_MEMBER(galaxian_state,scobrae)
+{
+
+	UINT8 *rom = memregion("maincpu")->base();
+	int offs;
+
+	for (offs = 0; offs < 0x6000; offs++)
+	{
+		int i = offs & 0x7f;
+		int x = rom[offs];
+
+		if (offs & 0x80) i ^= 0x7f;
+
+		if (i & 0x01) x ^= 0x49;
+		if (i & 0x02) x ^= 0x21;
+		if (i & 0x04) x ^= 0x18;
+		if (i & 0x08) x ^= 0x12;
+		if (i & 0x10) x ^= 0x84;
+		if (i & 0x20) x ^= 0x24;
+		if (i & 0x40) x ^= 0x40;
+
+		rom[offs] = x ^ 0xff;
+	}
+
+	/* video extensions */
+	common_init(&galaxian_state::scramble_draw_bullet, &galaxian_state::scramble_draw_background, NULL, NULL);
+}
 
 
 DRIVER_INIT_MEMBER(galaxian_state,losttomb)
@@ -9151,7 +9188,7 @@ ROM_END
 
 
 ROM_START( mshuttle )
-	ROM_REGION( 2*0x10000, "maincpu", 0 )   /* 64k for code + 64k for decrypted opcodes */
+	ROM_REGION( 0x8000, "maincpu", 0 )
 	ROM_LOAD( "my05",         0x0000, 0x1000, CRC(83574af1) SHA1(d69c2a0538a49d6c72c3346ac4e3959d91da6c98) )
 	ROM_LOAD( "my04",         0x1000, 0x1000, CRC(1cfae2c8) SHA1(6c7eeee70e91b8498c41525dcc60f8086cff8da7) )
 	ROM_LOAD( "my03",         0x2000, 0x1000, CRC(c8b8a368) SHA1(140ba60f55285d1e9f7a262634f5ce5c3470ab71) )
@@ -9173,7 +9210,7 @@ ROM_START( mshuttle )
 ROM_END
 
 ROM_START( mshuttle2 )
-	ROM_REGION( 2*0x10000, "maincpu", 0 )   /* 64k for code + 64k for decrypted opcodes */
+	ROM_REGION( 0x8000, "maincpu", 0 )
 	ROM_LOAD( "my05",         0x0000, 0x1000, CRC(83574af1) SHA1(d69c2a0538a49d6c72c3346ac4e3959d91da6c98) )
 	ROM_LOAD( "my04",         0x1000, 0x1000, CRC(1cfae2c8) SHA1(6c7eeee70e91b8498c41525dcc60f8086cff8da7) )
 	ROM_LOAD( "my03",         0x2000, 0x1000, CRC(c8b8a368) SHA1(140ba60f55285d1e9f7a262634f5ce5c3470ab71) )
@@ -9197,7 +9234,7 @@ ROM_END
 
 
 ROM_START( mshuttlej )
-	ROM_REGION( 2*0x10000, "maincpu", 0 )   /* 64k for code + 64k for decrypted opcodes */
+	ROM_REGION( 0x8000, "maincpu", 0 )
 	ROM_LOAD( "mcs.5",        0x0000, 0x1000, CRC(a5a292b4) SHA1(b4e9d969c762f4114eba88051917df122fc7181f) )
 	ROM_LOAD( "mcs.4",        0x1000, 0x1000, CRC(acdc0f9e) SHA1(8cd6d6566fe3f4090ccb625c3c1e5850a371826f) )
 	ROM_LOAD( "mcs.3",        0x2000, 0x1000, CRC(c1e3f5d8) SHA1(d3af89d485b1ca21ac879dbe15490dcd1cd64f2a) )
@@ -9220,7 +9257,7 @@ ROM_START( mshuttlej )
 ROM_END
 
 ROM_START( mshuttlej2 )
-	ROM_REGION( 2*0x10000, "maincpu", 0 )   /* 64k for code + 64k for decrypted opcodes */
+	ROM_REGION( 0x8000, "maincpu", 0 )
 	ROM_LOAD( "ali5.bin",     0x0000, 0x1000, CRC(320fe630) SHA1(df4fe25989783c8851f41c9b4b63dedfa365c1e9) )
 	ROM_LOAD( "mcs.4",        0x1000, 0x1000, CRC(acdc0f9e) SHA1(8cd6d6566fe3f4090ccb625c3c1e5850a371826f) )
 	ROM_LOAD( "mcs.3",        0x2000, 0x1000, CRC(c1e3f5d8) SHA1(d3af89d485b1ca21ac879dbe15490dcd1cd64f2a) )
@@ -10414,6 +10451,30 @@ ROM_START( scobrab )
 	ROM_LOAD( "82s123.6e",    0x0000, 0x0020, CRC(9b87f90d) SHA1(d11ac5e4a6057301ea2a9cbb404c2b978eb4c1dc) )
 ROM_END
 
+ROM_START( scobrae ) // main program is identical to the scobras set once decrypted
+	ROM_REGION( 0x10000, "maincpu", 0 ) // all roms have STERN labels
+	ROM_LOAD( "super cobra ra1 2c 1981.2c",   0x0000, 0x1000, CRC(ba9d4152) SHA1(f1792c0049804ac956ab7f95f699559fca4df960) )
+	ROM_LOAD( "super cobra ra1 2e 1981.2e",   0x1000, 0x1000, CRC(f9b77b27) SHA1(7974761456aaabcf016158ee5f5c32c89e43c748) )
+	ROM_LOAD( "super cobra ra1 2f 1981.2f",   0x2000, 0x1000, CRC(e6109c2c) SHA1(1749ac277b1af45b1f6722d2ddaf46be043b2b25) )
+	ROM_LOAD( "super cobra ra1 2h 1981.2h",   0x3000, 0x1000, CRC(8762735b) SHA1(07dd9b390d44fec9f83c88abf28d167c1710dcc9) )
+	ROM_LOAD( "super cobra ra1 2j 1981.2j",   0x4000, 0x1000, CRC(5648f404) SHA1(5cfbada816fd614508c7cd41196a350176c5882d) )
+	ROM_LOAD( "super cobra ra1 2l 1981.2l",   0x5000, 0x1000, CRC(34476cc3) SHA1(b8b1c9572e0c5e25f3d2a33d5a0ce40de007b478) )
+
+	ROM_REGION( 0x1000, "gfx1", 0 )
+	ROM_LOAD( "super cobra ra1 5f 1981.5f",   0x0000, 0x0800, CRC(64d113b4) SHA1(7b439bb74d5ecc792e0ca8964bcca8c6b7a51262) )
+	ROM_LOAD( "super cobra ra1 5h 1981.5h",   0x0800, 0x0800, CRC(a96316d3) SHA1(9de0e94932e91dc34aea7c81880bde6a486d103b) )
+
+	// roms below were missing, so not verified for this set but likely the same because the main program is.
+	ROM_REGION( 0x10000, "audiocpu", 0 )
+	ROM_LOAD( "5c",   0x0000, 0x0800, BAD_DUMP CRC(deeb0dd3) SHA1(b815a586f05361b75078d58f1fddfdb36f9d8fae) )
+	ROM_LOAD( "5d",   0x0800, 0x0800, BAD_DUMP CRC(872c1a74) SHA1(20f05bf398ad2690f5ba4e4158ad62aeec226413) )
+	ROM_LOAD( "5e",   0x1000, 0x0800, BAD_DUMP CRC(ccd7a110) SHA1(5a247e360530be0f94c90fcc7d0ce628d460449f) )
+
+	ROM_REGION( 0x0020, "proms", 0 )
+	ROM_LOAD( "82s123.6e",    0x0000, 0x0020, BAD_DUMP CRC(9b87f90d) SHA1(d11ac5e4a6057301ea2a9cbb404c2b978eb4c1dc) )
+ROM_END
+
+
 ROM_START( suprheli )
 	/* this is a bootleg of Super Cobra */
 	ROM_REGION( 0x10000, "maincpu", 0 )
@@ -10859,7 +10920,7 @@ GAME( 1980, mooncreg,    mooncrst, mooncrst,   mooncreg,   galaxian_state, moonc
 GAME( 1980, mooncrsl,    mooncrst, mooncrst,   mooncrsl,   galaxian_state, mooncrsu,   ROT90,  "bootleg (Laguna S.A.)", "Cresta Mundo (Laguna S.A. Spanish Moon Cresta bootleg)", GAME_SUPPORTS_SAVE )
 GAME( 1980, stera,       mooncrst, mooncrst,   smooncrs,   galaxian_state, mooncrsu,   ROT90,  "bootleg", "Steraranger (Moon Cresta bootleg)", GAME_SUPPORTS_SAVE )
 GAME( 1980, mooncrgx,    mooncrst, galaxian,   mooncrgx,   galaxian_state, mooncrgx,   ROT270, "bootleg", "Moon Cresta (Galaxian hardware)", GAME_SUPPORTS_SAVE )
-GAME( 1980, moonqsr,     0,        mooncrst,   moonqsr,    galaxian_state, moonqsr,    ROT90,  "Nichibutsu", "Moon Quasar", GAME_SUPPORTS_SAVE )
+GAME( 1980, moonqsr,     0,        moonqsr,    moonqsr,    galaxian_state, moonqsr,    ROT90,  "Nichibutsu", "Moon Quasar", GAME_SUPPORTS_SAVE )
 GAME( 1980, moonal2,     galaxian, mooncrst,   moonal2,    galaxian_state, galaxian,   ROT90,  "Namco / Nichibutsu", "Moon Alien Part 2", GAME_SUPPORTS_SAVE )
 GAME( 1980, moonal2b,    galaxian, mooncrst,   moonal2,    galaxian_state, galaxian,   ROT90,  "Namco / Nichibutsu", "Moon Alien Part 2 (older version)", GAME_SUPPORTS_SAVE )
 
@@ -10985,6 +11046,7 @@ GAME( 1982, monsterz,    0,        monsterz,   sfx,        galaxian_state, sfx, 
 GAME( 1981, scobra,      0,        scobra,     scobra,     galaxian_state, scobra,     ROT90,  "Konami", "Super Cobra", GAME_SUPPORTS_SAVE )
 GAME( 1981, scobrase,    scobra,   scobra,     scobra,     galaxian_state, scobra,     ROT90,  "Konami (Sega license)", "Super Cobra (Sega)", GAME_SUPPORTS_SAVE )
 GAME( 1981, scobras,     scobra,   scobra,     scobras,    galaxian_state, scobra,     ROT90,  "Konami (Stern Electronics license)", "Super Cobra (Stern Electronics)", GAME_SUPPORTS_SAVE )
+GAME( 1981, scobrae,     scobra,   scobra,     scobras,    galaxian_state, scobrae,    ROT90,  "Konami (Stern Electronics license)", "Super Cobra (Stern Electronics) (encrypted, KONATEC XC-103SS CPU)", GAME_SUPPORTS_SAVE )
 GAME( 1981, scobrab,     scobra,   scobra,     scobras,    galaxian_state, scobra,     ROT90,  "bootleg", "Super Cobra (bootleg)", GAME_SUPPORTS_SAVE )
 GAME( 1981, suprheli,    scobra,   scobra,     scobras,    galaxian_state, scobra,     ROT90,  "bootleg", "Super Heli (Super Cobra bootleg)", GAME_SUPPORTS_SAVE )
 

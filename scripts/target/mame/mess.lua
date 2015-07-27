@@ -129,6 +129,7 @@ CPUS["HMCS40"] = true
 CPUS["E0C6200"] = true
 CPUS["MELPS4"] = true
 CPUS["HPHYBRID"] = true
+CPUS["SM510"] = true
 
 --------------------------------------------------
 -- specify available sound cores; some of these are
@@ -155,7 +156,7 @@ SOUNDS["YM3526"] = true
 SOUNDS["Y8950"] = true
 SOUNDS["YMF262"] = true
 --SOUNDS["YMF271"] = true
---SOUNDS["YMF278B"] = true
+SOUNDS["YMF278B"] = true
 --SOUNDS["YMZ280B"] = true
 SOUNDS["SN76477"] = true
 SOUNDS["SN76496"] = true
@@ -287,6 +288,7 @@ VIDEOS["HUC6261"] = true
 VIDEOS["HUC6270"] = true
 VIDEOS["HUC6272"] = true
 VIDEOS["I8244"] = true
+VIDEOS["I82730"] = true
 VIDEOS["I8275"] = true
 --VIDEOS+= M50458"] = true
 --VIDEOS+= MB90082"] = true
@@ -483,6 +485,7 @@ MACHINES["PCCARD"] = true
 MACHINES["PCF8593"] = true
 MACHINES["PCKEYBRD"] = true
 MACHINES["PIC8259"] = true
+MACHINES["PIT68230"] = true
 MACHINES["PIT8253"] = true
 MACHINES["PLA"] = true
 --MACHINES["PROFILE"] = true
@@ -720,6 +723,7 @@ function linkProjects_mame_mess(_target, _subtarget)
 		"exidy",
 		"fairch",
 		"fidelity",
+		"force",
 		"fujitsu",
 		"funtech",
 		"galaxy",
@@ -753,6 +757,7 @@ function linkProjects_mame_mess(_target, _subtarget)
 		"memotech",
 		"mgu",
 		"microkey",
+		"microsoft",
 		"mit",
 		"mits",
 		"mitsubishi",
@@ -772,6 +777,7 @@ function linkProjects_mame_mess(_target, _subtarget)
 		"novag",
 		"ns",
 		"olivetti",
+		"olympia",
 		"omnibyte",
 		"orion",
 		"osborne",
@@ -834,6 +840,7 @@ function linkProjects_mame_mess(_target, _subtarget)
 		"toshiba",
 		"trainer",
 		"trs",
+		"ultimachine",
 		"ultratec",
 		"unisys",
 		"veb",
@@ -938,7 +945,6 @@ files {
 	MAME_DIR .. "src/mame/video/n64.c",         
 	MAME_DIR .. "src/mame/video/rdpblend.c",    
 	MAME_DIR .. "src/mame/video/rdptpipe.c",    
-	MAME_DIR .. "src/mame/video/rdpspn16.c",    
 	MAME_DIR .. "src/mame/machine/megadriv.c",  
 	MAME_DIR .. "src/mame/drivers/naomi.c",     
 	MAME_DIR .. "src/mame/machine/awboard.c",   
@@ -1505,6 +1511,11 @@ files {
 	MAME_DIR .. "src/mess/drivers/fidelz80.c",  
 }
 
+createMESSProjects(_target, _subtarget, "force")
+files {          
+	MAME_DIR .. "src/mess/drivers/force68k.c",  
+}
+
 createMESSProjects(_target, _subtarget, "fujitsu")
 files {           
 	MAME_DIR .. "src/mess/drivers/fmtowns.c",
@@ -1626,6 +1637,7 @@ files {
 	MAME_DIR .. "src/mess/drivers/isbc.c",
 	MAME_DIR .. "src/mess/machine/isbc_215g.c", 
 	MAME_DIR .. "src/mess/drivers/rex6000.c",   
+	MAME_DIR .. "src/mess/drivers/sdk80.c",     
 	MAME_DIR .. "src/mess/drivers/sdk85.c",     
 	MAME_DIR .. "src/mess/drivers/sdk86.c",   
 	MAME_DIR .. "src/mess/drivers/imds2.c",  
@@ -1747,6 +1759,11 @@ files {
 	MAME_DIR .. "src/mess/drivers/primo.c",
 	MAME_DIR .. "src/mess/machine/primo.c",
 	MAME_DIR .. "src/mess/video/primo.c", 
+}
+
+createMESSProjects(_target, _subtarget, "microsoft")
+files {               
+	MAME_DIR .. "src/mess/drivers/xbox.c",    
 }
 
 createMESSProjects(_target, _subtarget, "mit")
@@ -1890,9 +1907,15 @@ createMESSProjects(_target, _subtarget, "olivetti")
 files {          
 	MAME_DIR .. "src/mess/drivers/m20.c",       
 	MAME_DIR .. "src/mess/machine/m20_kbd.c",
+	MAME_DIR .. "src/mess/machine/m20_8086.c",
 	MAME_DIR .. "src/mess/drivers/m24.c",
 	MAME_DIR .. "src/mess/machine/m24_kbd.c",
 	MAME_DIR .. "src/mess/machine/m24_z8000.c"
+}
+
+createMESSProjects(_target, _subtarget, "olympia")
+files {          
+	MAME_DIR .. "src/mess/drivers/peoplepc.c"
 }
 
 createMESSProjects(_target, _subtarget, "ns")
@@ -2111,6 +2134,7 @@ files {
 
 createMESSProjects(_target, _subtarget, "sharp")
 files {             
+	MAME_DIR .. "src/mess/drivers/hh_sm510.c",
 	MAME_DIR .. "src/mess/video/mz700.c",       
 	MAME_DIR .. "src/mess/drivers/mz700.c",     
 	MAME_DIR .. "src/mess/drivers/pc1500.c",    
@@ -2435,6 +2459,11 @@ files {
 	MAME_DIR .. "src/mess/machine/tandy2kb.c", 
 }
 
+createMESSProjects(_target, _subtarget, "ultimachine")
+files {
+	MAME_DIR .. "src/mess/drivers/rambo.c",
+}
+
 createMESSProjects(_target, _subtarget, "ultratec")
 files {          
 	MAME_DIR .. "src/mess/drivers/minicom.c",   
@@ -2589,7 +2618,8 @@ files {
 	MAME_DIR .. "src/mess/drivers/cxhumax.c",   
 	MAME_DIR .. "src/mess/drivers/czk80.c",     
 	MAME_DIR .. "src/mess/drivers/d6800.c",     
-	MAME_DIR .. "src/mess/drivers/d6809.c",     
+	MAME_DIR .. "src/mess/drivers/d6809.c",
+	MAME_DIR .. "src/mess/drivers/daruma.c",     
 	MAME_DIR .. "src/mess/drivers/digel804.c",  
 	MAME_DIR .. "src/mess/drivers/dim68k.c",    
 	MAME_DIR .. "src/mess/drivers/dm7000.c",    
@@ -2621,6 +2651,7 @@ files {
 	MAME_DIR .. "src/emu/machine/nsc810.h", 
 	MAME_DIR .. "src/mess/drivers/i7000.c",
 	MAME_DIR .. "src/mess/drivers/ibm6580.c",   
+	MAME_DIR .. "src/mess/drivers/icatel.c",
 	MAME_DIR .. "src/mess/drivers/ie15.c",
 	MAME_DIR .. "src/mess/machine/ie15_kbd.c", 
 	MAME_DIR .. "src/mess/drivers/if800.c",     

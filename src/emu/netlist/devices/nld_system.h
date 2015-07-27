@@ -11,6 +11,7 @@
 
 #include "../nl_setup.h"
 #include "../nl_base.h"
+#include "../nl_factory.h"
 #include "../analog/nld_twoterm.h"
 
 // -----------------------------------------------------------------------------
@@ -18,35 +19,40 @@
 // -----------------------------------------------------------------------------
 
 #define TTL_INPUT(_name, _v)                                                   \
-		NET_REGISTER_DEV(ttl_input, _name)                                     \
+		NET_REGISTER_DEV(TTL_INPUT, _name)                                   \
 		PARAM(_name.IN, _v)
 
+#define LOGIC_INPUT(_name, _v, _family)                                        \
+		NET_REGISTER_DEV(LOGIC_INPUT, _name)                                   \
+		PARAM(_name.IN, _v)													   \
+		PARAM(_name.FAMILY, _family)
+
 #define ANALOG_INPUT(_name, _v)                                                \
-		NET_REGISTER_DEV(analog_input, _name)                                  \
+		NET_REGISTER_DEV(ANALOG_INPUT, _name)                                  \
 		PARAM(_name.IN, _v)
 
 #define MAINCLOCK(_name, _freq)                                                \
-		NET_REGISTER_DEV(mainclock, _name)                                     \
+		NET_REGISTER_DEV(MAINCLOCK, _name)                                     \
 		PARAM(_name.FREQ, _freq)
 
 #define CLOCK(_name, _freq)                                                    \
-		NET_REGISTER_DEV(clock, _name)                                         \
+		NET_REGISTER_DEV(CLOCK, _name)                                         \
 		PARAM(_name.FREQ, _freq)
 
 #define EXTCLOCK(_name, _freq, _pattern)                                       \
-		NET_REGISTER_DEV(extclock, _name)                                      \
+		NET_REGISTER_DEV(EXTCLOCK, _name)                                      \
 		PARAM(_name.FREQ, _freq)                                               \
 		PARAM(_name.PATTERN, _pattern)
 
 #define GNDA()                                                                 \
-		NET_REGISTER_DEV(gnd, GND)
+		NET_REGISTER_DEV(GNDA, GND)
 
 #define DUMMY_INPUT(_name)                                                     \
-		NET_REGISTER_DEV(dummy_input, _name)
+		NET_REGISTER_DEV(DUMMY_INPUT, _name)
 
 //FIXME: Usage discouraged, use OPTIMIZE_FRONTIER instead
 #define FRONTIER_DEV(_name, _IN, _G, _OUT)                                     \
-		NET_REGISTER_DEV(frontier, _name)                                      \
+		NET_REGISTER_DEV(FRONTIER_DEV, _name)                                      \
 		NET_C(_IN, _name.I)                                                    \
 		NET_C(_G,  _name.G)                                                    \
 		NET_C(_OUT, _name.Q)
@@ -55,14 +61,19 @@
 		setup.register_frontier(# _attach, _r_in, _r_out);
 
 #define RES_SWITCH(_name, _IN, _P1, _P2)                                       \
-		NET_REGISTER_DEV(res_sw, _name)                                        \
+		NET_REGISTER_DEV(RES_SWITCH, _name)                                        \
 		NET_C(_IN, _name.I)                                                    \
 		NET_C(_P1, _name.1)                                                    \
 		NET_C(_P2, _name.2)
 
 /* Default device to hold netlist parameters */
 #define PARAMETERS(_name)                                                      \
-		NET_REGISTER_DEV(netlistparams, _name)
+		NET_REGISTER_DEV(PARAMETERS, _name)
+
+#define AFUNC(_name, _N, _F)			                                       \
+		NET_REGISTER_DEV(AFUNC, _name)                                      \
+		PARAM(_name.N, _N)													   \
+		PARAM(_name.FUNC, _F)
 
 NETLIB_NAMESPACE_DEVICES_START()
 
@@ -123,10 +134,13 @@ NETLIB_DEVICE_WITH_PARAMS(extclock,
 // Special support devices ...
 // -----------------------------------------------------------------------------
 
-NETLIB_DEVICE_WITH_PARAMS(ttl_input,
+NETLIB_DEVICE_WITH_PARAMS(logic_input,
+
+	virtual void stop();
 	logic_output_t m_Q;
 
 	param_logic_t m_IN;
+	param_model_t m_FAMILY;
 );
 
 NETLIB_DEVICE_WITH_PARAMS(analog_input,
@@ -222,12 +236,12 @@ protected:
 		register_input("_I", m_I);
 		register_terminal("I",m_RIN.m_P);
 		register_terminal("G",m_RIN.m_N);
-		connect(m_I, m_RIN.m_P);
+		connect_late(m_I, m_RIN.m_P);
 
 		register_output("_Q", m_Q);
 		register_terminal("_OP",m_ROUT.m_P);
 		register_terminal("Q",m_ROUT.m_N);
-		connect(m_Q, m_ROUT.m_P);
+		connect_late(m_Q, m_ROUT.m_P);
 	}
 
 	void reset()
@@ -249,6 +263,53 @@ private:
 
 	param_double_t m_p_RIN;
 	param_double_t m_p_ROUT;
+};
+
+/* -----------------------------------------------------------------------------
+ * nld_function
+ *
+ * FIXME: Currently a proof of concept to get congo bongo working
+ * ----------------------------------------------------------------------------- */
+
+class NETLIB_NAME(function) : public device_t
+{
+public:
+	NETLIB_NAME(function)()
+			: device_t() { }
+
+	virtual ~NETLIB_NAME(function)() {}
+
+protected:
+
+	void start();
+	void reset();
+	void update();
+
+private:
+
+	enum rpn_cmd
+	{
+		ADD,
+		MULT,
+		SUB,
+		DIV,
+		PUSH_CONST,
+		PUSH_INPUT
+	};
+
+	struct rpn_inst
+	{
+		rpn_inst() : m_cmd(ADD), m_param(0.0) { }
+		rpn_cmd m_cmd;
+		nl_double m_param;
+	};
+
+	param_int_t m_N;
+	param_str_t m_func;
+	analog_output_t m_Q;
+	analog_input_t m_I[10];
+
+	plist_t<rpn_inst> m_precompiled;
 };
 
 // -----------------------------------------------------------------------------
@@ -408,6 +469,45 @@ private:
 	int m_last_state;
 	bool m_is_timestep;
 };
+
+
+class factory_lib_entry_t : public base_factory_t
+{
+	P_PREVENT_COPYING(factory_lib_entry_t)
+public:
+
+	ATTR_COLD factory_lib_entry_t(setup_t &setup, const pstring &name, const pstring &classname,
+			const pstring &def_param)
+	: base_factory_t(name, classname, def_param), m_setup(setup) { }
+
+	class dummy : public device_t
+	{
+	public:
+		dummy(const pstring &dev_name) : device_t(), m_dev_name(dev_name) { }
+	protected:
+		virtual void init(netlist_t &anetlist, const pstring &aname)
+		{
+			anetlist.setup().namespace_push(aname);
+			anetlist.setup().include(m_dev_name);
+			anetlist.setup().namespace_pop();
+		}
+		void start() { }
+		void reset() { }
+		void update() { }
+
+		pstring m_dev_name;
+	};
+
+	ATTR_COLD device_t *Create()
+	{
+		device_t *r = palloc(dummy(this->name()));
+		return r;
+	}
+
+private:
+	setup_t &m_setup;
+};
+
 
 NETLIB_NAMESPACE_DEVICES_END()
 

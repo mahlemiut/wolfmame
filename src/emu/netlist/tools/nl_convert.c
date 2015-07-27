@@ -6,19 +6,28 @@
  */
 
 #include <algorithm>
-
+#include <cstdio>
+#include <cmath>
 #include "nl_convert.h"
+
+
+// for now, make buggy GCC/Mingw STFU about I64FMT
+#if (defined(__MINGW32__) && (__GNUC__ >= 5))
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat"
+#pragma GCC diagnostic ignored "-Wformat-extra-args"
+#endif
 
 template<typename Class>
 static plist_t<int> bubble(const pnamedlist_t<Class *> &sl)
 {
 	plist_t<int> ret(sl.size());
-	for (int i=0; i<sl.size(); i++)
+	for (unsigned i=0; i<sl.size(); i++)
 		ret[i] = i;
 
-	for(int i=0; i < sl.size()-1;i++)
+	for(unsigned i=0; i < sl.size(); i++)
 	{
-		for(int j=i+1; j < sl.size(); j++)
+		for(unsigned j=i+1; j < sl.size(); j++)
 		{
 			if(sl[ret[i]]->name() > sl[ret[j]]->name())
 			{
@@ -44,7 +53,7 @@ void nl_convert_base_t::out(const char *format, ...)
 
 void nl_convert_base_t::add_pin_alias(const pstring &devname, const pstring &name, const pstring &alias)
 {
-	m_pins.add(palloc(pin_alias_t, devname + "." + name, devname + "." + alias), false);
+	m_pins.add(palloc(pin_alias_t(devname + "." + name, devname + "." + alias)), false);
 }
 
 void nl_convert_base_t::add_ext_alias(const pstring &alias)
@@ -54,15 +63,15 @@ void nl_convert_base_t::add_ext_alias(const pstring &alias)
 
 void nl_convert_base_t::add_device(const pstring &atype, const pstring &aname, const pstring &amodel)
 {
-	m_devs.add(palloc(dev_t, atype, aname, amodel), false);
+	m_devs.add(palloc(dev_t(atype, aname, amodel)), false);
 }
 void nl_convert_base_t::add_device(const pstring &atype, const pstring &aname, double aval)
 {
-	m_devs.add(palloc(dev_t, atype, aname, aval), false);
+	m_devs.add(palloc(dev_t(atype, aname, aval)), false);
 }
 void nl_convert_base_t::add_device(const pstring &atype, const pstring &aname)
 {
-	m_devs.add(palloc(dev_t, atype, aname), false);
+	m_devs.add(palloc(dev_t(atype, aname)), false);
 }
 
 void nl_convert_base_t::add_term(pstring netname, pstring termname)
@@ -70,7 +79,7 @@ void nl_convert_base_t::add_term(pstring netname, pstring termname)
 	net_t * net = m_nets.find_by_name(netname);
 	if (net == NULL)
 	{
-		net = palloc(net_t, netname);
+		net = palloc(net_t(netname));
 		m_nets.add(net, false);
 	}
 
@@ -136,7 +145,7 @@ const pstring nl_convert_base_t::get_nl_val(const double val)
 		int i = 0;
 		while (m_units[i].m_unit != "-" )
 		{
-			if (m_units[i].m_mult <= nl_math::abs(val))
+			if (m_units[i].m_mult <= std::abs(val))
 				break;
 			i++;
 		}
@@ -179,7 +188,7 @@ nl_convert_base_t::unit_t nl_convert_base_t::m_units[] = {
 		{"M",   "CAP_M(%g)", 1.0e-3 },
 		{"u",   "CAP_U(%g)", 1.0e-6 }, /* eagle */
 		{"U",   "CAP_U(%g)", 1.0e-6 },
-		{"??",   "CAP_U(%g)", 1.0e-6    },
+		{"μ",   "CAP_U(%g)", 1.0e-6    },
 		{"N",   "CAP_N(%g)", 1.0e-9 },
 		{"P",   "CAP_P(%g)", 1.0e-12},
 		{"F",   "%ge-15",    1.0e-15},
@@ -336,7 +345,7 @@ void nl_convert_spice_t::process_line(const pstring &line)
 				add_device(tname, xname);
 				for (std::size_t i=1; i < tt.size() - 1; i++)
 				{
-					pstring term = pstring::sprintf("%s.%" SIZETFMT, xname.cstr(), i);
+					pstring term = pstring::sprintf("%s.%" SIZETFMT, xname.cstr(), SIZET_PRINTF(i));
 					add_term(tt[i], term);
 				}
 				break;
@@ -454,3 +463,7 @@ void nl_convert_eagle_t::convert(const pstring &contents)
 	}
 
 }
+
+#if (defined(__MINGW32__) && (__GNUC__ >= 5))
+#pragma GCC diagnostic pop
+#endif

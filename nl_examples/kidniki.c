@@ -3,24 +3,25 @@
 #include "netlist/devices/nld_system.h"
 #include "netlist/analog/nld_bjt.h"
 
-#define USE_FRONTIERS 1
-#define USE_FIXED_STV 1
+#define USE_FRONTIERS 0
+#define USE_FIXED_STV 0
 
 NETLIST_START(dummy)
 	SOLVER(Solver, 12000)
-	PARAM(Solver.ACCURACY, 1e-8)
+	PARAM(Solver.ACCURACY, 1e-7)
 	PARAM(Solver.NR_LOOPS, 300)
-	PARAM(Solver.GS_LOOPS, 3)
+	PARAM(Solver.GS_LOOPS, 23)
 	//PARAM(Solver.GS_THRESHOLD, 99) // Force Gaussian elimination here
 	PARAM(Solver.SOR_FACTOR, 1.05)
+	PARAM(Solver.ITERATIVE, "GMRES")
 	#if 0
 	//PARAM(Solver.SOR_FACTOR, 1)
 	PARAM(Solver.DYNAMIC_TS, 1)
 	PARAM(Solver.LTE, 1e-1)
 	#endif
 	//FIXME proper models!
-	NET_MODEL(".model 2SC945 NPN(Is=2.04f Xti=3 Eg=1.11 Vaf=6 Bf=400 Ikf=20m Xtb=1.5 Br=3.377 Rc=1 Cjc=1p Mjc=.3333 Vjc=.75 Fc=.5 Cje=25p Mje=.3333 Vje=.75 Tr=450n Tf=20n Itf=0 Vtf=0 Xtf=0 VCEO=45V ICrating=150M MFG=Toshiba)")
-	NET_MODEL(".model 1S1588 D(Is=2.52n Rs=.568 N=1.752 Cjo=4p M=.4 tt=20n Iave=200m Vpk=75 mfg=OnSemi type=silicon)")
+	NET_MODEL("2SC945 NPN(Is=2.04f Xti=3 Eg=1.11 Vaf=6 Bf=400 Ikf=20m Xtb=1.5 Br=3.377 Rc=1 Cjc=1p Mjc=.3333 Vjc=.75 Fc=.5 Cje=25p Mje=.3333 Vje=.75 Tr=450n Tf=20n Itf=0 Vtf=0 Xtf=0 VCEO=45V ICrating=150M MFG=Toshiba)")
+	NET_MODEL("1S1588 D(Is=2.52n Rs=.568 N=1.752 Cjo=4p M=.4 tt=20n Iave=200m Vpk=75 mfg=OnSemi type=silicon)")
 
 	//NET_C(R44.1, XU1.7)
 

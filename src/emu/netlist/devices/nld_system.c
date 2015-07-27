@@ -44,7 +44,7 @@ NETLIB_START(clock)
 	register_param("FREQ", m_freq, 7159000.0 * 5.0);
 	m_inc = netlist_time::from_hz(m_freq.Value()*2);
 
-	connect(m_feedback, m_Q);
+	connect_late(m_feedback, m_Q);
 }
 
 NETLIB_RESET(clock)
@@ -75,7 +75,7 @@ NETLIB_START(extclock)
 	register_param("OFFSET", m_offset, 0.0);
 	m_inc[0] = netlist_time::from_hz(m_freq.Value()*2);
 
-	connect(m_feedback, m_Q);
+	connect_late(m_feedback, m_Q);
 	{
 		netlist_time base = netlist_time::from_hz(m_freq.Value()*2);
 		pstring_list_t pat(m_pattern.Value(),",");
@@ -131,22 +131,34 @@ NETLIB_UPDATE(extclock)
 // logic_input
 // ----------------------------------------------------------------------------------------
 
-NETLIB_START(ttl_input)
+NETLIB_START(logic_input)
 {
+	/* make sure we get the family first */
+	register_param("FAMILY", m_FAMILY, "FAMILY(TYPE=TTL)");
+	set_logic_family(netlist().setup().family_from_model(m_FAMILY.Value()));
+
 	register_output("Q", m_Q);
 	register_param("IN", m_IN, 0);
 }
 
-NETLIB_RESET(ttl_input)
+NETLIB_RESET(logic_input)
 {
 }
 
-NETLIB_UPDATE(ttl_input)
+NETLIB_STOP(logic_input)
+{
+	if (m_logic_family != NULL)
+		if (!m_logic_family->m_is_static)
+			pfree(m_logic_family);
+}
+
+
+NETLIB_UPDATE(logic_input)
 {
 	OUTLOGIC(m_Q, m_IN.Value() & 1, netlist_time::from_nsec(1));
 }
 
-NETLIB_UPDATE_PARAM(ttl_input)
+NETLIB_UPDATE_PARAM(logic_input)
 {
 	update();
 }
@@ -190,7 +202,7 @@ void nld_d_to_a_proxy::start()
 	register_output("_Q", m_Q);
 	register_subalias("Q", m_RV.m_P);
 
-	connect(m_RV.m_N, m_Q);
+	connect_direct(m_RV.m_N, m_Q);
 
 	save(NLNAME(m_last_state));
 }
@@ -275,5 +287,98 @@ NETLIB_UPDATE_PARAM(res_sw)
 {
 	// nothing, not intended to be called
 }
+
+/* -----------------------------------------------------------------------------
+ * nld_function
+ * ----------------------------------------------------------------------------- */
+
+NETLIB_START(function)
+{
+	register_param("N", m_N, 2);
+	register_param("FUNC", m_func, "");
+	register_output("Q", m_Q);
+
+	for (int i=0; i < m_N; i++)
+		register_input(pstring::sprintf("A%d", i), m_I[i]);
+
+	pstring_list_t cmds(m_func.Value(), " ");
+	m_precompiled.clear();
+
+	for (std::size_t i=0; i < cmds.size(); i++)
+	{
+		pstring cmd = cmds[i];
+		rpn_inst rc;
+		if (cmd == "+")
+			rc.m_cmd = ADD;
+		else if (cmd == "-")
+			rc.m_cmd = SUB;
+		else if (cmd == "*")
+			rc.m_cmd = MULT;
+		else if (cmd == "/")
+			rc.m_cmd = DIV;
+		else if (cmd == "/")
+			rc.m_cmd = DIV;
+		else if (cmd.startsWith("A"))
+		{
+			rc.m_cmd = PUSH_INPUT;
+			rc.m_param = cmd.substr(1).as_long();
+		}
+		else
+		{
+			bool err = false;
+			rc.m_cmd = PUSH_CONST;
+			rc.m_param = cmd.as_double(&err);
+			if (err)
+				netlist().error("nld_function: unknown/misformatted token <%s> in <%s>", cmd.cstr(), m_func.Value().cstr());
+		}
+		m_precompiled.add(rc);
+	}
+
+}
+
+NETLIB_RESET(function)
+{
+	m_Q.initial(0.0);
+}
+
+NETLIB_UPDATE(function)
+{
+	//nl_double val = INPANALOG(m_I[0]) * INPANALOG(m_I[1]) * 0.2;
+	//OUTANALOG(m_Q, val);
+	nl_double stack[20];
+	unsigned ptr = 0;
+	unsigned e = m_precompiled.size();
+	for (unsigned i = 0; i<e; i++)
+	{
+		rpn_inst &rc = m_precompiled[i];
+		switch (rc.m_cmd)
+		{
+			case ADD:
+				ptr--;
+				stack[ptr-1] = stack[ptr] + stack[ptr-1];
+				break;
+			case MULT:
+				ptr--;
+				stack[ptr-1] = stack[ptr] * stack[ptr-1];
+				break;
+			case SUB:
+				ptr--;
+				stack[ptr-1] = stack[ptr-1] - stack[ptr];
+				break;
+			case DIV:
+				ptr--;
+				stack[ptr-1] = stack[ptr-1] / stack[ptr];
+				break;
+			case PUSH_INPUT:
+				stack[ptr++] = INPANALOG(m_I[(int) rc.m_param]);
+				break;
+			case PUSH_CONST:
+				stack[ptr++] = rc.m_param;
+				break;
+		}
+	}
+	OUTANALOG(m_Q, stack[ptr-1]);
+}
+
 
 NETLIB_NAMESPACE_DEVICES_END()

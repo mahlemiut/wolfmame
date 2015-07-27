@@ -8,6 +8,7 @@
 
 #include "machine/eepromser.h"
 #include "sound/multipcm.h"
+#include "machine/s32comm.h"
 
 
 
@@ -34,6 +35,7 @@ public:
 
 	required_device<timer_device> m_irq_timer_0;
 	required_device<timer_device> m_irq_timer_1;
+	optional_device<s32comm_device> m_s32comm;
 
 	typedef void (segas32_state::*sys32_output_callback)(int which, UINT16 data);
 
@@ -222,6 +224,7 @@ public:
 	void scross_sw1_output( int which, UINT16 data );
 	void scross_sw2_output( int which, UINT16 data );
 	int compute_clipping_extents(screen_device &screen, int enable, int clipout, int clipmask, const rectangle &cliprect, struct extents_list *list);
+	void compute_tilemap_flips(int bgnum, int &flipx, int &flipy);
 	void update_tilemap_zoom(screen_device &screen, struct layer_info *layer, const rectangle &cliprect, int bgnum);
 	void update_tilemap_rowscroll(screen_device &screen, struct layer_info *layer, const rectangle &cliprect, int bgnum);
 	void update_tilemap_text(screen_device &screen, struct layer_info *layer, const rectangle &cliprect);

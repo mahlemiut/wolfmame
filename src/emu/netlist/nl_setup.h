@@ -22,15 +22,12 @@
 #define ALIAS(_alias, _name)                                                        \
 	setup.register_alias(# _alias, # _name);
 
-#define NET_REGISTER_DEV(_type, _name)                                              \
-		setup.register_dev(NETLIB_NAME_STR(_type), # _name);
+#define DIPPINS(_pin1, ...)                                                          \
+		setup.register_dippins_arr( #_pin1 ", " # __VA_ARGS__);
 
 /* to be used to reference new library truthtable devices */
-#define NET_REGISTER_DEV_X(_type, _name)                                            \
+#define NET_REGISTER_DEV(_type, _name)                                            \
 		setup.register_dev(# _type, # _name);
-
-#define NET_REMOVE_DEV(_name)                                                       \
-		setup.remove_dev(# _name);
 
 #define NET_REGISTER_SIGNAL(_type, _name)                                           \
 		NET_REGISTER_DEV(_type ## _ ## sig, _name)
@@ -49,23 +46,27 @@
 
 #define NETLIST_NAME(_name) netlist ## _ ## _name
 
-#define NETLIST_EXTERNAL(_name)                                                     \
+#define NETLIST_EXTERNAL(_name)                                                \
 		ATTR_COLD void NETLIST_NAME(_name)(netlist::setup_t &setup);
 
-#define NETLIST_START(_name)                                                        \
-ATTR_COLD void NETLIST_NAME(_name)(netlist::setup_t &setup)                          \
+#define NETLIST_START(_name)                                                   \
+ATTR_COLD void NETLIST_NAME(_name)(netlist::setup_t &setup)                    \
 {
 #define NETLIST_END()  }
 
-#define LOCAL_SOURCE(_name)                                                         \
-		setup.register_source(palloc(netlist::source_proc_t, # _name, &NETLIST_NAME(_name)));
+#define LOCAL_SOURCE(_name)                                                    \
+		setup.register_source(palloc(netlist::source_proc_t(# _name, &NETLIST_NAME(_name))));
 
-#define INCLUDE(_name)                                                              \
+#define LOCAL_LIB_ENTRY(_name)                                                 \
+		LOCAL_SOURCE(_name)													   \
+		setup.register_lib_entry(# _name);
+
+#define INCLUDE(_name)                                                         \
 		setup.include(# _name);
 
-#define SUBMODEL(_model, _name)                                                     \
-		setup.namespace_push(# _name);                                              \
-		NETLIST_NAME(_model)(setup);                                                \
+#define SUBMODEL(_model, _name)                                                \
+		setup.namespace_push(# _name);                                         \
+		NETLIST_NAME(_model)(setup);                                           \
 		setup.namespace_pop();
 
 // ----------------------------------------------------------------------------------------
@@ -80,7 +81,7 @@ namespace netlist
 
 	class setup_t
 	{
-		NETLIST_PREVENT_COPYING(setup_t)
+		P_PREVENT_COPYING(setup_t)
 	public:
 
 		// ----------------------------------------------------------------------------------------
@@ -126,11 +127,6 @@ namespace netlist
 			const pstring &name() const { return e1; }
 		};
 
-		typedef pnamedlist_t<link_t> tagmap_nstring_t;
-		typedef pnamedlist_t<param_t *> tagmap_param_t;
-		typedef pnamedlist_t<core_terminal_t *> tagmap_terminal_t;
-		typedef plist_t<link_t> tagmap_link_t;
-
 		setup_t(netlist_t *netlist);
 		~setup_t();
 
@@ -145,11 +141,18 @@ namespace netlist
 		device_t *register_dev(const pstring &classname, const pstring &name);
 		void remove_dev(const pstring &name);
 
-		void register_model(const pstring &model);
+		void register_lib_entry(const pstring &name);
+
+		void register_model(const pstring &model_in);
 		void register_alias(const pstring &alias, const pstring &out);
+		void register_dippins_arr(const pstring &terms);
+
 		void register_alias_nofqn(const pstring &alias, const pstring &out);
+
 		void register_link_arr(const pstring &terms);
+		void register_link_fqn(const pstring &sin, const pstring &sout);
 		void register_link(const pstring &sin, const pstring &sout);
+
 		void register_param(const pstring &param, const pstring &value);
 		void register_param(const pstring &param, const double value);
 
@@ -183,36 +186,20 @@ namespace netlist
 		factory_list_t &factory() { return *m_factory; }
 		const factory_list_t &factory() const { return *m_factory; }
 
-		/* not ideal, but needed for save_state */
-		tagmap_terminal_t  m_terminals;
+		bool is_library_item(const pstring &name) const { return m_lib.contains(name); }
 
 		void print_stats() const;
 
-		/* static support functions */
+		/* model / family related */
 
-		static const pstring model_value_str(const pstring &model_str, const pstring &entity, const pstring defval);
-		static nl_double model_value(const pstring &model_str, const pstring &entity, const nl_double defval);
+		logic_family_desc_t *family_from_model(const pstring &model);
+		const pstring model_value_str(model_map_t &map, const pstring &entity);
+		nl_double model_value(model_map_t &map, const pstring &entity);
 
+		void model_parse(const pstring &model, model_map_t &map);
 	protected:
 
 	private:
-
-		netlist_t *m_netlist;
-
-		tagmap_nstring_t m_alias;
-		tagmap_param_t  m_params;
-		tagmap_link_t   m_links;
-		tagmap_nstring_t m_params_temp;
-
-		factory_list_t *m_factory;
-
-		plist_t<pstring> m_models;
-
-		int m_proxy_cnt;
-
-		pstack_t<pstring> m_stack;
-		source_t::list_t m_sources;
-
 
 		void connect_terminals(core_terminal_t &in, core_terminal_t &out);
 		void connect_input_output(core_terminal_t &in, core_terminal_t &out);
@@ -226,6 +213,26 @@ namespace netlist
 		const pstring resolve_alias(const pstring &name) const;
 		devices::nld_base_proxy *get_d_a_proxy(core_terminal_t &out);
 
+		netlist_t *m_netlist;
+
+		phashmap_t<pstring, pstring> m_alias;
+		phashmap_t<pstring, param_t *>  m_params;
+		phashmap_t<pstring, pstring> m_params_temp;
+		phashmap_t<pstring, core_terminal_t *> m_terminals;
+
+		plist_t<link_t> m_links;
+
+		factory_list_t *m_factory;
+
+		phashmap_t<pstring, pstring> m_models;
+
+		int m_proxy_cnt;
+
+		pstack_t<pstring> m_stack;
+		source_t::list_t m_sources;
+		plist_t<pstring> m_lib;
+
+#if 0
 		template <class T>
 		void remove_start_with(T &hm, pstring &sw)
 		{
@@ -239,6 +246,7 @@ namespace netlist
 				}
 			}
 		}
+#endif
 	};
 
 	// ----------------------------------------------------------------------------------------

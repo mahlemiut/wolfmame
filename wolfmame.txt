@@ -4,6 +4,12 @@ Based on the MAME(tm) 0.164 source, modified by Barry Rodewald
 ------------------------------------------------------------------------------------------------
 
 
+New in 0.164
+------------
+
+ - Removed pause on quit confirmation while recording.
+ 
+
 New in 0.159
 ------------
 

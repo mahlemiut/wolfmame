@@ -1811,7 +1811,8 @@ UINT32 ui_manager::handler_confirm_quit(running_machine &machine, render_contain
 		ui_cancel_text.c_str());
 
 	machine.ui().draw_text_box(container, quit_message.c_str(), JUSTIFY_CENTER, 0.5f, 0.5f, UI_RED_COLOR);
-	machine.pause();
+	if(!machine.ioport().get_record_file()->is_open())
+		machine.pause();
 
 	// if the user press ENTER, quit the game
 	if (ui_input_pressed(machine, IPT_UI_SELECT))

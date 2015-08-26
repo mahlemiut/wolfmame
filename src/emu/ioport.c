@@ -4488,7 +4488,7 @@ int ioport_manager::sprintframetime(char *timearray)
 	char *tptr=timearray;
 	int seconds;
 	int minutes;
-	double fps=ATTOSECONDS_TO_HZ((machine().first_screen()->frame_period().attoseconds));
+	double fps=ATTOSECONDS_TO_HZ((machine().first_screen()->frame_period().attoseconds()));
 	seconds = (fps) ? m_playback_accumulated_frames/fps : 0;
 	if (seconds >= 24*60*60)
 	{

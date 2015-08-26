@@ -9,7 +9,7 @@
   to create the illusion of a moving ball, and even the flippers are leds.
   A drawing of a pinball table is added as overlay.
 
-  NOTE!: MAME external artwork is recommended
+  NOTE!: MAME external artwork is required
 
 
   TODO:
@@ -340,4 +340,4 @@ ROM_START( wildfire )
 ROM_END
 
 
-CONS( 1979, wildfire, 0, 0, wildfire, wildfire, driver_device, 0, "Parker Brothers", "Wildfire (patent)", GAME_IMPERFECT_SOUND | GAME_SUPPORTS_SAVE | GAME_REQUIRES_ARTWORK ) // note: pretty sure that it matches the commercial release
+CONS( 1979, wildfire, 0, 0, wildfire, wildfire, driver_device, 0, "Parker Brothers", "Wildfire (patent)", MACHINE_IMPERFECT_SOUND | MACHINE_SUPPORTS_SAVE | MACHINE_REQUIRES_ARTWORK ) // note: pretty sure that it matches the commercial release

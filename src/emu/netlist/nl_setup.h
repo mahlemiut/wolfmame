@@ -98,7 +98,7 @@ namespace netlist
 
 			virtual ~source_t() { }
 
-			virtual bool parse(setup_t *setup, const pstring name) = 0;
+			virtual bool parse(setup_t &setup, const pstring &name) = 0;
 		private:
 		};
 
@@ -197,6 +197,9 @@ namespace netlist
 		nl_double model_value(model_map_t &map, const pstring &entity);
 
 		void model_parse(const pstring &model, model_map_t &map);
+
+		const plog_base<NL_DEBUG> &log() const { return netlist().log(); }
+
 	protected:
 
 	private:
@@ -232,21 +235,6 @@ namespace netlist
 		source_t::list_t m_sources;
 		plist_t<pstring> m_lib;
 
-#if 0
-		template <class T>
-		void remove_start_with(T &hm, pstring &sw)
-		{
-			for (std::size_t i = hm.size() - 1; i >= 0; i--)
-			{
-				pstring x = hm[i]->name();
-				if (sw.equals(x.substr(0, sw.len())))
-				{
-					NL_VERBOSE_OUT(("removing %s\n", hm[i]->name().cstr()));
-					hm.remove(hm[i]);
-				}
-			}
-		}
-#endif
 	};
 
 	// ----------------------------------------------------------------------------------------
@@ -254,31 +242,46 @@ namespace netlist
 	// ----------------------------------------------------------------------------------------
 
 
-	class netlist_source_string_t : public setup_t::source_t
+	class source_string_t : public setup_t::source_t
 	{
 	public:
 
-		netlist_source_string_t(pstring source)
+		source_string_t(const pstring &source)
 		: setup_t::source_t(), m_str(source)
 		{
 		}
 
-		bool parse(setup_t *setup, const pstring name);
+		bool parse(setup_t &setup, const pstring &name);
 
 	private:
 		pstring m_str;
 	};
 
-
-	class netlist_source_mem_t : public setup_t::source_t
+	class source_file_t : public setup_t::source_t
 	{
 	public:
-		netlist_source_mem_t(const char *mem)
+
+		source_file_t(const pstring &filename)
+		: setup_t::source_t(), m_filename(filename)
+		{
+		}
+
+		bool parse(setup_t &setup, const pstring &name);
+
+	private:
+		pstring m_filename;
+	};
+
+	class source_mem_t : public setup_t::source_t
+	{
+	public:
+		source_mem_t(const char *mem)
 		: setup_t::source_t(), m_str(mem)
 		{
 		}
 
-		bool parse(setup_t *setup, const pstring name);
+		bool parse(setup_t &setup, const pstring &name);
+
 	private:
 		pstring m_str;
 	};
@@ -293,11 +296,11 @@ namespace netlist
 		{
 		}
 
-		bool parse(setup_t *setup, const pstring name)
+		bool parse(setup_t &setup, const pstring &name)
 		{
 			if (name == m_setup_func_name)
 			{
-				m_setup_func(*setup);
+				m_setup_func(setup);
 				return true;
 			}
 			else

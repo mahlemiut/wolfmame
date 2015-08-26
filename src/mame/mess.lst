@@ -99,6 +99,7 @@ multmega  // 1994 Sega Multi-Mega (Europe)
 32xe
 32xj
 32x_scd   // 1994 Sega Sega CD (USA w/32X addon)
+segapm    // 1996 Sega Picture Magic (32x type hardware)
 
 saturnjp  // 1994 Sega Saturn (Japan)
 saturn  // 1995 Sega Saturn (USA)
@@ -609,6 +610,7 @@ cbm4032b
 pet8032
 cbm8032
 cbm8032_de
+cbm8032_fr
 cbm8032_se
 superpet
 mmf9000
@@ -749,6 +751,7 @@ ssam88s
 
 // Non-PC msdos
 pcd     // Siemens PC-D
+pcx     // Siemens PC-X
 slicer  // 1983 Slicer Computers
 olypeopl // Olympia People PC
 
@@ -2160,6 +2163,7 @@ bbtime      // Bandai
 bdoramon    // Bandai
 bultrman    // Bandai
 machiman    // Bandai
+pairmtch    // Bandai
 alnattck    // Coleco
 cdkong      // Coleco
 cgalaxn     // Coleco
@@ -2231,16 +2235,23 @@ mbdtower    // Milton Bradley
 
 // hh_tms1k tispeak.c
 snspell
+snspellp
 snspella
 snspellb
 snspelluk
 snspelluka
 snspelljp
-ladictee
+snspellfr
+snspellit
 snmath
 snmathp
 snread
 lantutor
+tntell
+tntelluk
+tntellfr
+tntellp
+vocaid
 
 // hh_tms1k ticalc1x.c
 tisr16
@@ -2261,6 +2272,7 @@ bmsoccer    // Bambino
 bmsafari    // Bambino
 splasfgt    // Bambino
 bcclimbr    // Bandai
+tactix      // Castle Toy
 invspace    // Epoch
 efball      // Epoch
 galaxy2     // Epoch
@@ -2295,7 +2307,6 @@ craft // Craft, by [lft]
 
 a5105
 attache
-attachef
 bcs3
 bcs3a
 bcs3b
@@ -2641,6 +2652,7 @@ vax785
 ms0515
 ie15
 dvk_ksm
+dvk_ksm01
 asmapro
 asma2k
 altos5
@@ -2715,3 +2727,5 @@ excali64
 bitgrpha
 bitgrphb
 tvgame
+aussieby
+hp_ipc

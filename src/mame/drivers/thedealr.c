@@ -10,7 +10,7 @@
     P0-040A PCB:
 
     R65C02P2 x 2
-    X0-009 (Intel 8742 MCU?)
+    X0-009 (Intel 8742 MCU)
 
     X1-001
     X1-002
@@ -110,7 +110,7 @@ void thedealr_state::screen_eof(screen_device &screen, bool state)
 
 /***************************************************************************
 
-    IOX (i8742 MCU?) Simulation
+    IOX (i8742 MCU) Simulation
 
 ***************************************************************************/
 
@@ -574,6 +574,10 @@ ROM_START( thedealr )
 	ROM_REGION( 0x10000, "subcpu", 0 )
 	ROM_LOAD( "xb3_002", 0x00000, 0x10000, CRC(53a37fa4) SHA1(2adfea2dd08f298cda885bc72606d03f8af886a0) )
 
+	// To do: hook up
+	ROM_REGION( 0x0800, "iocpu", 0 )
+	ROM_LOAD( "x0-009",  0x0000, 0x0800, CRC(e8b86d5a) SHA1(ad12e8f4411c30cd691792c6b0b3429db786d8b5) )
+
 	ROM_REGION( 0x100000, "gfx1", 0 )
 	ROM_LOAD( "xb0-002-w45.u42", 0x00000, 0x80000, CRC(41ec6a57) SHA1(d3f0508d5f4054fd2b0ee5227325a95fd1272aad) )
 	ROM_LOAD( "xb0-001-w44.u41", 0x80000, 0x80000, CRC(bdaca555) SHA1(5ae1dc1514993fd804a101182735d5fb6815f720) )
@@ -583,4 +587,4 @@ ROM_START( thedealr )
 	ROM_LOAD( "xb0-u68.u68", 0x200, 0x200, CRC(c0c54d43) SHA1(5ce352fb888c8e683014c73e6da00ec95f2ae572) )
 ROM_END
 
-GAME( 1988?, thedealr, 0, thedealr, thedealr, driver_device, 0, ROT0, "Visco Games", "The Dealer (Visco)", GAME_SUPPORTS_SAVE )
+GAME( 1988?, thedealr, 0, thedealr, thedealr, driver_device, 0, ROT0, "Visco Games", "The Dealer (Visco)", MACHINE_SUPPORTS_SAVE )

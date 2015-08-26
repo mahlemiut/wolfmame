@@ -353,6 +353,8 @@ void tms5220_device::set_variant(int variant)
 
 void tms5220_device::register_for_save_states()
 {
+	save_item(NAME(m_variant));
+
 	save_item(NAME(m_fifo));
 	save_item(NAME(m_fifo_head));
 	save_item(NAME(m_fifo_tail));
@@ -747,10 +749,13 @@ void tms5220_device::process(INT16 *buffer, unsigned int size)
 	/* loop until the buffer is full or we've stopped speaking */
 	while ((size > 0) && m_speaking_now)
 	{
-		/* if it is the appropriate time to update the old energy/pitch idxes,
+		/* if it is the appropriate time to update the old energy/pitch indices,
 		 * i.e. when IP=7, PC=12, T=17, subcycle=2, do so. Since IP=7 PC=12 T=17
 		 * is JUST BEFORE the transition to IP=0 PC=0 T=0 sybcycle=(0 or 1),
-		 * which happens 4 T-cycles later), we change on the latter.*/
+		 * which happens 4 T-cycles later), we change on the latter.
+		 * The indices are updated here ~12 PCs before the new frame is applied.
+		 */
+		/** TODO: the patents 4331836, 4335277, and 4419540 disagree about the timing of this **/
 		if ((m_IP == 0) && (m_PC == 0) && (m_subcycle < 2))
 		{
 			m_OLDE = (m_new_frame_energy_idx == 0);
@@ -784,18 +789,36 @@ void tms5220_device::process(INT16 *buffer, unsigned int size)
 #ifdef DEBUG_GENERATION
 				fprintf(stderr,"tms5220_process: processing frame: talk status = 0 caused by stop frame or buffer empty, halting speech.\n");
 #endif
-				m_speaking_now = 0; // finally halt speech
-				goto empty;
+				if (m_speaking_now == 1) // we're done, set all coeffs to idle state but keep going for a bit...
+				{
+					/**TODO: should index clearing be done here, or elsewhere? **/
+					m_new_frame_energy_idx = 0;
+					m_new_frame_pitch_idx = 0;
+					for (i = 0; i < 4; i++)
+						m_new_frame_k_idx[i] = 0;
+					for (i = 4; i < 7; i++)
+						m_new_frame_k_idx[i] = 0xF;
+					for (i = 7; i < m_coeff->num_k; i++)
+						m_new_frame_k_idx[i] = 0x7;
+					m_speaking_now = 2; // wait 8 extra interp periods before shutting down so we can interpolate everything to zero state
+				}
+				else // m_speaking_now == 2 // now we're really done.
+				{
+					m_speaking_now = 0; // finally halt speech
+					goto empty;
+				}
 			}
 
 
-			/* Parse a new frame into the new_target_energy, new_target_pitch and new_target_k[] */
-			parse_frame();
+			/* Parse a new frame into the new_target_energy, new_target_pitch and new_target_k[],
+			 * but only if we're not just about to end speech */
+			if (m_speaking_now == 1) parse_frame();
 #ifdef DEBUG_PARSE_FRAME_DUMP
 			fprintf(stderr,"\n");
 #endif
 
 			/* if the new frame is a stop frame, set an interrupt and set talk status to 0 */
+			/** TODO: investigate this later! **/
 			if (NEW_FRAME_STOP_FLAG == 1)
 				{
 					m_talk_status = m_speak_external = 0;
@@ -807,11 +830,13 @@ void tms5220_device::process(INT16 *buffer, unsigned int size)
 			   Interpolation inhibit cases:
 			 * Old frame was voiced, new is unvoiced
 			 * Old frame was silence/zero energy, new has nonzero energy
-			 * Old frame was unvoiced, new is voiced (note this is the case on the patent but may not be correct on the real final chip)
+			 * Old frame was unvoiced, new is voiced
+			 * Old frame was unvoiced, new frame is silence/zero energy (unique to tms52xx)
 			 */
 			if ( ((OLD_FRAME_UNVOICED_FLAG == 0) && (NEW_FRAME_UNVOICED_FLAG == 1))
-				|| ((OLD_FRAME_UNVOICED_FLAG == 1) && (NEW_FRAME_UNVOICED_FLAG == 0)) /* this line needs further investigation, starwars tie fighters may sound better without it */
-				|| ((OLD_FRAME_SILENCE_FLAG == 1) && (NEW_FRAME_SILENCE_FLAG == 0)) )
+				|| ((OLD_FRAME_UNVOICED_FLAG == 1) && (NEW_FRAME_UNVOICED_FLAG == 0))
+				|| ((OLD_FRAME_SILENCE_FLAG == 1) && (NEW_FRAME_SILENCE_FLAG == 0))
+				|| ((OLD_FRAME_UNVOICED_FLAG == 1) && (NEW_FRAME_SILENCE_FLAG == 1)) )
 				m_inhibit = 1;
 			else // normal frame, normal interpolation
 				m_inhibit = 0;
@@ -1264,7 +1289,7 @@ void tms5220_device::process_command(unsigned char cmd)
 
 void tms5220_device::parse_frame()
 {
-	int indx, i, rep_flag;
+	int i, rep_flag;
 
 	// We actually don't care how many bits are left in the fifo here; the frame subpart will be processed normally, and any bits extracted 'past the end' of the fifo will be read as zeroes; the fifo being emptied will set the /BE latch which will halt speech exactly as if a stop frame had been encountered (instead of whatever partial frame was read); the same exact circuitry is used for both on the real chip, see us patent 4335277 sheet 16, gates 232a (decode stop frame) and 232b (decode /BE plus DDIS (decode disable) which is active during speak external).
 
@@ -1272,12 +1297,12 @@ void tms5220_device::parse_frame()
 	has a 2 bit rate preceding it, grab two bits here and store them as the rate; */
 	if ((TMS5220_HAS_RATE_CONTROL) && (m_c_variant_rate & 0x04))
 	{
-		indx = extract_bits(2);
+		i = extract_bits(2);
 #ifdef DEBUG_PARSE_FRAME_DUMP
-		printbits(indx,2);
+		printbits(i,2);
 		fprintf(stderr," ");
 #endif
-		m_IP = reload_table[indx];
+		m_IP = reload_table[i];
 	}
 	else // non-5220C and 5220C in fixed rate mode
 	m_IP = reload_table[m_c_variant_rate&0x3];

@@ -22,8 +22,8 @@
 **
 **
 ** Todo/known issues:
-** - piopx7/piopx7uk/piopxv60: Laserdisc integration doesn't exist
-** - piopx7: Is this a pal or an ntsc machine?
+** - piopx7/piopx7uk/piopxv60: Pioneer System Remote (home entertainment/Laserdisc control) not implemented
+** - piopx7: Dump is from a PAL (EU/AU) machine, we have no known good dumps from JP or US NTSC machines
 ** - spc800: Haven't been able to test operation of the han rom yet
 ** - svi728: Expansion slot not emulated
 ** - svi738: v9938 not emulated
@@ -1500,7 +1500,7 @@ static MACHINE_CONFIG_START( msx2, msx_state )
 	MCFG_I8255_OUT_PORTC_CB(WRITE8(msx_state, msx_ppi_port_c_w))
 
 	/* video hardware */
-	MCFG_V9938_ADD("v9938", "screen", 0x20000)
+	MCFG_V9938_ADD("v9938", "screen", 0x20000, XTAL_21_4772MHz)
 	MCFG_V99X8_INTERRUPT_CALLBACK(WRITELINE(msx_state,msx_irq_source0))
 
 	MCFG_SCREEN_ADD("screen", RASTER)
@@ -1565,7 +1565,7 @@ static MACHINE_CONFIG_START( msx2p, msx_state )
 	MCFG_I8255_OUT_PORTC_CB(WRITE8(msx_state, msx_ppi_port_c_w))
 
 	/* video hardware */
-	MCFG_V9958_ADD("v9958", "screen", 0x20000)
+	MCFG_V9958_ADD("v9958", "screen", 0x20000, XTAL_21_4772MHz)
 	MCFG_V99X8_INTERRUPT_CALLBACK(WRITELINE(msx_state,msx_irq_source0))
 
 	MCFG_SCREEN_ADD("screen", RASTER)
@@ -2942,10 +2942,29 @@ ROM_START (piopx7)
 ROM_END
 
 static MACHINE_CONFIG_DERIVED( piopx7, msx_pal )
-	// AY8910/YM2149?
+	// TMS9129NL VDP with sync/overlay interface
+	// AY-3-8910 PSG
+	// Pioneer System Remote (SR) system control interface
 	// FDC: None, 0 drives
 	// 2 Cartridge slots
-	// TMS9928 is this were an ntsc machine
+
+	// Line-level stereo audio input can be mixed with sound output, balance controlled with slider on front panel
+	// Front-panel switch allows audio input to be passed through bypassing the mixing circuit
+	// Line input can be muted under software control, e.g. when loading data from Laserdisc
+	// Right channel of line input is additionally routed via some signal processing to the cassette input for loading data from Laserdisc
+
+	// PSG port B bits 0-5 can be used to drive controller pins 1-6, 1-7, 2-6, 2-7, 1-8 and 2-8 low if 0 is written
+
+	// Slot #2 7FFE is the SR control register LCON
+	// Bit 7 R = /ACK (significant with acknowledge 1->0 with respect to remote control signal transmission)
+	// Bit 0 R = RMCLK (clock produced by dividing CLK1/CLK2 frequency by 128)
+	// Bit 0 W = /REM (high output with bit serial data output generated in synchronisation with RMCLK)
+
+	// Slot #2 7FFF is the video overlay control register VCON
+	// Bit 7 R = /EXTV (low when external video input available; high when not available)
+	// Bit 7 W = Mute (line input signal muting)
+	// Bit 0 R = INTEXV (interrupt available when external video signal OFF, reset on read)
+	// Bit 0 W = /OVERLAY (0 = superimpose, 1 = non-superimpose)
 
 	MCFG_MSX_LAYOUT_ROM("bios", 0, 0, 0, 2, "maincpu", 0x0000)
 	MCFG_MSX_LAYOUT_RAM("ram", 0, 0, 2, 2)   /* 32KB RAM */
@@ -8302,7 +8321,7 @@ COMP(1985, fs4000a,    fs4000,   0, fs4000a,    msxjp,    driver_device, 0, "Nat
 COMP(1983, phc2,       0,        0, phc2,       msx,      driver_device, 0, "Olympia", "PHC-2 (MSX1)" , 0)
 COMP(19??, phc28,      0,        0, phc28,      msx,      driver_device, 0, "Olympia", "PHC-28 (MSX1)", 0)
 COMP(1984, cf2700g,    0,        0, cf2700g,    msx,      driver_device, 0, "Panasonic", "CF-2700G (Germany) (MSX1)", 0)
-COMP(198?, perfect1,   0,        0, perfect1,   msx,      driver_device, 0, "Perfect", "Perfect1 (MSX1)", GAME_NOT_WORKING)
+COMP(198?, perfect1,   0,        0, perfect1,   msx,      driver_device, 0, "Perfect", "Perfect1 (MSX1)", MACHINE_NOT_WORKING)
 COMP(1983, nms801,     0,        0, nms801,     msx,      driver_device, 0, "Philips", "NMS-801 (MSX1)", 0)
 COMP(1984, vg8000,     vg8010,   0, vg8000,     msx,      driver_device, 0, "Philips", "VG-8000 (MSX1)", 0)
 COMP(1984, vg8010,     0,        0, vg8010,     msx,      driver_device, 0, "Philips", "VG-8010 (MSX1)", 0)
@@ -8356,9 +8375,9 @@ COMP(1984, hx10s,      hx10,     0, hx10s,      msx,      driver_device, 0, "Tos
 COMP(1984, hx10sa,     hx10,     0, hx10sa,     msxjp,    driver_device, 0, "Toshiba", "HX-10SA (MSX1)", 0)
 COMP(1984, hx20,       0,        0, hx20,       msx,      driver_device, 0, "Toshiba", "HX-20 (MSX1)", 0)
 COMP(1984, hx20i,      hx20,     0, hx20i,      msx,      driver_device, 0, "Toshiba", "HX-20I (MSX1)", 0)
-COMP(1984, hx21,       0,        0, hx21,       msxjp,    driver_device, 0, "Toshiba", "HX-21 (MSX1)", GAME_NOT_WORKING) // Does not go into firmware
+COMP(1984, hx21,       0,        0, hx21,       msxjp,    driver_device, 0, "Toshiba", "HX-21 (MSX1)", MACHINE_NOT_WORKING) // Does not go into firmware
 COMP(1984, hx21i,      hx21,     0, hx21i,      msx,      driver_device, 0, "Toshiba", "HX-21I (MSX1)", 0)
-COMP(1984, hx22,       0,        0, hx22,       msxjp,    driver_device, 0, "Toshiba", "HX-22 (MSX1)", GAME_NOT_WORKING) // Does not go into firmware
+COMP(1984, hx22,       0,        0, hx22,       msxjp,    driver_device, 0, "Toshiba", "HX-22 (MSX1)", MACHINE_NOT_WORKING) // Does not go into firmware
 COMP(1984, hx22i,      hx22,     0, hx22i,      msx,      driver_device, 0, "Toshiba", "HX-22I (MSX1)", 0)
 COMP(198?, hc5,        hc7,      0, hc5,        msxjp,    driver_device, 0, "Victor", "HC-5 (MSX1)", 0)
 COMP(198?, hc6,        hc7,      0, hc6,        msxjp,    driver_device, 0, "Victor", "HC-6 (MSX1)", 0)
@@ -8390,10 +8409,10 @@ COMP(1985, cpc330k,    0,        0, cpc330k,    msx2kr,   driver_device, 0, "Dae
 COMP(1988, cpc400,     0,        0, cpc400,     msx2kr,   driver_device, 0, "Daewoo", "X-II CPC-400 (Korea) (MSX2)", 0)
 COMP(1988, cpc400s,    0,        0, cpc400s,    msx2kr,   driver_device, 0, "Daewoo", "X-II CPC-400S (Korea) (MSX2)", 0)
 COMP(1990, cpc61,      0,        0, cpc61,      msx2kr,   driver_device, 0, "Daewoo", "Zemmix CPC-61 (Korea) (MSX2)", 0)
-COMP(1991, cpg120,     0,        0, cpg120,     msx2kr,   driver_device, 0, "Daewoo", "Zemmix CPG-120 Normal (Korea) (MSX2)", GAME_NOT_WORKING) // v9958 not added
+COMP(1991, cpg120,     0,        0, cpg120,     msx2kr,   driver_device, 0, "Daewoo", "Zemmix CPG-120 Normal (Korea) (MSX2)", MACHINE_NOT_WORKING) // v9958 not added
 COMP(198?, fpc900,     0,        0, fpc900,     msx2,     driver_device, 0, "Fenner", "FPC-900 (MSX2)", 0)
 COMP(1986, expert20,   0,        0, expert20,   msx2,     driver_device, 0, "Gradiente", "Expert 2.0 (Brazil) (MSX2)", 0)
-COMP(198?, mbh70,      0,        0, mbh70,      msx2jp,   driver_device, 0, "Hitachi", "MB-H70 (MSX2)", GAME_NOT_WORKING) // Firmware not working
+COMP(198?, mbh70,      0,        0, mbh70,      msx2jp,   driver_device, 0, "Hitachi", "MB-H70 (MSX2)", MACHINE_NOT_WORKING) // Firmware not working
 COMP(1987, kmc5000,    0,        0, kmc5000,    msx2jp,   driver_device, 0, "Kawai", "KMC-5000 (MSX2)", 0)
 COMP(1985, mlg1,       0,        0, mlg1,       msx2,     driver_device, 0, "Mitsubishi", "ML-G1 (MSX2)", 0)
 COMP(198?, mlg3,       0,        0, mlg3,       msx2,     driver_device, 0, "Mitsubishi", "ML-G3 (MSX2)", 0)
@@ -8413,7 +8432,7 @@ COMP(1987, fsa1fm,     0,        0, fsa1fm,     msx2jp,   driver_device, 0, "Pan
 COMP(1986, nms8220,    nms8220a, 0, nms8220,    msx2,     driver_device, 0, "Philips", "NMS-8220 (12-jun-1986) (MSX2)", 0)
 COMP(1986, nms8220a,   0,        0, nms8220a,   msx2,     driver_device, 0, "Philips", "NMS-8220 (13-aug-1986) (MSX2)", 0)
 COMP(1986, vg8230,     0,        0, vg8230,     msx2,     driver_device, 0, "Philips", "VG-8230 (MSX2)", 0)
-COMP(19??, vg8230j,    vg8230,   0, vg8230j,    msx2jp,   driver_device, 0, "Philips", "VG-8230J (MSX2)", GAME_NOT_WORKING) // Screen flashes a few times before going into basic
+COMP(19??, vg8230j,    vg8230,   0, vg8230j,    msx2jp,   driver_device, 0, "Philips", "VG-8230J (MSX2)", MACHINE_NOT_WORKING) // Screen flashes a few times before going into basic
 COMP(1986, vg8235,     0,        0, vg8235,     msx2,     driver_device, 0, "Philips", "VG-8235 (MSX2)", 0)
 COMP(1986, vg8235f,    vg8235,   0, vg8235f,    msx2,     driver_device, 0, "Philips", "VG-8235F (MSX2)", 0)
 COMP(1986, vg8240,     0,        0, vg8240,     msx2,     driver_device, 0, "Philips", "VG-8240 (MSX2)", 0)
@@ -8424,24 +8443,24 @@ COMP(1986, nms8250f,   nms8255,  0, nms8250f,   msx2,     driver_device, 0, "Phi
 COMP(19??, nms8250j,   nms8255,  0, nms8250j,   msx2jp,   driver_device, 0, "Philips", "NMS-8250J (MSX2)", 0)
 COMP(1986, nms8255,    0,        0, nms8255,    msx2,     driver_device, 0, "Philips", "NMS-8255 (MSX2)", 0)
 COMP(1986, nms8255f,   nms8255,  0, nms8255f,   msx2,     driver_device, 0, "Philips", "NMS-8255F (MSX2)", 0) // French keyboard
-COMP(1986, nms8260,    0,        0, nms8260,    msx2,     driver_device, 0, "Philips", "NMS-8260 (Prototype) (MSX2)", GAME_NOT_WORKING)
+COMP(1986, nms8260,    0,        0, nms8260,    msx2,     driver_device, 0, "Philips", "NMS-8260 (Prototype) (MSX2)", MACHINE_NOT_WORKING)
 COMP(1986, nms8280,    0,        0, nms8280,    msx2,     driver_device, 0, "Philips", "NMS-8280 (MSX2)", 0)
 COMP(1986, nms8280f,   nms8280,  0, nms8280f,   msx2,     driver_device, 0, "Philips", "NMS-8280F (MSX2)", 0) // French keyboard
 COMP(1986, nms8280g,   nms8280,  0, nms8280g,   msx2,     driver_device, 0, "Philips", "NMS-8280G (MSX2)", 0)
-COMP(19??, mpc2300,    0,        0, mpc2300,    msx2,     driver_device, 0, "Sanyo", "MPC-2300 (MSX2)", GAME_NOT_WORKING) // Keyboard responds differently
-COMP(198?, mpc2500f,   0,        0, mpc2500f,   msx2,     driver_device, 0, "Sanyo", "MPC-2500FD (MSX2)", GAME_NOT_WORKING) // Russian keyboard?
+COMP(19??, mpc2300,    0,        0, mpc2300,    msx2,     driver_device, 0, "Sanyo", "MPC-2300 (MSX2)", MACHINE_NOT_WORKING) // Keyboard responds differently
+COMP(198?, mpc2500f,   0,        0, mpc2500f,   msx2,     driver_device, 0, "Sanyo", "MPC-2500FD (MSX2)", MACHINE_NOT_WORKING) // Russian keyboard?
 COMP(19??, mpc25fd,    0,        0, mpc25fd,    msx2,     driver_device, 0, "Sanyo", "Wavy MPC-25FD (MSX2)", 0)
-COMP(198?, mpc27,      0,        0, mpc27,      msx2jp,   driver_device, 0, "Sanyo", "Wavy MPC-27 (MSX2)", GAME_NOT_WORKING) // Light pen not emulated
+COMP(198?, mpc27,      0,        0, mpc27,      msx2jp,   driver_device, 0, "Sanyo", "Wavy MPC-27 (MSX2)", MACHINE_NOT_WORKING) // Light pen not emulated
 COMP(1988, phc23,      0,        0, phc23,      msx2jp,   driver_device, 0, "Sanyo", "Wavy PHC-23 (Japan) (MSX2)", 0)
 COMP(198?, phc55fd2,   0,        0, phc55fd2,   msx2jp,   driver_device, 0, "Sanyo", "Wavy PHC-55FD2 (MSX2)", 0)
-COMP(198?, phc77,      0,        0, phc77,      msx2jp,   driver_device, 0, "Sanyo", "Wavy PHC-77 (MSX2)", GAME_NOT_WORKING) // Firmware not emulated
-COMP(1986, hbf1,       0,        0, hbf1,       msx2jp,   driver_device, 0, "Sony", "HB-F1 (Japan) (MSX2)", GAME_NOT_WORKING ) // Screen stays a single color after a while
-COMP(1987, hbf12,      0,        0, hbf12,      msx2jp,   driver_device, 0, "Sony", "HB-F1II (Japan) (MSX2)", GAME_NOT_WORKING ) // Screen stays a single color after a while
+COMP(198?, phc77,      0,        0, phc77,      msx2jp,   driver_device, 0, "Sanyo", "Wavy PHC-77 (MSX2)", MACHINE_NOT_WORKING) // Firmware not emulated
+COMP(1986, hbf1,       0,        0, hbf1,       msx2jp,   driver_device, 0, "Sony", "HB-F1 (Japan) (MSX2)", MACHINE_NOT_WORKING ) // Screen stays a single color after a while
+COMP(1987, hbf12,      0,        0, hbf12,      msx2jp,   driver_device, 0, "Sony", "HB-F1II (Japan) (MSX2)", MACHINE_NOT_WORKING ) // Screen stays a single color after a while
 COMP(1987, hbf1xd,     0,        0, hbf1xd,     msx2jp,   driver_device, 0, "Sony", "HB-F1XD (Japan) (MSX2)", 0)
 COMP(1988, hbf1xdm2,   0,        0, hbf1xdm2,   msx2jp,   driver_device, 0, "Sony", "HB-F1XDMK2 (Japan) (MSX2)", 0)
 COMP(19??, hbf5,       0,        0, hbf5,       msx2,     driver_device, 0, "Sony", "HB-F5 (MSX2)", 0)
 COMP(1985, hbf9p,      0,        0, hbf9p,      msx2,     driver_device, 0, "Sony", "HB-F9P (MSX2)", 0)
-COMP(19??, hbf9pr,     hbf9p,    0, hbf9pr,     msx2,     driver_device, 0, "Sony", "HB-F9P Russion (MSX2)", GAME_NOT_WORKING) // Keyboard responds differently
+COMP(19??, hbf9pr,     hbf9p,    0, hbf9pr,     msx2,     driver_device, 0, "Sony", "HB-F9P Russion (MSX2)", MACHINE_NOT_WORKING) // Keyboard responds differently
 COMP(1985, hbf9s,      hbf9p,    0, hbf9s,      msx2,     driver_device, 0, "Sony", "HB-F9S (MSX2)", 0)
 COMP(1986, hbf500,     hbf500p,  0, hbf500,     msx2jp,   driver_device, 0, "Sony", "HB-F500 (Japan) (MSX2)", 0)
 COMP(198?, hbf500f,    hbf500p,  0, hbf500f,    msx2,     driver_device, 0, "Sony", "HB-F500F (MSX2)", 0) // French keyboard?
@@ -8465,25 +8484,25 @@ COMP(1985, hx33,       0,        0, hx33,       msx2jp,   driver_device, 0, "Tos
 COMP(1985, hx34,       hx34i,    0, hx34,       msx2jp,   driver_device, 0, "Toshiba", "HX-34 (MSX2)", 0)
 COMP(1985, hx34i,      0,        0, hx34i,      msx,      driver_device, 0, "Toshiba", "HX-34I (MSX2)", 0)
 COMP(1985, fstm1,      0,        0, fstm1,      msx,      driver_device, 0, "Toshiba", "FS-TM1 (MSX2)", 0)
-COMP(198?, victhc90,   victhc95, 0, victhc90,   msxjp,    driver_device, 0, "Victor", "HC-90 (MSX2)", GAME_NOT_WORKING) // 2nd cpu/turbo not emulated, firmware won't start
-COMP(1986, victhc95,   0,        0, victhc95,   msxjp,    driver_device, 0, "Victor", "HC-95 (MSX2)", GAME_NOT_WORKING) // 2nd cpu/turbo not emulated, firmware won't start
-COMP(1986, victhc95a,  victhc95, 0, victhc95a,  msxjp,    driver_device, 0, "Victor", "HC-95A (MSX2)", GAME_NOT_WORKING) // 2nd cpu/turbo not emulated, firmware won't start
+COMP(198?, victhc90,   victhc95, 0, victhc90,   msxjp,    driver_device, 0, "Victor", "HC-90 (MSX2)", MACHINE_NOT_WORKING) // 2nd cpu/turbo not emulated, firmware won't start
+COMP(1986, victhc95,   0,        0, victhc95,   msxjp,    driver_device, 0, "Victor", "HC-95 (MSX2)", MACHINE_NOT_WORKING) // 2nd cpu/turbo not emulated, firmware won't start
+COMP(1986, victhc95a,  victhc95, 0, victhc95a,  msxjp,    driver_device, 0, "Victor", "HC-95A (MSX2)", MACHINE_NOT_WORKING) // 2nd cpu/turbo not emulated, firmware won't start
 COMP(1986, cx7m,       cx7m128,  0, cx7m,       msx2,     driver_device, 0, "Yamaha", "CX7M (MSX2)", 0)
 COMP(1986, cx7m128,    0,        0, cx7m128,    msx2,     driver_device, 0, "Yamaha", "CX7M/128 (MSX2)", 0)
-COMP(198?, y503iiir,   0,        0, y503iiir,   msx2,     driver_device, 0, "Yamaha", "YIS-503 III R (Russian) (MSX2)", GAME_NOT_WORKING) // Russian keyboard, floppy support broken
-COMP(198?, y503iiire,  y503iiir, 0, y503iiire,  msx2,     driver_device, 0, "Yamaha", "YIS-503 III R (Estonian) (MSX2)", GAME_NOT_WORKING) // Russian/Estonian keyboard, floppy support broken
+COMP(198?, y503iiir,   0,        0, y503iiir,   msx2,     driver_device, 0, "Yamaha", "YIS-503 III R (Russian) (MSX2)", MACHINE_NOT_WORKING) // Russian keyboard, floppy support broken
+COMP(198?, y503iiire,  y503iiir, 0, y503iiire,  msx2,     driver_device, 0, "Yamaha", "YIS-503 III R (Estonian) (MSX2)", MACHINE_NOT_WORKING) // Russian/Estonian keyboard, floppy support broken
 COMP(1985, yis60464,   yis604,   0, yis60464,   msx2jp,   driver_device, 0, "Yamaha", "YIS604 (64KB) (MSX2)", 0)
 COMP(1985, yis604,     0,        0, yis604,     msx2jp,   driver_device, 0, "Yamaha", "YIS604 (128KB) (MSX2)", 0)
-COMP(198?, y805128,    y805256,  0, y805128,    msx2jp,   driver_device, 0, "Yamaha", "YIS805/128 (Russian) (MSX2)", GAME_NOT_WORKING) // Floppy support broken
-COMP(198?, y805128r2,  y805256,  0, y805128r2,  msx2jp,   driver_device, 0, "Yamaha", "YIS805R2/128 (Russian) (MSX2)", GAME_NOT_WORKING) // Floppy support broken
-COMP(198?, y805128r2e, y805256,  0, y805128r2e, msx2jp,   driver_device, 0, "Yamaha", "YIS805R2/128 (Estonian) (MSX2)", GAME_NOT_WORKING) // Floppy support broken
-COMP(198?, y805256,    0,        0, y805256,    msx2jp,   driver_device, 0, "Yamaha", "YIS805/256 (Russian) (MSX2)", GAME_NOT_WORKING) // Floppy support broken
+COMP(198?, y805128,    y805256,  0, y805128,    msx2jp,   driver_device, 0, "Yamaha", "YIS805/128 (Russian) (MSX2)", MACHINE_NOT_WORKING) // Floppy support broken
+COMP(198?, y805128r2,  y805256,  0, y805128r2,  msx2jp,   driver_device, 0, "Yamaha", "YIS805R2/128 (Russian) (MSX2)", MACHINE_NOT_WORKING) // Floppy support broken
+COMP(198?, y805128r2e, y805256,  0, y805128r2e, msx2jp,   driver_device, 0, "Yamaha", "YIS805R2/128 (Estonian) (MSX2)", MACHINE_NOT_WORKING) // Floppy support broken
+COMP(198?, y805256,    0,        0, y805256,    msx2jp,   driver_device, 0, "Yamaha", "YIS805/256 (Russian) (MSX2)", MACHINE_NOT_WORKING) // Floppy support broken
 
 /* MSX2+ */
-COMP(19??, expert3i,   0,        0, expert3i,   msx2,     driver_device, 0, "Ciel", "Expert 3 IDE (MSX2+)", GAME_NOT_WORKING ) // Some hardware not emulated
-COMP(1996, expert3t,   0,        0, expert3t,   msx2,     driver_device, 0, "Ciel", "Expert 3 Turbo (MSX2+)", GAME_NOT_WORKING ) // Some hardware not emulated
-COMP(19??, expertac,   0,        0, expertac,   msx2,     driver_device, 0, "Gradiente", "Expert AC88+ (MSX2+)", GAME_NOT_WORKING ) // Some hardware not emulated
-COMP(19??, expertdx,   0,        0, expertdx,   msx2,     driver_device, 0, "Gradiente", "Expert DDX+ (MSX2+)", GAME_NOT_WORKING ) // Some hardware not emulated
+COMP(19??, expert3i,   0,        0, expert3i,   msx2,     driver_device, 0, "Ciel", "Expert 3 IDE (MSX2+)", MACHINE_NOT_WORKING ) // Some hardware not emulated
+COMP(1996, expert3t,   0,        0, expert3t,   msx2,     driver_device, 0, "Ciel", "Expert 3 Turbo (MSX2+)", MACHINE_NOT_WORKING ) // Some hardware not emulated
+COMP(19??, expertac,   0,        0, expertac,   msx2,     driver_device, 0, "Gradiente", "Expert AC88+ (MSX2+)", MACHINE_NOT_WORKING ) // Some hardware not emulated
+COMP(19??, expertdx,   0,        0, expertdx,   msx2,     driver_device, 0, "Gradiente", "Expert DDX+ (MSX2+)", MACHINE_NOT_WORKING ) // Some hardware not emulated
 COMP(1988, fsa1fx,     0,        0, fsa1fx,     msx2jp,   driver_device, 0, "Panasonic / Matsushita", "FS-A1FX (Japan) (MSX2+)", 0 )
 COMP(1988, fsa1wx,     fsa1wxa,  0, fsa1wx,     msx2jp,   driver_device, 0, "Panasonic / Matsushita", "FS-A1WX / 1st released version (Japan) (MSX2+)", 0 )
 COMP(1988, fsa1wxa,    0,        0, fsa1wxa,    msx2jp,   driver_device, 0, "Panasonic / Matsushita", "FS-A1WX / 2nd released version (Japan) (MSX2+)", 0 )
@@ -8497,5 +8516,5 @@ COMP(19??, hbf9sp,     0,        0, hbf9sp,     msx2jp,   driver_device, 0, "Son
 
 /* MSX Turbo-R */
 /* Temporary placeholders, Turbo-R hardware is not supported yet */
-COMP(19??, fsa1gt,     0,        0, fsa1gt,     msx2jp,   driver_device, 0, "Panasonic", "FS-A1GT (MSX Turbo-R)", GAME_NOT_WORKING)
-COMP(19??, fsa1st,     0,        0, fsa1st,     msx2jp,   driver_device, 0, "Panasonic", "FS-A1ST (MSX Turbo-R)", GAME_NOT_WORKING)
+COMP(19??, fsa1gt,     0,        0, fsa1gt,     msx2jp,   driver_device, 0, "Panasonic", "FS-A1GT (MSX Turbo-R)", MACHINE_NOT_WORKING)
+COMP(19??, fsa1st,     0,        0, fsa1st,     msx2jp,   driver_device, 0, "Panasonic", "FS-A1ST (MSX Turbo-R)", MACHINE_NOT_WORKING)

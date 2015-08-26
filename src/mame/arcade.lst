@@ -333,9 +333,10 @@ cavelon         // (c) 1983 Jetsoft
 sfx             // (c) 1983 Nichibutsu
 skelagon        // (c) 1983 Nichibutsu USA
 monsterz        // (c) 1982 Nihon (Arcade TV Game List - P.102, Left, 20 from top)
-mimonscr        // (c) 1982 Universal Video Games (US Copyright Office info - http://cocatalog.loc.gov)
-mimonkey        // (c) 1982 bootleg
+mimonkey        // (c) 1982 Universal Video Games (US Copyright Office info - http://cocatalog.loc.gov)
 mimonsco        // (c) 1982 bootleg
+mimonscr        // (c) 1982 bootleg
+mimonscra       // (c) 1982 bootleg
 scobra          // GX316 (c) 1981 Konami
 scobras         // GX316 (c) 1981 Stern
 scobrase        // GX316 (c) 1981 Sega
@@ -2707,6 +2708,7 @@ dogyuun         // TP-022 (c) 1992 Toaplan
 dogyuuna        // TP-022 (c) 1992 Toaplan
 dogyuunt        // TP-022 (c) 1992 Toaplan
 kbash           // TP-023 (c) 1993 Toaplan
+kbashk          // TP-023 (c) 1993 Toaplan
 kbash2          // bootleg
 truxton2        // TP-024 (c) 1992 Toaplan
 pipibibs        // TP-025
@@ -3005,6 +3007,7 @@ gunsmoke        // 11/1985 (c) 1985 (World)
 gunsmokeb
 gunsmokeu       // 11/1985 (c) 1985 + Romstar (US)
 gunsmokeua      // 11/1985 (c) 1985 (US)
+gunsmokeub      // 11/1985 (c) 1985 (US)
 gunsmokej       // 11/1985 (c) 1985 (Japan)
 sectionz        // 12/1985 (c) 1985
 sectionza       // 12/1985 (c) 1985
@@ -3037,6 +3040,7 @@ whizz           // (c) 1989 Philko (NOT A CAPCOM GAME but runs on modified Sidea
 avengers        //  2/1987 (c) 1987 (US)
 avengers2       //  2/1987 (c) 1987 (US)
 buraiken        //  2/1987 (c) 1987 (Japan)
+buraikenb       //  2/1987 (c) 1987 (Japan)
 bionicc         //  3/1987 (c) 1987 (Euro)
 bionicc1        //  3/1987 (c) 1987 (US)
 bionicc2        //  3/1987 (c) 1987 (US)
@@ -3510,6 +3514,7 @@ mvscb           // 23/01/1998 (c) 1998 (Brazil)
 sfa3            // 04/09/1998 (c) 1998 (USA)
 sfa3u           // 04/09/1998 (c) 1998 (USA)
 sfa3ur1         // 29/06/1998 (c) 1998 (USA)
+sfa3us          // 16/06/1998 (c) 1998 (USA)
 sfa3h           // 04/09/1998 (c) 1998 (Hispanic)
 sfa3hr1         // 29/06/1998 (c) 1998 (Hispanic)
 sfa3b           // 29/06/1998 (c) 1998 (Brazil)
@@ -3840,7 +3845,7 @@ soulclbrwb      // 1998.?? Soul Calibur (World, SOC14/VER.B)
 soulclbrub      // 1998.?? Soul Calibur (US, SOC13/VER.B)
 soulclbrjb      // 1998.?? Soul Calibur (Japan, SOC11/VER.B)
 soulclbrja      // 1998.?? Soul Calibur (Japan, SOC11/VER.A2)
-				// 1998.07 Techno Drive
+technodr        // 1998.07 Techno Drive
 mdhorse         // 1998.11 Derby Quiz My Dream Horse (Japan, MDH1/VER.A2)
 				// 1998.12 Attack Pla Rail
 tenkomor        // 1998.?? Tenkomori Shooting (Asia, TKM2/VER.A1)
@@ -6141,10 +6146,12 @@ ragtime         // MBD (c) 1992 (Japan, v1.5)
 ragtimea        // MBD (c) 1992 (Japan, v1.3)
 dblewing        // MBE (c) 1993 Mitchell
 fghthist        // MBF (c) 1993 Data East Corporation (World) DE-0380-2 PCB
-fghthistu       // MBF (c) 1993 Data East Corporation (US)    DE-0395-1 PCB
+fghthista       // MBF (c) 1993 Data East Corporation (World) DE-0380-2 PCB
+fghthistu       // MBF (c) 1993 Data East Corporation (US)    DE-0396-0 PCB
 fghthistua      // MBF (c) 1993 Data East Corporation (US)    DE-0395-1 PCB
+fghthistub      // MBF (c) 1993 Data East Corporation (US)    DE-0395-1 PCB
+fghthistuc      // MBF (c) 1993 Data East Corporation (US)    DE-0380-2 PCB
 fghthistj       // MBF (c) 1993 Data East Corporation (Japan) DE-0395-1 PCB
-fghthistub      // MBF (c) 1993 Data East Corporation (US)    DE-0380-2 PCB
 fghthistja      // MBF (c) 1993 Data East Corporation (Japan) DE-0380-2 PCB
 fghthistjb      // MBF (c) 1993 Data East Corporation (Japan) DE-0380-1 PCB
 hvysmsh         // MBG (c) 1993 Data East Corporation (World)
@@ -8295,6 +8302,7 @@ sf2049          // (c) 1999 Atari Games
 sf2049se        // (c) 1999 Atari Games
 sf2049te        // (c) 1999 Atari Games
 warfa           // (c) 1999 Atari Games
+warfaa          // (c) 1999 Atari Games
 nbashowt        // (c) 1998 Midway Games
 nbanfl          // (c) 1999 Midway Games
 nbagold     // (c) 2000 Midway Games
@@ -8719,6 +8727,7 @@ jitsupro        // (c) 1989 (Japan)
 plusalph        // (c) 1989
 stdragon        // (c) 1989
 stdragona       // (c) 1989
+stdragonb       // bootleg
 rodland         // (c) 1990
 rodlandj        // (c) 1990 (Japan)
 rittam      // Prototype or hack of Rod-Land
@@ -8727,7 +8736,8 @@ avspirit        // (c) 1991
 phantasm        // (c) 1991 (Japan)
 monkelf         // bootleg
 edf             // (c) 1991
-edfu            // (c) 1991
+edfa            // (c) 1991
+edfu            // (c) 1991 (North America)
 edfbl           // (c) 1991
 64street        // (c) 1991
 64streetj       // (c) 1991 (Japan)
@@ -8977,6 +8987,7 @@ surfplnt        // (c) 1997 - Ref 971223
 surfplnt40      // (c) 1997 - Ref 970514
 radikalb        // (c) 1998 - Ref ???
 radikalba       // (c) 1998 - Ref ???
+rollext         // (c) 1999 - Ref 991015
 
 // SH-4 hardware
 atvtrack        // (c) 2002 - Ref 020419
@@ -9031,6 +9042,7 @@ galpani3hk      // (c) 1995 Kaneko (Hong Kong)
 berlwall        // (c) 1991 Kaneko
 berlwallt       // (c) 1991 Kaneko
 berlwallk       // (c) 1991 Kaneko (Korea, Inter license)
+packbang        // (c) 1994 Kaneko (prototype)
 mgcrystl        // (c) 1991 Kaneko (World)
 mgcrystlo       // (c) 1991 Kaneko (World)
 mgcrystlj       // (c) 1991 Kaneko + distributed by Atlus (Japan)
@@ -9523,6 +9535,7 @@ puzzlet         // (c) 2000 Yunizu Corporation (Japan)
 spcforce        // (c) 1980 Venture Line
 spcforc2        // bootleg
 meteor          // (c) 1981 Venture Line
+meteors         // (c) 1981 Amusement World
 looping         // (c) 1982 Video Games GmbH
 loopingv        // (c) 1982 Video Games GmbH (Venture Line license)
 loopingva       // (c) 1982 Video Games GmbH (Venture Line license)
@@ -9651,104 +9664,106 @@ mjsenka         // (c) 1986 Visco
 mjyarou         // (c) 1986 Visco / Video System
 mjclub          // (c) 1986 Xex
 daisyari        // (c) 1989 Best System
-suzume          //  ??  (c) 1986 Dyna Electronics
+ippatsu         //  01? (c) 1986 Dyna Electronics
 hnayayoi        // "02" (c) 1987 Dyna Electronics
 dondenmj        // "03" (c) 1986 Dyna Electronics
-ippatsu         //  ??  (c) 1986 Dyna Electronics
+suzume          //  04? (c) 1986 Dyna Electronics
+makaijan        // "05" (c) 1987 Dynax
 hnfubuki        // "06" (c) 1987 Dynax
 mjdiplob        // "07" (c) 1987 Dynax
 untoucha        // "08" (c) 1987 Dynax
 tontonb         // "09" (c) 1987 Dynax
-makaijan        //  ??  (c) 1987 Dynax
+mjapinky        // "14" (c) 1988 Dynax
 hanamai         // "16" (c) 1988 Dynax
 majs101b        // "17" (c) [1988] Dynax
-janyuki         // "??" (c) 1988 Dynax
-mjapinky        // 1988 Dynax
-mjdejavu        // 1989 Dynax
-mjdejav2        // 1989 Dynax
+janyuki         //  ??  (c) 1988 Dynax
 hnkochou        // "20" (c) 1989 Dynax
+mjdejavu        // "21" (c) 1989 Dynax
+mjdejav2        // "21" (c) 1989 Dynax
 mjderngr        // "22" (c) 1989 Dynax
 hnoridur        // "23" (c) 1989 Dynax
 drgpunch        // "24" (c) 1989 Dynax
-mjfriday        // "26" (c) [1989] Dynax
+mjfriday        // "26" (c) 1989 Dynax
 jantouki        // "27" Jantouki 1989 Dynax
-gekisha         // "28" 1989 Dynax
-mjifb           // "29" 1990 Dynax
-mjifb2          // "29" 1990 Dynax
-mjifb3          // "29" 1990 Dynax
-mjvegas         // 1991 Dynax
-mjvegasa        // 1991 Dynax
-cafetime        // 1992 Dynax
-cafedoll        // 1993 Dynax
-janptr96        // 1996 Dynax
-janptrsp        // 1997 Dynax
+gekisha         // "28" (c) 1989 Dynax
+mjifb           // "29" (c) 1990 Dynax
+mjifb2          // "29" (c) 1990 Dynax
+mjifb3          // "29" (c) 1990 Dynax
 sprtmtch        // "31" (c) 1989 Dynax + Fabtek license
-maya            // (c) 1994 Promat
-mayaa           // (c) 1994 Promat
-mayab           // (c) 1994 Promat
-mayac           // (c) 1994 Promat
-inca            // (c) 199? ????
-blktouch        // (c) Yang Gi Co Ltd.
 mcnpshnt        // "33" Mahjong Campus Hunting 1990 Dynax
 7jigen          // "37" 7jigen no Youseitachi 1990 Dynax
 mjembase        // "38" Mahjong Electromagnetic Base 1989 Dynax
+majxtal7        // "40" (c) 1990 Dynax
 neruton         // "45" Mahjong Neruton Haikujiradan 1990 Dynax
 nerutona        // "45" Mahjong Neruton Haikujiradan 1990 Dynax
-mjcomv1         // 1991 Dynax
-shpeng          // (c) 1995 WSAC Systems
-tenkai          // 1991 Dynax
-tenkai2b        // 1991 Dynax
-tenkaibb        // 1991 Dynax
-tenkaicb        // 1991 Dynax
-tenkaie         // 1991 Dynax
-ougonpai        // 1991 Dynax
-ougonpaib       // bootleg
-htengoku        // 1992 Dynax
-cdracula        // 1994 Y.S.E.
-mjreach         // 1994 Dynax
+hjingi          //  ?? (c) 1990 Dynax
+hjingia         //  ?? (c) 1990 Dynax
+tenkai          // (c) 1991 Dynax
+tenkai2b        // (c) 1991 bootleg
+tenkaibb        // (c) 1991 bootleg
+tenkaicb        // (c) 1991 bootleg
+tenkaie         // (c) 1991 Dynax
+mjvegas         // "50" 1991 Dynax
+mjvegasa        // "50" 1991 Dynax
 mjdialq2        // "52" (c) 1991 Dynax
 mjdialq2a       // "52" (c) 1991 Dynax
 yarunara        // "55" Mahjong Yarunara 1991 Dynax
-mjangels        // "61" Mahjong Angels 1991 Dynax
+hanayara        // "55" (c) 1991 Dynax
+mjcomv1         // "61" (c) 1991 Dynax
+mjangels        // "612" Mahjong Angels 1991 Dynax
+ougonpai        // "62" (c) 1991 Dynax
+ougonpaib       // "62" (c) 1991 bootleg
+cafetime        // "63" (c) 1992 Dynax
 quiztvqq        // "64" Quiz TV Gassyuukoku Q&Q 1992 Dynax
-mmpanic         // "70" 1992 Nakanihon/Taito
+htengoku        // "65" (c) 1992 Dynax
+mmpanic         // "70" (c) 1992 Nakanihon/Taito
+mjmyornt        // "71" (c) 1992 Dynax
+mjmyorn2        // "71?" (c) 1993 Dynax
+mjelctrn        //  ??  Mahjong Electron Base parts 2 & 4
+mjelct3         //  ??  Mahjong Electron Base parts 2 & 3
+mjelct3a        //  ??  Mahjong Electron Base parts 2 & 3
+mjelctrb        //  ??  (c) 1993 bootleg Mahjong Electron Base parts 2 & 4
 quizchq         // "73" (c) 1993 Nakanihon
 quizchql        // "73" (c) 1993 Laxan
 funkyfig        // "74" (c) 1993 Nakanihon + East Technology
-funkyfiga       //
-animaljr        // "75" 1993 Nakanihon/Taito (USA)
-animaljrs       // "75" 1993 Nakanihon/Taito (Spanish version)
-animaljrj       // "75" 1993 Nakanihon/Taito (Japan)
-hginga          //      1994 Dynax
-mjmyster        // "?7" 1994 Dynax
-mjmywrld        // "?7" 1994 Dynax
-mjmyornt        //      1994 Dynax
-mjmyuniv        //      1994 Dynax
+funkyfiga       // "74" (c) 1993 Nakanihon + East Technology
+animaljr        // "75" (c) 1993 Nakanihon/Taito (USA)
+animaljrs       // "75" (c) 1993 Nakanihon/Taito (Spanish version)
+animaljrj       // "75" (c) 1993 Nakanihon/Taito (Japan)
+cafedoll        // "76" (c) 1993 Dynax
+mjmyster        // "77" (c) 1994 Dynax
+mjmywrld        // "77" (c) 1994 Dynax
 quiz365         // "78" (c) 1994 Nakanihon
 quiz365t        // "78" (c) 1994 Nakanihon (Taiwan)
 rongrong        // "80" (c) 1994 Nakanihon
 rongrongj       // "80" (c) 1994 Nakanihon
 rongrongg       // "80" (c) 1994 Nakanihon
-hgokbang        // "116" (c) 1995 Dynax
-mjtensin        // "100" 1995 Dynax
+hginga          // "81" (c) 1994 Dynax
+mjmyuniv        // "85" (c) 1994 Dynax
+mjreach         // (c) 1994 bootleg
+cdracula        // (c) 1994 Y.S.E.
+mjtensin        // "100" (c) 1995 Dynax
 hparadis        // "101" (c) 1994 Nakanihon
 nettoqc         // "103" (c) 1995 Nakanihon
 ultrchmp        // "104" (c) 1995 Nakanihon
 ultrchmph       // "114" (c) 1995 Nakanihon
-majrjhdx        // "105" 1996 Dynax
+majrjhdx        // "105" (c) 1996 Dynax
 hgokou          // "108" (c) 1995 Dynax (Alba license)
 mjdchuka        // "111" (c) 1995 Nakanihon
 ddenlovj        // "112" (c) 1995 Dynax (Japan)
 ddenlovrk       // "113" (c) 1995 Dynax (Korea)
 ddenlovr        // "113" (c) 1996 Dynax (Hong Kong)
 mjschuka        // "115" (c) 1995 Dynax
+hgokbang        // "116" (c) 1995 Dynax
 mjchuuka        // "121" (c) 1998 Dynax
 ddenlovrb       // bootleg
-mjflove         // "500" 1996 Dynax
-akamaru         // "501" 1996 Dynax
-sryudens        // "502" 1996 Dynax / Face
-hanakanz        // "507" 1996 Dynax
+mjflove         // "500" (c) 1996 Dynax
+akamaru         // "501" (c) 1996 Dynax
+sryudens        // "502" (c) 1996 Dynax / Face
+janptr96        // "503" (c) 1996 Dynax
+hanakanz        // "507" (c) 1996 Dynax
 hkagerou        // "510" Hana Kagerou 1996 Nakanihon
+janptrsp        // "511" (c) 1997 Dynax
 realbrkj        // "523" Billiard Academy Real Break 1998 (Japan)
 dai2kaku        // "522" DaiDaiKakumei (Japan)
 mjreach1        // "526" Mahjong Reach Ippatsu 1998 Nihon System/Dynax
@@ -9770,14 +9785,13 @@ kotbinsp        // "909" 1997 Dynax / Shinwhajin
 pkgnsh          // "505" Pachinko Gindama Shoubu 1998 (Japan)
 pkgnshdx        // "522" Pachinko Gindama Shoubu DX 1998 (Japan)
 
-hjingi          // "???" 1990 Dynax
-hjingia         // "???" 1990 Dynax
-hanayara        // "???"
-mjelctrn        // "???" Mahjong Electron Base parts 2 & 4
-mjelct3         // "???" Mahjong Electron Base parts 2 & 3
-mjelct3a        // "???" Mahjong Electron Base parts 2 & 3
-mjelctrb        // (c) 1993 Dynax Mahjong Electron Base parts  4
-majxtal7        // "???"
+maya            // (c) 1994 Promat
+mayaa           // (c) 1994 Promat
+mayab           // (c) 1994 Promat
+mayac           // (c) 1994 Promat
+inca            // (c) 199? ????
+blktouch        // (c) Yang Gi Co Ltd.
+shpeng          // (c) 1995 WSAC Systems
 
 // Sigma games
 nyny            // (c) 1980 Sigma Ent. Inc.
@@ -9893,6 +9907,7 @@ starzan         // (c) 2000?
 
 // IGS027A Cpu Games
 slqz3           // (c) 1999
+fruitpar        // (c) 200?
 zhongguo        // (c) 2000
 sdwx            // (c) 2002
 sddz            // (c) 200?
@@ -10338,6 +10353,8 @@ ringking2       // (c) 1985 Data East USA
 ringking3       // (c) 1985 Data East USA
 ringkingw       // (c) 1985 Wood Place Inc.
 dlair           // (c) 1983 Cinematronics
+dlair_1         // (c) 1983 Cinematronics
+dlair_2         // (c) 1983 Cinematronics
 dlairf          // (c) 1983 Cinematronics
 dlaire          // (c) 1983 Cinematronics
 dlaird          // (c) 1983 Cinematronics
@@ -10391,9 +10408,9 @@ taxidriv        // [1984 Graphic Techno]
 xyonix          // [1989 Philko]
 gt507uk         // (c) 1986 Grayhound Electronics
 gtsers8         // (c) 1984 Greyhound Electronics
+gtsers8a        // (c) 1984 Greyhound Electronics
 gtsers9         // (c) 1984 Greyhound Electronics
 gtsers10        // (c) 1984 Greyhound Electronics
-gtsers10a       // (c) 1984 Greyhound Electronics
 gtsers11        // (c) 1984 Greyhound Electronics
 gtsers11a       // (c) 1984 Greyhound Electronics
 gtsers12        // (c) 1984 Greyhound Electronics
@@ -10710,6 +10727,8 @@ riviera         // (c) 1987 Merit
 rivieraa        // (c) 1986 Merit
 rivierab        // (c) 1986 Merit
 americna        // (c) 1987 Merit
+americnaa       // (c) 1987 Merit
+meritjp         // (c) 1987 Merit
 dodgecty        // (c) 1988 Merit
 dodgectya       // (c) 1986 Merit
 dodgectyb       // (c) 1986 Merit
@@ -11334,6 +11353,7 @@ pepp0540        // (c) 1987 IGT - International Game Technology
 pepp0542        // (c) 1987 IGT - International Game Technology
 pepp0542a       // (c) 1987 IGT - International Game Technology
 pepp0550        // (c) 1987 IGT - International Game Technology
+pepp0555        // (c) 1987 IGT - International Game Technology
 pepp0568        // (c) 1987 IGT - International Game Technology
 pepp0585        // (c) 1987 IGT - International Game Technology
 pepp0713        // (c) 1987 IGT - International Game Technology
@@ -11375,6 +11395,7 @@ pebe0014        // (c) 1994 IGT - International Game Technology
 pebe0014a       // (c) 1994 IGT - International Game Technology
 peke0017        // (c) 1994 IGT - International Game Technology
 peke1012        // (c) 1994 IGT - International Game Technology
+peke1012a       // (c) 1994 IGT - International Game Technology
 peke1013        // (c) 1994 IGT - International Game Technology
 peps0014        // (c) 1996 IGT - International Game Technology
 peps0021        // (c) 1996 IGT - International Game Technology
@@ -11781,6 +11802,7 @@ showhand        // (c) 2000  Astro Corp.
 showhanc        // (c) 2000  Astro Corp.
 skilldrp        // (c) 2002  Astro Corp.
 speeddrp        // (c) 2003  Astro Corp.
+dinodino        // (c) 2003? Astro Corp.
 astoneag        // (c) 2004? Astro Corp.
 winbingo        // (c) 2005? Astro Corp.
 winbingoa       // (c) 2005? Astro Corp.
@@ -12249,7 +12271,7 @@ ssjkrpkr        // (c) 1982 Southern Systems & Assembly, Ltd.
 fastdrwp        // Stern?
 dphlunka        // SMS Manufacturing Corp?
 dphlunkb        // SMS Manufacturing Corp?
-//pkii_dm         // Unknown Poker PKII/DM (misplaced roms)
+pkii_dm         // Unknown Poker PKII/DM
 
 // Sanki Denshi Kogyo
 pachifev        // (c) 1983?
@@ -32160,3 +32182,7 @@ amusco     // 1987, Amusco.
 cocoloco   // 198?, Petaco S.A.
 
 alinvade
+
+joystand   // 1997 Yuvo
+chexx83    // 1983 ICE
+faceoffh   // 1983 SoftLogic / Entertainment Enterprises

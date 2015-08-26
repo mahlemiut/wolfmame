@@ -1188,7 +1188,8 @@ ROM_START( vk100 )
 	   X'2 inputs lend credence to this.
 	 *
 	 */
-	ROM_LOAD( "wb8151_573a2.mmi6301.pr3.ic41", 0x0000, 0x0100, CRC(75885a9f) SHA1(c721dad6a69c291dd86dad102ed3a8ddd620ecc4)) // label verified from nigwil's and andy's board
+	ROM_LOAD( "wb8151_573a2.mmi6301.pr3.ic41", 0x0000, 0x0100, CRC(75885a9f) SHA1(c721dad6a69c291dd86dad102ed3a8ddd620ecc4)) // Stamp/silkscreen: "WB8151 // 573A2" (23-573A2), 82S129 equivalent @ E41
+	// label verified from nigwil's and andy's board
 
 	ROM_REGION( 0x100, "vector", ROMREGION_ERASEFF )
 	// WARNING: it is possible that the first two bytes of this prom are bad!
@@ -1261,4 +1262,4 @@ ROM_END
 /* Driver */
 
 /*    YEAR  NAME    PARENT  COMPAT   MACHINE    INPUT    INIT    COMPANY                       FULLNAME       FLAGS */
-COMP( 1980, vk100,  0,      0,       vk100,     vk100, vk100_state,   vk100,  "Digital Equipment Corporation", "VK100 'GIGI'", GAME_NOT_WORKING | GAME_IMPERFECT_SOUND)
+COMP( 1980, vk100,  0,      0,       vk100,     vk100, vk100_state,   vk100,  "Digital Equipment Corporation", "VK100 'GIGI'", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)

@@ -10,8 +10,8 @@
 #ifndef NLD_TRUTHTABLE_H_
 #define NLD_TRUTHTABLE_H_
 
-#include "../nl_base.h"
-#include "../nl_factory.h"
+#include "nl_base.h"
+#include "nl_factory.h"
 
 #define NETLIB_TRUTHTABLE(_name, _nIN, _nOUT, _state)                               \
 	class NETLIB_NAME(_name) : public nld_truthtable_t<_nIN, _nOUT, _state>         \
@@ -157,7 +157,6 @@ public:
 			const int idx = inout.indexof(tmp);
 			if (idx>=0)
 			{
-				//printf("connecting %s %d\n", out[i].cstr(), idx);
 				connect_late(m_Q[i], m_I[idx]);
 				// disable ignore for this inputs altogether.
 				// FIXME: This shouldn't be necessary

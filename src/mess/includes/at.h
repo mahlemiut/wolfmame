@@ -18,10 +18,13 @@
 
 #include "machine/ins8250.h"
 #include "machine/mc146818.h"
+#include "machine/ds128x.h"
 #include "machine/pic8259.h"
 #include "bus/lpci/i82371ab.h"
 #include "bus/lpci/i82371sb.h"
 #include "bus/lpci/i82439tx.h"
+#include "bus/lpci/vt82c505.h"
+#include "machine/vt82c496.h"
 #include "machine/cs8221.h"
 #include "machine/pit8253.h"
 #include "machine/wd7600.h"
@@ -158,10 +161,11 @@ public:
 	DECLARE_DRIVER_INIT(atcga);
 	DECLARE_DRIVER_INIT(atvga);
 	DECLARE_DRIVER_INIT(megapcpla);
+	DECLARE_DRIVER_INIT(atpci);
 	DECLARE_MACHINE_START(at);
 	DECLARE_MACHINE_RESET(at);
 	void pc_set_dma_channel(int channel, int state);
-	void init_at_common();
+	void init_at_common(int xmsbase);
 	UINT32 at_286_a20(bool state);
 };
 

@@ -164,6 +164,7 @@ end
 	includedirs {
 		MAME_DIR .. "src/osd",
 		MAME_DIR .. "src/emu",
+		MAME_DIR .. "src/devices",
 		MAME_DIR .. "src/" .. _target,
 		MAME_DIR .. "src/lib",
 		MAME_DIR .. "src/lib/util",
@@ -234,12 +235,14 @@ if (_OPTIONS["DRIVERS"] == nil) then
 		{ MAME_DIR .. "src/".._target .."/" .. _subtarget ..".lst" ,  GEN_DIR  .. _target .. "/" .. _subtarget .."/drivlist.c",    {  MAME_DIR .. "src/build/makelist.py" }, {"@echo Building driver list...",    PYTHON .. " $(1) $(<) > $(@)" }},
 	}
 end	
+
+if _OPTIONS["FORCE_VERSION_COMPILE"]=="1" then
 	configuration { "gmake" }
 		dependency {
 			{ ".PHONY", ".FORCE", true },
 			{ "$(OBJDIR)/src/version.o", ".FORCE", true },
 		}
-
+end
 	configuration { "mingw*" }
 		custombuildtask {	
 			{ MAME_DIR .. "src/version.c" ,  GEN_DIR  .. "/resource/" .. rctarget .. "vers.rc",    {  MAME_DIR .. "src/build/verinfo.py" }, {"@echo Emitting " .. rctarget .. "vers.rc" .. "...",    PYTHON .. " $(1)  -r -b " .. rctarget .. " $(<) > $(@)" }},

@@ -2121,7 +2121,7 @@ UINT8 apple2e_state::read_floatingbus()
 
 	// machine state switches
 	//
-	Hires    = m_video->m_hires ? 1 : 0;
+	Hires    = (m_video->m_hires && m_video->m_graphics) ? 1 : 0;
 	Mixed    = m_video->m_mix ? 1 : 0;
 	Page2    = m_page2 ? 1 : 0;
 	_80Store = m_80store ? 1 : 0;
@@ -3037,10 +3037,7 @@ static MACHINE_CONFIG_START( apple2e, apple2e_state )
 	MCFG_DEVICE_ADD(A2_VIDEO_TAG, APPLE2_VIDEO, XTAL_14_31818MHz)
 
 	MCFG_SCREEN_ADD("screen", RASTER)
-	MCFG_SCREEN_REFRESH_RATE(60)
-	MCFG_SCREEN_VBLANK_TIME(ATTOSECONDS_IN_USEC(2500)) /* not accurate */
-	MCFG_SCREEN_SIZE(280*2, 262)
-	MCFG_SCREEN_VISIBLE_AREA(0, (280*2)-1,0,192-1)
+	MCFG_SCREEN_RAW_PARAMS(1021800*14, (65*7)*2, 0, (40*7)*2, 262, 0, 192)
 	MCFG_SCREEN_UPDATE_DRIVER(apple2e_state, screen_update)
 	MCFG_SCREEN_PALETTE("palette")
 

@@ -92,6 +92,8 @@
 
 # DRIVERS = src/mame/drivers/1942.c,src/mame/drivers/cops.c
 
+# FORCE_VERSION_COMPILE = 1
+
 -include useroptions.mak
 
 ###########################################################################
@@ -630,6 +632,10 @@ ifdef DRIVERS
 PARAMS += --DRIVERS='$(DRIVERS)'
 endif
 
+ifdef FORCE_VERSION_COMPILE
+PARAMS += --FORCE_VERSION_COMPILE='$(FORCE_VERSION_COMPILE)'
+endif
+
 #-------------------------------------------------
 # All scripts
 #-------------------------------------------------
@@ -712,19 +718,17 @@ CHECK_CLANG      :=
 else
 GCC_VERSION      := $(shell $(subst @,,$(CC)) -dumpversion 2> /dev/null)
 ifneq ($(OS),solaris)
-CLANG_VERSION    := $(shell clang --version  2> /dev/null | head -n 1 | grep '[0-9]\.[0-9]' -o | tail -n 1)
+CLANG_VERSION    := $(shell clang --version  2> /dev/null | head -n 1 | grep -e 'version [0-9]\.[0-9]\(\.[0-9]\)\?' -o | grep -e '[0-9]\.[0-9]\(\.[0-9]\)\?' -o | tail -n 1)
 endif
 PYTHON_AVAILABLE := $(shell $(PYTHON) --version > /dev/null 2>&1 && echo python)
 CHECK_CLANG      := $(shell gcc --version  2> /dev/null | grep 'clang' | head -n 1)
 endif
 
 ifeq ($(TARGETOS),macosx)
-ifneq (,$(findstring 3.,$(CLANG_VERSION)))
 ifeq ($(ARCHITECTURE),_x64)
 ARCHITECTURE := _x64_clang
 else
 ARCHITECTURE := _x86_clang
-endif
 endif
 endif
 

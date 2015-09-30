@@ -465,10 +465,7 @@ void xbox_base_state::debug_generate_irq(int irq, bool active)
 
 void xbox_base_state::vblank_callback(screen_device &screen, bool state)
 {
-	if (nvidia_nv2a->vblank_callback(screen, state))
-		xbox_base_devs.pic8259_1->ir3_w(1); // IRQ 3
-	else
-		xbox_base_devs.pic8259_1->ir3_w(0); // IRQ 3
+	nvidia_nv2a->vblank_callback(screen, state);
 }
 
 UINT32 xbox_base_state::screen_update_callback(screen_device &screen, bitmap_rgb32 &bitmap, const rectangle &cliprect)
@@ -1421,7 +1418,7 @@ ADDRESS_MAP_START(xbox_base_map, AS_PROGRAM, 32, xbox_base_state)
 	AM_RANGE(0xfed00000, 0xfed003ff) AM_READWRITE(usbctrl_r, usbctrl_w)
 	AM_RANGE(0xfe800000, 0xfe85ffff) AM_READWRITE(audio_apu_r, audio_apu_w)
 	AM_RANGE(0xfec00000, 0xfec001ff) AM_READWRITE(audio_ac93_r, audio_ac93_w)
-	AM_RANGE(0xff000000, 0xff07ffff) AM_ROM AM_REGION("bios", 0) AM_MIRROR(0x00f80000)
+	AM_RANGE(0xff000000, 0xff0fffff) AM_ROM AM_REGION("bios", 0) AM_MIRROR(0x00f80000)
 ADDRESS_MAP_END
 
 ADDRESS_MAP_START(xbox_base_map_io, AS_IO, 32, xbox_base_state)
@@ -1460,6 +1457,11 @@ void xbox_base_state::machine_start()
 	if (machine().debug_flags & DEBUG_FLAG_ENABLED)
 		debug_console_register_command(machine(), "xbox", CMDFLAG_NONE, 0, 1, 4, xbox_debug_commands);
 	memset(&ohcist, 0, sizeof(ohcist));
+	// PIC challenge handshake data
+	pic16lc_buffer[0x1c] = 0x0c;
+	pic16lc_buffer[0x1d] = 0x0d;
+	pic16lc_buffer[0x1e] = 0x0e;
+	pic16lc_buffer[0x1f] = 0x0f;
 #ifdef USB_ENABLED
 	ohcist.hc_regs[HcRevision] = 0x10;
 	ohcist.hc_regs[HcFmInterval] = 0x2edf;
@@ -1483,6 +1485,7 @@ void xbox_base_state::machine_start()
 	save_item(NAME(smbusst.rw));
 	save_item(NAME(smbusst.words));
 	save_item(NAME(pic16lc_buffer));
+	nvidia_nv2a->set_interrupt_device(xbox_base_devs.pic8259_1);
 	nvidia_nv2a->start(&m_maincpu->space());
 	nvidia_nv2a->savestate_items();
 }

@@ -282,7 +282,7 @@ VIDEOS["FIXFREQ"] = true
 VIDEOS["H63484"] = true
 --VIDEOS["HD44102"] = true
 --VIDEOS["HD44352"] = true
---VIDEOS["HD44780"] = true
+VIDEOS["HD44780"] = true
 VIDEOS["HD61830"] = true
 VIDEOS["HD63484"] = true
 --VIDEOS["HD66421"] = true
@@ -846,7 +846,7 @@ files {
 	MAME_DIR .. "src/mame/machine/amiga.c",
 	MAME_DIR .. "src/mame/video/amiga.c",
 	MAME_DIR .. "src/mame/video/amigaaga.c",
-	MAME_DIR .. "src/mame/drivers/arcadia.c",
+	MAME_DIR .. "src/mame/drivers/arsystems.c",
 	MAME_DIR .. "src/mame/drivers/cubo.c",
 	MAME_DIR .. "src/mame/drivers/mquake.c",
 	MAME_DIR .. "src/mame/drivers/upscope.c",
@@ -2814,9 +2814,9 @@ files {
 	MAME_DIR .. "src/mame/machine/qix.c",
 	MAME_DIR .. "src/mame/audio/qix.c",
 	MAME_DIR .. "src/mame/video/qix.c",
-	MAME_DIR .. "src/mame/drivers/rainbow.c",
-	MAME_DIR .. "src/mame/machine/rainbow.c",
-	MAME_DIR .. "src/mame/video/rainbow.c",
+	MAME_DIR .. "src/mame/drivers/rbisland.c",
+	MAME_DIR .. "src/mame/machine/rbisland.c",
+	MAME_DIR .. "src/mame/video/rbisland.c",
 	MAME_DIR .. "src/mame/drivers/rastan.c",
 	MAME_DIR .. "src/mame/video/rastan.c",
 	MAME_DIR .. "src/mame/drivers/retofinv.c",
@@ -3212,7 +3212,7 @@ files {
 	MAME_DIR .. "src/mame/drivers/kissproto.c",
 	MAME_DIR .. "src/mame/drivers/ltd.c",
 	MAME_DIR .. "src/mame/drivers/micropin.c",
-	MAME_DIR .. "src/mame/drivers/mephisto.c",
+	MAME_DIR .. "src/mame/drivers/mephistp.c",
 	MAME_DIR .. "src/mame/drivers/mrgame.c",
 	MAME_DIR .. "src/mame/drivers/nsm.c",
 	MAME_DIR .. "src/mame/drivers/peyper.c",
@@ -3535,7 +3535,6 @@ files {
 	MAME_DIR .. "src/mame/drivers/slotcarn.c",
 	MAME_DIR .. "src/mame/drivers/smsmcorp.c",
 	MAME_DIR .. "src/mame/drivers/sothello.c",
-	MAME_DIR .. "src/mame/drivers/spcwarp.c",
 	MAME_DIR .. "src/mame/drivers/splus.c",
 	MAME_DIR .. "src/mame/drivers/spool99.c",
 	MAME_DIR .. "src/mame/drivers/sprcros2.c",
@@ -3547,6 +3546,7 @@ files {
 	MAME_DIR .. "src/mame/drivers/stellafr.c",
 	MAME_DIR .. "src/mame/drivers/stuntair.c",
 	MAME_DIR .. "src/mame/drivers/su2000.c",
+	MAME_DIR .. "src/mame/drivers/subhuntr.c",
 	MAME_DIR .. "src/mame/drivers/summit.c",
 	MAME_DIR .. "src/mame/drivers/sumt8035.c",
 	MAME_DIR .. "src/mame/drivers/supercrd.c",

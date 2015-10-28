@@ -112,7 +112,9 @@ const options_entry emu_options::s_option_entries[] =
 	// vector options
 	{ NULL,                                              NULL,        OPTION_HEADER,     "CORE VECTOR OPTIONS" },
 	{ OPTION_ANTIALIAS ";aa",                            "1",         OPTION_BOOLEAN,    "use antialiasing when drawing vectors" },
-	{ OPTION_BEAM,                                       "1.0",       OPTION_FLOAT,      "set vector beam width" },
+	{ OPTION_BEAM_WIDTH_MIN,                             "1.0",       OPTION_FLOAT,      "set vector beam width minimum" },
+	{ OPTION_BEAM_WIDTH_MAX,                             "1.0",       OPTION_FLOAT,      "set vector beam width maximum" },
+	{ OPTION_BEAM_INTENSITY_WEIGHT,                      "0",         OPTION_FLOAT,      "set vector beam intensity weight " },
 	{ OPTION_FLICKER,                                    "0",         OPTION_FLOAT,      "set vector flicker effect" },
 
 	// sound options
@@ -446,16 +448,28 @@ void emu_options::parse_standard_inis(std::string &error_string)
 	else if (cursystem->flags & MACHINE_TYPE_OTHER)
 		parse_one_ini("othersys", OPTION_PRIORITY_SYSTYPE_INI, &error_string);
 
-	// parse "vector.ini" for vector games
+	machine_config config(*cursystem, *this);
+	screen_device_iterator iter(config.root_device());
+	for (const screen_device *device = iter.first(); device != NULL; device = iter.next())
 	{
-		machine_config config(*cursystem, *this);
-		screen_device_iterator iter(config.root_device());
-		for (const screen_device *device = iter.first(); device != NULL; device = iter.next())
-			if (device->screen_type() == SCREEN_TYPE_VECTOR)
-			{
-				parse_one_ini("vector", OPTION_PRIORITY_VECTOR_INI, &error_string);
-				break;
-			}
+		// parse "raster.ini" for raster games
+		if (device->screen_type() == SCREEN_TYPE_RASTER)
+		{
+			parse_one_ini("raster", OPTION_PRIORITY_SCREEN_INI, &error_string);
+			break;
+		}
+		// parse "vector.ini" for vector games
+		if (device->screen_type() == SCREEN_TYPE_VECTOR)
+		{
+			parse_one_ini("vector", OPTION_PRIORITY_SCREEN_INI, &error_string);
+			break;
+		}
+		// parse "lcd.ini" for lcd games
+		if (device->screen_type() == SCREEN_TYPE_LCD)
+		{
+			parse_one_ini("lcd", OPTION_PRIORITY_SCREEN_INI, &error_string);
+			break;
+		}
 	}
 
 	// next parse "source/<sourcefile>.ini"; if that doesn't exist, try <sourcefile>.ini
@@ -570,7 +584,7 @@ const char *emu_options::sub_value(std::string &buffer, const char *name, const 
 {
 	std::string tmp = std::string(",").append(subname).append("=");
 	buffer = value(name);
-	int pos = buffer.find(tmp.c_str());
+	int pos = buffer.find(tmp);
 	if (pos != -1)
 	{
 		int endpos = buffer.find_first_of(',', pos + 1);

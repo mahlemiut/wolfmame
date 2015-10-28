@@ -149,7 +149,7 @@ namespace bx
 		{
 #if BX_PLATFORM_OSX || BX_PLATFORM_IOS
 			pthread_setname_np(_name);
-#elif BX_PLATFORM_LINUX || BX_PLATFORM_FREEBSD
+#elif (BX_PLATFORM_LINUX && defined(__GLIBC__)) || BX_PLATFORM_FREEBSD
 			pthread_setname_np(m_handle, _name);
 #elif BX_PLATFORM_WINDOWS && BX_COMPILER_MSVC
 #	pragma pack(push, 8)
@@ -260,7 +260,7 @@ namespace bx
 		uint32_t m_id;
 	};
 
-#elif !(BX_PLATFORM_WINRT)
+#elif !BX_PLATFORM_WINRT
 
 	class TlsData
 	{
@@ -291,7 +291,7 @@ namespace bx
 	private:
 		pthread_key_t m_id;
 	};
-#endif // BX_PLATFORM_WINDOWS
+#endif // BX_PLATFORM_*
 
 } // namespace bx
 

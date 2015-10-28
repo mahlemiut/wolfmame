@@ -90,7 +90,7 @@
 
 # QT_HOME = /usr/lib64/qt48/
 
-# DRIVERS = src/mame/drivers/1942.c,src/mame/drivers/cops.c
+# SOURCES = src/mame/drivers/asteroid.c,src/mame/audio/llander.c
 
 # FORCE_VERSION_COMPILE = 1
 
@@ -628,8 +628,8 @@ ifdef QT_HOME
 PARAMS += --QT_HOME='$(QT_HOME)'
 endif
 
-ifdef DRIVERS
-PARAMS += --DRIVERS='$(DRIVERS)'
+ifdef SOURCES
+PARAMS += --SOURCES='$(SOURCES)'
 endif
 
 ifdef FORCE_VERSION_COMPILE
@@ -661,7 +661,7 @@ SCRIPTS = scripts/genie.lua \
 	$(wildcard src/osd/$(OSD)/$(OSD).mak) \
 	$(wildcard src/$(TARGET)/$(SUBTARGET).mak)
 
-ifndef DRIVERS
+ifndef SOURCES
 SCRIPTS += scripts/target/$(TARGET)/$(SUBTARGET).lua
 endif
 
@@ -1097,9 +1097,9 @@ generate: \
 		$(GEN_FOLDERS) \
 		$(patsubst $(SRC)/%.lay,$(GENDIR)/%.lh,$(LAYOUTS))
 
-$(GENDIR)/%.lh: $(SRC)/%.lay $(SRC)/build/file2str.py
+$(GENDIR)/%.lh: $(SRC)/%.lay scripts/build/file2str.py
 	@echo Converting $<...
-	$(SILENT)$(PYTHON) $(SRC)/build/file2str.py $< $@ layout_$(basename $(notdir $<))
+	$(SILENT)$(PYTHON) scripts/build/file2str.py $< $@ layout_$(basename $(notdir $<))
 
 	
 #-------------------------------------------------
@@ -1159,7 +1159,6 @@ CPPCHECK_PARAMS += -Isrc/emu
 CPPCHECK_PARAMS += -Isrc/lib
 CPPCHECK_PARAMS += -Isrc/lib/util
 CPPCHECK_PARAMS += -Isrc/mame
-CPPCHECK_PARAMS += -Isrc/mess 
 CPPCHECK_PARAMS += -Isrc/osd/modules/render
 CPPCHECK_PARAMS += -Isrc/osd/windows
 CPPCHECK_PARAMS += -Isrc/emu/cpu/m68000
@@ -1174,7 +1173,6 @@ CPPCHECK_PARAMS += -I3rdparty/bgfx/include
 CPPCHECK_PARAMS += -I3rdparty/bx/include
 CPPCHECK_PARAMS += -Ibuild/generated/emu 
 CPPCHECK_PARAMS += -Ibuild/generated/emu/layout
-CPPCHECK_PARAMS += -Ibuild/generated/mess/layout
 CPPCHECK_PARAMS += -Ibuild/generated/mame/layout 
 CPPCHECK_PARAMS += -DX64_WINDOWS_ABI
 CPPCHECK_PARAMS += -DPTR64=1

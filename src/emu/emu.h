@@ -58,9 +58,6 @@ typedef device_t * (*machine_config_constructor)(machine_config &config, device_
 // input viewer
 #include "inpview.h"
 
-// diimage requires uimenu
-#include "ui/menu.h"
-
 // devices and callbacks
 #include "device.h"
 #include "devfind.h"

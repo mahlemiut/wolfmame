@@ -1,6 +1,14 @@
 -- license:BSD-3-Clause
 -- copyright-holders:MAMEdev Team
 
+---------------------------------------------------------------------------
+--
+--   devices.lua
+--
+--   Rules for building device cores
+--
+---------------------------------------------------------------------------
+
 function devicesProject(_target, _subtarget)
 
 	disasm_files = { }
@@ -12,7 +20,6 @@ function devicesProject(_target, _subtarget)
 	kind (LIBTYPE)
 	targetsubdir(_target .."_" .. _subtarget)
 	options {
-		"ForceCPP",
 		"ArchiveSplit",
 	}
 
@@ -53,7 +60,6 @@ if (_OPTIONS["SOURCES"] == nil) then
 	kind (LIBTYPE)
 	targetsubdir(_target .."_" .. _subtarget)
 	options {
-		"ForceCPP",
 		"ArchiveSplit",
 	}
 
@@ -90,9 +96,6 @@ if #disasm_files > 0 then
 	uuid ("f2d28b0a-6da5-4f78-b629-d834aa00429d")
 	kind (LIBTYPE)
 	targetsubdir(_target .."_" .. _subtarget)
-	options {
-		"ForceCPP",
-	}
 
 	includedirs {
 		MAME_DIR .. "src/osd",

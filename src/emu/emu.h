@@ -32,7 +32,7 @@
 // emulator-specific utilities
 #include "attotime.h"
 #include "hash.h"
-#include "fileio.h" // remove me once NVRAM is implemented as device
+#include "fileio.h"
 #include "delegate.h"
 #include "devdelegate.h"
 
@@ -90,16 +90,6 @@ typedef device_t * (*machine_config_constructor)(machine_config &config, device_
 
 // timers, CPU and scheduling
 #include "devcpu.h"
-
-// image-related
-#include "softlist.h"
-#include "image.h"
-
-// networking
-#include "network.h"
-
-// lua engine
-#include "luaengine.h"
 
 // the running machine
 #include "mame.h"

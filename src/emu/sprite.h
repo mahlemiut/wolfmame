@@ -24,6 +24,7 @@ class sparse_dirty_rect : public rectangle
 	friend class simple_list<sparse_dirty_rect>;
 
 public:
+	sparse_dirty_rect(): m_next(NULL) { }
 	// getters
 	const sparse_dirty_rect *next() const { return m_next; }
 

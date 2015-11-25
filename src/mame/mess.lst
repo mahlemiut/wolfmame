@@ -444,6 +444,7 @@ prav8m  // Pravetz 8M
 uniap2en // 1982 Unitron AP II (in English)
 uniap2pt // 1982 Unitron AP II (in Brazilian Portuguese)
 uniap2ti // 1982 Unitron AP II+ (Teclado Inteligente)
+microeng // 1982 Micro Engenho (Brazilian Apple2 clone) - Spectrum/SCOPUS
 apple2jp  // ??? ???? Apple ][j+
 apple2e   // Jan 1983 Apple //e
 apple2euk // Jan 1983 Apple //e (UK)
@@ -525,7 +526,7 @@ macpb145  // 1992 Apple Macintosh PowerBook 145
 macpb160    // 1992 Apple Macintosh PowerBook 160
 macpb180    // 1992 Apple Macintosh PowerBook 180
 macpb180c // 1992 Apple Macintosh PowerBook 180c
-//macpd210  // 1992 Apple Macintosh PowerBook Duo 210
+macpd210  // 1992 Apple Macintosh PowerBook Duo 210
 maccclas // 1993 Apple Macintosh Color Classic
 macpb145b  // 1993 Apple Macintosh PowerBook 145B
 maclc3  // 1993 Apple Macintosh LC III

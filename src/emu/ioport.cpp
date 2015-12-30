@@ -3559,8 +3559,11 @@ void ioport_manager::record_init()
 	if(machine().debug_flags & DEBUG_FLAG_ENABLED)
 		return;
 
-	/* disable cheats */
+	// disable cheats
 	machine().options().set_value(OPTION_CHEAT, 0, OPTION_PRIORITY_HIGH, error);
+	
+	// disable LUA boot script
+	machine().options().set_value(OPTION_AUTOBOOT_SCRIPT, "", OPTION_PRIORITY_HIGH, error);
 
 	// open the record file
 	file_error filerr = m_record_file.open(filename);

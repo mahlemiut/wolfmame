@@ -1,8 +1,14 @@
 ------------------------------------------------------------------------------------------------
-WolfMAME 0.168                                                                       26/Nov/2015
-Based on the MAME(tm) 0.168 source, modified by Barry Rodewald
+WolfMAME 0.169                                                                       30/Dec/2015
+Based on the MAME(tm) 0.169 source, modified by Barry Rodewald
 ------------------------------------------------------------------------------------------------
 
+
+New in 0.169
+------------
+
+ - Disabled autoboot_script when recording.
+ 
 
 New in 0.164
 ------------

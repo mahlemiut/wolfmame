@@ -1490,7 +1490,7 @@ WRITE_LINE_MEMBER(bbc_state::fdc_drq_w)
 
 WRITE8_MEMBER(bbc_state::bbc_wd1770_status_w)
 {
-	floppy_image_device *floppy = NULL;
+	floppy_image_device *floppy = nullptr;
 
 	m_drive_control = data;
 
@@ -1531,7 +1531,7 @@ READ8_MEMBER(bbc_state::bbcm_wd177xl_read)
 
 WRITE8_MEMBER(bbc_state::bbcm_wd1770l_write)
 {
-	floppy_image_device *floppy = NULL;
+	floppy_image_device *floppy = nullptr;
 
 	m_drive_control = data;
 
@@ -1554,7 +1554,7 @@ WRITE8_MEMBER(bbc_state::bbcm_wd1770l_write)
 
 WRITE8_MEMBER(bbc_state::bbcm_wd1772l_write)
 {
-	floppy_image_device *floppy = NULL;
+	floppy_image_device *floppy = nullptr;
 
 	m_drive_control = data;
 
@@ -1601,7 +1601,7 @@ int bbc_state::bbc_load_rom(device_image_interface &image, generic_slot_device *
 
 int bbc_state::bbcm_load_cart(device_image_interface &image, generic_slot_device *slot)
 {
-	if (image.software_entry() == NULL)
+	if (image.software_entry() == nullptr)
 	{
 		UINT32 filesize = image.length();
 
@@ -1760,6 +1760,29 @@ MACHINE_RESET_MEMBER(bbc_state, bbcb)
 	UINT8 *RAM = m_region_maincpu->base();
 	m_Speech    = (ioport("BBCCONFIG")->read() >> 0) & 0x01;
 	m_SWRAMtype = (ioport("BBCCONFIG")->read() >> 3) & 0x03;
+	m_bank1->set_base(RAM);
+	m_bank3->set_base(RAM + 0x4000);
+	m_memorySize=32;
+
+	m_bank4->set_entry(0);
+	m_bank7->set_base(m_region_os->base());  /* bank 7 points at the OS rom  from c000 to ffff */
+
+	bbcb_IC32_initialise(this);
+}
+
+
+MACHINE_START_MEMBER(bbc_state, torch)
+{
+	m_machinetype = MODELB;
+	m_mc6850_clock = 0;
+	bbc_setup_banks(m_bank4, 16, 0, 0x4000);
+}
+
+MACHINE_RESET_MEMBER(bbc_state, torch)
+{
+	UINT8 *RAM = m_region_maincpu->base();
+	m_Speech    = 1;
+	m_SWRAMtype = 0;
 	m_bank1->set_base(RAM);
 	m_bank3->set_base(RAM + 0x4000);
 	m_memorySize=32;

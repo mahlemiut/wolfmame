@@ -695,9 +695,6 @@ struct inp_header
 	UINT64                      endtime;        // +38: end time of recording
 };
 
-void playback_end(running_machine& machine, const char *message);
-void record_end(running_machine& machine, const char *message);
-
 // ======================> input_device_default
 
 // device defined default input settings
@@ -1425,10 +1422,10 @@ public:
 	/* recorded speed read from an INP file */
 	double rec_speed;
 	int sprintframetime(char *timearray);
-	void record_end(const char *message = NULL);
-	void playback_end(const char *message = NULL);
 	emu_file* get_record_file() { return &m_record_file; }
 	emu_file* get_playback_file() { return &m_playback_file; }
+	void playback_end(const char *message = nullptr);  // moved to public so that INP recording can be ended by a keypress
+	void record_end(const char *message = nullptr);
 
 private:
 	// internal helpers
@@ -1456,13 +1453,11 @@ private:
 
 	template<typename _Type> _Type playback_read(_Type &result);
 	time_t playback_init();
-	void playback_end(const char *message = nullptr);
 	void playback_frame(const attotime &curtime);
 	void playback_port(ioport_port &port);
 
 	template<typename _Type> void record_write(_Type value);
 	void record_init();
-	void record_end(const char *message = nullptr);
 	void record_frame(const attotime &curtime);
 	void record_port(ioport_port &port);
 

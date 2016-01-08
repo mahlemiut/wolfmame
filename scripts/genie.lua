@@ -53,6 +53,10 @@ function layoutbuildtask(_folder, _name)
 		{  MAME_DIR .. "scripts/build/file2str.py" }, {"@echo Converting src/".._folder.."/".._name..".lay...",    PYTHON .. " $(1) $(<) $(@) layout_".._name }};
 end
 
+function precompiledheaders()
+	pchheader("emu.h")
+end
+
 function addprojectflags()
 	local version = str_to_version(_OPTIONS["gcc_version"])
 	if _OPTIONS["gcc"]~=nil and string.find(_OPTIONS["gcc"], "gcc") and (version >= 50100) then
@@ -324,15 +328,6 @@ newoption {
 }
 
 newoption {
-	trigger = "FILTER_DEPS",
-	description = "Filter dependency files.",
-	allowed = {
-		{ "0",   "Disabled" 	},
-		{ "1",   "Enabled"      },
-	}
-}
-
-newoption {
 	trigger = "SEPARATE_BIN",
 	description = "Use separate bin folders.",
 	allowed = {
@@ -456,11 +451,11 @@ language "C++"
 
 flags {
 	"StaticRuntime",
-	"NoPCH",
 }
 
 configuration { "vs*" }
 	flags {
+		"NoPCH",
 		"ExtraWarnings",
 		"NoEditAndContinue",
 		"EnableMinimalRebuild",
@@ -482,37 +477,12 @@ configuration { "Release", "vs*" }
 		"Optimize",
 	}
 
-configuration {}
-
-local AWK = ""
-if (os.is("windows")) then
-	AWK_TEST = backtick("awk --version 2> NUL")
-	if (AWK_TEST~='') then
-		AWK = "awk"
-	else
-		AWK_TEST = backtick("gawk --version 2> NUL")
-		if (AWK_TEST~='') then
-			AWK = "gawk"
-		end
-	end
-else
-	AWK_TEST = backtick("awk --version 2> /dev/null")
-	if (AWK_TEST~='') then
-		AWK = "awk"
-	else
-		AWK_TEST = backtick("gawk --version 2> /dev/null")
-		if (AWK_TEST~='') then
-			AWK = "gawk"
-		end
-	end
-end
-
-if (_OPTIONS["FILTER_DEPS"]=="1") and (AWK~='') then
-	postcompiletasks {
-		AWK .. " -f ../../../../../scripts/depfilter.awk $(@:%.o=%.d) > $(@:%.o=%.dep)",
-		"mv $(@:%.o=%.dep) $(@:%.o=%.d)",
+configuration { "asmjs" }
+	flags {
+		"NoPCH",
 	}
-end
+
+configuration {}
 
 msgcompile ("Compiling $(subst ../,,$<)...")
 
@@ -523,6 +493,8 @@ msgresource ("Compiling resources $(subst ../,,$<)...")
 msglinking ("Linking $(notdir $@)...")
 
 msgarchiving ("Archiving $(notdir $@)...")
+
+msgprecompile ("Precompiling $(subst ../,,$<)...")
 
 messageskip { "SkipCreatingMessage", "SkipBuildingMessage", "SkipCleaningMessage" }
 
@@ -708,16 +680,11 @@ end
 
 	if _ACTION == "gmake" then
 
-	--we compile C-only to C89 standard with GNU extensions
-if (_OPTIONS["targetos"]=="solaris") then
+	--we compile C-only to C99 standard with GNU extensions
+
 	buildoptions_c {
 		"-std=gnu99",
 	}
-else
-	buildoptions_c {
-		"-std=gnu89",
-	}
-end
 
 local version = str_to_version(_OPTIONS["gcc_version"])
 if string.find(_OPTIONS["gcc"], "clang") and ((version < 30500) or (_OPTIONS["targetos"]=="macosx" and (version <= 60000))) then
@@ -1095,6 +1062,7 @@ configuration { "mingw*" }
 		linkoptions {
 			"-static-libgcc",
 			"-static-libstdc++",
+			"-static",
 		}
 		links {
 			"user32",
@@ -1103,6 +1071,11 @@ configuration { "mingw*" }
 			"shlwapi",
 			"wsock32",
 		}
+configuration { "mingw-clang" }
+		linkoptions {
+			"-pthread",
+		}
+		
 
 configuration { "vs*" }
 		defines {

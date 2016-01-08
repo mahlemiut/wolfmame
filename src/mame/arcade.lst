@@ -2608,11 +2608,13 @@ optiger         // 1998.09 E63 (c) 1998 Taito
 taitotz
 batlgear        // E68 (c) 1999 Taito
 pwrshovl        // E74 (c) 1999 Taito
+pwrshovla		//
 landhigh        // E82 (c) 1999 Taito
 batlgr2         // E87 (c) 2000 Taito (2.04J)
 batlgr2a        // E87 (c) 2000 Taito (2.01J)
 styphp          // E98 (c) 2000 Taito
 raizpin         // F14 (c) 2002 Taito
+raizpinj		//
 
 invqix          // F34 (c) 2003 Taito Corporation
 
@@ -3141,6 +3143,7 @@ daimakai        // 12/1988 (c) 1988 (Japan)
 daimakair       // 12/1988 (c) 1988 (Japan)
 strider         //  3/1989 (c) 1989 (not explicitly stated but should be USA)
 striderua       //  3/1989 (c) 1989 (not explicitly stated but should be USA)
+strideruc		// conversion
 striderj        //  3/1989 (c) 1989 (Japan)
 striderjr       //  3/1989 (c) 1989 (Japan)
 dynwar          //  4/1989 (c) 1989 (USA)
@@ -4833,7 +4836,7 @@ mwalku          // 1990.08 Micheal Jackson's Moonwalker (US, FD1094+8751)
 mwalkj          // 1990.08 Micheal Jackson's Moonwalker (Japan, FD1094+8751)
 mwalk           // 1990.?? Micheal Jackson's Moonwalker (World, FD1094+8751)
 lghost          // 1990.?? Laser Ghost (World, FD1094)
-				// 1990.12 Laser Ghost (Japan)
+lghostj			// 1990.12 Laser Ghost (Japan)
 lghostu         // 1991.01 Laser Ghost (US, FD1094)
 cltchitr        // 1991.02 Clutch Hitter (US, FD1094)
 cltchitrj       // 1991.05 Clutch Hitter (Japan, FD1094)
@@ -7677,6 +7680,7 @@ ikaria          // A5004 'IW' (c) 1986
 ikarinc         // A5004 'IW' (c) 1986
 ikarijp         // A5004 'IW' (c) 1986 (Japan)
 ikarijpb        // bootleg
+ikariram		// bootleg
 victroad        // A6002      (c) 1986
 dogosoke        // A6002      (c) 1986
 dogosokb        // bootleg
@@ -8232,6 +8236,7 @@ jackrabts       // (c) 1984
 mouser          // UPL-83001 (c) 1983
 mouserc         // UPL-83001 (c) 1983
 nova2001        // UPL-83005 (c) 1983
+nova2001h		// hack?
 nova2001u       // UPL-83005 (c) [1983] + Universal license
 ninjakun        // UPL-84003 (c) 1984 Taito Corporation
 raiders5        // UPL-85004 (c) 1985
@@ -9250,6 +9255,7 @@ fjbuster        // (c) 1992 Kaneko
 brapboys        // (c) 1992 Kaneko
 brapboysj       // (c) 1992 Kaneko
 brapboysu       // (c) 1992 Kaneko
+wingforc        // (c) 1993 Atlus (Japan, prototype)
 bloodwar        // (c) 1994 Kaneko
 oedfight        // (c) 1994 Kaneko
 bonkadv         // (c) 1994 Kaneko
@@ -11128,6 +11134,10 @@ photoply
 supercrd        // (c) 1992 Fun World
 fruitstr        // (c) 1992 Fun World
 
+// with 2nd set of hardware on PCB for stealth purposes
+royalcrd_nes
+royalcrd_msx
+
 // Sandii'
 snookr10        // (c) 1998 Sandii'
 apple10         // (c) 1998 Sandii'
@@ -11929,6 +11939,16 @@ pexmp026        // (c) 1997 IGT - International Game Technology
 pexmp030        // (c) 1997 IGT - International Game Technology
 pexmp030a       // (c) 1997 IGT - International Game Technology
 
+// IGT Game King
+gkigt4
+gkigt4ms
+gkigt43
+gkigt43n
+gkigtez
+gkigt5p
+igtsc
+gkkey
+
 elgrande        // (c) 1982 Tuni Electro Service / E.T. Marketing
 jjpoker         // (c) 1983 Enter-Tech
 jjpokerb        // (c) 1983 Enter-Tech
@@ -12001,24 +12021,71 @@ paclandp        // (c) 1989 Namco
 ggconnie        // (c) ???? Capcom
 paranoia        // (c) 1990 Naxat Soft
 tourvis         // (c) ???? Tourvision
+tvdrgnst        // (c) 1988 Namcot (Tourvision bootleg)
 tvlegaxe        // (c) 1988 Victor Musical Industries, Inc. (Tourvision bootleg)
 tvflaptw        // (c) 1989 Namco (Tourvision bootleg)
+tvdensho        // (c) 1989 Big Club / Wolf Team (Tourvision bootleg)
+tvshnobi        // (c) 1989 Sega / Asmik Corporation (Tourvision bootleg)
+tvsdarms        // (c) 1989 Capcom / Nec Avenue (Tourvision bootleg)
+tvsson2         // (c) 1989 Capcom / Nec Avenue (Tourvision bootleg)
+tvgunhed        // (c) 1989 Hudson / Toho Sunrise (Tourvision bootleg)
+tvmrheli        // (c) 1989 IREM Corp (Tourvision bootleg)
 tvusapb         // (c) 1989 Aicom (Tourvision bootleg)
 tvvolfd         // (c) 1989 Taito (Tourvision bootleg)
 tvdunexp        // (c) 1989 Hudson / Atlus (Tourvision bootleg)
+tvwnshot        // (c) 1989 Data East Corp. (Tourvision bootleg)
 tvablast        // (c) 1990 Hudson / Kaneko (Tourvision bootleg)
+tvaburn         // (c) 1990 Sega / Nec Avenue (Tourvision bootleg)
+tvarmedf        // (c) 1990 Nichibutsu / Big Don (Tourvision bootleg)
+tvbeball        // (c) 1990 Hudson (Tourvision bootleg)
+tvbomber        // (c) 1990 Hudson (Tourvision bootleg)
+tvdsenpu        // (c) 1990 Toaplan / Nec Avenue (Tourvision bootleg)
+tvdevilc        // (c) 1990 Naxat / Red (Tourvision bootleg)
+tvdodgeb        // (c) 1990 Technos Japan Corp / Naxat Soft (Tourvision bootleg)
+tvfblast        // (c) 1990 Namco / Namcot (Tourvision bootleg)
+tvbrabho        // (c) 1990 Namco / Namcot (Tourvision bootleg)
 tvfsoc90        // (c) 1990 Human (Tourvision bootleg)
 tvgomola        // (c) 1990 Human (Tourvision bootleg)
+tvkaikai        // (c) 1990 Taito (Tourvision bootleg)
 tvsssold        // (c) 1990 Hudson / Kaneko (Tourvision bootleg)
 tvthbld         // (c) 1990 Sega / NEC Avenue (Tourvision bootleg)
 tvrs2           // (c) 1990 Taito (Tourvision bootleg)
+tvninjas        // (c) 1990 IREM Corp (Tourvision bootleg)
+tvopwolf        // (c) 1990 Taito / Nec Avenue (Tourvision bootleg)
+tvovride        // (c) 1990 Sting / Data East Corporation (Tourvision bootleg)
+tvpchasr        // (c) 1990 Naxat Soft (Tourvision bootleg)
+tvsvball        // (c) 1990 Video System (Tourvision bootleg)
+tvtsboys        // (c) 1990 Victor Musical Industries, Inc. (Tourvision bootleg)
+tveigues        // (c) 1990 Victor Musical Industries, Inc. (Tourvision bootleg)
+tvwring         // (c) 1990 Naxat Soft (Tourvision bootleg)
+tvxvious        // (c) 1990 Namco Ltd. / Namcot (Tourvision bootleg)
+tv1943          // (c) 1991 Capcom / Nexat Soft (Tourvision bootleg)
+tvbalstx        // (c) 1991 Psygnosis / Coconuts Japan (Tourvision bootleg)
 tvcolumn        // (c) 1991 Telenet Japan (Tourvision bootleg)
+tvcoryon        // (c) 1991 Naxat Soft (Tourvision bootleg)
+tvdmoon         // (c) 1991 T.S.S. (Tourvision bootleg)
+tvftenis        // (c) 1991 Human (Tourvision bootleg)
+tvhtdaka        // (c) 1991 Taito(Tourvision bootleg)
+tvtonma         // (c) 1991 IREM Corp (Tourvision bootleg)
 tvjchan         // (c) 1991 Hudson (Tourvision bootleg)
-tvpcgen2        // (c) 1991 Hudson (Tourvision bootleg)
+tvpcgen2        // (c) 1991 Hudson Soft / Red (Tourvision bootleg)
+tvpaclnd        // (c) 1991 Namco / Namcot (Tourvision bootleg)
+tvpdrift        // (c) 1991 Sega / Asmik Corporation (Tourvision bootleg)
+tvpros91        // (c) 1991 Namco / Namcot (Tourvision bootleg)
 tvpow11         // (c) 1991 Hudson (Tourvision bootleg)
 tvpwlg4         // (c) 1991 Hudson (Tourvision bootleg)
+tvpzlboy        // (c) 1991 Atlus / Telenet Japan (Tourvision bootleg)
+tvraiden        // (c) 1991 Seibu Kaihatsu inc / Hudson Soft (Tourvision bootleg)
+tvrtype2        // (c) 1991 IREM (Tourvision bootleg)
+tvslmndr        // (c) 1991 Konami (Tourvision bootleg)
 tvsci           // (c) 1991 Taito (Tourvision bootleg)
-tvsvball        // (c) 1990 Video System (Tourvision bootleg)
+tvskweek        // (c) 1991 Victor Musical Industries, Inc. (Tourvision bootleg)
+tvtaisen        // (c) 1992 Taito (Tourvision bootleg)
+tvlqkids        // (c) 1992 Taito (Tourvision bootleg)
+tvninjar        // (c) 1992 Tecmo / Hudson Soft (Tourvision bootleg)
+tvpcybrg        // (c) 1992 Hudson Soft / Red (Tourvision bootleg)
+tvtsujin        // (c) 1992 Toaplan Co Ltd / Taito Corporation (Tourvision bootleg)
+tvtcrst2        // (c) 1992 Nichibutsu / Nihon Bussan Co., Ltd (Tourvision bootleg)
 vcombat         // (c) 1993 VR8 Inc.
 shadfgtr        // (c) 1993 DUTECH Inc.
 skimaxx         // (c) 1996 Kyle Hodgetts/ICE
@@ -13377,6 +13444,7 @@ tmspoker
 kas89           // 1989, SFC S.R.L.
 caspoker        // 1987, PM / Beck Elektronik.
 wildpkr         // 199?, TAB Austria.
+tabpkr			// 199?, TAB Austira
 subhuntr        // 1979 Model Racing
 
 manohman        // 199?, Merkur.
@@ -32548,6 +32616,8 @@ arac6000
 number1    // 1996 San Remo Games
 gluck2     // 1992 Yung Yu / CYE
 
+sanremmg   // San Remo / Elsy
+
 // Valco fireball
 fireball
 
@@ -32594,3 +32664,4 @@ clowndwn // Elwood Clown Roll Down
 
 fi6845
 fi8275
+

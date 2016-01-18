@@ -25,10 +25,9 @@ const device_type ATARI_ANTIC = &device_creator<antic_device>;
 //  antic_device - constructor
 //-------------------------------------------------
 
-antic_device::antic_device(const machine_config &mconfig, const char *tag, device_t *owner, UINT32 clock) :
+antic_device::antic_device(const machine_config &mconfig, std::string tag, device_t *owner, UINT32 clock) :
 				device_t(mconfig, ATARI_ANTIC, "Atari ANTIC", tag, owner, clock, "antic", __FILE__),
 				device_video_interface(mconfig, *this),
-				m_gtia_tag(nullptr),
 				m_maincpu(*this, ":maincpu"),
 				m_djoy_b(*this, ":djoy_b"),
 				m_artifacts(*this, ":artifacts"),
@@ -103,7 +102,7 @@ void antic_device::device_start()
 	prio_init();
 
 	for (int i = 0; i < m_screen->height(); i++)
-		m_video[i] = auto_alloc_clear(machine(), VIDEO);
+		m_video[i] = auto_alloc_clear(machine(), <VIDEO>());
 
 	/* save states */
 	save_pointer(NAME((UINT8 *) &m_r), sizeof(m_r));

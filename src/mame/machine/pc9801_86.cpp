@@ -125,7 +125,7 @@ ioport_constructor pc9801_86_device::device_input_ports() const
 //  pc9801_86_device - constructor
 //-------------------------------------------------
 
-pc9801_86_device::pc9801_86_device(const machine_config &mconfig, const char *tag, device_t *owner, UINT32 clock)
+pc9801_86_device::pc9801_86_device(const machine_config &mconfig, std::string tag, device_t *owner, UINT32 clock)
 	: device_t(mconfig, PC9801_86, "pc9801_86", tag, owner, clock, "pc9801_86", __FILE__),
 		m_opna(*this, "opna"),
 		m_dacl(*this, "dacl"),
@@ -204,7 +204,7 @@ READ8_MEMBER(pc9801_86_device::opn_r)
 		return m_opna->read(space, offset >> 1);
 	else // odd
 	{
-		printf("PC9801-86: Read to undefined port [%02x]\n",offset+0x188);
+		logerror("PC9801-86: Read to undefined port [%02x]\n",offset+0x188);
 		return 0xff;
 	}
 }
@@ -214,7 +214,7 @@ WRITE8_MEMBER(pc9801_86_device::opn_w)
 	if((offset & 1) == 0)
 		m_opna->write(space, offset >> 1,data);
 	else // odd
-		printf("PC9801-86: Write to undefined port [%02x] %02x\n",offset+0x188,data);
+		logerror("PC9801-86: Write to undefined port [%02x] %02x\n",offset+0x188,data);
 }
 
 READ8_MEMBER(pc9801_86_device::id_r)
@@ -247,7 +247,7 @@ READ8_MEMBER(pc9801_86_device::pcm_r)
 		}
 	}
 	else // odd
-		printf("PC9801-86: Read to undefined port [%02x]\n",offset+0xa466);
+		logerror("PC9801-86: Read to undefined port [%02x]\n",offset+0xa464);
 	return 0xff;
 }
 
@@ -295,7 +295,7 @@ WRITE8_MEMBER(pc9801_86_device::pcm_w)
 		}
 	}
 	else // odd
-		printf("PC9801-86: Write to undefined port [%02x] %02x\n",offset+0xa466,data);
+		logerror("PC9801-86: Write to undefined port [%02x] %02x\n",offset+0xa464,data);
 }
 
 int pc9801_86_device::queue_count()

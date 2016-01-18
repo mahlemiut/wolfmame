@@ -384,7 +384,7 @@ Language Tutor modules:
 class tispeak_state : public hh_tms1k_state
 {
 public:
-	tispeak_state(const machine_config &mconfig, device_type type, const char *tag)
+	tispeak_state(const machine_config &mconfig, device_type type, std::string tag)
 		: hh_tms1k_state(mconfig, type, tag),
 		m_tms5100(*this, "tms5100"),
 		m_tms6100(*this, "tms6100"),
@@ -621,12 +621,12 @@ TIMER_DEVICE_CALLBACK_MEMBER(tispeak_state::tntell_get_overlay)
 
 	// try to get overlay code from artwork file(in decimal), otherwise pick the
 	// one that was selected in machine configuration
-	m_overlay = output_get_value("overlay_code") & 0x1f;
+	m_overlay = output().get_value("overlay_code") & 0x1f;
 	if (m_overlay == 0)
 		m_overlay = m_inp_matrix[10]->read();
 
 	for (int i = 0; i < 5; i++)
-		output_set_indexed_value("ol", i+1, m_overlay >> i & 1);
+		output().set_indexed_value("ol", i+1, m_overlay >> i & 1);
 }
 
 
@@ -870,7 +870,7 @@ static INPUT_PORTS_START( snspellc )
 	PORT_BIT( 0x08, IP_ACTIVE_HIGH, IPT_KEYBOARD ) PORT_CODE(KEYCODE_S) PORT_CHAR('S')
 
 	PORT_START("IN.1") // R1
-	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_KEYBOARD ) PORT_CODE(KEYCODE_8) // -
+	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_UNUSED )
 	PORT_BIT( 0x02, IP_ACTIVE_HIGH, IPT_KEYBOARD ) PORT_CODE(KEYCODE_B) PORT_CHAR('B')
 	PORT_BIT( 0x04, IP_ACTIVE_HIGH, IPT_KEYBOARD ) PORT_CODE(KEYCODE_K) PORT_CHAR('K')
 	PORT_BIT( 0x08, IP_ACTIVE_HIGH, IPT_KEYBOARD ) PORT_CODE(KEYCODE_T) PORT_CHAR('T')
@@ -912,7 +912,7 @@ static INPUT_PORTS_START( snspellc )
 	PORT_BIT( 0x08, IP_ACTIVE_HIGH, IPT_KEYBOARD ) PORT_CODE(KEYCODE_Z) PORT_CHAR('Z')
 
 	PORT_START("IN.8") // R8
-	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_KEYBOARD ) PORT_CODE(KEYCODE_9) // -
+	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_UNUSED )
 	PORT_BIT( 0x02, IP_ACTIVE_HIGH, IPT_KEYBOARD ) PORT_CODE(KEYCODE_I) PORT_CHAR('I')
 	PORT_BIT( 0x04, IP_ACTIVE_HIGH, IPT_KEYBOARD ) PORT_CODE(KEYCODE_R) PORT_CHAR('R')
 	PORT_BIT( 0x08, IP_ACTIVE_HIGH, IPT_KEYBOARD ) PORT_CODE(KEYCODE_QUOTE) PORT_CHAR('\'')
@@ -1152,6 +1152,8 @@ static MACHINE_CONFIG_START( snspellc, tispeak_state )
 	MCFG_TMS1XXX_READ_K_CB(READ8(tispeak_state, snspellc_read_k))
 	MCFG_TMS1XXX_WRITE_O_CB(WRITE16(tispeak_state, snspellc_write_o))
 	MCFG_TMS1XXX_WRITE_R_CB(WRITE16(tispeak_state, snspellc_write_r))
+
+	/* no visual feedback! */
 
 	/* sound hardware */
 	MCFG_DEVICE_ADD("tms6100", TMS6100, MASTER_CLOCK/4)

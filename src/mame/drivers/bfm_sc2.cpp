@@ -179,7 +179,7 @@ Adder hardware:
 class bfm_sc2_state : public driver_device
 {
 public:
-	bfm_sc2_state(const machine_config &mconfig, device_type type, std::string tag)
+	bfm_sc2_state(const machine_config &mconfig, device_type type, const char *tag)
 		: driver_device(mconfig, type, tag),
 			m_maincpu(*this, "maincpu"),
 			m_reel0(*this, "reel0"),
@@ -2284,11 +2284,10 @@ void bfm_sc2_state::sc2_common_init(int decrypt)
 
 void bfm_sc2_state::adder2_common_init()
 {
-	UINT8 *pal;
-
-	pal = memregion("proms")->base();
-	if ( pal )
+	if (memregion("proms") != nullptr)
 	{
+		UINT8 *pal;
+		pal = memregion("proms")->base();
 		memcpy(m_key, pal, 8);
 	}
 }

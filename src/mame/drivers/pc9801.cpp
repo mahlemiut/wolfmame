@@ -425,6 +425,7 @@ Keyboard TX commands:
 #include "machine/pc9801_118.h"
 #include "machine/pc9801_cbus.h"
 #include "machine/pc9801_kbd.h"
+#include "machine/pc9801_cd.h"
 
 #include "machine/idectrl.h"
 #include "machine/idehd.h"
@@ -733,6 +734,7 @@ public:
 		UINT8 freq_index;
 	}m_mouse;
 	TIMER_DEVICE_CALLBACK_MEMBER( mouse_irq_cb );
+	DECLARE_READ8_MEMBER(unk_r);
 
 	DECLARE_DRIVER_INIT(pc9801_kanji);
 	inline void set_dma_channel(int channel, int state);
@@ -1425,7 +1427,20 @@ void pc9801_state::egc_blit_w(UINT32 offset, UINT16 data, UINT16 mem_mask)
 	}
 
 	// mask off the bits past the end of the blit
-	if(m_egc.count < 16)
+	if((m_egc.count < 8) && (mem_mask != 0xffff))
+	{
+		UINT16 end_mask = dir ? ((1 << m_egc.count) - 1) : ~((1 << (8 - m_egc.count)) - 1);
+		// if the blit is less than 8 bits, adjust the masks
+		if(m_egc.first)
+		{
+			if(dir)
+				end_mask <<= dst_off & 7;
+			else
+				end_mask >>= dst_off & 7;
+		}
+		mask &= end_mask;
+	}
+	else if((m_egc.count < 16) && (mem_mask == 0xffff))
 	{
 		UINT16 end_mask = dir ? ((1 << m_egc.count) - 1) : ~((1 << (16 - m_egc.count)) - 1);
 		// if the blit is less than 16 bits, adjust the masks
@@ -1456,11 +1471,6 @@ void pc9801_state::egc_blit_w(UINT32 offset, UINT16 data, UINT16 mem_mask)
 					out = data;
 					break;
 				case 1:
-					if(mem_mask == 0x00ff)
-						src = src | src << 8;
-					else if(mem_mask == 0xff00)
-						src = src | src >> 8;
-
 					out = egc_do_partial_op(i, src, pat, m_video_ram_2[offset + (((i + 1) & 3) * 0x4000)]);
 					break;
 				case 2:
@@ -2262,7 +2272,7 @@ static ADDRESS_MAP_START( pc9801rs_io, AS_IO, 16, pc9801_state )
 	AM_RANGE(0x0430, 0x0433) AM_READWRITE8(ide_ctrl_r, ide_ctrl_w, 0x00ff)
 	AM_RANGE(0x0640, 0x064f) AM_READWRITE(ide_cs0_r, ide_cs0_w)
 	AM_RANGE(0x0740, 0x074f) AM_READWRITE(ide_cs1_r, ide_cs1_w)
-	AM_RANGE(0x1e80, 0x1e8f) AM_NOP // temp
+	AM_RANGE(0x1e8c, 0x1e8f) AM_NOP // temp
 	AM_RANGE(0xbfd8, 0xbfdf) AM_WRITE8(pc9801rs_mouse_freq_w, 0xffff)
 	AM_RANGE(0xe0d0, 0xe0d3) AM_READ8(pc9801rs_midi_r, 0xffff)
 	AM_IMPORT_FROM(pc9801ux_io)
@@ -2476,6 +2486,7 @@ static ADDRESS_MAP_START( pc9821_io, AS_IO, 32, pc9801_state )
 	AM_RANGE(0x0050, 0x0053) AM_WRITE8(pc9801rs_nmi_w, 0xffffffff)
 	AM_RANGE(0x005c, 0x005f) AM_READ16(pc9821_timestamp_r,0xffffffff) AM_WRITENOP // artic
 	AM_RANGE(0x0060, 0x0063) AM_DEVREADWRITE8("upd7220_chr", upd7220_device, read, write, 0x00ff00ff) //upd7220 character ports / <undefined>
+	AM_RANGE(0x0060, 0x0063) AM_READ8(unk_r, 0xff00ff00) // mouse related (unmapped checking for AT keyb controller\PS/2 mouse?)
 	AM_RANGE(0x0064, 0x0067) AM_WRITE8(vrtc_clear_w, 0x000000ff)
 	AM_RANGE(0x0068, 0x006b) AM_WRITE8(pc9821_video_ff_w,  0x00ff00ff) //mode FF / <undefined>
 	AM_RANGE(0x0070, 0x007f) AM_DEVREADWRITE8("pit8253", pit8253_device, read, write, 0xff00ff00)
@@ -2511,6 +2522,7 @@ static ADDRESS_MAP_START( pc9821_io, AS_IO, 32, pc9801_state )
 //  AM_RANGE(0x0c2d, 0x0c2d) cs4231 PCM board hi byte control
 //  AM_RANGE(0x0cc0, 0x0cc7) SCSI interface / <undefined>
 //  AM_RANGE(0x0cfc, 0x0cff) PCI bus
+	AM_RANGE(0x1e8c, 0x1e8f) AM_NOP // IDE RAM switch
 	AM_RANGE(0x3fd8, 0x3fdf) AM_DEVREADWRITE8("pit8253", pit8253_device, read, write, 0xff00ff00) // <undefined> / pit mirror ports
 	AM_RANGE(0x7fd8, 0x7fdf) AM_DEVREADWRITE8("ppi8255_mouse", i8255_device, read, write, 0xff00ff00)
 	AM_RANGE(0x841c, 0x841f) AM_READWRITE8(sdip_0_r,sdip_0_w,0xffffffff)
@@ -2959,6 +2971,11 @@ WRITE8_MEMBER(pc9801_state::ppi_mouse_portc_w)
 	m_mouse.control = data;
 }
 
+READ8_MEMBER(pc9801_state::unk_r)
+{
+	return 0xff;
+}
+
 /****************************************
 *
 * UPD765 interface
@@ -3218,6 +3235,10 @@ TIMER_DEVICE_CALLBACK_MEMBER( pc9801_state::mouse_irq_cb )
 	}
 }
 
+SLOT_INTERFACE_START(pc9801_atapi_devices)
+	SLOT_INTERFACE("pc9801_cd", PC9801_CD)
+SLOT_INTERFACE_END
+
 static MACHINE_CONFIG_FRAGMENT( pc9801_keyboard )
 	MCFG_DEVICE_ADD("keyb", PC9801_KBD, 53)
 	MCFG_PC9801_KBD_IRQ_CALLBACK(DEVWRITELINE("pic8259_master", pic8259_device, ir1_w))
@@ -3266,7 +3287,7 @@ MACHINE_CONFIG_END
 static MACHINE_CONFIG_FRAGMENT( pc9801_ide )
 	MCFG_ATA_INTERFACE_ADD("ide1", ata_devices, "hdd", nullptr, false)
 	MCFG_ATA_INTERFACE_IRQ_HANDLER(WRITELINE(pc9801_state, ide1_irq_w))
-	MCFG_ATA_INTERFACE_ADD("ide2", ata_devices, "cdrom", nullptr, false)
+	MCFG_ATA_INTERFACE_ADD("ide2", pc9801_atapi_devices, "pc9801_cd", nullptr, false)
 	MCFG_ATA_INTERFACE_IRQ_HANDLER(WRITELINE(pc9801_state, ide2_irq_w))
 MACHINE_CONFIG_END
 

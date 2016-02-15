@@ -2,16 +2,19 @@
 /*
 /*/
 !/3rdparty/
+!/benchmarks/
 !/artwork/
 !/docs/
 !/hash/
 !/hlsl/
 !/keymaps/
 !/nl_examples/
+!/plugins/
 !/regtests/
 !/samples/
 !/scripts/
 !/src/
+!/shaders/
 !/tests/
 !/doxygen/
 !/web/
@@ -26,4 +29,9 @@ regtests/chdman/temp
 regtests/jedutil/output
 *.pyc
 /CMakeLists.txt 
+/src/devices/cpu/m68000/m68kops.cpp
+/src/devices/cpu/m68000/m68kops.h
+/src/devices/cpu/m68000/m68kmake.*
+/src/devices/cpu/m68000/m68kmake
+!/src/devices/cpu/m68000/m68kmake.cpp
 

@@ -1620,7 +1620,7 @@ UINT32 ui_manager::handler_ingame(running_machine &machine, render_container *co
 	}
 
 	// if we're single-stepping, pause now
-	if (machine.ui().single_step())
+	if (machine.ui().single_step() && !machine.ioport().get_record_file()->is_open())
 	{
 		machine.pause();
 		machine.ui().set_single_step(false);
@@ -1764,7 +1764,7 @@ UINT32 ui_manager::handler_ingame(running_machine &machine, render_container *co
 			machine.toggle_pause();
 	}
 
-	if (machine.ui_input().pressed(IPT_UI_PAUSE_SINGLE))
+	if (machine.ui_input().pressed(IPT_UI_PAUSE_SINGLE) && !machine.ioport().get_record_file()->is_open())
 	{
 		machine.ui().set_single_step(true);
 		machine.resume();

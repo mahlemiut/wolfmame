@@ -1311,11 +1311,25 @@ void ui_menu::init_ui(running_machine &machine)
 	star_texture = mrender.texture_alloc();
 	star_texture->set_bitmap(*star_bitmap, star_bitmap->cliprect(), TEXFORMAT_ARGB32);
 
-	// allocates icons bitmap and texture
-	for (int i = 0; i < MAX_ICONS_RENDER; i++)
+	// check and allocate icons
+	file_enumerator path(machine.ui().options().icons_directory());
+	const osd_directory_entry *dir;
+	while ((dir = path.next()) != nullptr)
 	{
-		icons_bitmap[i] = auto_alloc(machine, bitmap_argb32);
-		icons_texture[i] = mrender.texture_alloc();
+		const char *src;
+
+		// build a name for it
+		src = dir->name;
+		if (*src != 0 && *src != '.')
+		{
+			ui_globals::has_icons = true;
+			for (int i = 0; i < MAX_ICONS_RENDER; i++)
+			{
+				icons_bitmap[i] = auto_alloc(machine, bitmap_argb32);
+				icons_texture[i] = mrender.texture_alloc();
+			}
+			break;
+		}
 	}
 
 	// create a texture for main menu background
@@ -2404,13 +2418,16 @@ void ui_menu::draw_icon(int linenum, void *selectedref, float x0, float y0)
 
 			icons_texture[linenum]->set_bitmap(*icons_bitmap[linenum], icons_bitmap[linenum]->cliprect(), TEXFORMAT_ARGB32);
 		}
-		else
-			icons_bitmap[linenum]->reset();
-
+		else {
+			if (icons_bitmap[linenum] != nullptr)
+			{
+				icons_bitmap[linenum]->reset();
+			}
+		}
 		auto_free(machine(), tmp);
 	}
 
-	if (icons_bitmap[linenum]->valid())
+	if (icons_bitmap[linenum] != nullptr && icons_bitmap[linenum]->valid())
 		container->add_quad(x0, y0, x1, y1, ARGB_WHITE, icons_texture[linenum], PRIMFLAG_BLENDMODE(BLENDMODE_ALPHA) | PRIMFLAG_PACKABLE);
 }
 

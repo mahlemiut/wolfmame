@@ -66,7 +66,8 @@ static const char *hover_msg[] = {
 	"Export displayed list to file",
 	"Show DATs view",
 	"Setup directories",
-	"Configure options"
+	"Configure options",
+	"Record an INP"
 };
 
 /***************************************************************************
@@ -1043,7 +1044,7 @@ void ui_menu::handle_keys(UINT32 flags)
 	}
 
 	// handle a toggle cheats request
-	if (machine().ui_input().pressed_repeat(IPT_UI_TOGGLE_CHEAT, 0))
+	if (machine().ui_input().pressed_repeat(IPT_UI_TOGGLE_CHEAT, 0) && !machine().ioport().get_record_file()->is_open())
 		machine().cheat().set_enable(!machine().cheat().enabled());
 
 	// see if any other UI keys are pressed
@@ -1965,6 +1966,11 @@ void ui_menu::handle_main_events(UINT32 flags)
 				{
 					menu_event.iptkey = IPT_UI_SELECT;
 					selected = visible_items + 2;
+					stop = true;
+				}
+				else if (hover == HOVER_B_RECORD_INP)
+				{
+					menu_event.iptkey = IPT_UI_RECORD_INP;
 					stop = true;
 				}
 				else if (hover >= HOVER_RP_FIRST && hover <= HOVER_RP_LAST)

@@ -438,6 +438,10 @@ void ui_menu_select_game::handle()
 		else if (m_event->iptkey == IPT_UI_AUDIT_ALL)
 			ui_menu::stack_push(global_alloc_clear<ui_menu_audit>(machine(), container, m_availsortedlist, m_unavailsortedlist, 2));
 
+		// handle UI_RECORD_INP
+//		else if (m_event->iptkey == IPT_UI_RECORD_INP)
+//			ui_menu::stack_push(global_alloc_clear<ui_menu_audit>(machine(), container, m_availsortedlist, m_unavailsortedlist, 2));
+
 		// typed characters append to the buffer
 		else if (m_event->iptkey == IPT_SPECIAL)
 			inkey_special(m_event);

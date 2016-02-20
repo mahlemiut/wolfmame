@@ -224,6 +224,8 @@ files {
 	MAME_DIR .. "src/emu/ui/info_pty.h",
 	MAME_DIR .. "src/emu/ui/inputmap.cpp",
 	MAME_DIR .. "src/emu/ui/inputmap.h",
+	MAME_DIR .. "src/emu/ui/recinp.cpp",
+	MAME_DIR .. "src/emu/ui/recinp.h",
 	MAME_DIR .. "src/emu/ui/sliders.cpp",
 	MAME_DIR .. "src/emu/ui/sliders.h",
 	MAME_DIR .. "src/emu/ui/slotopt.cpp",

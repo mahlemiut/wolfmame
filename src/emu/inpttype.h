@@ -767,6 +767,7 @@ void construct_core_types_UI(simple_list<input_type_entry> &typelist)
 	INPUT_PORT_DIGITAL_TYPE( 0, UI,      UI_EXPORT,           "UI Export list to xml",  input_seq(KEYCODE_LALT, KEYCODE_E) )
 	INPUT_PORT_DIGITAL_TYPE( 0, UI,      UI_AUDIT_FAST,       "UI Audit Unavailable",   input_seq(KEYCODE_F1, input_seq::not_code, KEYCODE_LSHIFT) )
 	INPUT_PORT_DIGITAL_TYPE( 0, UI,      UI_AUDIT_ALL,        "UI Audit All",           input_seq(KEYCODE_F1, KEYCODE_LSHIFT) )
+	INPUT_PORT_DIGITAL_TYPE( 0, UI,      UI_RECORD_INP,       NULL,                     input_seq() )
 }
 
 void construct_core_types_OSD(simple_list<input_type_entry> &typelist)

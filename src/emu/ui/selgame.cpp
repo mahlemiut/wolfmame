@@ -168,6 +168,20 @@ ui_menu_select_game::ui_menu_select_game(running_machine &machine, render_contai
 	// load drivers cache
 	init_sorted_list();
 
+	// check if there are available icons
+	ui_globals::has_icons = false;
+	file_enumerator path(moptions.icons_directory());
+	const osd_directory_entry *dir;
+	while ((dir = path.next()) != nullptr)
+	{
+		std::string src(dir->name);
+		if (src.find(".ico") != std::string::npos || src.find("icons") != std::string::npos)
+		{
+			ui_globals::has_icons = true;
+			break;
+		}
+	}
+
 	// build drivers list
 	if (!load_available_machines())
 		build_available_list();
@@ -624,11 +638,18 @@ void ui_menu_select_game::populate()
 		}
 	}
 
-	// add special items
 	item_append(MENU_SEPARATOR_ITEM, nullptr, MENU_FLAG_UI, nullptr);
-	item_append("Configure Options", nullptr, MENU_FLAG_UI, (void *)(FPTR)1);
-	item_append("Configure Directories", nullptr, MENU_FLAG_UI, (void *)(FPTR)2);
-	item_append("Save Configuration", nullptr, MENU_FLAG_UI, (void *)(FPTR)3);
+
+	// add special items
+	if (ui_menu::stack_has_special_main_menu())
+	{
+		item_append(_("Configure Options"), nullptr, MENU_FLAG_UI, (void *)(FPTR)1);
+		item_append(_("Configure Directories"), nullptr, MENU_FLAG_UI, (void *)(FPTR)2);
+		item_append(_("Save Configuration"), nullptr, MENU_FLAG_UI, (void *)(FPTR)3);
+		skip_main_items = 3;
+	}
+	else
+		skip_main_items = 0;
 
 	// configure the custom rendering
 	customtop = 3.0f * machine().ui().get_line_height() + 5.0f * UI_BOX_TB_BORDER;
@@ -745,7 +766,7 @@ void ui_menu_select_game::custom_render(void *selectedref, float top, float bott
 	if (isfavorite())
 		tempbuf[1].clear();
 	else
-		tempbuf[1].assign(filtered).append(" Search: ").append(m_search).append("_");
+		tempbuf[1].assign(filtered).append(_(" Search: ")).append(m_search).append("_");
 
 	// get the size of the text
 	for (int line = 0; line < 2; ++line)
@@ -780,10 +801,10 @@ void ui_menu_select_game::custom_render(void *selectedref, float top, float bott
 
 	// determine the text to render below
 	if (!isfavorite())
-		driver = ((FPTR)selectedref > 3) ? (const game_driver *)selectedref : nullptr;
+		driver = ((FPTR)selectedref > skip_main_items) ? (const game_driver *)selectedref : nullptr;
 	else
 	{
-		swinfo = ((FPTR)selectedref > 3) ? (ui_software_info *)selectedref : nullptr;
+		swinfo = ((FPTR)selectedref > skip_main_items) ? (ui_software_info *)selectedref : nullptr;
 		if (swinfo && swinfo->startempty == 1)
 			driver = swinfo->driver;
 	}
@@ -1760,12 +1781,12 @@ float ui_menu_select_game::draw_left_panel(float x1, float y1, float x2, float y
 				hover = phover + filter;
 			}
 
-			if (afilter == filter)
+/*			if (afilter == filter)
 			{
 				bgcolor = UI_SELECTED_BG_COLOR;
 				fgcolor = UI_SELECTED_COLOR;
 			}
-
+*/
 			if (bgcolor != UI_TEXT_BG_COLOR)
 				container->add_rect(x1, y1, x2, y1 + line_height_max, bgcolor, PRIMFLAG_BLENDMODE(BLENDMODE_ALPHA) | PRIMFLAG_TEXWRAP(TRUE));
 
@@ -1790,6 +1811,12 @@ float ui_menu_select_game::draw_left_panel(float x1, float y1, float x2, float y
 						}
 					}
 				}
+				convert_command_glyph(str);
+			}
+			else if (filter == main_filters::actual)
+			{
+				str.assign("@custom1 ").append(text[filter]);
+				x1t -= text_sign;
 				convert_command_glyph(str);
 			}
 
@@ -1868,7 +1895,7 @@ void ui_menu_select_game::infos_render(void *selectedref, float origx1, float or
 
 	if (is_favorites)
 	{
-		soft = ((FPTR)selectedref > 3) ? (ui_software_info *)selectedref : nullptr;
+		soft = ((FPTR)selectedref > skip_main_items) ? (ui_software_info *)selectedref : nullptr;
 		if (soft && soft->startempty == 1)
 		{
 			driver = soft->driver;
@@ -1879,7 +1906,7 @@ void ui_menu_select_game::infos_render(void *selectedref, float origx1, float or
 	}
 	else
 	{
-		driver = ((FPTR)selectedref > 3) ? (const game_driver *)selectedref : nullptr;
+		driver = ((FPTR)selectedref > skip_main_items) ? (const game_driver *)selectedref : nullptr;
 		oldsoft = nullptr;
 	}
 
@@ -1944,7 +1971,7 @@ void ui_menu_select_game::infos_render(void *selectedref, float origx1, float or
 
 		if (buffer.empty())
 		{
-			mui.draw_text_full(container, "No Infos Available", origx1, (origy2 + origy1) * 0.5f, origx2 - origx1, JUSTIFY_CENTER, 
+			mui.draw_text_full(container, _("No Infos Available"), origx1, (origy2 + origy1) * 0.5f, origx2 - origx1, JUSTIFY_CENTER, 
 				WRAP_WORD, DRAW_NORMAL, UI_TEXT_COLOR, UI_TEXT_BG_COLOR, nullptr, nullptr);
 			return;
 		}
@@ -2047,7 +2074,7 @@ void ui_menu_select_game::infos_render(void *selectedref, float origx1, float or
 		// apply title to right panel
 		if (soft->usage.empty())
 		{
-			mui.draw_text_full(container, "History", origx1, origy1, origx2 - origx1, JUSTIFY_CENTER, WRAP_TRUNCATE, 
+			mui.draw_text_full(container, _("History"), origx1, origy1, origx2 - origx1, JUSTIFY_CENTER, WRAP_TRUNCATE,
 				DRAW_NORMAL, UI_TEXT_COLOR, UI_TEXT_BG_COLOR, nullptr, nullptr);
 			ui_globals::cur_sw_dats_view = 0;
 		}
@@ -2056,8 +2083,8 @@ void ui_menu_select_game::infos_render(void *selectedref, float origx1, float or
 			float title_size = 0.0f;
 			float txt_lenght = 0.0f;
 			std::string t_text[2];
-			t_text[0] = "History";
-			t_text[1] = "Usage";
+			t_text[0] = _("History");
+			t_text[1] = _("Usage");
 
 			for (auto & elem: t_text)
 			{
@@ -2091,7 +2118,7 @@ void ui_menu_select_game::infos_render(void *selectedref, float origx1, float or
 
 		if (buffer.empty())
 		{
-			mui.draw_text_full(container, "No Infos Available", origx1, (origy2 + origy1) * 0.5f, origx2 - origx1, JUSTIFY_CENTER, 
+			mui.draw_text_full(container, _("No Infos Available"), origx1, (origy2 + origy1) * 0.5f, origx2 - origx1, JUSTIFY_CENTER,
 				WRAP_WORD, DRAW_NORMAL, UI_TEXT_COLOR, UI_TEXT_BG_COLOR, nullptr, nullptr);
 			return;
 		}
@@ -2188,7 +2215,7 @@ void ui_menu_select_game::arts_render(void *selectedref, float origx1, float ori
 
 	if (is_favorites)
 	{
-		soft = ((FPTR)selectedref > 3) ? (ui_software_info *)selectedref : nullptr;
+		soft = ((FPTR)selectedref > skip_main_items) ? (ui_software_info *)selectedref : nullptr;
 		if (soft && soft->startempty == 1)
 		{
 			driver = soft->driver;
@@ -2199,7 +2226,7 @@ void ui_menu_select_game::arts_render(void *selectedref, float origx1, float ori
 	}
 	else
 	{
-		driver = ((FPTR)selectedref > 3) ? (const game_driver *)selectedref : nullptr;
+		driver = ((FPTR)selectedref > skip_main_items) ? (const game_driver *)selectedref : nullptr;
 		oldsoft = nullptr;
 	}
 

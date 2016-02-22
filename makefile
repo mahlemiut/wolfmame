@@ -1094,10 +1094,10 @@ macosx_x86_clang: generate $(PROJECTDIR)/gmake-osx-clang/Makefile
 	$(SILENT) $(MAKE) $(MAKEPARAMS) -C $(PROJECTDIR)/gmake-osx-clang config=$(CONFIG)32
 
 xcode4: generate
-	$(SILENT) $(GENIE) $(PARAMS) --targetos=macosx --xcode=osx xcode4
+	$(SILENT) $(GENIE) $(PARAMS) --gcc=osx-clang --gcc_version=$(CLANG_VERSION) --targetos=macosx --xcode=osx xcode4
 
 xcode4-ios: generate
-	$(SILENT) $(GENIE) $(PARAMS) --targetos=macosx --xcode=ios xcode4
+	$(SILENT) $(GENIE) $(PARAMS) --gcc=osx-clang --gcc_version=$(CLANG_VERSION) --targetos=macosx --xcode=ios xcode4
 
 #-------------------------------------------------
 # gmake-solaris
@@ -1244,6 +1244,7 @@ clean: genieclean
 
 GEN_FOLDERS := $(GENDIR)/$(TARGET)/layout/ $(GENDIR)/$(TARGET)/$(SUBTARGET)/
 
+rwildcard=$(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2) $(filter $(subst *,%,$2),$d))
 LAYOUTS=$(wildcard $(SRC)/$(TARGET)/layout/*.lay)
 
 ifneq (,$(wildcard src/osd/$(OSD)/$(OSD).mak))
@@ -1262,6 +1263,7 @@ genie: $(GENIE)
 generate: \
 		genie \
 		$(GEN_FOLDERS) \
+		$(patsubst %.po,%.mo,$(call rwildcard, language/, *.po)) \
 		$(patsubst $(SRC)/%.lay,$(GENDIR)/%.lh,$(LAYOUTS)) \
 		$(SRC)/devices/cpu/m68000/m68kops.cpp
 
@@ -1275,6 +1277,10 @@ ifeq ($(TARGETOS),asmjs)
 else
 	$(SILENT) $(MAKE) -C $(SRC)/devices/cpu/m68000 CC="$(CC)" CXX="$(CXX)"
 endif
+
+%.mo: %.po
+	@echo Converting translation $<...
+	$(SILENT)$(PYTHON) scripts/build/msgfmt.py --output-file $@ $<
 
 #-------------------------------------------------
 # Regression tests
@@ -1378,5 +1384,7 @@ shaders:
 .PHONY: translation
 
 translation:
-	$(SILENT) echo Generating mame.po
-	$(SILENT) find src -iname "*.cpp" | xargs xgettext --from-code=ASCII -k_ --default-domain=mame
+	$(SILENT) echo Generating mame.pot
+	$(SILENT) find src -iname "*.cpp" | xargs xgettext --from-code=UTF-8 -k_ -k__ -o mame.pot
+	$(SILENT) find language -iname "*.po" | xargs -n 1 -I %% msgmerge -U %% mame.pot 
+

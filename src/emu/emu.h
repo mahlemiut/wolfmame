@@ -95,6 +95,7 @@ typedef device_t * (*machine_config_constructor)(machine_config &config, device_
 
 // the running machine
 #include "mame.h"
+#include "language.h"
 #include "machine.h"
 #include "driver.h"
 

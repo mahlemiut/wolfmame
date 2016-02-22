@@ -66,7 +66,7 @@ public:
 	TIMER_DEVICE_CALLBACK_MEMBER(display_decay_tick);
 	void display_update();
 	void set_display_size(int maxx, int maxy);
-	void display_matrix(int maxx, int maxy, UINT32 setx, UINT32 sety);
+	void display_matrix(int maxx, int maxy, UINT32 setx, UINT32 sety, bool update = true);
 
 protected:
 	virtual void machine_start() override;
@@ -194,7 +194,7 @@ void hh_cop400_state::set_display_size(int maxx, int maxy)
 	m_display_maxy = maxy;
 }
 
-void hh_cop400_state::display_matrix(int maxx, int maxy, UINT32 setx, UINT32 sety)
+void hh_cop400_state::display_matrix(int maxx, int maxy, UINT32 setx, UINT32 sety, bool update)
 {
 	set_display_size(maxx, maxy);
 
@@ -203,9 +203,12 @@ void hh_cop400_state::display_matrix(int maxx, int maxy, UINT32 setx, UINT32 set
 	for (int y = 0; y < maxy; y++)
 		m_display_state[y] = (sety >> y & 1) ? ((setx & mask) | (1 << maxx)) : 0;
 
-	display_update();
+	if (update)
+		display_update();
 }
 
+
+// generic input handlers
 
 UINT8 hh_cop400_state::read_inputs(int columns)
 {
@@ -232,7 +235,7 @@ UINT8 hh_cop400_state::read_inputs(int columns)
 
   Castle Toy Einstein
   * COP421 MCU labeled ~/927 COP421-NEZ/N
-  * 4 lamps, 1bit sound
+  * 4 lamps, 1-bit sound
 
 ***************************************************************************/
 
@@ -275,9 +278,54 @@ MACHINE_CONFIG_END
 
 /***************************************************************************
 
+  Coleco Head to Head Basketball
+  * COP420 MCU labeled COP420L-NEZ/N
+  * 2-digit 7seg display, 41 other leds, 1-bit sound
+
+***************************************************************************/
+
+class h2hbaskb_state : public hh_cop400_state
+{
+public:
+	h2hbaskb_state(const machine_config &mconfig, device_type type, const char *tag)
+		: hh_cop400_state(mconfig, type, tag)
+	{ }
+};
+
+// handlers
+
+//..
+
+
+// config
+
+static INPUT_PORTS_START( h2hbaskb )
+INPUT_PORTS_END
+
+static MACHINE_CONFIG_START( h2hbaskb, h2hbaskb_state )
+
+	/* basic machine hardware */
+	MCFG_CPU_ADD("maincpu", COP420, 1000000) // approximation - RC osc. R=43K to +9V, C=101pf to GND
+	MCFG_COP400_CONFIG(COP400_CKI_DIVISOR_16, COP400_CKO_OSCILLATOR_OUTPUT, COP400_MICROBUS_DISABLED) // guessed
+
+	MCFG_TIMER_DRIVER_ADD_PERIODIC("display_decay", hh_cop400_state, display_decay_tick, attotime::from_msec(1))
+//  MCFG_DEFAULT_LAYOUT(layout_h2hbaskb)
+
+	/* sound hardware */
+	MCFG_SPEAKER_STANDARD_MONO("mono")
+	MCFG_SOUND_ADD("speaker", SPEAKER_SOUND, 0)
+	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 0.25)
+MACHINE_CONFIG_END
+
+
+
+
+
+/***************************************************************************
+
   Entex Space Invader
   * COP444L MCU labeled /B138 COPL444-HRZ/N INV II (die labeled HRZ COP 444L/A)
-  * 3 7seg LEDs, LED matrix and overlay mask, 1bit sound
+  * 3 7seg LEDs, LED matrix and overlay mask, 1-bit sound
 
   The first version was on TMS1100 (see hh_tms1k.c), this is the reprogrammed
   second release with a gray case instead of black.
@@ -393,7 +441,7 @@ MACHINE_CONFIG_END
 
   Mattel Funtronics Jacks
   * COP410L MCU bonded directly to PCB (die labeled COP410L/B NGS)
-  * 8 LEDs, 1bit sound
+  * 8 LEDs, 1-bit sound
 
 ***************************************************************************/
 
@@ -500,7 +548,7 @@ MACHINE_CONFIG_END
 
   Mattel Funtronics Red Light Green Light
   * COP410L MCU bonded directly to PCB (die labeled COP410L/B NHZ)
-  * 14 LEDs, 1bit sound
+  * 14 LEDs, 1-bit sound
 
   known releases:
   - USA: Funtronics Red Light Green Light
@@ -595,7 +643,7 @@ MACHINE_CONFIG_END
 
   Milton Bradley Plus One
   * COP410L MCU in 8-pin DIP, labeled ~/029 MM 57405 (die labeled COP410L/B NNE)
-  * 4 sensors(1 on each die side), 1bit sound
+  * 4 sensors(1 on each die side), 1-bit sound
 
 ***************************************************************************/
 
@@ -639,7 +687,7 @@ MACHINE_CONFIG_END
 
   Milton Bradley (Electronic) Lightfight
   * COP421L MCU labeled /B119 COP421L-HLA/N
-  * LED matrix, 1bit sound
+  * LED matrix, 1-bit sound
 
   Xbox-shaped electronic game for 2 or more players, with long diagonal buttons
   next to each outer LED. The main object of the game is to pinpoint a light
@@ -784,6 +832,12 @@ ROM_START( ctstein )
 ROM_END
 
 
+ROM_START( h2hbaskb )
+	ROM_REGION( 0x0400, "maincpu", 0 )
+	ROM_LOAD( "cop420l-nmy", 0x0000, 0x0400, CRC(87152509) SHA1(acdb869b65d49b3b9855a557ed671cbbb0f61e2c) )
+ROM_END
+
+
 ROM_START( einvaderc )
 	ROM_REGION( 0x0800, "maincpu", 0 )
 	ROM_LOAD( "copl444-hrz_n_inv_ii", 0x0000, 0x0800, CRC(76400f38) SHA1(0e92ab0517f7b7687293b189d30d57110df20fe0) )
@@ -817,6 +871,8 @@ ROM_END
 
 /*    YEAR  NAME       PARENT COMPAT MACHINE   INPUT      INIT              COMPANY, FULLNAME, FLAGS */
 CONS( 1979, ctstein,   0,        0, ctstein,   ctstein,   driver_device, 0, "Castle Toy", "Einstein (Castle Toy)", MACHINE_SUPPORTS_SAVE | MACHINE_NOT_WORKING )
+
+CONS( 1979, h2hbaskb,  0,        0, h2hbaskb,  h2hbaskb,  driver_device, 0, "Coleco", "Head to Head Basketball (COP420L)", MACHINE_SUPPORTS_SAVE | MACHINE_NOT_WORKING )
 
 CONS( 1981, einvaderc, einvader, 0, einvaderc, einvaderc, driver_device, 0, "Entex", "Space Invader (Entex, COP444)", MACHINE_SUPPORTS_SAVE | MACHINE_REQUIRES_ARTWORK | MACHINE_NOT_WORKING )
 

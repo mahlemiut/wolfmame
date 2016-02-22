@@ -216,8 +216,6 @@ void ui_menu_record_inp::start_rec()
 	// otherwise, display an error
 	else
 	{
-		reset(UI_MENU_RESET_REMEMBER_REF);
-		ui_error = true;
 		machine().popmessage("ROM audit failed.  Cannot start system.  Please check your ROMset is correct and up to date.");
 	}
 }

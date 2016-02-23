@@ -2334,6 +2334,7 @@ ROM_START(gticlub2ea) //*
 	DISK_IMAGE( "941a02", 0,  NO_DUMP )
 ROM_END
 
+/* This CF card has sticker B41C02 */
 ROM_START(jpark3) //*
 	VIPER_BIOS
 
@@ -2342,6 +2343,20 @@ ROM_START(jpark3) //*
 
 	ROM_REGION(0x2000, "m48t58", ROMREGION_ERASE00)     /* M48T58 Timekeeper NVRAM */
 	ROM_LOAD("b41ebc_nvram.u39", 0x00000, 0x2000, CRC(55d1681d) SHA1(26868cf0d14f23f06b81f2df0b4186924439bb43))
+
+	DISK_REGION( "ata:0:hdd:image" )
+	DISK_IMAGE( "b41c02", 0, SHA1(fb6b0b43a6f818041d644bcd711f6a727348d3aa) )
+ROM_END
+
+/* This CF card has sticker B41C02 */
+ROM_START(jpark3u) //*
+	VIPER_BIOS
+
+	ROM_REGION(0x28, "ds2430", ROMREGION_ERASE00)       /* DS2430 */
+	ROM_LOAD("ds2430.u3", 0x00, 0x28, CRC(f1511505) SHA1(ed7cd9b2763b3e377df9663943160f9871f65105))
+
+	ROM_REGION(0x2000, "m48t58", ROMREGION_ERASE00)     /* M48T58 Timekeeper NVRAM */
+	ROM_LOAD("b41 ua rtc.u39", 0x00000, 0x1ff8, CRC(75fdda39) SHA1(6292ce0d32afdf6bde33ac7f1f07655fa17282f6))
 
 	DISK_REGION( "ata:0:hdd:image" )
 	DISK_IMAGE( "b41c02", 0, SHA1(fb6b0b43a6f818041d644bcd711f6a727348d3aa) )
@@ -2449,7 +2464,7 @@ ROM_START(p911ea)
 	ROM_LOAD("a00eaa_nvram.u39", 0x000000, 0x2000,  CRC(4f3497b6) SHA1(3045c54f98dff92cdf3a1fc0cd4c76ba82d632d7) )
 
 	DISK_REGION( "ata:0:hdd:image" )
-	DISK_IMAGE( "a00eaa02", 0, SHA1(fa057bf17f4c0fb9b9a09b820ff7a101e44fab7d) )
+	DISK_IMAGE( "a00eaa02_ea", 0, SHA1(fa057bf17f4c0fb9b9a09b820ff7a101e44fab7d) )
 ROM_END
 
 ROM_START(p911j) //*
@@ -2803,6 +2818,7 @@ GAME(2000, code1db,   code1d,    viper, viper, viper_state, vipercf,  ROT0,  "Ko
 GAME(2001, gticlub2,  kviper,    viper, viper, viper_state, vipercf,  ROT0,  "Konami", "GTI Club 2 (ver JAB)", MACHINE_NOT_WORKING|MACHINE_NO_SOUND)
 GAME(2001, gticlub2ea,gticlub2,  viper, viper, viper_state, vipercf,  ROT0,  "Konami", "GTI Club 2 (ver EAA)", MACHINE_NOT_WORKING|MACHINE_NO_SOUND)
 GAME(2001, jpark3,    kviper,    viper, viper, viper_state, vipercf,  ROT0,  "Konami", "Jurassic Park 3 (ver EBC)", MACHINE_NOT_WORKING|MACHINE_NO_SOUND)
+GAME(2001, jpark3u,   jpark3,    viper, viper, viper_state, vipercf,  ROT0,  "Konami", "Jurassic Park 3 (ver UA)", MACHINE_NOT_WORKING|MACHINE_NO_SOUND)
 GAME(2001, mocapglf,  kviper,    viper, viper, viper_state, vipercf,  ROT0,  "Konami", "Mocap Golf (ver UAA)", MACHINE_NOT_WORKING|MACHINE_NO_SOUND)
 GAME(2001, mocapb,    kviper,    viper, viper, viper_state, vipercf,  ROT90,  "Konami", "Mocap Boxing (ver AAA)", MACHINE_NOT_WORKING|MACHINE_NO_SOUND)
 GAME(2001, mocapbj,   mocapb,    viper, viper, viper_state, vipercf,  ROT90,  "Konami", "Mocap Boxing (ver JAA)", MACHINE_NOT_WORKING|MACHINE_NO_SOUND)

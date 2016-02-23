@@ -117,7 +117,12 @@ void ui_menu_record_inp::handle()
 			{
 				case 1:
 					if(m_event->iptkey == IPT_UI_SELECT)
+					{
+						// if filename doesn't end in ".inp", then add it
+						if(strcmp(&m_filename_entry[strlen(m_filename_entry)-4],".inp"))
+							strcat(m_filename_entry,".inp");
 						start_rec();
+					}
 				break;
 			}
 		}

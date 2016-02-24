@@ -2482,7 +2482,7 @@ ioport_manager::ioport_manager(running_machine &machine)
 		m_has_dips(false),
 		m_has_bioses(false),
 		m_autofire_toggle(false),
-		m_autofire_delay(3)                 // 1 seems too fast for a bunch of games
+		m_autofire_delay(3),                 // 1 seems too fast for a bunch of games
 		m_inpview(machine)
 {
 	memset(m_type_to_entry, 0, sizeof(m_type_to_entry));

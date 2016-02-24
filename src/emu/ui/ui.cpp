@@ -1727,12 +1727,12 @@ UINT32 ui_manager::handler_ingame(running_machine &machine, render_container *co
 	if (machine.ui_input().pressed(IPT_UI_PAUSE) && !machine.ioport().get_record_file()->is_open())
 	{
 		// with a shift key, it is single step
-//		if (is_paused && (machine.input().code_pressed(KEYCODE_LSHIFT) || machine.input().code_pressed(KEYCODE_RSHIFT)))
-//		{
-//			machine.ui().set_single_step(true);
-//			machine.resume();
-//		}
-//		else
+//      if (is_paused && (machine.input().code_pressed(KEYCODE_LSHIFT) || machine.input().code_pressed(KEYCODE_RSHIFT)))
+//      {
+//          machine.ui().set_single_step(true);
+//          machine.resume();
+//      }
+//      else
 			machine.toggle_pause();
 	}
 
@@ -2732,8 +2732,8 @@ int ui_manager::wrap_text(render_container *container, const char *origs, float 
 		if (curwidth > maxwidth)
 			maxwidth = curwidth;
 
-        xstart.push_back(linestart - origs);
-        xend.push_back(s - origs);
+		xstart.push_back(linestart - origs);
+		xend.push_back(s - origs);
 
 		// loop from the line start and add the characters
 		while (linestart < s)

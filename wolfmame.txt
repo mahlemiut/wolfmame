@@ -1,8 +1,15 @@
 ------------------------------------------------------------------------------------------------
-WolfMAME 0.170                                                                       27/Jan/2016
-Based on the MAME(tm) 0.170 source, modified by Barry Rodewald
+WolfMAME 0.171                                                                       24/Feb/2016
+Based on the MAME(tm) 0.171 source, modified by Barry Rodewald
 ------------------------------------------------------------------------------------------------
 
+
+New in 0.171
+------------
+
+ - Added a Record INP toolbar button to the new MEWUI frontend.  (Still a bit experimental, 
+   please test it out though)
+ 
 
 New in 0.169
 ------------

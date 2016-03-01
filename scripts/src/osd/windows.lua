@@ -46,6 +46,7 @@ function maintargetosdoptions(_target,_subtarget)
 		"comctl32",
 		"comdlg32",
 		"psapi",
+		"xinput",
 	}
 end
 
@@ -163,8 +164,6 @@ project ("osd_" .. _OPTIONS["osd"])
 		MAME_DIR .. "src/osd/modules/render/drawgdi.h",
 		MAME_DIR .. "src/osd/modules/render/drawnone.cpp",
 		MAME_DIR .. "src/osd/modules/render/drawnone.h",
-		MAME_DIR .. "src/osd/windows/input.cpp",
-		MAME_DIR .. "src/osd/windows/input.h",
 		MAME_DIR .. "src/osd/windows/output.cpp",
 		MAME_DIR .. "src/osd/windows/output.h",
 		MAME_DIR .. "src/osd/windows/video.cpp",

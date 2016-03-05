@@ -384,6 +384,7 @@ enum ioport_type
 		IPT_UI_AUDIT_ALL,
 		IPT_UI_TOGGLE_AUTOFIRE,
 		IPT_UI_RECORD_INP,
+		IPT_UI_PLAY_INP,
 
 		// additional OSD-specified UI port types (up to 16)
 		IPT_OSD_1,

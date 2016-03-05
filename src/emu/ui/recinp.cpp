@@ -16,9 +16,8 @@
 #include "audit.h"
 #include "softlist.h"
 
-//-------------------------------------------------
-//  ctor
-//-------------------------------------------------
+
+// INP recording class
 
 ui_menu_record_inp::ui_menu_record_inp(running_machine &machine, render_container *container, const game_driver *driver) : ui_menu(machine, container)
 {
@@ -65,10 +64,6 @@ ui_menu_record_inp::ui_menu_record_inp(running_machine &machine, render_containe
 		m_warning[2] = true;
 	}
 }
-
-//-------------------------------------------------
-//  dtor
-//-------------------------------------------------
 
 ui_menu_record_inp::~ui_menu_record_inp()
 {
@@ -121,7 +116,7 @@ void ui_menu_record_inp::handle()
 						// if filename doesn't end in ".inp", then add it
 						if(strcmp(&m_filename_entry[strlen(m_filename_entry)-4],".inp"))
 							strcat(m_filename_entry,".inp");
-						start_rec();
+						start_inp();
 					}
 				break;
 			}
@@ -161,7 +156,7 @@ void ui_menu_record_inp::custom_render(void *selectedref, float top, float botto
 	str += "_";
 
 	mui.draw_outlined_box(container, 0.1f,origy1 - (height*2),0.9f,origy1, UI_BACKGROUND_COLOR);
-	mui.draw_text_full(container,"Please enter a filename for the INP...",0.1f,origy1 - (height*2),0.8f, JUSTIFY_CENTER, WRAP_TRUNCATE, DRAW_NORMAL, UI_TEXT_COLOR, UI_TEXT_BG_COLOR, nullptr, nullptr);
+	mui.draw_text_full(container,_("Please enter a filename for the INP..."),0.1f,origy1 - (height*2),0.8f, JUSTIFY_CENTER, WRAP_TRUNCATE, DRAW_NORMAL, UI_TEXT_COLOR, UI_TEXT_BG_COLOR, nullptr, nullptr);
 	mui.draw_text_full(container,str.c_str(),0.1f,origy1 - height,0.8f, JUSTIFY_CENTER, WRAP_TRUNCATE, DRAW_NORMAL, UI_TEXT_COLOR, UI_TEXT_BG_COLOR, nullptr, nullptr);
 	
 	// warning display
@@ -181,7 +176,7 @@ void ui_menu_record_inp::custom_render(void *selectedref, float top, float botto
 	}
 }
 
-void ui_menu_record_inp::start_rec()
+void ui_menu_record_inp::start_inp()
 {
 	// audit the game first to see if we're going to work
 	std::string error;
@@ -221,7 +216,100 @@ void ui_menu_record_inp::start_rec()
 	// otherwise, display an error
 	else
 	{
-		machine().popmessage("ROM audit failed.  Cannot start system.  Please check your ROMset is correct and up to date.");
+		machine().popmessage(_("ROM audit failed.  Cannot start system.  Please check your ROMset is correct and up to date."));
+	}
+}
+
+
+// INP playback class
+ui_menu_playback_inp::ui_menu_playback_inp(running_machine &machine, render_container *container, const game_driver *driver) : ui_menu_record_inp(machine, container, driver)
+{
+}
+
+ui_menu_playback_inp::~ui_menu_playback_inp()
+{
+	ui_globals::switch_image = true;
+}
+
+//-------------------------------------------------
+//  populate
+//-------------------------------------------------
+
+void ui_menu_playback_inp::populate()
+{
+	// add options items
+	item_append("Start playback", nullptr, 0 , (void*)(FPTR)1);
+	item_append(_("Browse..."), nullptr, 0 , (void*)(FPTR)2);
+	customtop = machine().ui().get_line_height() + (3.0f * UI_BOX_TB_BORDER);
+}
+
+void ui_menu_playback_inp::start_inp()
+{
+	// audit the game first to see if we're going to work
+	std::string error;
+	std::string fname;
+	struct inp_header hdr;
+	emu_file f(OPEN_FLAG_READ);
+	driver_enumerator enumerator(machine().options(), *m_driver);
+	enumerator.next();
+	media_auditor auditor(enumerator);
+	media_auditor::summary summary = auditor.audit_media(AUDIT_VALIDATE_FAST);
+
+	// check if INP file exists
+	fname = machine().options().input_directory();
+	fname += "/";
+	fname += m_filename_entry;
+	if(f.open(fname.c_str()) != FILERR_NONE)
+	{
+		machine().popmessage(_("Cannot find or open INP file."));
+		f.close();
+		return;
+	}
+	
+	// check if the correct game is selected (at this stage, auto-selecting the game from the INP header would be awkward from here)
+	f.read(&hdr,sizeof(struct inp_header));
+	printf("selected: %s  header: %s\n",m_driver->name,hdr.gamename);
+	if(strcmp(m_driver->name,hdr.gamename) != 0)
+	{
+		machine().popmessage(_("INP is not recorded from the same game as you have selected."));
+		f.close();
+		return;
+	}
+	
+	f.close();
+	
+	// if everything looks good, schedule the new driver
+	if (summary == media_auditor::CORRECT || summary == media_auditor::BEST_AVAILABLE || summary == media_auditor::NONE_NEEDED)
+	{
+		if ((m_driver->flags & MACHINE_TYPE_ARCADE) == 0)
+		{
+			software_list_device_iterator iter(enumerator.config().root_device());
+			for (software_list_device *swlistdev = iter.first(); swlistdev != nullptr; swlistdev = iter.next())
+				if (swlistdev->first_software_info() != nullptr)
+				{
+					ui_menu::stack_push(global_alloc_clear<ui_menu_select_software>(machine(), container, m_driver));
+					return;
+				}
+		}
+
+		std::vector<s_bios> biosname;
+		if (!machine().ui().options().skip_bios_menu() && has_multiple_bios(m_driver, biosname))
+			ui_menu::stack_push(global_alloc_clear<ui_bios_selection>(machine(), container, biosname, (void *)m_driver, false, false));
+		else
+		{
+			reselect_last::driver = m_driver->name;
+			reselect_last::software.clear();
+			reselect_last::swlist.clear();
+			machine().options().set_value(OPTION_PLAYBACK,m_filename_entry,OPTION_PRIORITY_HIGH,error);
+			machine().manager().schedule_new_driver(*m_driver);
+			machine().schedule_hard_reset();
+			ui_menu::stack_reset(machine());
+		}
+	}
+	// otherwise, display an error
+	else
+	{
+		machine().popmessage(_("ROM audit failed.  Cannot start system.  Please check your ROMset is correct and up to date."));
 	}
 }
 

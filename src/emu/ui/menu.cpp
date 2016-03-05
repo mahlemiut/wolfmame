@@ -66,6 +66,7 @@ static const char *hover_msg[] = {
 	__("Export displayed list to file"),
 	__("Show DATs view"),
 	__("Record an INP"),
+	__("Play back an INP"),
 };
 
 /***************************************************************************

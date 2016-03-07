@@ -484,7 +484,6 @@ configuration { "vs*" }
 		"NoPCH",
 		"ExtraWarnings",
 		"NoEditAndContinue",
-		"EnableMinimalRebuild",
 	}
 	if not _OPTIONS["NOWERROR"] then
 		flags{
@@ -1293,7 +1292,7 @@ configuration { }
 if (_OPTIONS["SOURCES"] ~= nil) then
 	OUT_STR = os.outputof( PYTHON .. " " .. MAME_DIR .. "scripts/build/makedep.py " .. MAME_DIR .. " " .. _OPTIONS["SOURCES"] .. " target " .. _OPTIONS["subtarget"])
 	load(OUT_STR)()
-	os.outputof( PYTHON .. " " .. MAME_DIR .. "scripts/build/makedep.py " .. MAME_DIR .. " " .. _OPTIONS["SOURCES"] .. " drivers " .. _OPTIONS["subtarget"] .. " > ".. GEN_DIR  .. _OPTIONS["target"] .. "/" .. _OPTIONS["subtarget"].."/drivlist.cpp")
+	os.outputof( PYTHON .. " " .. MAME_DIR .. "scripts/build/makedep.py " .. MAME_DIR .. " " .. _OPTIONS["SOURCES"] .. " drivers " .. _OPTIONS["subtarget"] .. " > ".. GEN_DIR  .. _OPTIONS["target"] .. "/" .. _OPTIONS["subtarget"]..".flt")
 end
 
 group "libs"

@@ -25,7 +25,6 @@
 
 # USE_DISPATCH_GL = 0
 # MODERN_WIN_API = 0
-# USE_XAUDIO2 = 0
 # DIRECTINPUT = 7
 # USE_SDL = 1
 # SDL_INI_PATH = .;$HOME/.mame/;ini;
@@ -97,6 +96,7 @@
 
 # MSBUILD = 1
 # USE_LIBUV = 1
+# IGNORE_BAD_LOCALISATION=1
 
 ifdef PREFIX_MAKEFILE
 include $(PREFIX_MAKEFILE)
@@ -574,10 +574,6 @@ endif
 
 ifdef MODERN_WIN_API
 PARAMS += --MODERN_WIN_API='$(MODERN_WIN_API)'
-endif
-
-ifdef USE_XAUDIO2
-PARAMS += --USE_XAUDIO2='$(USE_XAUDIO2)'
 endif
 
 ifdef DIRECTINPUT
@@ -1365,8 +1361,11 @@ endif
 
 %.mo: %.po
 	@echo Converting translation $<...
+ifdef IGNORE_BAD_LOCALISATION
+	$(SILENT)$(PYTHON) scripts/build/msgfmt.py --output-file $@ $< || exit 0
+else
 	$(SILENT)$(PYTHON) scripts/build/msgfmt.py --output-file $@ $<
-
+endif
 #-------------------------------------------------
 # Regression tests
 #-------------------------------------------------
@@ -1479,5 +1478,6 @@ shaders:
 translation:
 	$(SILENT) echo Generating mame.pot
 	$(SILENT) find src -iname "*.cpp" | xargs xgettext --from-code=UTF-8 -k_ -k__ -o mame.pot
-	$(SILENT) find language -iname "*.po" | xargs -n 1 -I %% msgmerge -U %% mame.pot 
+	$(SILENT) find language -iname "*.po" | xargs -n 1 -I %% msgmerge -U -N %% mame.pot 
+	$(SILENT) find language -iname "*.po" | xargs -n 1 -I %% msgattrib --clear-fuzzy --empty %% -o %%
 

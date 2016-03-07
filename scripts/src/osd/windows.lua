@@ -46,7 +46,7 @@ function maintargetosdoptions(_target,_subtarget)
 		"comctl32",
 		"comdlg32",
 		"psapi",
-		"xinput",
+		"ole32",
 	}
 end
 
@@ -217,6 +217,7 @@ project ("ocore_" .. _OPTIONS["osd"])
 	dofile("windows_cfg.lua")
 
 	includedirs {
+		MAME_DIR .. "3rdparty",
 		MAME_DIR .. "src/emu",
 		MAME_DIR .. "src/osd",
 		MAME_DIR .. "src/lib",
@@ -225,7 +226,6 @@ project ("ocore_" .. _OPTIONS["osd"])
 
 	BASE_TARGETOS = "win32"
 	SDLOS_TARGETOS = "win32"
-	SYNC_IMPLEMENTATION = "windows"
 
 	includedirs {
 		MAME_DIR .. "src/osd/windows",
@@ -246,7 +246,7 @@ project ("ocore_" .. _OPTIONS["osd"])
 		MAME_DIR .. "src/osd/windows/main.cpp",
 		MAME_DIR .. "src/osd/windows/windir.cpp",
 		MAME_DIR .. "src/osd/windows/winfile.cpp",
-		MAME_DIR .. "src/osd/modules/sync/sync_windows.cpp",
+		MAME_DIR .. "src/osd/modules/sync/osdsync.cpp",
 		MAME_DIR .. "src/osd/modules/sync/osdsync.h",
 		MAME_DIR .. "src/osd/windows/winutf8.cpp",
 		MAME_DIR .. "src/osd/windows/winutf8.h",
@@ -259,17 +259,8 @@ project ("ocore_" .. _OPTIONS["osd"])
 		MAME_DIR .. "src/osd/modules/osdmodule.cpp",
 		MAME_DIR .. "src/osd/modules/osdmodule.h",
 		MAME_DIR .. "src/osd/modules/lib/osdlib_win32.cpp",
+		MAME_DIR .. "src/osd/modules/sync/work_osd.cpp",
 	}
-
-	if _OPTIONS["NOASM"] == "1" then
-		files {
-			MAME_DIR .. "src/osd/modules/sync/work_mini.cpp",
-		}
-	else
-		files {
-			MAME_DIR .. "src/osd/modules/sync/work_osd.cpp",
-		}
-	end
 
 
 --------------------------------------------------

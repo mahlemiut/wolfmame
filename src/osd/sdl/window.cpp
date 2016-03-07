@@ -184,7 +184,7 @@ static OSDWORK_CALLBACK(sdlwindow_thread_id)
 
 	if (SDLMAME_INIT_IN_WORKER_THREAD)
 	{
-		if (SDL_InitSubSystem(SDL_INIT_TIMER|SDL_INIT_AUDIO| SDL_INIT_VIDEO| SDL_INIT_JOYSTICK|SDL_INIT_NOPARACHUTE))
+		if (SDL_InitSubSystem(SDL_INIT_TIMER|SDL_INIT_AUDIO| SDL_INIT_VIDEO| SDL_INIT_GAMECONTROLLER|SDL_INIT_NOPARACHUTE))
 		{
 			osd_printf_error("Could not initialize SDL: %s.\n", SDL_GetError());
 			exit(-1);
@@ -310,7 +310,7 @@ static void sdlwindow_sync(void)
 		while (!osd_work_queue_wait(work_queue, osd_ticks_per_second()*10))
 		{
 			osd_printf_warning("sdlwindow_sync: Sleeping...\n");
-			osd_sleep(100000);
+			osd_sleep(osd_ticks_per_second() / 1000 * 100);
 		}
 	}
 }

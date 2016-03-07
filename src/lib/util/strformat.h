@@ -185,8 +185,27 @@
 #include <type_traits>
 #include <utility>
 
+#if defined(__GLIBCXX__) && (__GLIBCXX__ < 20150413)
+namespace std
+{
+template<class _Container>
+  inline constexpr auto
+  cbegin(const _Container& __cont) noexcept(noexcept(std::begin(__cont)))-> decltype(std::begin(__cont))
+  { return std::begin(__cont); }
+
+template<class _Container>
+  inline constexpr auto
+  cend(const _Container& __cont) noexcept(noexcept(std::end(__cont)))-> decltype(std::end(__cont))
+  { return std::end(__cont); }
+}
+#endif
+
 namespace util {
 namespace detail {
+//**************************************************************************
+//  FORMAT CHARACTER DEFINITIONS
+//**************************************************************************
+
 template <typename Character>
 class format_chars
 {
@@ -286,6 +305,11 @@ public:
 			z           = L'z'
 		};
 };
+
+
+//**************************************************************************
+//  FORMAT SPECIFIER ENCAPSULATION
+//**************************************************************************
 
 class format_flags
 {
@@ -553,362 +577,10 @@ private:
 	conversion      m_conversion;       // i, d, u, o, x, X, e, E, f, F, g, G, a, A, c, C, s, S, p, m, %
 };
 
-template <typename Format>
-class format_helper_base : public format_chars<std::remove_cv_t<std::remove_reference_t<decltype(*std::cbegin(std::declval<Format>()))> > >
-{
-public:
-	typedef std::remove_reference_t<decltype(std::cbegin(std::declval<Format>()))> iterator;
-	static iterator begin(Format const &fmt) { return std::cbegin(fmt); }
-	static bool at_end(Format const &fmt, iterator const &it) { return std::cend(fmt) == it; }
-};
 
-template <typename Character>
-class format_helper_base<Character *> : public format_chars<std::remove_cv_t<Character> >
-{
-public:
-	typedef Character const *iterator;
-	static iterator begin(Character const *fmt) { return fmt; }
-	static bool at_end(Character const *fmt, iterator const &it) { return format_helper_base::nul == *it; }
-};
-
-template <typename Character, std::size_t Length>
-class format_helper_base<Character [Length]> : public format_chars<std::remove_cv_t<Character> >
-{
-public:
-	typedef Character const *iterator;
-	static iterator begin(Character (&fmt)[Length]) { return std::cbegin(fmt); }
-	static iterator begin(Character const (&fmt)[Length]) { return std::cbegin(fmt); }
-	static bool at_end(Character (&fmt)[Length], iterator const &it) { return (std::cend(fmt) == it) || (format_chars<Character>::nul == *it); }
-	static bool at_end(Character const (&fmt)[Length], iterator const &it) { return (std::cend(fmt) == it) || (format_helper_base::nul == *it); }
-};
-
-template <typename Format>
-class format_helper : public format_helper_base<Format>
-{
-public:
-	static bool parse_format(
-			Format const &fmt,
-			typename format_helper::iterator &it,
-			format_flags &flags,
-			int &next_position,
-			int &argument_position,
-			int &width_position,
-			int &precision_position)
-	{
-		static_assert((format_helper::nine - format_helper::zero) == 9, "Digits must be contiguous");
-		assert(!format_helper::at_end(fmt, it));
-		assert(format_helper::percent == *it);
-
-		int num;
-		int nxt(next_position);
-		++it;
-		flags = format_flags();
-		argument_position = -1;
-		width_position = -1;
-		precision_position = -1;
-
-		// Leading zeroes are tricky - they could be a zero-pad flag or part of a position specifier
-		bool const leading_zero(!format_helper::at_end(fmt, it) && (format_helper::zero == *it));
-		while (!format_helper::at_end(fmt, it) && (format_helper::zero == *it)) ++it;
-
-		// Digits encountered at this point could be a field width or a position specifier
-		num = 0;
-		bool leading_num(have_digit(fmt, it));
-		while (have_digit(fmt, it)) add_digit(num, *it++);
-		if (leading_num && !have_dollar(fmt, it))
-		{
-			// No dollar sign, leading number is field width
-			if (leading_zero) flags.set_zero_pad();
-			flags.set_field_width(num);
-		}
-		else
-		{
-			// If we hit a dollar sign after a number, that's a position specifier
-			if ((leading_zero || leading_num) && have_dollar(fmt, it))
-			{
-				argument_position = num;
-				++it;
-			}
-			else if (leading_zero)
-			{
-				flags.set_zero_pad();
-			}
-
-			// Parse flag characters
-			while (!format_helper::at_end(fmt, it))
-			{
-				switch (*it)
-				{
-				case format_helper::hash:   ++it;   flags.set_alternate_format();       continue;
-				case format_helper::zero:   ++it;   flags.set_zero_pad();               continue;
-				case format_helper::minus:  ++it;   flags.set_left_align();             continue;
-				case format_helper::space:  ++it;   flags.set_positive_sign_space();    continue;
-				case format_helper::plus:   ++it;   flags.set_positive_sign_plus();     continue;
-				case format_helper::quote:  ++it;   flags.set_digit_grouping();         continue;
-				case format_helper::I:      ++it;   flags.set_alternate_digits();       continue;
-				default: break;
-				}
-				break;
-			}
-
-			// Check for literal or parameterised field width
-			if (!format_helper::at_end(fmt, it))
-			{
-				if (is_digit(*it))
-				{
-					flags.set_field_width(read_number(fmt, it));
-				}
-				else if (format_helper::asterisk == *it)
-				{
-					++it;
-					if (have_digit(fmt, it))
-					{
-						num = read_number(fmt, it);
-						assert(have_dollar(fmt, it)); // invalid positional width
-						if (!have_dollar(fmt, it)) return false;
-						width_position = num;
-						nxt = width_position + 1;
-						++it;
-					}
-					else
-					{
-						width_position = nxt++;
-					}
-				}
-			}
-		}
-
-		// Check for literal or parameterised precision
-		if (!format_helper::at_end(fmt, it) && (*it == format_helper::point))
-		{
-			++it;
-			if (have_digit(fmt, it))
-			{
-				flags.set_precision(read_number(fmt, it));
-			}
-			else if (!format_helper::at_end(fmt, it) && (format_helper::asterisk == *it))
-			{
-				++it;
-				if (have_digit(fmt, it))
-				{
-					num = read_number(fmt, it);
-					assert(have_dollar(fmt, it)); // invalid positional precision
-					if (!have_dollar(fmt, it)) return false;
-					precision_position = num;
-					nxt = precision_position + 1;
-					++it;
-				}
-				else
-				{
-					precision_position = nxt++;
-				}
-			}
-			else
-			{
-				flags.set_precision(0);
-			}
-		}
-
-		// Check for length modifiers
-		if (!format_helper::at_end(fmt, it)) switch (*it)
-		{
-		case format_helper::h:
-			++it;
-			if (!format_helper::at_end(fmt, it) && (format_helper::h == *it))
-			{
-				++it;
-				flags.set_length(format_flags::length::character);
-			}
-			else
-			{
-				flags.set_length(format_flags::length::short_integer);
-			}
-			break;
-		case format_helper::l:
-			++it;
-			if (!format_helper::at_end(fmt, it) && (format_helper::l == *it))
-			{
-				++it;
-				flags.set_length(format_flags::length::long_long_integer);
-			}
-			else
-			{
-				flags.set_length(format_flags::length::long_integer);
-			}
-			break;
-		case format_helper::L:
-			++it;
-			flags.set_length(format_flags::length::long_double);
-			break;
-		case format_helper::j:
-			++it;
-			flags.set_length(format_flags::length::integer_maximum);
-			break;
-		case format_helper::z:
-			++it;
-			flags.set_length(format_flags::length::size_type);
-			break;
-		case format_helper::t:
-			++it;
-			flags.set_length(format_flags::length::pointer_difference);
-			break;
-		case format_helper::I:
-			{
-				++it;
-				format_flags::length length = format_flags::length::size_type;
-				if (!format_helper::at_end(fmt, it))
-				{
-					if ((typename format_helper::char_type(format_helper::zero) + 3) == *it)
-					{
-						typename format_helper::iterator tmp(it);
-						++tmp;
-						if (!format_helper::at_end(fmt, tmp) && ((typename format_helper::char_type(format_helper::zero) + 2) == *tmp))
-						{
-							length = format_flags::length::integer_32;
-							it = ++tmp;
-						}
-					}
-					else if ((typename format_helper::char_type(format_helper::zero) + 6) == *it)
-					{
-						typename format_helper::iterator tmp(it);
-						++tmp;
-						if (!format_helper::at_end(fmt, tmp) && ((typename format_helper::char_type(format_helper::zero) + 4) == *tmp))
-						{
-							length = format_flags::length::integer_64;
-							it = ++tmp;
-						}
-					}
-				}
-				flags.set_length(length);
-			}
-			break;
-		case format_helper::w:
-			++it;
-			flags.set_length(format_flags::length::wide_character);
-			break;
-		default:
-			break;
-		}
-
-		// Now we should find a conversion specifier
-		assert(!format_helper::at_end(fmt, it)); // missing conversion
-		if (format_helper::at_end(fmt, it)) return false;
-		switch (*it)
-		{
-		case format_helper::d:
-		case format_helper::i:
-			flags.set_conversion(format_flags::conversion::signed_decimal);
-			break;
-		case format_helper::o:
-			flags.set_conversion(format_flags::conversion::octal);
-			break;
-		case format_helper::u:
-			flags.set_conversion(format_flags::conversion::unsigned_decimal);
-			break;
-		case format_helper::X:
-			flags.set_uppercase();
-		case format_helper::x:
-			flags.set_conversion(format_flags::conversion::hexadecimal);
-			break;
-		case format_helper::E:
-			flags.set_uppercase();
-		case format_helper::e:
-			flags.set_conversion(format_flags::conversion::scientific_decimal);
-			break;
-		case format_helper::F:
-			flags.set_uppercase();
-		case format_helper::f:
-			flags.set_conversion(format_flags::conversion::fixed_decimal);
-			break;
-		case format_helper::G:
-			flags.set_uppercase();
-		case format_helper::g:
-			flags.set_conversion(format_flags::conversion::floating_decimal);
-			break;
-		case format_helper::A:
-			flags.set_uppercase();
-		case format_helper::a:
-			flags.set_conversion(format_flags::conversion::scientific_hexadecimal);
-			break;
-		case format_helper::C:
-			if (format_flags::length::unspecified == flags.get_length())
-				flags.set_length(format_flags::length::long_integer);
-		case format_helper::c:
-			flags.set_conversion(format_flags::conversion::character);
-			break;
-		case format_helper::S:
-			if (format_flags::length::unspecified == flags.get_length())
-				flags.set_length(format_flags::length::long_integer);
-		case format_helper::s:
-			flags.set_conversion(format_flags::conversion::string);
-			break;
-		case format_helper::p:
-			flags.set_conversion(format_flags::conversion::pointer);
-			break;
-		case format_helper::n:
-			flags.set_conversion(format_flags::conversion::tell);
-			break;
-		case format_helper::m:
-			flags.set_conversion(format_flags::conversion::strerror);
-			break;
-		case format_helper::percent:
-			flags.set_conversion(format_flags::conversion::percent);
-			break;
-		default:
-			assert(false); // unsupported conversion
-			return false;
-		}
-		++it;
-
-		// Finalise argument position
-		if (argument_position < 0) argument_position = nxt;
-		next_position = argument_position;
-		switch (flags.get_conversion())
-		{
-		case format_flags::conversion::strerror:
-		case format_flags::conversion::percent:
-			break;
-		default:
-			++next_position;
-		}
-		return true;
-	}
-
-private:
-	static bool have_dollar(Format const &fmt, typename format_helper::iterator const &it)
-	{
-		return !format_helper::at_end(fmt, it) && (*it == format_helper::dollar);
-	}
-
-	static bool have_digit(Format const &fmt, typename format_helper::iterator const &it)
-	{
-		return !format_helper::at_end(fmt, it) && is_digit(*it);
-	}
-
-	static bool is_digit(typename format_helper::char_type value)
-	{
-		return (format_helper::zero <= value) && (format_helper::nine >= value);
-	}
-
-	static int digit_value(typename format_helper::char_type value)
-	{
-		assert(is_digit(value));
-		return int(std::make_signed_t<decltype(value)>(value - format_helper::zero));
-	}
-
-	static void add_digit(int &num, typename format_helper::char_type digit)
-	{
-		num = (num * 10) + digit_value(digit);
-	}
-
-	static int read_number(Format const &fmt, typename format_helper::iterator &it)
-	{
-		assert(have_digit(fmt, it));
-		int value = 0;
-		do add_digit(value, *it++); while (have_digit(fmt, it));
-		return value;
-	}
-};
+//**************************************************************************
+//  FORMAT OUTPUT HELPERS
+//**************************************************************************
 
 template <typename Stream, typename T>
 class format_output
@@ -1237,6 +909,11 @@ public:
 	}
 };
 
+
+//**************************************************************************
+//  INTEGER INPUT HELPERS
+//**************************************************************************
+
 template <typename T>
 class format_make_integer
 {
@@ -1264,6 +941,11 @@ public:
 		return false;
 	}
 };
+
+
+//**************************************************************************
+//  INTEGER OUTPUT HELPERS
+//**************************************************************************
 
 template <typename T>
 class format_store_integer
@@ -1297,6 +979,11 @@ public:
 		return false;
 	}
 };
+
+
+//**************************************************************************
+//  NON-POLYMORPHIC ARGUMENT WRAPPER
+//**************************************************************************
 
 template <typename Stream>
 class format_argument
@@ -1349,17 +1036,487 @@ private:
 	store_integer_function  m_store_integer_function;
 };
 
-template <typename Stream, typename... Params>
-inline std::array<format_argument<Stream>, sizeof...(Params)> make_format_arguments(Params &&... args)
+
+//**************************************************************************
+//  NON-POLYMORPHIC ARGUMENT PACK WRAPPER BASE
+//**************************************************************************
+
+template <typename Stream = std::ostream>
+class format_argument_pack
 {
-	return std::array<format_argument<Stream>, sizeof...(Params)>({ { format_argument<Stream>(std::forward<Params>(args))... } });
+public:
+	typedef typename Stream::char_type char_type;
+	typedef char_type const *iterator;
+	iterator format_begin() const
+	{
+		return m_begin;
+	}
+	bool format_at_end(iterator it) const
+	{
+		return (m_end && (m_end == it)) || (m_check_nul && (format_chars<char_type>::nul == *it));
+	}
+	std::size_t argument_count() const
+	{
+		return m_argument_count;
+	}
+	format_argument<Stream> const &operator[](std::size_t index) const
+	{
+		assert(m_argument_count > index);
+		return m_arguments[index];
+	}
+
+protected:
+	template <typename T>
+	struct handle_char_ptr { static constexpr bool value = std::is_pointer<T>::value && std::is_same<std::remove_cv_t<std::remove_pointer_t<T> >, char_type>::value; };
+	template <typename T>
+	struct handle_char_array { static constexpr bool value = std::is_array<T>::value && std::is_same<std::remove_cv_t<std::remove_extent_t<T> >, char_type>::value; };
+	template <typename T>
+	struct handle_container { static constexpr bool value = !handle_char_ptr<T>::value && !handle_char_array<T>::value; };
+
+	template <typename Format>
+	format_argument_pack(
+			Format &&fmt,
+			format_argument<Stream> const *arguments,
+			std::enable_if_t<handle_char_ptr<std::remove_reference_t<Format> >::value, std::size_t> argument_count)
+		: m_begin(fmt)
+		, m_end(nullptr)
+		, m_check_nul(true)
+		, m_arguments(arguments)
+		, m_argument_count(argument_count)
+	{
+		assert(m_begin);
+		assert(m_end || m_check_nul);
+		assert(!m_end || (m_end > m_begin));
+		assert(m_arguments || !m_argument_count);
+	}
+	template <typename Format>
+	format_argument_pack(
+			Format &&fmt,
+			format_argument<Stream> const *arguments,
+			std::enable_if_t<handle_char_array<std::remove_reference_t<Format> >::value, std::size_t> argument_count)
+		: m_begin(std::cbegin(fmt))
+		, m_end(std::cend(fmt))
+		, m_check_nul(true)
+		, m_arguments(arguments)
+		, m_argument_count(argument_count)
+	{
+		assert(m_begin);
+		assert(m_end || m_check_nul);
+		assert(!m_end || (m_end > m_begin));
+		assert(m_arguments || !m_argument_count);
+	}
+	template <typename Format>
+	format_argument_pack(
+			Format &&fmt,
+			format_argument<Stream> const *arguments,
+			std::enable_if_t<handle_container<std::remove_reference_t<Format> >::value, std::size_t> argument_count)
+		: m_begin(fmt.empty() ? nullptr : &*std::cbegin(fmt))
+		, m_end(fmt.empty() ? nullptr : &*std::cend(fmt))
+		, m_check_nul(true)
+		, m_arguments(arguments)
+		, m_argument_count(argument_count)
+	{
+		assert(m_begin);
+		assert(m_end || m_check_nul);
+		assert(!m_end || (m_end > m_begin));
+		assert(m_arguments || !m_argument_count);
+	}
+
+	format_argument_pack(format_argument_pack<Stream> const &) = default;
+	format_argument_pack(format_argument_pack<Stream> &&) = default;
+	format_argument_pack &operator=(format_argument_pack<Stream> const &) = default;
+	format_argument_pack &operator=(format_argument_pack<Stream> &&) = default;
+
+private:
+	iterator                        m_begin;
+	iterator                        m_end;
+	bool                            m_check_nul;
+	format_argument<Stream> const   *m_arguments;
+	std::size_t                     m_argument_count;
+};
+
+
+//**************************************************************************
+//  ARGUMENT PACK WRAPPER IMPLEMENTATION
+//**************************************************************************
+
+template <typename Stream, std::size_t Count>
+class format_argument_pack_impl
+	: private std::array<format_argument<Stream>, Count>
+	, public format_argument_pack<Stream>
+{
+public:
+	using typename format_argument_pack<Stream>::iterator;
+	using format_argument_pack<Stream>::operator[];
+
+	template <typename Format, typename... Params>
+	format_argument_pack_impl(Format &&fmt, Params &&... args)
+		: std::array<format_argument<Stream>, Count>({ { format_argument<Stream>(std::forward<Params>(args))... } })
+		, format_argument_pack<Stream>(std::forward<Format>(fmt), Count ? &*this->cbegin() : nullptr, Count)
+	{
+		static_assert(sizeof...(Params) == Count, "Wrong number of constructor arguments");
+	}
+
+	format_argument_pack_impl(format_argument_pack_impl<Stream, Count> const &) = default;
+	format_argument_pack_impl(format_argument_pack_impl<Stream, Count> &&) = default;
+	format_argument_pack_impl &operator=(format_argument_pack_impl<Stream, Count> const &) = default;
+	format_argument_pack_impl &operator=(format_argument_pack_impl<Stream, Count> &&) = default;
+};
+
+
+//**************************************************************************
+//  ARGUMENT PACK CREATOR FUNCTION
+//**************************************************************************
+
+template <typename Stream = std::ostream, typename Format, typename... Params>
+inline format_argument_pack_impl<Stream, sizeof...(Params)> make_format_argument_pack(Format &&fmt, Params &&... args)
+{
+	return format_argument_pack_impl<Stream, sizeof...(Params)>(std::forward<Format>(fmt), std::forward<Params>(args)...);
 }
 
-template <typename Stream, typename Format, std::size_t Count>
-typename Stream::off_type stream_format(Stream &str, Format const &fmt, std::array<format_argument<Stream>, Count> const &args)
+
+//**************************************************************************
+//  FORMAT STRING PARSING HELPER
+//**************************************************************************
+
+template <typename Format>
+class format_helper : public format_chars<typename Format::char_type>
 {
-	typedef format_helper<std::remove_reference_t<Format> > format_helper;
-	typedef typename format_helper::iterator iterator;
+public:
+	static bool parse_format(
+			Format const &fmt,
+			typename Format::iterator &it,
+			format_flags &flags,
+			int &next_position,
+			int &argument_position,
+			int &width_position,
+			int &precision_position)
+	{
+		static_assert((format_helper::nine - format_helper::zero) == 9, "Digits must be contiguous");
+		assert(!fmt.format_at_end(it));
+		assert(format_helper::percent == *it);
+
+		int num;
+		int nxt(next_position);
+		++it;
+		flags = format_flags();
+		argument_position = -1;
+		width_position = -1;
+		precision_position = -1;
+
+		// Leading zeroes are tricky - they could be a zero-pad flag or part of a position specifier
+		bool const leading_zero(!fmt.format_at_end(it) && (format_helper::zero == *it));
+		while (!fmt.format_at_end(it) && (format_helper::zero == *it)) ++it;
+
+		// Digits encountered at this point could be a field width or a position specifier
+		num = 0;
+		bool leading_num(have_digit(fmt, it));
+		while (have_digit(fmt, it)) add_digit(num, *it++);
+		if (leading_num && !have_dollar(fmt, it))
+		{
+			// No dollar sign, leading number is field width
+			if (leading_zero) flags.set_zero_pad();
+			flags.set_field_width(num);
+		}
+		else
+		{
+			// If we hit a dollar sign after a number, that's a position specifier
+			if ((leading_zero || leading_num) && have_dollar(fmt, it))
+			{
+				argument_position = num;
+				++it;
+			}
+			else if (leading_zero)
+			{
+				flags.set_zero_pad();
+			}
+
+			// Parse flag characters
+			while (!fmt.format_at_end(it))
+			{
+				switch (*it)
+				{
+				case format_helper::hash:   ++it;   flags.set_alternate_format();       continue;
+				case format_helper::zero:   ++it;   flags.set_zero_pad();               continue;
+				case format_helper::minus:  ++it;   flags.set_left_align();             continue;
+				case format_helper::space:  ++it;   flags.set_positive_sign_space();    continue;
+				case format_helper::plus:   ++it;   flags.set_positive_sign_plus();     continue;
+				case format_helper::quote:  ++it;   flags.set_digit_grouping();         continue;
+				case format_helper::I:      ++it;   flags.set_alternate_digits();       continue;
+				default: break;
+				}
+				break;
+			}
+
+			// Check for literal or parameterised field width
+			if (!fmt.format_at_end(it))
+			{
+				if (is_digit(*it))
+				{
+					flags.set_field_width(read_number(fmt, it));
+				}
+				else if (format_helper::asterisk == *it)
+				{
+					++it;
+					if (have_digit(fmt, it))
+					{
+						num = read_number(fmt, it);
+						assert(have_dollar(fmt, it)); // invalid positional width
+						if (!have_dollar(fmt, it)) return false;
+						width_position = num;
+						nxt = width_position + 1;
+						++it;
+					}
+					else
+					{
+						width_position = nxt++;
+					}
+				}
+			}
+		}
+
+		// Check for literal or parameterised precision
+		if (!fmt.format_at_end(it) && (*it == format_helper::point))
+		{
+			++it;
+			if (have_digit(fmt, it))
+			{
+				flags.set_precision(read_number(fmt, it));
+			}
+			else if (!fmt.format_at_end(it) && (format_helper::asterisk == *it))
+			{
+				++it;
+				if (have_digit(fmt, it))
+				{
+					num = read_number(fmt, it);
+					assert(have_dollar(fmt, it)); // invalid positional precision
+					if (!have_dollar(fmt, it)) return false;
+					precision_position = num;
+					nxt = precision_position + 1;
+					++it;
+				}
+				else
+				{
+					precision_position = nxt++;
+				}
+			}
+			else
+			{
+				flags.set_precision(0);
+			}
+		}
+
+		// Check for length modifiers
+		if (!fmt.format_at_end(it)) switch (*it)
+		{
+		case format_helper::h:
+			++it;
+			if (!fmt.format_at_end(it) && (format_helper::h == *it))
+			{
+				++it;
+				flags.set_length(format_flags::length::character);
+			}
+			else
+			{
+				flags.set_length(format_flags::length::short_integer);
+			}
+			break;
+		case format_helper::l:
+			++it;
+			if (!fmt.format_at_end(it) && (format_helper::l == *it))
+			{
+				++it;
+				flags.set_length(format_flags::length::long_long_integer);
+			}
+			else
+			{
+				flags.set_length(format_flags::length::long_integer);
+			}
+			break;
+		case format_helper::L:
+			++it;
+			flags.set_length(format_flags::length::long_double);
+			break;
+		case format_helper::j:
+			++it;
+			flags.set_length(format_flags::length::integer_maximum);
+			break;
+		case format_helper::z:
+			++it;
+			flags.set_length(format_flags::length::size_type);
+			break;
+		case format_helper::t:
+			++it;
+			flags.set_length(format_flags::length::pointer_difference);
+			break;
+		case format_helper::I:
+			{
+				++it;
+				format_flags::length length = format_flags::length::size_type;
+				if (!fmt.format_at_end(it))
+				{
+					if ((typename format_helper::char_type(format_helper::zero) + 3) == *it)
+					{
+						typename Format::iterator tmp(it);
+						++tmp;
+						if (!fmt.format_at_end(tmp) && ((typename format_helper::char_type(format_helper::zero) + 2) == *tmp))
+						{
+							length = format_flags::length::integer_32;
+							it = ++tmp;
+						}
+					}
+					else if ((typename format_helper::char_type(format_helper::zero) + 6) == *it)
+					{
+						typename Format::iterator tmp(it);
+						++tmp;
+						if (!fmt.format_at_end(tmp) && ((typename format_helper::char_type(format_helper::zero) + 4) == *tmp))
+						{
+							length = format_flags::length::integer_64;
+							it = ++tmp;
+						}
+					}
+				}
+				flags.set_length(length);
+			}
+			break;
+		case format_helper::w:
+			++it;
+			flags.set_length(format_flags::length::wide_character);
+			break;
+		default:
+			break;
+		}
+
+		// Now we should find a conversion specifier
+		assert(!fmt.format_at_end(it)); // missing conversion
+		if (fmt.format_at_end(it)) return false;
+		switch (*it)
+		{
+		case format_helper::d:
+		case format_helper::i:
+			flags.set_conversion(format_flags::conversion::signed_decimal);
+			break;
+		case format_helper::o:
+			flags.set_conversion(format_flags::conversion::octal);
+			break;
+		case format_helper::u:
+			flags.set_conversion(format_flags::conversion::unsigned_decimal);
+			break;
+		case format_helper::X:
+			flags.set_uppercase();
+		case format_helper::x:
+			flags.set_conversion(format_flags::conversion::hexadecimal);
+			break;
+		case format_helper::E:
+			flags.set_uppercase();
+		case format_helper::e:
+			flags.set_conversion(format_flags::conversion::scientific_decimal);
+			break;
+		case format_helper::F:
+			flags.set_uppercase();
+		case format_helper::f:
+			flags.set_conversion(format_flags::conversion::fixed_decimal);
+			break;
+		case format_helper::G:
+			flags.set_uppercase();
+		case format_helper::g:
+			flags.set_conversion(format_flags::conversion::floating_decimal);
+			break;
+		case format_helper::A:
+			flags.set_uppercase();
+		case format_helper::a:
+			flags.set_conversion(format_flags::conversion::scientific_hexadecimal);
+			break;
+		case format_helper::C:
+			if (format_flags::length::unspecified == flags.get_length())
+				flags.set_length(format_flags::length::long_integer);
+		case format_helper::c:
+			flags.set_conversion(format_flags::conversion::character);
+			break;
+		case format_helper::S:
+			if (format_flags::length::unspecified == flags.get_length())
+				flags.set_length(format_flags::length::long_integer);
+		case format_helper::s:
+			flags.set_conversion(format_flags::conversion::string);
+			break;
+		case format_helper::p:
+			flags.set_conversion(format_flags::conversion::pointer);
+			break;
+		case format_helper::n:
+			flags.set_conversion(format_flags::conversion::tell);
+			break;
+		case format_helper::m:
+			flags.set_conversion(format_flags::conversion::strerror);
+			break;
+		case format_helper::percent:
+			flags.set_conversion(format_flags::conversion::percent);
+			break;
+		default:
+			assert(false); // unsupported conversion
+			return false;
+		}
+		++it;
+
+		// Finalise argument position
+		if (argument_position < 0) argument_position = nxt;
+		next_position = argument_position;
+		switch (flags.get_conversion())
+		{
+		case format_flags::conversion::strerror:
+		case format_flags::conversion::percent:
+			break;
+		default:
+			++next_position;
+		}
+		return true;
+	}
+
+private:
+	static bool have_dollar(Format const &fmt, typename Format::iterator const &it)
+	{
+		return !fmt.format_at_end(it) && (*it == format_helper::dollar);
+	}
+
+	static bool have_digit(Format const &fmt, typename Format::iterator const &it)
+	{
+		return !fmt.format_at_end(it) && is_digit(*it);
+	}
+
+	static bool is_digit(typename format_helper::char_type value)
+	{
+		return (format_helper::zero <= value) && (format_helper::nine >= value);
+	}
+
+	static int digit_value(typename format_helper::char_type value)
+	{
+		assert(is_digit(value));
+		return int(std::make_signed_t<decltype(value)>(value - format_helper::zero));
+	}
+
+	static void add_digit(int &num, typename format_helper::char_type digit)
+	{
+		num = (num * 10) + digit_value(digit);
+	}
+
+	static int read_number(Format const &fmt, typename Format::iterator &it)
+	{
+		assert(have_digit(fmt, it));
+		int value = 0;
+		do add_digit(value, *it++); while (have_digit(fmt, it));
+		return value;
+	}
+};
+
+
+//**************************************************************************
+//  CORE FORMATTING FUNCTION
+//**************************************************************************
+
+template <typename Stream, typename Base>
+typename Stream::off_type stream_format(Stream &str, format_argument_pack<Base> const &args)
+{
+	typedef format_helper<format_argument_pack<Base> > format_helper;
+	typedef typename format_argument_pack<Base>::iterator iterator;
 	class stream_preserver
 	{
 	public:
@@ -1389,21 +1546,21 @@ typename Stream::off_type stream_format(Stream &str, Format const &fmt, std::arr
 	typename Stream::pos_type const begin(str.tellp());
 	stream_preserver const preserver(str);
 	int next_pos(1);
-	iterator start = format_helper::begin(fmt);
-	for (iterator it = start; !format_helper::at_end(fmt, start); )
+	iterator start = args.format_begin();
+	for (iterator it = start; !args.format_at_end(start); )
 	{
-		while (!format_helper::at_end(fmt, it) && (format_helper::percent != *it)) ++it;
+		while (!args.format_at_end(it) && (format_helper::percent != *it)) ++it;
 		if (start != it)
 		{
 			str.write(&*start, it - start);
 			start = it;
 		}
-		if (!format_helper::at_end(fmt, it))
+		if (!args.format_at_end(it))
 		{
 			// Try to parse a percent format specification
 			format_flags flags;
 			int arg_pos, width_pos, prec_pos;
-			if (!format_helper::parse_format(fmt, it, flags, next_pos, arg_pos, width_pos, prec_pos))
+			if (!format_helper::parse_format(args, it, flags, next_pos, arg_pos, width_pos, prec_pos))
 				continue;
 
 			// Handle parameterised width
@@ -1411,8 +1568,8 @@ typename Stream::off_type stream_format(Stream &str, Format const &fmt, std::arr
 			{
 				assert(flags.get_field_width() == 0U);
 				assert(0 < width_pos);
-				assert(args.size() >= unsigned(width_pos));
-				if ((0 < width_pos) && (args.size() >= unsigned(width_pos)))
+				assert(args.argument_count() >= unsigned(width_pos));
+				if ((0 < width_pos) && (args.argument_count() >= unsigned(width_pos)))
 				{
 					int width;
 					if (args[width_pos - 1].make_integer(width))
@@ -1439,8 +1596,8 @@ typename Stream::off_type stream_format(Stream &str, Format const &fmt, std::arr
 			{
 				assert(flags.get_precision() < 0);
 				assert(0 < prec_pos);
-				assert(args.size() >= unsigned(prec_pos));
-				if ((0 < prec_pos) && (args.size() >= unsigned(prec_pos)))
+				assert(args.argument_count() >= unsigned(prec_pos));
+				if ((0 < prec_pos) && (args.argument_count() >= unsigned(prec_pos)))
 				{
 					int precision;
 					if (args[prec_pos - 1].make_integer(precision))
@@ -1465,8 +1622,8 @@ typename Stream::off_type stream_format(Stream &str, Format const &fmt, std::arr
 			else
 			{
 				assert(0 < arg_pos);
-				assert(args.size() >= unsigned(arg_pos));
-				if ((0 >= arg_pos) || (args.size() < unsigned(arg_pos)))
+				assert(args.argument_count() >= unsigned(arg_pos));
+				if ((0 >= arg_pos) || (args.argument_count() < unsigned(arg_pos)))
 					continue;
 				if (format_flags::conversion::tell == flags.get_conversion())
 				{
@@ -1492,15 +1649,36 @@ typename Stream::off_type stream_format(Stream &str, Format const &fmt, std::arr
 
 } // namespace detail
 
+
+//**************************************************************************
+//  FORMAT TO STREAM FUNCTIONS
+//**************************************************************************
+
 template <typename Stream, typename Format, typename... Params>
 inline typename Stream::off_type stream_format(Stream &str, Format const &fmt, Params &&... args)
 {
-	auto const arg_pack(detail::make_format_arguments<Stream>(std::forward<Params>(args)...));
-	return detail::stream_format(str, fmt, arg_pack);
+	return detail::stream_format(str, detail::make_format_argument_pack<Stream>(fmt, std::forward<Params>(args)...));
 }
 
+template <typename Stream, typename Base>
+inline typename Stream::off_type stream_format(Stream &str, detail::format_argument_pack<Base> const &args)
+{
+	return detail::stream_format(str, args);
+}
+
+template <typename Stream, typename Base>
+inline typename Stream::off_type stream_format(Stream &str, detail::format_argument_pack<Base> &&args)
+{
+	return detail::stream_format(str, args);
+}
+
+
+//**************************************************************************
+//  FORMAT TO NEW STRING FUNCTIONS
+//**************************************************************************
+
 template <typename String = std::string, typename Format, typename... Params>
-inline String string_format(Format const &fmt, Params &&... args)
+inline String string_format(Format &&fmt, Params &&... args)
 {
 	typedef std::basic_ostringstream<typename String::value_type, typename String::traits_type, typename String::allocator_type> ostream;
 	ostream str;
@@ -1509,7 +1687,7 @@ inline String string_format(Format const &fmt, Params &&... args)
 };
 
 template <typename String = std::string, typename Format, typename... Params>
-inline String string_format(std::locale const &locale, Format const &fmt, Params &&... args)
+inline String string_format(std::locale const &locale, Format &&fmt, Params &&... args)
 {
 	typedef std::basic_ostringstream<typename String::value_type, typename String::traits_type, typename String::allocator_type> ostream;
 	ostream str;
@@ -1517,6 +1695,52 @@ inline String string_format(std::locale const &locale, Format const &fmt, Params
 	stream_format(str, fmt, std::forward<Params>(args)...);
 	return str.str();
 };
+
+template <typename String = std::string, typename Stream>
+inline String string_format(detail::format_argument_pack<Stream> const &args)
+{
+	typedef std::basic_ostringstream<typename String::value_type, typename String::traits_type, typename String::allocator_type> ostream;
+	ostream str;
+	detail::stream_format(str, args);
+	return str.str();
+};
+
+template <typename String = std::string, typename Stream>
+inline String string_format(detail::format_argument_pack<Stream> &&args)
+{
+	typedef std::basic_ostringstream<typename String::value_type, typename String::traits_type, typename String::allocator_type> ostream;
+	ostream str;
+	detail::stream_format(str, std::move(args));
+	return str.str();
+};
+
+template <typename String = std::string, typename Stream>
+inline String string_format(std::locale const &locale, detail::format_argument_pack<Stream> const &args)
+{
+	typedef std::basic_ostringstream<typename String::value_type, typename String::traits_type, typename String::allocator_type> ostream;
+	ostream str;
+	str.imbue(locale);
+	detail::stream_format(str, args);
+	return str.str();
+};
+
+template <typename String = std::string, typename Stream>
+inline String string_format(std::locale const &locale, detail::format_argument_pack<Stream> &&args)
+{
+	typedef std::basic_ostringstream<typename String::value_type, typename String::traits_type, typename String::allocator_type> ostream;
+	ostream str;
+	str.imbue(locale);
+	detail::stream_format(str, std::move(args));
+	return str.str();
+};
+
+
+//**************************************************************************
+//  CREATING ARGUMENT PACKS
+//**************************************************************************
+
+using detail::format_argument_pack;
+using detail::make_format_argument_pack;
 
 } // namespace util
 

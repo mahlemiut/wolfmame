@@ -187,6 +187,35 @@
 
 #define VPRINTF(x)  do { if (VERBOSE) printf x; } while (0)
 
+/*-------------------------------------------------
+    core_i64_hex_format - i64 format printf helper
+-------------------------------------------------*/
+
+static char *core_i64_hex_format(UINT64 value, UINT8 mindigits)
+{
+	static char buffer[16][64];
+	// TODO: this can overflow - e.g. when a lot of unmapped writes are logged
+	static int index;
+	char *bufbase = &buffer[index++ % 16][0];
+	char *bufptr = bufbase;
+	INT8 curdigit;
+
+	for (curdigit = 15; curdigit >= 0; curdigit--)
+	{
+		int nibble = (value >> (curdigit * 4)) & 0xf;
+		if (nibble != 0 || curdigit < mindigits)
+		{
+			mindigits = curdigit;
+			*bufptr++ = "0123456789ABCDEF"[nibble];
+		}
+	}
+	if (bufptr == bufbase)
+		*bufptr++ = '0';
+	*bufptr = 0;
+
+	return bufbase;
+}
+
 
 
 //**************************************************************************
@@ -673,10 +702,13 @@ private:
 	{
 		if (m_space.log_unmap() && !m_space.debugger_access())
 		{
-			m_space.device().logerror("%s: unmapped %s memory read from %s & %s\n",
-						m_space.machine().describe_context(), m_space.name(),
-						core_i64_format(m_space.byte_to_address(offset * sizeof(_UintType)), m_space.addrchars(),m_space.is_octal()),
-						core_i64_format(mask, 2 * sizeof(_UintType),m_space.is_octal()));
+			m_space.device().logerror(
+					m_space.is_octal()
+						? "%s: unmapped %s memory read from %0*o & %0*o\n"
+						: "%s: unmapped %s memory read from %0*X & %0*X\n",
+					m_space.machine().describe_context(), m_space.name(),
+					m_space.addrchars(), m_space.byte_to_address(offset * sizeof(_UintType)),
+					2 * sizeof(_UintType), mask);
 		}
 		return m_space.unmap();
 	}
@@ -741,11 +773,14 @@ private:
 	{
 		if (m_space.log_unmap() && !m_space.debugger_access())
 		{
-			m_space.device().logerror("%s: unmapped %s memory write to %s = %s & %s\n",
+			m_space.device().logerror(
+					m_space.is_octal()
+						? "%s: unmapped %s memory write to %0*o = %0*o & %0*o\n"
+						: "%s: unmapped %s memory write to %0*X = %0*X & %0*X\n",
 					m_space.machine().describe_context(), m_space.name(),
-					core_i64_format(m_space.byte_to_address(offset * sizeof(_UintType)), m_space.addrchars(),m_space.is_octal()),
-					core_i64_format(data, 2 * sizeof(_UintType),m_space.is_octal()),
-					core_i64_format(mask, 2 * sizeof(_UintType),m_space.is_octal()));
+					m_space.addrchars(), m_space.byte_to_address(offset * sizeof(_UintType)),
+					2 * sizeof(_UintType), data,
+					2 * sizeof(_UintType), mask);
 		}
 	}
 

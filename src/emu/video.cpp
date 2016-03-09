@@ -274,7 +274,7 @@ std::string video_manager::speed_text()
 	bool paused = machine().paused();
 
 	/* show frame counter */
-	strcatprintf(str,"[%i] : ",(UINT32)m_machine.first_screen()->frame_number());
+	util::stream_format(str,"[%i] : ",(UINT32)m_machine.first_screen()->frame_number());
 
 	if (paused)
 		str << "paused";
@@ -304,7 +304,7 @@ std::string video_manager::speed_text()
 		util::stream_format(str, "\n%d partial updates", partials);
 
 	if(machine().ioport().get_playback_file()->is_open())
-		strcatprintf(str,"\nRecorded speed: %f%%",100 * machine().ioport().rec_speed);
+		util::stream_format(str,"\nRecorded speed: %f%%",100 * machine().ioport().rec_speed);
 
 	return str.str();
 }

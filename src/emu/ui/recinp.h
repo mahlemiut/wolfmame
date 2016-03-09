@@ -45,6 +45,7 @@ public:
 	ui_menu_playback_inp(running_machine &machine, render_container *container, const game_driver *driver = nullptr);
 	virtual ~ui_menu_playback_inp();
 	virtual void populate() override;
+	virtual void handle() override;
 private:
 	virtual void start_inp() override;
 };

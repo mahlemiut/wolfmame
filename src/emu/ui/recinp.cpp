@@ -10,7 +10,8 @@
 #include "ui/menu.h"
 #include "ui/recinp.h"
 #include "ui/selector.h"
-#include "selsoft.h"
+#include "ui/filesel.h"
+#include "ui/selsoft.h"
 #include "ui/utils.h"
 #include "cliopts.h"
 #include "audit.h"
@@ -110,14 +111,14 @@ void ui_menu_record_inp::handle()
 		{
 			switch((FPTR)m_event->itemref)
 			{
-				case 1:
-					if(m_event->iptkey == IPT_UI_SELECT)
-					{
-						// if filename doesn't end in ".inp", then add it
-						if(strcmp(&m_filename_entry[strlen(m_filename_entry)-4],".inp"))
-							strcat(m_filename_entry,".inp");
-						start_inp();
-					}
+			case 1:
+				if(m_event->iptkey == IPT_UI_SELECT)
+				{
+					// if filename doesn't end in ".inp", then add it
+					if(strcmp(&m_filename_entry[strlen(m_filename_entry)-4],".inp"))
+						strcat(m_filename_entry,".inp");
+					start_inp();
+				}
 				break;
 			}
 		}
@@ -242,6 +243,72 @@ void ui_menu_playback_inp::populate()
 	item_append(_("Browse..."), nullptr, 0 , (void*)(FPTR)2);
 	customtop = machine().ui().get_line_height() + (3.0f * UI_BOX_TB_BORDER);
 }
+
+//-------------------------------------------------
+//  handle
+//-------------------------------------------------
+
+void ui_menu_playback_inp::handle()
+{
+	bool changed = false;
+	int result;
+
+	// process the menu
+	const ui_menu_event *m_event = process(0);
+
+	if (m_event != nullptr)
+	{
+		switch (m_event->iptkey)
+		{
+			case IPT_SPECIAL:
+				int buflen = strlen(m_filename_entry);
+
+				// if it's a backspace and we can handle it, do so
+				if (((m_event->unichar == 8 || m_event->unichar == 0x7f) && buflen > 0))
+				{
+					*(char *)utf8_previous_char(&m_filename_entry[buflen]) = 0;
+					reset(UI_MENU_RESET_SELECT_FIRST);
+				}
+
+				// if it's any other key and we're not maxed out, update
+				else if ((m_event->unichar >= ' ' && m_event->unichar < 0x7f))
+				{
+					buflen += utf8_from_uchar(&m_filename_entry[buflen], ARRAY_LENGTH(m_filename_entry) - buflen, m_event->unichar);
+					m_filename_entry[buflen] = 0;
+					reset(UI_MENU_RESET_SELECT_FIRST);
+				}
+				break;
+		}
+		if(m_event->itemref != nullptr)
+		{
+			switch((FPTR)m_event->itemref)
+			{
+			case 1:
+				if(m_event->iptkey == IPT_UI_SELECT)
+				{
+					// if filename doesn't end in ".inp", then add it
+					if(strcmp(&m_filename_entry[strlen(m_filename_entry)-4],".inp"))
+						strcat(m_filename_entry,".inp");
+					start_inp();
+				}
+				break;
+			case 2:
+				if(m_event->iptkey == IPT_UI_SELECT)
+				{
+					std::string dummy = "";
+					std::string dir = machine().options().input_directory();
+					// browse for INP file
+					ui_menu::stack_push(global_alloc_clear<ui_menu_file_selector>(machine(), container, nullptr, dir, dummy, false, false, false, &result));
+				}
+				break;
+			}
+		}
+	}
+
+	if (changed)
+		reset(UI_MENU_RESET_REMEMBER_REF);
+}
+
 
 void ui_menu_playback_inp::start_inp()
 {

@@ -315,7 +315,7 @@ void ui_menu_playback_inp::start_inp()
 	// audit the game first to see if we're going to work
 	std::string error;
 	std::string fname;
-	struct inp_header hdr;
+	inp_header hdr;
 	emu_file f(OPEN_FLAG_READ);
 	driver_enumerator enumerator(machine().options(), *m_driver);
 	enumerator.next();
@@ -334,9 +334,8 @@ void ui_menu_playback_inp::start_inp()
 	}
 	
 	// check if the correct game is selected (at this stage, auto-selecting the game from the INP header would be awkward from here)
-	f.read(&hdr,sizeof(struct inp_header));
-	printf("selected: %s  header: %s\n",m_driver->name,hdr.gamename);
-	if(strcmp(m_driver->name,hdr.gamename) != 0)
+	hdr.read(f);
+	if(strcmp(m_driver->name,hdr.get_sysname().c_str()) != 0)
 	{
 		machine().popmessage(_("INP is not recorded from the same game as you have selected."));
 		f.close();

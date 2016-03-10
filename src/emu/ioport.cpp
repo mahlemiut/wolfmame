@@ -3458,6 +3458,7 @@ void ioport_manager::playback_end(const char *message)
 	if (m_playback_file.is_open())
 	{
 		char timearray[]="100d 00:00:00.00:";
+		double avg;
 
 		sprintframetime(timearray);
 		// close the file
@@ -3465,20 +3466,20 @@ void ioport_manager::playback_end(const char *message)
 
 		// display speed stats
 		if (m_playback_accumulated_frames)
-			m_playback_accumulated_speed /= m_playback_accumulated_frames;
+			avg = 100 * (m_playback_accumulated_speed / m_playback_accumulated_frames);
 		else
-			m_playback_accumulated_speed = 0;
+			avg = 0;
 
 		// pop a message
 		if (message != nullptr)
-			machine().popmessage("Playback Ended - %u Frames (%s) - Speed %d%%\nReason: %s",
-				(UINT32)m_playback_accumulated_frames, timearray, UINT32((m_playback_accumulated_speed * 200 + 1) >> 21), message);
+			machine().popmessage("Playback Ended - %u Frames (%s) - Speed %.2f%%\nReason: %s",
+				(UINT32)m_playback_accumulated_frames, timearray, avg / (1 << 20), message);
 
 		// display speed stats
 		if (m_playback_accumulated_speed > 0)
 			m_playback_accumulated_speed /= m_playback_accumulated_frames;
 		osd_printf_info("Total playback frames: %d (%s)\n", (UINT32)m_playback_accumulated_frames,timearray);
-		osd_printf_info("Average recorded speed: %d%%\n", UINT32((m_playback_accumulated_speed * 200 + 1) >> 21));
+		osd_printf_info("Average recorded speed: %f%%\n", avg / (1 << 20));
 
 		// close the program at the end of inp file playback
 		if (machine().options().exit_after_playback()) {

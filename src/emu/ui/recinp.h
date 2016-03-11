@@ -48,6 +48,10 @@ public:
 	virtual void handle() override;
 private:
 	virtual void start_inp() override;
+	int browse_result;
+	std::string inp_file;
+	std::string inp_dir;
+	bool browse_done;
 };
 
 

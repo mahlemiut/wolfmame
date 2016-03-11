@@ -136,7 +136,7 @@ void ui_menu_record_inp::handle()
 void ui_menu_record_inp::populate()
 {
 	// add options items
-	item_append("Start recording", nullptr, 0 , (void*)(FPTR)1);
+	item_append(_("Start recording"), nullptr, 0 , (void*)(FPTR)1);
 
 	customtop = machine().ui().get_line_height() + (3.0f * UI_BOX_TB_BORDER);
 }
@@ -223,8 +223,12 @@ void ui_menu_record_inp::start_inp()
 
 
 // INP playback class
-ui_menu_playback_inp::ui_menu_playback_inp(running_machine &machine, render_container *container, const game_driver *driver) : ui_menu_record_inp(machine, container, driver)
+ui_menu_playback_inp::ui_menu_playback_inp(running_machine &machine, render_container *container, const game_driver *driver) 
+	: ui_menu_record_inp(machine, container, driver),
+	  browse_done(false)
 {
+	inp_file = "";
+	inp_dir += machine.options().input_directory();
 }
 
 ui_menu_playback_inp::~ui_menu_playback_inp()
@@ -239,7 +243,7 @@ ui_menu_playback_inp::~ui_menu_playback_inp()
 void ui_menu_playback_inp::populate()
 {
 	// add options items
-	item_append("Start playback", nullptr, 0 , (void*)(FPTR)1);
+	item_append(_("Start playback"), nullptr, 0 , (void*)(FPTR)1);
 	item_append(_("Browse..."), nullptr, 0 , (void*)(FPTR)2);
 	customtop = machine().ui().get_line_height() + (3.0f * UI_BOX_TB_BORDER);
 }
@@ -251,10 +255,19 @@ void ui_menu_playback_inp::populate()
 void ui_menu_playback_inp::handle()
 {
 	bool changed = false;
-	int result;
 
 	// process the menu
 	const ui_menu_event *m_event = process(0);
+
+	if(browse_done)
+	{
+		if(browse_result == ui_menu_file_selector::R_FILE)
+		{
+			int pos = inp_file.find_last_of("/\\");
+			strcpy(m_filename_entry,inp_file.substr(pos+1).c_str());
+		}
+		browse_done = false;
+	}
 
 	if (m_event != nullptr)
 	{
@@ -295,10 +308,9 @@ void ui_menu_playback_inp::handle()
 			case 2:
 				if(m_event->iptkey == IPT_UI_SELECT)
 				{
-					std::string dummy = "";
-					std::string dir = machine().options().input_directory();
 					// browse for INP file
-					ui_menu::stack_push(global_alloc_clear<ui_menu_file_selector>(machine(), container, nullptr, dir, dummy, false, false, false, &result));
+					ui_menu::stack_push(global_alloc_clear<ui_menu_file_selector>(machine(), container, nullptr, inp_dir, inp_file, false, false, false, &browse_result));
+					browse_done = true;
 				}
 				break;
 			}

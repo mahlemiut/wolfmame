@@ -114,6 +114,8 @@ newoption {
 		{ "haiku",         "Haiku"                  },
 		{ "solaris",       "Solaris SunOS"          },
 		{ "steamlink",     "Steam Link"             },
+		{ "rpi",           "Raspberry Pi"           },
+		{ "ci20",          "Creator-Ci20"           },
 	},
 }
 
@@ -160,6 +162,11 @@ newoption {
 newoption {
     trigger = 'with-bundled-sdl2',
     description = 'Build bundled SDL2 library',
+}
+
+newoption {
+    trigger = 'with-bundled-libuv',
+    description = 'Build bundled libuv library',
 }
 
 newoption {
@@ -569,7 +576,9 @@ configuration { "Debug" }
 	defines {
 		"MAME_DEBUG",
 		"MAME_PROFILER",
+		"BGFX_CONFIG_DEBUG=1",
 	}
+
 if _OPTIONS["FASTDEBUG"]=="1" then
 	defines {
 		"MAME_DEBUG_FAST"
@@ -805,8 +814,13 @@ end
 		"-O".. _OPTIONS["OPTIMIZE"],
 		"-fno-strict-aliasing"
 	}
+configuration { "mingw-clang" }
+	buildoptions {
+		"-O1", -- without this executable crash often
+	}
+configuration {  }
 
-	-- add the error warning flag
+-- add the error warning flag
 if _OPTIONS["NOWERROR"]==nil then
 	buildoptions {
 		"-Werror",
@@ -1025,6 +1039,15 @@ if (_OPTIONS["PLATFORM"]=="arm") then
 	}
 end
 
+if (_OPTIONS["PLATFORM"]=="arm64") then
+	buildoptions {
+		"-Wno-cast-align",
+	}
+	defines { 
+		"PTR64=1",
+	}
+end
+
 local subdir
 if (_OPTIONS["target"] == _OPTIONS["subtarget"]) then
 	subdir = _OPTIONS["osd"] .. "/" .. _OPTIONS["target"]
@@ -1040,6 +1063,7 @@ configuration { "asmjs" }
 	buildoptions {
 		"-std=gnu89",
 		"-Wno-implicit-function-declaration",
+		"-s USE_SDL_TTF=2",
 	}
 	buildoptions_cpp {
 		"-x c++",
@@ -1078,7 +1102,7 @@ configuration { "pnacl" }
 	}
 	archivesplit_size "20"
 
-configuration { "linux-*" }
+configuration { "linux-* or rpi or ci20"}
 		links {
 			"dl",
 			"rt",
@@ -1102,6 +1126,30 @@ configuration { "steamlink" }
 	defines {
 		"EGL_API_FB",
 	}
+
+configuration { "rpi" }
+	links {
+ 		"SDL2",
+		"fontconfig",
+		"X11",
+		"GLESv2",
+		"EGL",
+		"bcm_host",
+		"vcos",
+		"vchiq_arm",
+		"pthread",
+	}	
+
+
+configuration { "ci20" }
+	links {
+ 		"SDL2",
+		"asound",
+		"fontconfig",
+		"freetype",
+		"pthread",
+	}	
+
 
 configuration { "osx* or xcode4" }
 		links {
@@ -1261,6 +1309,7 @@ end
 		}
 configuration { "vs2015" }
 		buildoptions {
+			"/wd4334", -- warning C4334: '<<': result of 32-bit shift implicitly converted to 64 bits (was 64-bit shift intended?) 
 			"/wd4456", -- warning C4456: declaration of 'xxx' hides previous local declaration
 			"/wd4457", -- warning C4457: declaration of 'xxx' hides function parameter
 			"/wd4458", -- warning C4458: declaration of 'xxx' hides class member

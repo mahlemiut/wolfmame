@@ -338,7 +338,7 @@ void ui_menu_playback_inp::start_inp()
 	fname = machine().options().input_directory();
 	fname += "/";
 	fname += m_filename_entry;
-	if(f.open(fname.c_str()) != FILERR_NONE)
+	if(f.open(fname.c_str()) != osd_file::error::NONE)
 	{
 		machine().popmessage(_("Cannot find or open INP file."));
 		f.close();
@@ -370,7 +370,7 @@ void ui_menu_playback_inp::start_inp()
 				}
 		}
 
-		std::vector<s_bios> biosname;
+		s_bios biosname;
 		if (!machine().ui().options().skip_bios_menu() && has_multiple_bios(m_driver, biosname))
 			ui_menu::stack_push(global_alloc_clear<ui_bios_selection>(machine(), container, biosname, (void *)m_driver, false, false));
 		else

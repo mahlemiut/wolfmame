@@ -36,7 +36,7 @@ ui_menu_record_inp::ui_menu_record_inp(running_machine &machine, render_containe
 	if(!strcmp(machine.options().nvram_directory(),"NUL") && !strcmp(machine.options().nvram_directory(),"/dev/null"))
 	{
 		// silence warning if nvram folder doesn't exist
-		if(f.open(path.c_str()) == FILERR_NONE)
+		if(f.open(path.c_str()) == osd_file::error::NONE)
 		{
 			f.close();
 			m_warning_count++;
@@ -50,7 +50,7 @@ ui_menu_record_inp::ui_menu_record_inp(running_machine &machine, render_containe
 	path += "/";
 	path += m_driver->name;
 	path += ".dif";
-	if(f.open(path.c_str()) == FILERR_NONE)
+	if(f.open(path.c_str()) == osd_file::error::NONE)
 	{
 		f.close();
 		m_warning_count++;
@@ -204,7 +204,7 @@ void ui_menu_record_inp::start_rec()
 				}
 		}
 
-		std::vector<s_bios> biosname;
+		s_bios biosname;
 		if (!machine().ui().options().skip_bios_menu() && has_multiple_bios(m_driver, biosname))
 			ui_menu::stack_push(global_alloc_clear<ui_bios_selection>(machine(), container, biosname, (void *)m_driver, false, false));
 		else

@@ -44,6 +44,7 @@ public:
 	virtual DECLARE_READ8_MEMBER(input_r);
 	virtual DECLARE_WRITE8_MEMBER(input_w);
 	virtual DECLARE_WRITE16_MEMBER(lcd_segment_w);
+	virtual DECLARE_WRITE8_MEMBER(sm511_melody_w);
 
 protected:
 	virtual void machine_start() override;
@@ -57,7 +58,7 @@ void hh_sm510_state::machine_start()
 {
 	// zerofill
 	m_inp_mux = 0;
-//  m_inp_lines = 0;
+	/* m_inp_lines = 0; */ // not here
 	memset(m_lcd_output_cache, ~0, sizeof(m_lcd_output_cache));
 
 	// register for savestates
@@ -84,16 +85,19 @@ WRITE16_MEMBER(hh_sm510_state::lcd_segment_w)
 {
 	for (int seg = 0; seg < 0x10; seg++)
 	{
-		int state = data >> seg & 1;
 		int index = offset << 4 | seg;
+		UINT8 state = data >> seg & 1;
 
 		if (state != m_lcd_output_cache[index])
 		{
-			// output to x.y, where x = row a/b/bs/c*4 + H1-4, y = seg1-16
+			// output to row.seg.H, where:
+			// row = row a/b/bs/c (0/1/2/3)
+			// seg = seg 1-16 (0-15)
+			// H = H1-H4 (0-3)
 			char buf[0x10];
-			sprintf(buf, "%d.%d", offset, seg);
+			sprintf(buf, "%d.%d.%d", offset >> 2, seg, offset & 3);
 			output().set_value(buf, state);
-
+			
 			m_lcd_output_cache[index] = state;
 		}
 	}
@@ -135,6 +139,17 @@ READ8_MEMBER(hh_sm510_state::input_r)
 {
 	return read_inputs(m_inp_lines);
 }
+
+
+// other generic output handlers
+
+WRITE8_MEMBER(hh_sm510_state::sm511_melody_w)
+{
+	// SM511 R pin is melody output
+	m_speaker->level_w(data & 1);
+}
+
+
 
 
 
@@ -186,13 +201,13 @@ static INPUT_PORTS_START( ktopgun )
 	PORT_BIT( 0x08, IP_ACTIVE_HIGH, IPT_JOYSTICK_RIGHT ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, input_changed, NULL)
 
 	PORT_START("IN.1")
-	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_BUTTON1 ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, input_changed, NULL) // sel
-	PORT_BIT( 0x02, IP_ACTIVE_HIGH, IPT_BUTTON2 ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, input_changed, NULL) // sound on/off
-	PORT_BIT( 0x04, IP_ACTIVE_HIGH, IPT_BUTTON3 ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, input_changed, NULL) // off
-	PORT_BIT( 0x08, IP_ACTIVE_HIGH, IPT_BUTTON4 ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, input_changed, NULL) // fire
+	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_SELECT ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, input_changed, NULL)
+	PORT_BIT( 0x02, IP_ACTIVE_HIGH, IPT_VOLUME_DOWN ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, input_changed, NULL) PORT_NAME("Sound")
+	PORT_BIT( 0x04, IP_ACTIVE_HIGH, IPT_POWER_OFF ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, input_changed, NULL)
+	PORT_BIT( 0x08, IP_ACTIVE_HIGH, IPT_BUTTON1 ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, input_changed, NULL)
 
 	PORT_START("IN.2")
-	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_BUTTON5 ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, input_changed, NULL) // on
+	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_POWER_ON ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, input_changed, NULL)
 	PORT_BIT( 0x0e, IP_ACTIVE_HIGH, IPT_UNUSED )
 INPUT_PORTS_END
 
@@ -237,17 +252,7 @@ public:
 	{
 		m_inp_lines = 3;
 	}
-
-	DECLARE_WRITE8_MEMBER(speaker_w);
 };
-
-// handlers
-
-WRITE8_MEMBER(ktmnt_state::speaker_w)
-{
-	m_speaker->level_w(data >> 0 & 1);
-}
-
 
 // config
 
@@ -259,16 +264,16 @@ static INPUT_PORTS_START( ktmnt )
 	PORT_BIT( 0x08, IP_ACTIVE_HIGH, IPT_JOYSTICK_RIGHT ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, input_changed, NULL)
 
 	PORT_START("IN.1")
-	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_BUTTON1 ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, input_changed, NULL) // game select
-	PORT_BIT( 0x02, IP_ACTIVE_HIGH, IPT_BUTTON2 ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, input_changed, NULL) // sound on/off
-	PORT_BIT( 0x04, IP_ACTIVE_HIGH, IPT_BUTTON3 ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, input_changed, NULL) // off
-	PORT_BIT( 0x08, IP_ACTIVE_HIGH, IPT_BUTTON4 ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, input_changed, NULL) // on/start
+	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_SELECT ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, input_changed, NULL)
+	PORT_BIT( 0x02, IP_ACTIVE_HIGH, IPT_VOLUME_DOWN ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, input_changed, NULL) PORT_NAME("Sound")
+	PORT_BIT( 0x04, IP_ACTIVE_HIGH, IPT_POWER_OFF ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, input_changed, NULL)
+	PORT_BIT( 0x08, IP_ACTIVE_HIGH, IPT_POWER_ON ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, input_changed, NULL)
 
 	PORT_START("IN.2")
-	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_BUTTON5 ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, input_changed, NULL)
-	PORT_BIT( 0x02, IP_ACTIVE_HIGH, IPT_BUTTON6 ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, input_changed, NULL)
-	PORT_BIT( 0x04, IP_ACTIVE_HIGH, IPT_BUTTON7 ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, input_changed, NULL)
-	PORT_BIT( 0x08, IP_ACTIVE_HIGH, IPT_BUTTON8 ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, input_changed, NULL)
+	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_BUTTON1 ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, input_changed, NULL)
+	PORT_BIT( 0x02, IP_ACTIVE_HIGH, IPT_BUTTON2 ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, input_changed, NULL)
+	PORT_BIT( 0x04, IP_ACTIVE_HIGH, IPT_BUTTON3 ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, input_changed, NULL)
+	PORT_BIT( 0x08, IP_ACTIVE_HIGH, IPT_BUTTON4 ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, input_changed, NULL)
 INPUT_PORTS_END
 
 static MACHINE_CONFIG_START( ktmnt, ktmnt_state )
@@ -280,7 +285,7 @@ static MACHINE_CONFIG_START( ktmnt, ktmnt_state )
 	MCFG_SM510_WRITE_SEGBS_CB(WRITE16(hh_sm510_state, lcd_segment_w))
 	MCFG_SM510_READ_K_CB(READ8(hh_sm510_state, input_r))
 	MCFG_SM510_WRITE_S_CB(WRITE8(hh_sm510_state, input_w))
-	MCFG_SM510_WRITE_R_CB(WRITE8(ktmnt_state, speaker_w))
+	MCFG_SM510_WRITE_R_CB(WRITE8(hh_sm510_state, sm511_melody_w))
 
 	MCFG_DEFAULT_LAYOUT(layout_hh_sm510_test)
 
@@ -382,6 +387,15 @@ ROM_START( ktmnt )
 ROM_END
 
 
+ROM_START( kcontra )
+	ROM_REGION( 0x1000, "maincpu", 0 )
+	ROM_LOAD( "bh002_c.prog", 0x0000, 0x1000, BAD_DUMP CRC(5496d84a) SHA1(7e31f8ff8037a1a9ec510798c2197d55a8e9799a) ) // from patent US5120057, may have errors
+
+	ROM_REGION( 0x100, "maincpu:music", 0 )
+	ROM_LOAD( "bh002_c.music", 0x000, 0x100, CRC(e678a199) SHA1(beff871b0aa52690f0fe456401ca75abb746a5cc) )
+ROM_END
+
+
 ROM_START( gnwmndon )
 	ROM_REGION( 0x1000, "maincpu", 0 )
 	ROM_LOAD( "dm53_cms54c_565", 0x0000, 0x1000, CRC(e21fc0f5) SHA1(3b65ccf9f98813319410414e11a3231b787cdee6) )
@@ -390,7 +404,8 @@ ROM_END
 
 
 /*    YEAR  NAME       PARENT COMPAT MACHINE   INPUT      INIT              COMPANY, FULLNAME, FLAGS */
-CONS( 1989, ktopgun,   0,        0, ktopgun,   ktopgun,   driver_device, 0, "Konami", "Top Gun (Konami)", MACHINE_SUPPORTS_SAVE | MACHINE_REQUIRES_ARTWORK | MACHINE_NOT_WORKING )
-CONS( 1989, ktmnt,     0,        0, ktmnt,     ktmnt,     driver_device, 0, "Konami", "Teenage Mutant Ninja Turtles (Konami)", MACHINE_SUPPORTS_SAVE | MACHINE_REQUIRES_ARTWORK | MACHINE_NOT_WORKING )
+CONS( 1989, kcontra,   0,        0, ktmnt,     ktopgun,   driver_device, 0, "Konami", "Contra (handheld)", MACHINE_SUPPORTS_SAVE | MACHINE_REQUIRES_ARTWORK | MACHINE_NOT_WORKING )
+CONS( 1989, ktopgun,   0,        0, ktopgun,   ktopgun,   driver_device, 0, "Konami", "Top Gun (handheld)", MACHINE_SUPPORTS_SAVE | MACHINE_REQUIRES_ARTWORK | MACHINE_NOT_WORKING )
+CONS( 1989, ktmnt,     0,        0, ktmnt,     ktmnt,     driver_device, 0, "Konami", "Teenage Mutant Ninja Turtles (handheld)", MACHINE_SUPPORTS_SAVE | MACHINE_REQUIRES_ARTWORK | MACHINE_NOT_WORKING )
 
 CONS( 1982, gnwmndon,  0,        0, gnwmndon,  gnwmndon,  driver_device, 0, "Nintendo", "Game & Watch: Mickey & Donald", MACHINE_SUPPORTS_SAVE | MACHINE_REQUIRES_ARTWORK | MACHINE_NOT_WORKING )

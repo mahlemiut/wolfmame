@@ -14,17 +14,11 @@
 // standard windows headers
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
-#include <winioctl.h>
-#include <tchar.h>
 #undef interface
-
-#include <mutex>
 
 // MAME headers
 #include "emu.h"
 #include "osdepend.h"
-#include "ui/ui.h"
-#include "strconv.h"
 
 // MAMEOS headers
 #include "winmain.h"
@@ -45,7 +39,7 @@ public:
 
 	win32_keyboard_device(running_machine& machine, const char *name, input_module &module)
 		: event_based_device(machine, name, DEVICE_CLASS_KEYBOARD, module),
-			keyboard({0})
+			keyboard({{0}})
 	{
 	}
 
@@ -68,7 +62,6 @@ protected:
 class keyboard_input_win32 : public wininput_module
 {
 private:
-	const osd_options *    m_options;
 
 public:
 	keyboard_input_win32()
@@ -102,13 +95,13 @@ public:
 		if (!input_enabled())
 			return FALSE;
 
-		KeyPressEventArgs *args = nullptr;
+		KeyPressEventArgs *args;
 
 		switch (eventid)
 		{
 			case INPUT_EVENT_KEYDOWN:
 			case INPUT_EVENT_KEYUP:
-				args = (KeyPressEventArgs*)eventdata;
+				args = static_cast<KeyPressEventArgs*>(eventdata);
 				for (int i = 0; i < devicelist()->size(); i++)
 					downcast<win32_keyboard_device*>(devicelist()->at(i))->queue_events(args, 1);
 
@@ -138,7 +131,7 @@ public:
 	win32_mouse_device(running_machine& machine, const char *name, input_module &module)
 		: event_based_device(machine, name, DEVICE_CLASS_MOUSE, module),
 			mouse({0}),
-			win32_mouse({0})
+			win32_mouse({{0}})
 	{
 	}
 
@@ -172,10 +165,11 @@ public:
 	void reset() override
 	{
 		memset(&mouse, 0, sizeof(mouse));
+		memset(&win32_mouse, 0, sizeof(win32_mouse));
 	}
 
 protected:
-	void process_event(MouseButtonEventArgs &args)
+	void process_event(MouseButtonEventArgs &args) override
 	{
 		// set the button state
 		mouse.rgbButtons[args.button] = args.keydown ? 0x80 : 0x00;
@@ -192,9 +186,6 @@ protected:
 
 class mouse_input_win32 : public wininput_module
 {
-private:
-	const osd_options *    m_options;
-
 public:
 	mouse_input_win32()
 		: wininput_module(OSD_MOUSEINPUT_PROVIDER, "win32")
@@ -256,7 +247,8 @@ public:
 	win32_lightgun_device(running_machine& machine, const char *name, input_module &module)
 		: event_based_device(machine, name, DEVICE_CLASS_LIGHTGUN, module),
 		  m_lightgun_shared_axis_mode(FALSE),
-		  m_gun_index(0)
+		  m_gun_index(0),
+		  mouse({0})
 	{
 		m_lightgun_shared_axis_mode = downcast<windows_options &>(machine.options()).dual_lightgun();
 
@@ -301,7 +293,7 @@ public:
 	}
 
 protected:
-	void process_event(MouseButtonEventArgs &args)
+	void process_event(MouseButtonEventArgs &args) override
 	{
 		// Are we in shared axis mode?
 		if (m_lightgun_shared_axis_mode)

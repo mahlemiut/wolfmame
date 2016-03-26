@@ -116,7 +116,7 @@ public:
 
 	void reserve(typename vector_type::size_type size)
 	{
-		if ((m_mode & std::ios_base::out) && (m_storage.size() < size))
+		if ((m_mode & std::ios_base::out) && (m_storage.capacity() < size))
 		{
 			m_storage.reserve(size);
 			adjust();
@@ -150,8 +150,8 @@ protected:
 		bool const out(which & std::ios_base::out);
 		if ((!in && !out) ||
 			(in && out && (std::ios_base::cur == dir)) ||
-			(in && (!(m_mode & std::ios_base::in) || !this->gptr())) ||
-			(out && (!(m_mode & std::ios_base::out) || !this->pptr())))
+			(in && !(m_mode & std::ios_base::in)) ||
+			(out && !(m_mode & std::ios_base::out)))
 		{
 			return pos_type(off_type(-1));
 		}
@@ -320,11 +320,10 @@ public:
 	basic_ivectorstream(vector_type const &content, std::ios_base::openmode mode = std::ios_base::in) : std::basic_istream<CharT, Traits>(&m_rdbuf), m_rdbuf(content, mode) { }
 	basic_ivectorstream(vector_type &&content, std::ios_base::openmode mode = std::ios_base::in) : std::basic_istream<CharT, Traits>(&m_rdbuf), m_rdbuf(std::move(content), mode) { }
 
-	basic_vectorbuf<CharT, Traits, Allocator> *rdbuf() const { return reinterpret_cast<basic_vectorbuf<CharT, Traits, Allocator> *>(std::basic_istream<CharT, Traits>::rdbuf()); }
+	basic_vectorbuf<CharT, Traits, Allocator> *rdbuf() const { return static_cast<basic_vectorbuf<CharT, Traits, Allocator> *>(std::basic_istream<CharT, Traits>::rdbuf()); }
 	vector_type const &vec() const { return rdbuf()->vec(); }
 	void vec(const vector_type &content) { rdbuf()->vec(content); }
 	void vec(vector_type &&content) { rdbuf()->vec(std::move(content)); }
-	basic_ivectorstream &clear() { rdbuf()->clear(); return *this; }
 
 	void swap(basic_ivectorstream &that) { std::basic_istream<CharT, Traits>::swap(that); rdbuf()->swap(*that.rdbuf()); }
 
@@ -342,12 +341,11 @@ public:
 	basic_ovectorstream(vector_type const &content, std::ios_base::openmode mode = std::ios_base::out) : std::basic_ostream<CharT, Traits>(&m_rdbuf), m_rdbuf(content, mode) { }
 	basic_ovectorstream(vector_type &&content, std::ios_base::openmode mode = std::ios_base::out) : std::basic_ostream<CharT, Traits>(&m_rdbuf), m_rdbuf(std::move(content), mode) { }
 
-	basic_vectorbuf<CharT, Traits, Allocator> *rdbuf() const { return reinterpret_cast<basic_vectorbuf<CharT, Traits, Allocator> *>(std::basic_ostream<CharT, Traits>::rdbuf()); }
+	basic_vectorbuf<CharT, Traits, Allocator> *rdbuf() const { return static_cast<basic_vectorbuf<CharT, Traits, Allocator> *>(std::basic_ostream<CharT, Traits>::rdbuf()); }
 
 	vector_type const &vec() const { return rdbuf()->vec(); }
 	void vec(const vector_type &content) { rdbuf()->vec(content); }
 	void vec(vector_type &&content) { rdbuf()->vec(std::move(content)); }
-	basic_ovectorstream &clear() { rdbuf()->clear(); return *this; }
 	basic_ovectorstream &reserve(typename vector_type::size_type size) { rdbuf()->reserve(size); return *this; }
 
 	void swap(basic_ovectorstream &that) { std::basic_ostream<CharT, Traits>::swap(that); rdbuf()->swap(*that.rdbuf()); }
@@ -366,12 +364,11 @@ public:
 	basic_vectorstream(vector_type const &content, std::ios_base::openmode mode = std::ios_base::in | std::ios_base::out) : std::basic_iostream<CharT, Traits>(&m_rdbuf), m_rdbuf(content, mode) { }
 	basic_vectorstream(vector_type &&content, std::ios_base::openmode mode = std::ios_base::in | std::ios_base::out) : std::basic_iostream<CharT, Traits>(&m_rdbuf), m_rdbuf(std::move(content), mode) { }
 
-	basic_vectorbuf<CharT, Traits, Allocator> *rdbuf() const { return reinterpret_cast<basic_vectorbuf<CharT, Traits, Allocator> *>(std::basic_iostream<CharT, Traits>::rdbuf()); }
+	basic_vectorbuf<CharT, Traits, Allocator> *rdbuf() const { return static_cast<basic_vectorbuf<CharT, Traits, Allocator> *>(std::basic_iostream<CharT, Traits>::rdbuf()); }
 
 	vector_type const &vec() const { return rdbuf()->vec(); }
 	void vec(const vector_type &content) { rdbuf()->vec(content); }
 	void vec(vector_type &&content) { rdbuf()->vec(std::move(content)); }
-	basic_vectorstream &clear() { rdbuf()->clear(); return *this; }
 	basic_vectorstream &reserve(typename vector_type::size_type size) { rdbuf()->reserve(size); return *this; }
 
 	void swap(basic_vectorstream &that) { std::basic_iostream<CharT, Traits>::swap(that); rdbuf()->swap(*that.rdbuf()); }

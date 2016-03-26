@@ -3413,8 +3413,8 @@ time_t ioport_manager::playback_init()
 		return 0;
 
 	// open the playback file
-	file_error filerr = m_playback_file.open(filename);
-	assert_always(filerr == FILERR_NONE, "Failed to open file for playback");
+	osd_file::error filerr = m_playback_file.open(filename);
+	assert_always(filerr == osd_file::error::NONE, "Failed to open file for playback");
 
 	// read the header and verify that it is a modern version; if not, print an error
 	inp_header header;
@@ -3458,6 +3458,7 @@ void ioport_manager::playback_end(const char *message)
 	if (m_playback_file.is_open())
 	{
 		char timearray[]="100d 00:00:00.00:";
+		double avg;
 
 		sprintframetime(timearray);
 		// close the file
@@ -3465,20 +3466,20 @@ void ioport_manager::playback_end(const char *message)
 
 		// display speed stats
 		if (m_playback_accumulated_frames)
-			m_playback_accumulated_speed /= m_playback_accumulated_frames;
+			avg = 100 * (m_playback_accumulated_speed / m_playback_accumulated_frames);
 		else
-			m_playback_accumulated_speed = 0;
+			avg = 0;
 
 		// pop a message
 		if (message != nullptr)
-			machine().popmessage("Playback Ended - %u Frames (%s) - Speed %d%%\nReason: %s",
-				(UINT32)m_playback_accumulated_frames, timearray, UINT32((m_playback_accumulated_speed * 200 + 1) >> 21), message);
+			machine().popmessage("Playback Ended - %u Frames (%s) - Speed %.2f%%\nReason: %s",
+				(UINT32)m_playback_accumulated_frames, timearray, avg / (1 << 20), message);
 
 		// display speed stats
 		if (m_playback_accumulated_speed > 0)
 			m_playback_accumulated_speed /= m_playback_accumulated_frames;
 		osd_printf_info("Total playback frames: %d (%s)\n", (UINT32)m_playback_accumulated_frames,timearray);
-		osd_printf_info("Average recorded speed: %d%%\n", UINT32((m_playback_accumulated_speed * 200 + 1) >> 21));
+		osd_printf_info("Average recorded speed: %f%%\n", avg / (1 << 20));
 
 		// close the program at the end of inp file playback
 		if (machine().options().exit_after_playback()) {
@@ -3619,8 +3620,8 @@ void ioport_manager::record_init()
 	machine().options().set_value(OPTION_AUTOBOOT_SCRIPT, "", OPTION_PRIORITY_HIGH, error);
 
 	// open the record file
-	file_error filerr = m_record_file.open(filename);
-	assert_always(filerr == FILERR_NONE, "Failed to open file for recording");
+	osd_file::error filerr = m_record_file.open(filename);
+	assert_always(filerr == osd_file::error::NONE, "Failed to open file for recording");
 
 	// get the base time
 	system_time systime;
@@ -3662,8 +3663,8 @@ void ioport_manager::timecode_init() {
 	filename.append(record_filename).append(".timecode");
 	osd_printf_info("Record input timecode file: %s\n", record_filename);
 
-	file_error filerr = m_timecode_file.open(filename.c_str());
-	assert_always(filerr == FILERR_NONE, "Failed to open file for input timecode recording");
+	osd_file::error filerr = m_timecode_file.open(filename.c_str());
+	assert_always(filerr == osd_file::error::NONE, "Failed to open file for input timecode recording");
 
 	m_timecode_file.puts(std::string("# ==========================================\n").c_str());
 	m_timecode_file.puts(std::string("# TIMECODE FILE FOR VIDEO PREVIEW GENERATION\n").c_str());

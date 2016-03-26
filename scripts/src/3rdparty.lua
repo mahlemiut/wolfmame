@@ -59,7 +59,7 @@ project "zlib"
 	kind "StaticLib"
 
 	local version = str_to_version(_OPTIONS["gcc_version"])
-	if _OPTIONS["gcc"]~=nil and (string.find(_OPTIONS["gcc"], "clang") or string.find(_OPTIONS["gcc"], "asmjs")) then
+	if _OPTIONS["gcc"]~=nil and ((string.find(_OPTIONS["gcc"], "clang") or string.find(_OPTIONS["gcc"], "asmjs") or string.find(_OPTIONS["gcc"], "android"))) then
 		configuration { "gmake" }
 		if (version >= 30700) then
 			buildoptions {
@@ -276,7 +276,7 @@ end
 			"-Wno-unused-function",
 			"-O0",
 		}
-	if _OPTIONS["gcc"]~=nil and string.find(_OPTIONS["gcc"], "clang") then
+	if _OPTIONS["gcc"]~=nil and (string.find(_OPTIONS["gcc"], "clang") or string.find(_OPTIONS["gcc"], "android")) then
 		buildoptions {
 			"-Wno-enum-conversion",
 		}
@@ -726,6 +726,14 @@ end
 			"-Wno-uninitialized",
 			"-Wno-unused-function",
 		}
+	configuration { "rpi" }
+		buildoptions {
+			"-Wno-unused-but-set-variable",
+			"-Wno-unused-variable",
+		}
+		defines {
+			"__STDC_VERSION__=199901L",
+		}
 
 	configuration { }
 
@@ -753,6 +761,7 @@ end
 		"__STDC_LIMIT_MACROS",
 		"__STDC_FORMAT_MACROS",
 		"__STDC_CONSTANT_MACROS",
+		"BGFX_CONFIG_MAX_FRAME_BUFFERS=128",
 	}
 	files {
 		MAME_DIR .. "3rdparty/bgfx/src/bgfx.cpp",
@@ -769,6 +778,7 @@ end
 		MAME_DIR .. "3rdparty/bgfx/src/renderer_null.cpp",
 		MAME_DIR .. "3rdparty/bgfx/src/renderer_vk.cpp",
 		MAME_DIR .. "3rdparty/bgfx/src/renderdoc.cpp",
+		MAME_DIR .. "3rdparty/bgfx/src/shader.cpp",
 		MAME_DIR .. "3rdparty/bgfx/src/shader_dxbc.cpp",
 		MAME_DIR .. "3rdparty/bgfx/src/shader_dx9bc.cpp",
 		MAME_DIR .. "3rdparty/bgfx/src/shader_spirv.cpp",
@@ -951,6 +961,7 @@ end
 -- libuv library objects
 --------------------------------------------------
 if _OPTIONS["USE_LIBUV"]=="1" then
+if _OPTIONS["with-bundled-libuv"] then
 project "uv"
 	uuid "cd2afe7f-139d-49c3-9000-fc9119f3cea0"
 	kind "StaticLib"
@@ -1160,6 +1171,11 @@ project "http-parser"
 		}
 	end
 
+else
+links {
+	"libuv",
+}
+end
 --------------------------------------------------
 -- SDL2 library
 --------------------------------------------------

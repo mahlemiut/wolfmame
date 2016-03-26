@@ -187,7 +187,7 @@ private:
 public:
 	xinput_joystick_device(running_machine &machine, const char *name, input_module &module)
 		: device_info(machine, name, DEVICE_CLASS_JOYSTICK, module),
-			gamepad({0}),
+			gamepad({{0}}),
 			xinput_state({0}),
 			xinput_api(nullptr)
 	{
@@ -297,13 +297,13 @@ protected:
 					continue;
 
 				// Add the axes
-				for (int i = 0; i < XINPUT_MAX_AXIS; i++)
+				for (int axisnum = 0; axisnum < XINPUT_MAX_AXIS; axisnum++)
 				{
 					devinfo->device()->add_item(
-						xinput_axis_name[i],
-						xinput_axis_ids[i],
+						xinput_axis_name[axisnum],
+						xinput_axis_ids[axisnum],
 						generic_axis_get_state,
-						&devinfo->gamepad.sThumbLX + i);
+						&devinfo->gamepad.sThumbLX + axisnum);
 				}
 
 				// Populate the POVs

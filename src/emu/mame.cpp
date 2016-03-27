@@ -215,7 +215,7 @@ int machine_manager::execute()
 		{
 			system = &GAME_NAME(___empty);
 			if (firstgame)
-				started_empty = false;  // force quit when exiting a driver
+				started_empty = true;
 		}
 
 		firstgame = false;

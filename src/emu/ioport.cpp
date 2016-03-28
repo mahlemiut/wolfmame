@@ -3690,6 +3690,8 @@ void ioport_manager::record_end(const char *message)
 	// only applies if we have a live file
 	if (m_record_file.is_open())
 	{
+		std::string error;
+		
 		// write end date to header
 		system_time systime;
 		UINT8 data[8];
@@ -3712,6 +3714,9 @@ void ioport_manager::record_end(const char *message)
 		// pop a message
 		if (message != nullptr)
 			machine().popmessage("Recording Ended\nReason: %s", message);
+			
+		// clear record filename so that INP is not overwritten if returning to the select game menu (aka the __empty driver)
+		machine().options().set_value(OPTION_RECORD,"",OPTION_PRIORITY_HIGH,error);
 	}
 }
 

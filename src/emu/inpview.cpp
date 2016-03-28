@@ -1,3 +1,5 @@
+// license:BSD-3-Clause
+// copyright-holders:Barry Rodewald
 // Input viewer module for MAME
 // C++ re-write started May 23, 2012
 

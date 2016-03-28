@@ -1,7 +1,13 @@
 ------------------------------------------------------------------------------------------------
-WolfMAME 0.171                                                                       24/Feb/2016
-Based on the MAME(tm) 0.171 source, modified by Barry Rodewald
+WolfMAME 0.172                                                                       30/Mar/2016
+Based on the MAME(tm) 0.172 source, modified by Barry Rodewald
 ------------------------------------------------------------------------------------------------
+
+
+New in 0.172
+------------
+
+ - Added a Playback INP button to frontend, also.  (Please test this out, too)
 
 
 New in 0.171

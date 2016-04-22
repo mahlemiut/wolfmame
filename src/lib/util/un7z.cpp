@@ -16,8 +16,9 @@
 #include "unicode.h"
 
 #include "lzma/C/7z.h"
+#include "lzma/C/7zAlloc.h"
 #include "lzma/C/7zCrc.h"
-#include "lzma/C/7zVersion.h"
+#include "lzma/C/7zTypes.h"
 
 #include <algorithm>
 #include <array>
@@ -40,41 +41,41 @@ struct CSzFile
 {
 	CSzFile() : currfpos(0), length(0), osdfile() {}
 
-	long            currfpos;
+	std::uint64_t   currfpos;
 	std::uint64_t   length;
 	osd_file::ptr   osdfile;
 
-	WRes read(void *data, std::size_t &size)
+	SRes read(void *data, std::size_t &size)
 	{
 		if (!osdfile)
 		{
-			std::printf("un7z.c: called File_Read without file\n");
-			return 1;
+			osd_printf_error("un7z: called CSzFile::read without file\n");
+			return SZ_ERROR_READ;
 		}
 
-		if (!size) return 0;
-		size_t originalSize = size;
+		if (!size)
+			return SZ_OK;
 
-		std::uint32_t read_length;
-		//osd_file::error err =
-		osdfile->read(data, currfpos, originalSize, read_length);
+		// TODO: this casts a size_t to a uint32_t, so it will fail if >=4GB is requested at once (need a loop)
+		std::uint32_t read_length(0);
+		auto const err = osdfile->read(data, currfpos, size, read_length);
 		size = read_length;
 		currfpos += read_length;
 
-		if (size == originalSize)
-			return 0;
-
-		return 0;
+		return (osd_file::error::NONE == err) ? SZ_OK : SZ_ERROR_READ;
 	}
 
-	WRes seek(Int64 &pos, ESzSeek origin)
+	SRes seek(Int64 &pos, ESzSeek origin)
 	{
-		if (origin == 0) currfpos = pos;
-		if (origin == 1) currfpos = currfpos + pos;
-		if (origin == 2) currfpos = length -pos;
-
+		switch (origin)
+		{
+		case SZ_SEEK_CUR: currfpos += pos; break;
+		case SZ_SEEK_SET: currfpos = pos; break;
+		case SZ_SEEK_END: currfpos = length + pos; break;
+		default: return SZ_ERROR_READ;
+		}
 		pos = currfpos;
-		return 0;
+		return SZ_OK;
 	}
 };
 
@@ -109,6 +110,7 @@ public:
 			{
 				ptr result;
 				std::swap(s_cache[cachenum], result);
+				osd_printf_verbose("un7z: found %s in cache\n", filename.c_str());
 				return result;
 			}
 		}
@@ -244,17 +246,6 @@ std::mutex m7z_file_impl::s_cache_mutex;
 /* ---------- FileInStream ---------- */
 
 extern "C" {
-static void *SZipAlloc(void *p, std::size_t size)
-{
-	return (size == 0) ? nullptr : std::malloc(size);
-}
-
-static void SZipFree(void *p, void *address)
-{
-	std::free(address);
-}
-
-
 static SRes FileInStream_Read(void *pp, void *buf, size_t *size)
 {
 	return (reinterpret_cast<CFileInStream *>(pp)->read(buf, *size) == 0) ? SZ_OK : SZ_ERROR_READ;
@@ -291,15 +282,19 @@ m7z_file_impl::m7z_file_impl(const std::string &filename)
 	, m_uchar_buf(128)
 	, m_utf8_buf(512)
 	, m_inited(false)
-	, m_block_index(0xffffffff) // it can have any value before first call (if outBuffer = 0)
-	, m_out_buffer(nullptr)     // it must be 0 before first call for each new archive
-	, m_out_buffer_size(0)      // it can have any value before first call (if outBuffer = 0)
+	, m_block_index(0)
+	, m_out_buffer(nullptr)
+	, m_out_buffer_size(0)
 {
-	m_alloc_imp.Alloc = SZipAlloc;
-	m_alloc_imp.Free = SZipFree;
+	m_alloc_imp.Alloc = &SzAlloc;
+	m_alloc_imp.Free = &SzFree;
 
-	m_alloc_temp_imp.Alloc = SZipAlloc;
-	m_alloc_temp_imp.Free = SZipFree;
+	m_alloc_temp_imp.Alloc = &SzAllocTemp;
+	m_alloc_temp_imp.Free = &SzFreeTemp;
+
+	LookToRead_CreateVTable(&m_look_stream, False);
+	m_look_stream.realStream = &m_archive_stream;
+	LookToRead_Init(&m_look_stream);
 }
 
 
@@ -309,18 +304,24 @@ archive_file::error m7z_file_impl::initialize()
 	if (err != osd_file::error::NONE)
 		return archive_file::error::FILE_ERROR;
 
-	LookToRead_CreateVTable(&m_look_stream, False);
-	m_look_stream.realStream = &m_archive_stream;
-	LookToRead_Init(&m_look_stream);
+	osd_printf_verbose("un7z: opened archive file %s\n", m_filename.c_str());
 
-	CrcGenerateTable();
+	CrcGenerateTable(); // FIXME: doesn't belong here - it should be called once statically
 
 	SzArEx_Init(&m_db);
 	m_inited = true;
-
 	SRes const res = SzArEx_Open(&m_db, &m_look_stream.s, &m_alloc_imp, &m_alloc_temp_imp);
 	if (res != SZ_OK)
-		return archive_file::error::FILE_ERROR;
+	{
+		osd_printf_error("un7z: error opening %s as 7z archive (%d)\n", m_filename.c_str(), int(res));
+		switch (res)
+		{
+		case SZ_ERROR_UNSUPPORTED:  return archive_file::error::UNSUPPORTED;
+		case SZ_ERROR_MEM:          return archive_file::error::OUT_OF_MEMORY;
+		case SZ_ERROR_INPUT_EOF:    return archive_file::error::FILE_TRUNCATED;
+		default:                    return archive_file::error::FILE_ERROR;
+		}
+	}
 
 	return archive_file::error::NONE;
 }
@@ -336,6 +337,7 @@ void m7z_file_impl::close(ptr &&archive)
 	if (!archive) return;
 
 	// close the open files
+	osd_printf_verbose("un7z: closing archive file %s and sending to cache\n", archive->m_filename.c_str());
 	archive->m_archive_stream.osdfile.reset();
 
 	// find the first NULL entry in the cache
@@ -347,7 +349,11 @@ void m7z_file_impl::close(ptr &&archive)
 
 	// if no room left in the cache, free the bottommost entry
 	if (cachenum == s_cache.size())
-		s_cache[--cachenum].reset();
+	{
+		cachenum--;
+		osd_printf_verbose("un7z: removing %s from cache to make space\n", s_cache[cachenum]->m_filename.c_str());
+		s_cache[cachenum].reset();
+	}
 
 	// move everyone else down and place us at the top
 	for ( ; cachenum > 0; cachenum--)
@@ -368,30 +374,47 @@ void m7z_file_impl::close(ptr &&archive)
 
 archive_file::error m7z_file_impl::decompress(void *buffer, std::uint32_t length)
 {
+	// if we don't have enough buffer, error
+	if (length < m_curr_length)
+	{
+		osd_printf_error("un7z: buffer too small to decompress %s from %s\n", m_curr_name.c_str(), m_filename.c_str());
+		return archive_file::error::BUFFER_TOO_SMALL;
+	}
+
 	// make sure the file is open..
 	if (!m_archive_stream.osdfile)
 	{
 		m_archive_stream.currfpos = 0;
 		osd_file::error const err = osd_file::open(m_filename, OPEN_FLAG_READ, m_archive_stream.osdfile, m_archive_stream.length);
 		if (err != osd_file::error::NONE)
+		{
+			osd_printf_error("un7z: error reopening archive file %s (%d)\n", m_filename.c_str(), int(err));
 			return archive_file::error::FILE_ERROR;
+		}
+		osd_printf_verbose("un7z: reopened archive file %s\n", m_filename.c_str());
 	}
 
-	size_t offset = 0;
-	size_t out_size_processed = 0;
-
+	std::size_t offset(0);
+	std::size_t out_size_processed(0);
 	SRes const res = SzArEx_Extract(
-			&m_db, &m_look_stream.s, m_curr_file_idx,
-			&m_block_index,
-			&m_out_buffer, &m_out_buffer_size,
-			&offset, &out_size_processed,
-			&m_alloc_imp, &m_alloc_temp_imp);
-
+			&m_db, &m_look_stream.s, m_curr_file_idx,           // requested file
+			&m_block_index, &m_out_buffer, &m_out_buffer_size,  // solid block caching
+			&offset, &out_size_processed,                       // data size/offset
+			&m_alloc_imp, &m_alloc_temp_imp);                   // allocator helpers
 	if (res != SZ_OK)
-		return archive_file::error::FILE_ERROR;
+	{
+		osd_printf_error("un7z: error decompressing %s from %s (%d)\n", m_curr_name.c_str(), m_filename.c_str(), int(res));
+		switch (res)
+		{
+		case SZ_ERROR_UNSUPPORTED:  return archive_file::error::UNSUPPORTED;
+		case SZ_ERROR_MEM:          return archive_file::error::OUT_OF_MEMORY;
+		case SZ_ERROR_INPUT_EOF:    return archive_file::error::FILE_TRUNCATED;
+		default:                    return archive_file::error::DECOMPRESS_ERROR;
+		}
+	}
 
-	std::memcpy(buffer, m_out_buffer + offset, length);
-
+	// copy to destination buffer
+	std::memcpy(buffer, m_out_buffer + offset, (std::min<std::size_t>)(length, out_size_processed));
 	return archive_file::error::NONE;
 }
 
@@ -404,25 +427,24 @@ int m7z_file_impl::search(
 		bool matchname,
 		bool partialpath)
 {
-	for ( ; i < m_db.db.NumFiles; i++)
+	for ( ; i < m_db.NumFiles; i++)
 	{
-		const CSzFileItem &f(m_db.db.Files[i]);
-
 		make_utf8_name(i);
-		const std::uint64_t size(f.Size);
-		const std::uint32_t crc(f.Crc);
-		const bool crcmatch(crc == search_crc);
+		bool const is_dir(SzArEx_IsDir(&m_db, i));
+		const std::uint64_t size(SzArEx_GetFileSize(&m_db, i));
+		const std::uint32_t crc(m_db.CRCs.Vals[i]);
+		const bool crcmatch(SzBitArray_Check(m_db.CRCs.Defs, i) && (crc == search_crc));
 		auto const partialoffset(m_utf8_buf.size() - 1 - search_filename.length());
 		bool const partialpossible((m_utf8_buf.size() > (search_filename.length() + 1)) && (m_utf8_buf[partialoffset - 1] == '/'));
 		const bool namematch(
 				!core_stricmp(search_filename.c_str(), &m_utf8_buf[0]) ||
 				(partialpath && partialpossible && !core_stricmp(search_filename.c_str(), &m_utf8_buf[partialoffset])));
 
-		const bool found = ((!matchcrc && !matchname) || !f.IsDir) && (!matchcrc || crcmatch) && (!matchname || namematch);
+		const bool found = ((!matchcrc && !matchname) || !is_dir) && (!matchcrc || crcmatch) && (!matchname || namematch);
 		if (found)
 		{
 			m_curr_file_idx = i;
-			m_curr_is_dir = bool(f.IsDir);
+			m_curr_is_dir = is_dir;
 			m_curr_name = &m_utf8_buf[0];
 			m_curr_length = size;
 			m_curr_crc = crc;

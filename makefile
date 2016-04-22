@@ -98,6 +98,10 @@
 # MSBUILD = 1
 # USE_LIBUV = 1
 # IGNORE_BAD_LOCALISATION=1
+# PRECOMPILE = 0
+
+# DEBUG_DIR=c:\test\location
+# DEBUG_ARGS= -window -video bgfx
 
 ifdef PREFIX_MAKEFILE
 include $(PREFIX_MAKEFILE)
@@ -341,7 +345,7 @@ CXX:= $(SILENT)g++
 
 ifndef OSD
 
-OSD := osdmini
+OSD := sdl
 
 ifeq ($(TARGETOS),windows)
 OSD := windows
@@ -497,15 +501,21 @@ endif
 endif
 
 ifdef TOOLS
+ifneq '$(TOOLS)' '0'
 PARAMS += --with-tools
+endif
 endif
 
 ifdef TESTS
+ifneq '$(TESTS)' '0'
 PARAMS += --with-tests
+endif
 endif
 
 ifdef BENCHMARKS
+ifneq '$(BENCHMARKS)' '0'
 PARAMS += --with-benchmarks
+endif
 endif
 
 ifdef SYMBOLS
@@ -712,6 +722,17 @@ ifdef USE_LIBUV
 PARAMS += --USE_LIBUV='$(USE_LIBUV)'
 endif
 
+ifdef PRECOMPILE
+PARAMS += --precompile='$(PRECOMPILE)'
+endif
+
+ifdef DEBUG_DIR
+PARAMS += --DEBUG_DIR='$(DEBUG_DIR)'
+endif
+
+ifdef DEBUG_ARGS
+PARAMS += --DEBUG_ARGS='$(DEBUG_ARGS)'
+endif
 #-------------------------------------------------
 # All scripts
 #-------------------------------------------------
@@ -802,10 +823,12 @@ ifeq (posix,$(SHELLTYPE))
 GCC_VERSION      := $(shell $(TOOLCHAIN)$(subst @,,$(CC)) -dumpversion 2> /dev/null)
 CLANG_VERSION    := $(shell $(TOOLCHAIN)$(subst @,,$(CC)) --version 2> /dev/null| head -n 1 | grep clang | sed "s/^.*[^0-9]\([0-9]*\.[0-9]*\.[0-9]*\).*$$/\1/" | head -n 1)
 PYTHON_AVAILABLE := $(shell $(PYTHON) --version > /dev/null 2>&1 && echo python)
+GIT_AVAILABLE    := $(shell git --version > /dev/null 2>&1 && echo git)
 else
 GCC_VERSION      := $(shell $(TOOLCHAIN)$(subst @,,$(CC)) -dumpversion 2> NUL)
 CLANG_VERSION    := $(shell $(TOOLCHAIN)$(subst @,,$(CC)) --version 2> NUL| head -n 1 | grep clang | sed "s/^.*[^0-9]\([0-9]*\.[0-9]*\.[0-9]*\).*$$/\1/" | head -n 1)
 PYTHON_AVAILABLE := $(shell $(PYTHON) --version > NUL 2>&1 && echo python)
+GIT_AVAILABLE    := $(shell git --version > NUL 2>&1 && echo git)
 endif
 ifdef MSBUILD
 MSBUILD_PARAMS   := /v:minimal /m:$(NUMBER_OF_PROCESSORS)
@@ -826,6 +849,7 @@ ifneq ($(OS),solaris)
 CLANG_VERSION    := $(shell $(TOOLCHAIN)$(subst @,,$(CC))  --version  2> /dev/null | head -n 1 | grep -e 'version [0-9]\.[0-9]\(\.[0-9]\)\?' -o | grep -e '[0-9]\.[0-9]\(\.[0-9]\)\?' -o | tail -n 1)
 endif
 PYTHON_AVAILABLE := $(shell $(PYTHON) --version > /dev/null 2>&1 && echo python)
+GIT_AVAILABLE := $(shell git --version > /dev/null 2>&1 && echo git)
 endif
 
 ifeq ($(CLANG_VERSION),)
@@ -845,6 +869,27 @@ ifneq ($(PYTHON_AVAILABLE),python)
 $(error Python is not available in path)
 endif
 
+ifneq ($(GIT_AVAILABLE),git)
+PARAMS += --IGNORE_GIT='1'
+endif
+ifeq ($(wildcard .git/*),)
+PARAMS += --IGNORE_GIT='1'
+endif
+
+ifeq ($(GIT_AVAILABLE),git)
+NEW_GIT_VERSION := $(shell git describe)
+ifeq (posix,$(SHELLTYPE))
+OLD_GIT_VERSION := $(shell cat .mame_version 2> /dev/null)
+else
+OLD_GIT_VERSION := $(shell cat .mame_version 2> NUL)
+endif
+ifneq ($(NEW_GIT_VERSION),$(OLD_GIT_VERSION))
+$(shell git describe > .mame_version)
+$(shell touch $(SRC)/version.cpp)
+endif
+endif
+
+
 GENIE := 3rdparty/genie/bin/$(GENIEOS)/genie$(EXE)
 
 ifeq ($(TARGET),$(SUBTARGET))
@@ -853,7 +898,6 @@ else
 FULLTARGET := $(TARGET)$(SUBTARGET)
 endif
 PROJECTDIR := $(BUILDDIR)/projects/$(OSD)/$(FULLTARGET)
-PROJECTDIR_MINI := $(BUILDDIR)/projects/osdmini/$(FULLTARGET)
 PROJECTDIR_SDL := $(BUILDDIR)/projects/sdl/$(FULLTARGET)
 PROJECTDIR_WIN := $(BUILDDIR)/projects/windows/$(FULLTARGET)
 
@@ -1137,24 +1181,6 @@ endif
 	$(SILENT) $(MAKE) $(MAKEPARAMS) -C $(PROJECTDIR)/gmake-asmjs config=$(CONFIG)
 
 #-------------------------------------------------
-# PNaCl
-#-------------------------------------------------
-
-$(PROJECTDIR_MINI)/gmake-pnacl/Makefile: makefile $(SCRIPTS) $(GENIE)
-ifndef NACL_SDK_ROOT
-	$(error NACL_SDK_ROOT is not set)
-endif
-	$(SILENT) $(GENIE) $(PARAMS) --gcc=pnacl --gcc_version=3.7.0 --osd=osdmini --targetos=pnacl --NOASM=1 --USE_LIBUV=0 gmake
-
-.PHONY: pnacl
-pnacl: generate $(PROJECTDIR_MINI)/gmake-pnacl/Makefile
-ifndef NACL_SDK_ROOT
-	$(error NACL_SDK_ROOT is not set)
-endif
-	$(SILENT) $(MAKE) $(MAKEPARAMS) -C $(PROJECTDIR_MINI)/gmake-pnacl config=$(CONFIG) precompile
-	$(SILENT) $(MAKE) $(MAKEPARAMS) -C $(PROJECTDIR_MINI)/gmake-pnacl config=$(CONFIG)
-
-#-------------------------------------------------
 # gmake-linux
 #-------------------------------------------------
 
@@ -1436,9 +1462,9 @@ $(GENDIR)/includes/SDL2:
 	-$(call MKDIR,$@)
 	-$(call COPY,3rdparty/SDL2/include/,$(GENDIR)/includes/SDL2)
 
-$(GENDIR)/%.lh: $(SRC)/%.lay scripts/build/file2str.py | $(GEN_FOLDERS)
-	@echo Converting $<...
-	$(SILENT)$(PYTHON) scripts/build/file2str.py $< $@ layout_$(basename $(notdir $<))
+$(GENDIR)/%.lh: $(SRC)/%.lay scripts/build/complay.py | $(GEN_FOLDERS)
+	@echo Compressing $<...
+	$(SILENT)$(PYTHON) scripts/build/complay.py $< $@ layout_$(basename $(notdir $<))
 
 $(SRC)/devices/cpu/m68000/m68kops.cpp: $(SRC)/devices/cpu/m68000/m68k_in.cpp $(SRC)/devices/cpu/m68000/m68kmake.cpp
 ifeq ($(TARGETOS),asmjs)
@@ -1563,7 +1589,7 @@ shaders: bgfx-tools
 	-$(call MKDIR,build/bgfx/shaders/gles)
 	-$(call MKDIR,build/bgfx/shaders/glsl)
 	-$(call MKDIR,build/bgfx/shaders/metal)	
-	$(SILENT) $(MAKE) -C $(SRC)/osd/modules/render/bgfx/shaders rebuild
+	$(SILENT) $(MAKE) -C $(SRC)/osd/modules/render/bgfx/shaders rebuild CHAIN="$(CHAIN)"
 	
 #-------------------------------------------------
 # Translation

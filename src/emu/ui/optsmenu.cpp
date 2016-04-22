@@ -9,15 +9,15 @@
 *********************************************************************/
 
 #include "emu.h"
+#include "mameopts.h"
 #include "ui/ui.h"
 #include "ui/menu.h"
+#include "ui/submenu.h"
 #include "ui/datfile.h"
 #include "ui/inifile.h"
 #include "ui/selector.h"
 #include "ui/custui.h"
 #include "ui/sndmenu.h"
-#include "ui/ctrlmenu.h"
-#include "ui/dsplmenu.h"
 #include "ui/miscmenu.h"
 #include "ui/optsmenu.h"
 #include "ui/custmenu.h"
@@ -162,15 +162,24 @@ void ui_menu_game_options::handle()
 				break;
 			case MISC_MENU:
 				if (m_event->iptkey == IPT_UI_SELECT)
-					ui_menu::stack_push(global_alloc_clear<ui_menu_misc_options>(machine(), container));
+				{
+					ui_menu::stack_push(global_alloc_clear<ui_submenu>(machine(), container, misc_submenu_options));
+					ui_globals::reset = true;
+				}
 				break;
 			case SOUND_MENU:
 				if (m_event->iptkey == IPT_UI_SELECT)
+				{
 					ui_menu::stack_push(global_alloc_clear<ui_menu_sound_options>(machine(), container));
+					ui_globals::reset = true;
+				}
 				break;
 			case DISPLAY_MENU:
 				if (m_event->iptkey == IPT_UI_SELECT)
-					ui_menu::stack_push(global_alloc_clear<ui_menu_display_options>(machine(), container));
+				{
+					ui_menu::stack_push(global_alloc_clear<ui_submenu>(machine(), container, video_submenu_options));
+					ui_globals::reset = true;
+				}
 				break;
 			case CUSTOM_MENU:
 				if (m_event->iptkey == IPT_UI_SELECT)
@@ -178,7 +187,7 @@ void ui_menu_game_options::handle()
 				break;
 			case CONTROLLER_MENU:
 				if (m_event->iptkey == IPT_UI_SELECT)
-					ui_menu::stack_push(global_alloc_clear<ui_menu_controller_mapping>(machine(), container));
+					ui_menu::stack_push(global_alloc_clear<ui_submenu>(machine(), container, control_submenu_options));
 				break;
 			case CGI_MENU:
 				if (m_event->iptkey == IPT_UI_SELECT)
@@ -187,6 +196,13 @@ void ui_menu_game_options::handle()
 			case CUSTOM_FILTER:
 				if (m_event->iptkey == IPT_UI_SELECT)
 					ui_menu::stack_push(global_alloc_clear<ui_menu_custom_filter>(machine(), container));
+				break;
+			case ADVANCED_MENU:
+				if (m_event->iptkey == IPT_UI_SELECT)
+				{
+					ui_menu::stack_push(global_alloc_clear<ui_submenu>(machine(), container, advanced_submenu_options));
+					ui_globals::reset = true;
+				}
 				break;
 			case SAVE_CONFIG:
 				if (m_event->iptkey == IPT_UI_SELECT)
@@ -252,18 +268,19 @@ void ui_menu_game_options::populate()
 			item_append(fbuff.c_str(), nullptr, 0, (void *)(FPTR)CUSTOM_FILTER);
 		}
 
-		item_append(MENU_SEPARATOR_ITEM, nullptr, 0, nullptr);
+		item_append(ui_menu_item_type::SEPARATOR);
 
 		// add options items
 		item_append(_("Customize UI"), nullptr, 0, (void *)(FPTR)CUSTOM_MENU);
 		item_append(_("Configure Directories"), nullptr, 0, (void *)(FPTR)CONF_DIR);
 	}
-	item_append(_("Display Options"), nullptr, 0, (void *)(FPTR)DISPLAY_MENU);
+	item_append(_(video_submenu_options[0].description), nullptr, 0, (void *)(FPTR)DISPLAY_MENU);
 	item_append(_("Sound Options"), nullptr, 0, (void *)(FPTR)SOUND_MENU);
-	item_append(_("Miscellaneous Options"), nullptr, 0, (void *)(FPTR)MISC_MENU);
-	item_append(_("Device Mapping"), nullptr, 0, (void *)(FPTR)CONTROLLER_MENU);
+	item_append(_(misc_submenu_options[0].description), nullptr, 0, (void *)(FPTR)MISC_MENU);
+	item_append(_(control_submenu_options[0].description), nullptr, 0, (void *)(FPTR)CONTROLLER_MENU);
 	item_append(_("General Inputs"), nullptr, 0, (void *)(FPTR)CGI_MENU);
-	item_append(MENU_SEPARATOR_ITEM, nullptr, 0, nullptr);
+	item_append(_(advanced_submenu_options[0].description), nullptr, 0, (void *)(FPTR)ADVANCED_MENU);
+	item_append(ui_menu_item_type::SEPARATOR);
 	item_append(_("Save Configuration"), nullptr, 0, (void *)(FPTR)SAVE_CONFIG);
 
 	custombottom = 2.0f * machine().ui().get_line_height() + 3.0f * UI_BOX_TB_BORDER;
@@ -346,11 +363,11 @@ void save_main_option(running_machine &machine)
 		}
 	}
 
-	for (emu_options::entry *f_entry = machine.options().first(); f_entry != nullptr; f_entry = f_entry->next())
+	for (emu_options::entry &f_entry : machine.options())
 	{
-		if (f_entry->is_changed())
+		if (f_entry.is_changed())
 		{
-			options.set_value(f_entry->name(), f_entry->value(), OPTION_PRIORITY_CMDLINE, error_string);
+			options.set_value(f_entry.name(), f_entry.value(), OPTION_PRIORITY_CMDLINE, error_string);
 		}
 	}
 

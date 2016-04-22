@@ -10,6 +10,7 @@
 
 #include "emu.h"
 #include "emuopts.h"
+#include "mameopts.h"
 #include "machine/ram.h"
 #include "sound/samples.h"
 #include "info.h"
@@ -100,10 +101,11 @@ const char info_xml_creator::s_dtd_string[] =
 "\t\t\t<!ATTLIST input service (yes|no) \"no\">\n"
 "\t\t\t<!ATTLIST input tilt (yes|no) \"no\">\n"
 "\t\t\t<!ATTLIST input players CDATA #REQUIRED>\n"
-"\t\t\t<!ATTLIST input buttons CDATA #IMPLIED>\n"
 "\t\t\t<!ATTLIST input coins CDATA #IMPLIED>\n"
 "\t\t\t<!ELEMENT control EMPTY>\n"
 "\t\t\t\t<!ATTLIST control type CDATA #REQUIRED>\n"
+"\t\t\t\t<!ATTLIST control player CDATA #IMPLIED>\n"
+"\t\t\t\t<!ATTLIST control buttons CDATA #IMPLIED>\n"
 "\t\t\t\t<!ATTLIST control minimum CDATA #IMPLIED>\n"
 "\t\t\t\t<!ATTLIST control maximum CDATA #IMPLIED>\n"
 "\t\t\t\t<!ATTLIST control sensitivity CDATA #IMPLIED>\n"
@@ -147,6 +149,7 @@ const char info_xml_creator::s_dtd_string[] =
 "\t\t<!ELEMENT device (instance*, extension*)>\n"
 "\t\t\t<!ATTLIST device type CDATA #REQUIRED>\n"
 "\t\t\t<!ATTLIST device tag CDATA #IMPLIED>\n"
+"\t\t\t<!ATTLIST device fixed_image CDATA #IMPLIED>\n"
 "\t\t\t<!ATTLIST device mandatory CDATA #IMPLIED>\n"
 "\t\t\t<!ATTLIST device interface CDATA #IMPLIED>\n"
 "\t\t\t<!ELEMENT instance EMPTY>\n"
@@ -182,7 +185,7 @@ info_xml_creator::info_xml_creator(driver_enumerator &drivlist)
 		m_drivlist(drivlist),
 		m_lookup_options(m_drivlist.options())
 {
-	m_lookup_options.remove_device_options();
+	mame_options::remove_device_options(m_lookup_options);
 }
 
 
@@ -246,8 +249,36 @@ void info_xml_creator::output_one()
 	ioport_list portlist;
 	std::string errors;
 	device_iterator iter(config.root_device());
-	for (device_t *device = iter.first(); device != nullptr; device = iter.next())
-		portlist.append(*device, errors);
+	for (device_t &device : iter)
+		portlist.append(device, errors);
+
+	// renumber player numbers for controller ports
+	int player_offset = 0;
+	// but treat keyboard count separately from players' number
+	int kbd_offset = 0;
+	for (device_t &device : iter)
+	{
+		int nplayers = 0;
+		bool new_kbd = false;
+		for (ioport_port &port : portlist)
+			if (&port.device() == &device)
+				for (ioport_field &field : port.fields())
+					if (field.type() >= IPT_START && field.type() < IPT_ANALOG_LAST)
+					{
+						if (field.type() == IPT_KEYBOARD)
+						{
+							if (!new_kbd) new_kbd = TRUE;
+							field.set_player(field.player() + kbd_offset);
+						}
+						else
+						{
+							nplayers = MAX(nplayers, field.player() + 1);
+							field.set_player(field.player() + player_offset);
+						}
+					}
+		player_offset += nplayers;
+		if (new_kbd) kbd_offset++;
+	}
 
 	// print the header and the game name
 	fprintf(m_output, "\t<%s",XML_TOP);
@@ -331,13 +362,12 @@ void info_xml_creator::output_one_device(device_t &device, const char *devtag)
 	// generate input list
 	ioport_list portlist;
 	std::string errors;
-	device_iterator iptiter(device);
-	for (device_t *dev = iptiter.first(); dev != nullptr; dev = iptiter.next())
-		portlist.append(*dev, errors);
+	for (device_t &dev : device_iterator(device))
+		portlist.append(dev, errors);
 	// check if the device adds player inputs (other than dsw and configs) to the system
-	for (ioport_port *port = portlist.first(); port != nullptr; port = port->next())
-		for (ioport_field *field = port->first_field(); field != nullptr; field = field->next())
-			if (field->type() >= IPT_START1 && field->type() < IPT_UI_FIRST)
+	for (ioport_port &port : portlist)
+		for (ioport_field &field : port.fields())
+			if (field.type() >= IPT_START1 && field.type() < IPT_UI_FIRST)
 			{
 				has_input = TRUE;
 				break;
@@ -395,43 +425,39 @@ void info_xml_creator::output_devices()
 	while (m_drivlist.next())
 	{
 		// first, run through devices with roms which belongs to the default configuration
-		device_iterator deviter(m_drivlist.config().root_device());
-		for (device_t *device = deviter.first(); device != nullptr; device = deviter.next())
+		for (device_t &device : device_iterator(m_drivlist.config().root_device()))
 		{
-			if (device->owner() != nullptr && device->shortname()!= nullptr && device->shortname()[0]!='\0')
+			if (device.owner() != nullptr && device.shortname() != nullptr && device.shortname()[0]!='\0')
 			{
-				if (shortnames.insert(device->shortname()).second)
-					output_one_device(*device, device->tag());
+				if (shortnames.insert(device.shortname()).second)
+					output_one_device(device, device.tag());
 			}
 		}
 
 		// then, run through slot devices
-		slot_interface_iterator iter(m_drivlist.config().root_device());
-		for (const device_slot_interface *slot = iter.first(); slot != nullptr; slot = iter.next())
+		for (const device_slot_interface &slot : slot_interface_iterator(m_drivlist.config().root_device()))
 		{
-			for (const device_slot_option *option = slot->first_option(); option != nullptr; option = option->next())
+			for (const device_slot_option &option : slot.option_list())
 			{
 				std::string temptag("_");
-				temptag.append(option->name());
-				device_t *dev = const_cast<machine_config &>(m_drivlist.config()).device_add(&m_drivlist.config().root_device(), temptag.c_str(), option->devtype(), 0);
+				temptag.append(option.name());
+				device_t *dev = const_cast<machine_config &>(m_drivlist.config()).device_add(&m_drivlist.config().root_device(), temptag.c_str(), option.devtype(), 0);
 
 				// notify this device and all its subdevices that they are now configured
-				device_iterator subiter(*dev);
-				for (device_t *device = subiter.first(); device != nullptr; device = subiter.next())
-					if (!device->configured())
-						device->config_complete();
+				for (device_t &device : device_iterator(*dev))
+					if (!device.configured())
+						device.config_complete();
 
 				if (shortnames.insert(dev->shortname()).second)
 					output_one_device(*dev, temptag.c_str());
 
 				// also, check for subdevices with ROMs (a few devices are missed otherwise, e.g. MPU401)
-				device_iterator deviter2(*dev);
-				for (device_t *device = deviter2.first(); device != nullptr; device = deviter2.next())
+				for (device_t &device : device_iterator(*dev))
 				{
-					if (device->owner() == dev && device->shortname()!= nullptr && device->shortname()[0]!='\0')
+					if (device.owner() == dev && device.shortname() != nullptr && device.shortname()[0]!='\0')
 					{
-						if (shortnames.insert(device->shortname()).second)
-							output_one_device(*device, device->tag());
+						if (shortnames.insert(device.shortname()).second)
+							output_one_device(device, device.tag());
 					}
 				}
 
@@ -449,10 +475,9 @@ void info_xml_creator::output_devices()
 
 void info_xml_creator::output_device_roms()
 {
-	device_iterator deviter(m_drivlist.config().root_device());
-	for (device_t *device = deviter.first(); device != nullptr; device = deviter.next())
-		if (device->owner() != nullptr && device->shortname()!= nullptr && device->shortname()[0]!='\0')
-			fprintf(m_output, "\t\t<device_ref name=\"%s\"/>\n", xml_normalize_string(device->shortname()));
+	for (device_t &device : device_iterator(m_drivlist.config().root_device()))
+		if (device.owner() != nullptr && device.shortname() != nullptr && device.shortname()[0] != '\0')
+			fprintf(m_output, "\t\t<device_ref name=\"%s\"/>\n", xml_normalize_string(device.shortname()));
 }
 
 
@@ -464,10 +489,9 @@ void info_xml_creator::output_device_roms()
 void info_xml_creator::output_sampleof()
 {
 	// iterate over sample devices
-	samples_device_iterator iter(m_drivlist.config().root_device());
-	for (samples_device *device = iter.first(); device != nullptr; device = iter.next())
+	for (samples_device &device : samples_device_iterator(m_drivlist.config().root_device()))
 	{
-		samples_iterator sampiter(*device);
+		samples_iterator sampiter(device);
 		if (sampiter.altbasename() != nullptr)
 		{
 			fprintf(m_output, " sampleof=\"%s\"", xml_normalize_string(sampiter.altbasename()));
@@ -489,6 +513,12 @@ void info_xml_creator::output_bios()
 	// skip if no ROMs
 	if (m_drivlist.driver().rom == nullptr)
 		return;
+	
+	// first determine the default BIOS name
+	std::string defaultname;
+	for (const rom_entry *rom = m_drivlist.driver().rom; !ROMENTRY_ISEND(rom); rom++)
+		if (ROMENTRY_ISDEFAULT_BIOS(rom))
+			defaultname = ROM_GETNAME(rom);
 
 	// iterate over ROM entries and look for BIOSes
 	for (const rom_entry *rom = m_drivlist.driver().rom; !ROMENTRY_ISEND(rom); rom++)
@@ -498,7 +528,7 @@ void info_xml_creator::output_bios()
 			fprintf(m_output, "\t\t<biosset");
 			fprintf(m_output, " name=\"%s\"", xml_normalize_string(ROM_GETNAME(rom)));
 			fprintf(m_output, " description=\"%s\"", xml_normalize_string(ROM_GETHASHDATA(rom)));
-			if (ROM_GETBIOSFLAGS(rom) == 1)
+			if (defaultname == ROM_GETNAME(rom))
 				fprintf(m_output, " default=\"yes\"");
 			fprintf(m_output, "/>\n");
 		}
@@ -615,10 +645,9 @@ void info_xml_creator::output_rom(device_t &device)
 void info_xml_creator::output_sample(device_t &device)
 {
 	// iterate over sample devices
-	samples_device_iterator sampiter(device);
-	for (samples_device *samples = sampiter.first(); samples != nullptr; samples = sampiter.next())
+	for (samples_device &samples : samples_device_iterator(device))
 	{
-		samples_iterator iter(*samples);
+		samples_iterator iter(samples);
 		std::unordered_set<std::string> already_printed;
 		for (const char *samplename = iter.first(); samplename != nullptr; samplename = iter.next())
 		{
@@ -641,38 +670,36 @@ void info_xml_creator::output_sample(device_t &device)
 void info_xml_creator::output_chips(device_t &device, const char *root_tag)
 {
 	// iterate over executable devices
-	execute_interface_iterator execiter(device);
-	for (device_execute_interface *exec = execiter.first(); exec != nullptr; exec = execiter.next())
+	for (device_execute_interface &exec : execute_interface_iterator(device))
 	{
-		if (strcmp(exec->device().tag(), device.tag()))
+		if (strcmp(exec.device().tag(), device.tag()))
 		{
-			std::string newtag(exec->device().tag()), oldtag(":");
+			std::string newtag(exec.device().tag()), oldtag(":");
 			newtag = newtag.substr(newtag.find(oldtag.append(root_tag)) + oldtag.length());
 
 			fprintf(m_output, "\t\t<chip");
 			fprintf(m_output, " type=\"cpu\"");
 			fprintf(m_output, " tag=\"%s\"", xml_normalize_string(newtag.c_str()));
-			fprintf(m_output, " name=\"%s\"", xml_normalize_string(exec->device().name()));
-			fprintf(m_output, " clock=\"%d\"", exec->device().clock());
+			fprintf(m_output, " name=\"%s\"", xml_normalize_string(exec.device().name()));
+			fprintf(m_output, " clock=\"%d\"", exec.device().clock());
 			fprintf(m_output, "/>\n");
 		}
 	}
 
 	// iterate over sound devices
-	sound_interface_iterator sounditer(device);
-	for (device_sound_interface *sound = sounditer.first(); sound != nullptr; sound = sounditer.next())
+	for (device_sound_interface &sound : sound_interface_iterator(device))
 	{
-		if (strcmp(sound->device().tag(), device.tag()))
+		if (strcmp(sound.device().tag(), device.tag()))
 		{
-			std::string newtag(sound->device().tag()), oldtag(":");
+			std::string newtag(sound.device().tag()), oldtag(":");
 			newtag = newtag.substr(newtag.find(oldtag.append(root_tag)) + oldtag.length());
 
 			fprintf(m_output, "\t\t<chip");
 			fprintf(m_output, " type=\"audio\"");
 			fprintf(m_output, " tag=\"%s\"", xml_normalize_string(newtag.c_str()));
-			fprintf(m_output, " name=\"%s\"", xml_normalize_string(sound->device().name()));
-			if (sound->device().clock() != 0)
-				fprintf(m_output, " clock=\"%d\"", sound->device().clock());
+			fprintf(m_output, " name=\"%s\"", xml_normalize_string(sound.device().name()));
+			if (sound.device().clock() != 0)
+				fprintf(m_output, " clock=\"%d\"", sound.device().clock());
 			fprintf(m_output, "/>\n");
 		}
 	}
@@ -687,18 +714,17 @@ void info_xml_creator::output_chips(device_t &device, const char *root_tag)
 void info_xml_creator::output_display(device_t &device, const char *root_tag)
 {
 	// iterate over screens
-	screen_device_iterator iter(device);
-	for (const screen_device *screendev = iter.first(); screendev != nullptr; screendev = iter.next())
+	for (const screen_device &screendev : screen_device_iterator(device))
 	{
-		if (strcmp(screendev->tag(), device.tag()))
+		if (strcmp(screendev.tag(), device.tag()))
 		{
-			std::string newtag(screendev->tag()), oldtag(":");
+			std::string newtag(screendev.tag()), oldtag(":");
 			newtag = newtag.substr(newtag.find(oldtag.append(root_tag)) + oldtag.length());
 
 			fprintf(m_output, "\t\t<display");
 			fprintf(m_output, " tag=\"%s\"", xml_normalize_string(newtag.c_str()));
 
-			switch (screendev->screen_type())
+			switch (screendev.screen_type())
 			{
 				case SCREEN_TYPE_RASTER:    fprintf(m_output, " type=\"raster\"");  break;
 				case SCREEN_TYPE_VECTOR:    fprintf(m_output, " type=\"vector\"");  break;
@@ -736,29 +762,29 @@ void info_xml_creator::output_display(device_t &device, const char *root_tag)
 			}
 
 			// output width and height only for games that are not vector
-			if (screendev->screen_type() != SCREEN_TYPE_VECTOR)
+			if (screendev.screen_type() != SCREEN_TYPE_VECTOR)
 			{
-				const rectangle &visarea = screendev->visible_area();
+				const rectangle &visarea = screendev.visible_area();
 				fprintf(m_output, " width=\"%d\"", visarea.width());
 				fprintf(m_output, " height=\"%d\"", visarea.height());
 			}
 
 			// output refresh rate
-			fprintf(m_output, " refresh=\"%f\"", ATTOSECONDS_TO_HZ(screendev->refresh_attoseconds()));
+			fprintf(m_output, " refresh=\"%f\"", ATTOSECONDS_TO_HZ(screendev.refresh_attoseconds()));
 
 			// output raw video parameters only for games that are not vector
 			// and had raw parameters specified
-			if (screendev->screen_type() != SCREEN_TYPE_VECTOR && !screendev->oldstyle_vblank_supplied())
+			if (screendev.screen_type() != SCREEN_TYPE_VECTOR && !screendev.oldstyle_vblank_supplied())
 			{
-				int pixclock = screendev->width() * screendev->height() * ATTOSECONDS_TO_HZ(screendev->refresh_attoseconds());
+				int pixclock = screendev.width() * screendev.height() * ATTOSECONDS_TO_HZ(screendev.refresh_attoseconds());
 
 				fprintf(m_output, " pixclock=\"%d\"", pixclock);
-				fprintf(m_output, " htotal=\"%d\"", screendev->width());
-				fprintf(m_output, " hbend=\"%d\"", screendev->visible_area().min_x);
-				fprintf(m_output, " hbstart=\"%d\"", screendev->visible_area().max_x+1);
-				fprintf(m_output, " vtotal=\"%d\"", screendev->height());
-				fprintf(m_output, " vbend=\"%d\"", screendev->visible_area().min_y);
-				fprintf(m_output, " vbstart=\"%d\"", screendev->visible_area().max_y+1);
+				fprintf(m_output, " htotal=\"%d\"", screendev.width());
+				fprintf(m_output, " hbend=\"%d\"", screendev.visible_area().min_x);
+				fprintf(m_output, " hbstart=\"%d\"", screendev.visible_area().max_x+1);
+				fprintf(m_output, " vtotal=\"%d\"", screendev.height());
+				fprintf(m_output, " vbend=\"%d\"", screendev.visible_area().min_y);
+				fprintf(m_output, " vbstart=\"%d\"", screendev.visible_area().max_y+1);
 			}
 			fprintf(m_output, " />\n");
 		}
@@ -792,295 +818,466 @@ void info_xml_creator::output_sound(device_t &device)
 
 void info_xml_creator::output_input(const ioport_list &portlist)
 {
-	// enumerated list of control types
-	enum
-	{
-		ANALOG_TYPE_PADDLE,
-		ANALOG_TYPE_PEDAL,
-		ANALOG_TYPE_JOYSTICK,
-		ANALOG_TYPE_POSITIONAL,
-		ANALOG_TYPE_LIGHTGUN,
-		ANALOG_TYPE_DIAL,
-		ANALOG_TYPE_TRACKBALL,
-		ANALOG_TYPE_MOUSE,
-		ANALOG_TYPE_COUNT
-	};
+    // enumerated list of control types
+    // NOTE: the order is chosen so that 'spare' button inputs are assigned to the
+    // most-likely-correct input device when info is output (you can think of it as
+    // a sort of likelihood order of having buttons)
+    enum
+    {
+        CTRL_DIGITAL_BUTTONS,
+        CTRL_DIGITAL_JOYSTICK,
+        CTRL_ANALOG_JOYSTICK,
+        CTRL_ANALOG_LIGHTGUN,
+        CTRL_ANALOG_DIAL,
+        CTRL_ANALOG_POSITIONAL,
+        CTRL_ANALOG_TRACKBALL,
+        CTRL_ANALOG_MOUSE,
+        CTRL_ANALOG_PADDLE,
+        CTRL_ANALOG_PEDAL,
+        CTRL_DIGITAL_KEYPAD,
+        CTRL_DIGITAL_KEYBOARD,
+        CTRL_DIGITAL_MAHJONG,
+        CTRL_DIGITAL_HANAFUDA,
+        CTRL_DIGITAL_GAMBLING,
+        CTRL_COUNT
+    };
+    
+    enum
+    {
+        CTRL_P1,
+        CTRL_P2,
+        CTRL_P3,
+        CTRL_P4,
+        CTRL_P5,
+        CTRL_P6,
+        CTRL_P7,
+        CTRL_P8,
+        CTRL_PCOUNT
+    };
+    
+    // directions
+    const UINT8 DIR_UP = 0x01;
+    const UINT8 DIR_DOWN = 0x02;
+    const UINT8 DIR_LEFT = 0x04;
+    const UINT8 DIR_RIGHT = 0x08;
+    
+    // initialize the list of control types
+    struct
+    {
+        const char *    type;           // general type of input
+        int             player;         // player which the input belongs to
+        int             nbuttons;       // total number of buttons
+        int             maxbuttons;     // max index of buttons (using IPT_BUTTONn) [probably to be removed soonish]
+        int             ways;           // directions for joystick
+        bool            analog;         // is analog input?
+        UINT8           helper[3];      // for dual joysticks [possibly to be removed soonish]
+        INT32           min;            // analog minimum value
+        INT32           max;            // analog maximum value
+        INT32           sensitivity;    // default analog sensitivity
+        INT32           keydelta;       // default analog keydelta
+        bool            reverse;        // default analog reverse setting
+    } control_info[CTRL_COUNT * CTRL_PCOUNT];
+    
+    memset(&control_info, 0, sizeof(control_info));
+    
+    // tracking info as we iterate
+    int nplayer = 0;
+    int ncoin = 0;
+    bool service = false;
+    bool tilt = false;
 
-	// directions
-	const UINT8 DIR_UP = 0x01;
-	const UINT8 DIR_DOWN = 0x02;
-	const UINT8 DIR_LEFT = 0x04;
-	const UINT8 DIR_RIGHT = 0x08;
-	const UINT8 DIR_4WAY = 0x10;
+    // iterate over the ports
+    for (ioport_port &port : portlist)
+    {
+        int ctrl_type = CTRL_DIGITAL_BUTTONS;
+        bool ctrl_analog = FALSE;
+        for (ioport_field &field : port.fields())
+        {
 
-	// initialize the list of control types
-	struct
-	{
-		const char *    type;           /* general type of input */
-		bool            analog;
-		bool            keyb;
-		INT32           min;            /* analog minimum value */
-		INT32           max;            /* analog maximum value  */
-		INT32           sensitivity;    /* default analog sensitivity */
-		INT32           keydelta;       /* default analog keydelta */
-		bool            reverse;        /* default analog reverse setting */
-	} control_info[ANALOG_TYPE_COUNT];
+            // track the highest player number
+            if (nplayer < field.player() + 1)
+                nplayer = field.player() + 1;
 
-	memset(&control_info, 0, sizeof(control_info));
+            // switch off of the type
+            switch (field.type())
+            {
+                // map joysticks
+                case IPT_JOYSTICK_UP:
+                    ctrl_type = CTRL_DIGITAL_JOYSTICK;
+                    control_info[field.player() * CTRL_COUNT + ctrl_type].type = "joy";
+                    control_info[field.player() * CTRL_COUNT + ctrl_type].player = field.player() + 1;
+                    control_info[field.player() * CTRL_COUNT + ctrl_type].ways = field.way();
+                    control_info[field.player() * CTRL_COUNT + ctrl_type].helper[0] |= DIR_UP;
+                    break;
+                case IPT_JOYSTICK_DOWN:
+                    ctrl_type = CTRL_DIGITAL_JOYSTICK;
+                    control_info[field.player() * CTRL_COUNT + ctrl_type].type = "joy";
+                    control_info[field.player() * CTRL_COUNT + ctrl_type].player = field.player() + 1;
+                    control_info[field.player() * CTRL_COUNT + ctrl_type].ways = field.way();
+                    control_info[field.player() * CTRL_COUNT + ctrl_type].helper[0] |= DIR_DOWN;
+                    break;
+                case IPT_JOYSTICK_LEFT:
+                    ctrl_type = CTRL_DIGITAL_JOYSTICK;
+                    control_info[field.player() * CTRL_COUNT + ctrl_type].type = "joy";
+                    control_info[field.player() * CTRL_COUNT + ctrl_type].player = field.player() + 1;
+                    control_info[field.player() * CTRL_COUNT + ctrl_type].ways = field.way();
+                    control_info[field.player() * CTRL_COUNT + ctrl_type].helper[0] |= DIR_LEFT;
+                    break;
+                case IPT_JOYSTICK_RIGHT:
+                    ctrl_type = CTRL_DIGITAL_JOYSTICK;
+                    control_info[field.player() * CTRL_COUNT + ctrl_type].type = "joy";
+                    control_info[field.player() * CTRL_COUNT + ctrl_type].player = field.player() + 1;
+                    control_info[field.player() * CTRL_COUNT + ctrl_type].ways = field.way();
+                    control_info[field.player() * CTRL_COUNT + ctrl_type].helper[0] |= DIR_RIGHT;
+                    break;
+                    
+                case IPT_JOYSTICKLEFT_UP:
+                    ctrl_type = CTRL_DIGITAL_JOYSTICK;
+                    control_info[field.player() * CTRL_COUNT + ctrl_type].type = "joy";
+                    control_info[field.player() * CTRL_COUNT + ctrl_type].player = field.player() + 1;
+                    control_info[field.player() * CTRL_COUNT + ctrl_type].ways = field.way();
+                    control_info[field.player() * CTRL_COUNT + ctrl_type].helper[1] |= DIR_UP;
+                    break;
+                case IPT_JOYSTICKLEFT_DOWN:
+                    ctrl_type = CTRL_DIGITAL_JOYSTICK;
+                    control_info[field.player() * CTRL_COUNT + ctrl_type].type = "joy";
+                    control_info[field.player() * CTRL_COUNT + ctrl_type].player = field.player() + 1;
+                    control_info[field.player() * CTRL_COUNT + ctrl_type].ways = field.way();
+                    control_info[field.player() * CTRL_COUNT + ctrl_type].helper[1] |= DIR_DOWN;
+                    break;
+                case IPT_JOYSTICKLEFT_LEFT:
+                    ctrl_type = CTRL_DIGITAL_JOYSTICK;
+                    control_info[field.player() * CTRL_COUNT + ctrl_type].type = "joy";
+                    control_info[field.player() * CTRL_COUNT + ctrl_type].player = field.player() + 1;
+                    control_info[field.player() * CTRL_COUNT + ctrl_type].ways = field.way();
+                    control_info[field.player() * CTRL_COUNT + ctrl_type].helper[1] |= DIR_LEFT;
+                    break;
+                case IPT_JOYSTICKLEFT_RIGHT:
+                    ctrl_type = CTRL_DIGITAL_JOYSTICK;
+                    control_info[field.player() * CTRL_COUNT + ctrl_type].type = "joy";
+                    control_info[field.player() * CTRL_COUNT + ctrl_type].player = field.player() + 1;
+                    control_info[field.player() * CTRL_COUNT + ctrl_type].ways = field.way();
+                    control_info[field.player() * CTRL_COUNT + ctrl_type].helper[1] |= DIR_RIGHT;
+                    break;
+                    
+                case IPT_JOYSTICKRIGHT_UP:
+                    ctrl_type = CTRL_DIGITAL_JOYSTICK;
+                    control_info[field.player() * CTRL_COUNT + ctrl_type].type = "joy";
+                    control_info[field.player() * CTRL_COUNT + ctrl_type].player = field.player() + 1;
+                    control_info[field.player() * CTRL_COUNT + ctrl_type].ways = field.way();
+                    control_info[field.player() * CTRL_COUNT + ctrl_type].helper[2] |= DIR_UP;
+                    break;
+                case IPT_JOYSTICKRIGHT_DOWN:
+                    ctrl_type = CTRL_DIGITAL_JOYSTICK;
+                    control_info[field.player() * CTRL_COUNT + ctrl_type].type = "joy";
+                    control_info[field.player() * CTRL_COUNT + ctrl_type].player = field.player() + 1;
+                    control_info[field.player() * CTRL_COUNT + ctrl_type].ways = field.way();
+                    control_info[field.player() * CTRL_COUNT + ctrl_type].helper[2] |= DIR_DOWN;
+                    break;
+                case IPT_JOYSTICKRIGHT_LEFT:
+                    ctrl_type = CTRL_DIGITAL_JOYSTICK;
+                    control_info[field.player() * CTRL_COUNT + ctrl_type].type = "joy";
+                    control_info[field.player() * CTRL_COUNT + ctrl_type].player = field.player() + 1;
+                    control_info[field.player() * CTRL_COUNT + ctrl_type].ways = field.way();
+                    control_info[field.player() * CTRL_COUNT + ctrl_type].helper[2] |= DIR_LEFT;
+                    break;
+                case IPT_JOYSTICKRIGHT_RIGHT:
+                    ctrl_type = CTRL_DIGITAL_JOYSTICK;
+                    control_info[field.player() * CTRL_COUNT + ctrl_type].type = "joy";
+                    control_info[field.player() * CTRL_COUNT + ctrl_type].player = field.player() + 1;
+                    control_info[field.player() * CTRL_COUNT + ctrl_type].ways = field.way();
+                    control_info[field.player() * CTRL_COUNT + ctrl_type].helper[2] |= DIR_RIGHT;
+                    break;
+                    
+                // map analog inputs
+                case IPT_AD_STICK_X:
+                case IPT_AD_STICK_Y:
+                case IPT_AD_STICK_Z:
+                    ctrl_analog = TRUE;
+                    ctrl_type = CTRL_ANALOG_JOYSTICK;
+                    control_info[field.player() * CTRL_COUNT + ctrl_type].type = "stick";
+                    control_info[field.player() * CTRL_COUNT + ctrl_type].player = field.player() + 1;
+                    control_info[field.player() * CTRL_COUNT + ctrl_type].analog = TRUE;
+                    break;
+                    
+                case IPT_PADDLE:
+                case IPT_PADDLE_V:
+                    ctrl_analog = TRUE;
+                    ctrl_type = CTRL_ANALOG_PADDLE;
+                    control_info[field.player() * CTRL_COUNT + ctrl_type].type = "paddle";
+                    control_info[field.player() * CTRL_COUNT + ctrl_type].player = field.player() + 1;
+                    control_info[field.player() * CTRL_COUNT + ctrl_type].analog = TRUE;
+                    break;
+                    
+                case IPT_PEDAL:
+                case IPT_PEDAL2:
+                case IPT_PEDAL3:
+                    ctrl_analog = TRUE;
+                    ctrl_type = CTRL_ANALOG_PEDAL;
+                    control_info[field.player() * CTRL_COUNT + ctrl_type].type = "pedal";
+                    control_info[field.player() * CTRL_COUNT + ctrl_type].player = field.player() + 1;
+                    control_info[field.player() * CTRL_COUNT + ctrl_type].analog = TRUE;
+                    break;
+                    
+                case IPT_LIGHTGUN_X:
+                case IPT_LIGHTGUN_Y:
+                    ctrl_analog = TRUE;
+                    ctrl_type = CTRL_ANALOG_LIGHTGUN;
+                    control_info[field.player() * CTRL_COUNT + ctrl_type].type = "lightgun";
+                    control_info[field.player() * CTRL_COUNT + ctrl_type].player = field.player() + 1;
+                    control_info[field.player() * CTRL_COUNT + ctrl_type].analog = TRUE;
+                    break;
+                    
+                case IPT_POSITIONAL:
+                case IPT_POSITIONAL_V:
+                    ctrl_analog = TRUE;
+                    ctrl_type = CTRL_ANALOG_POSITIONAL;
+                    control_info[field.player() * CTRL_COUNT + ctrl_type].type = "positional";
+                    control_info[field.player() * CTRL_COUNT + ctrl_type].player = field.player() + 1;
+                    control_info[field.player() * CTRL_COUNT + ctrl_type].analog = TRUE;
+                    break;
+                    
+                case IPT_DIAL:
+                case IPT_DIAL_V:
+                    ctrl_analog = TRUE;
+                    ctrl_type = CTRL_ANALOG_DIAL;
+                    control_info[field.player() * CTRL_COUNT + ctrl_type].type = "dial";
+                    control_info[field.player() * CTRL_COUNT + ctrl_type].player = field.player() + 1;
+                    control_info[field.player() * CTRL_COUNT + ctrl_type].analog = TRUE;
+                    break;
+                    
+                case IPT_TRACKBALL_X:
+                case IPT_TRACKBALL_Y:
+                    ctrl_analog = TRUE;
+                    ctrl_type = CTRL_ANALOG_TRACKBALL;
+                    control_info[field.player() * CTRL_COUNT + ctrl_type].type = "trackball";
+                    control_info[field.player() * CTRL_COUNT + ctrl_type].player = field.player() + 1;
+                    control_info[field.player() * CTRL_COUNT + ctrl_type].analog = TRUE;
+                    break;
+                    
+                case IPT_MOUSE_X:
+                case IPT_MOUSE_Y:
+                    ctrl_analog = TRUE;
+                    ctrl_type = CTRL_ANALOG_MOUSE;
+                    control_info[field.player() * CTRL_COUNT + ctrl_type].type = "mouse";
+                    control_info[field.player() * CTRL_COUNT + ctrl_type].player = field.player() + 1;
+                    control_info[field.player() * CTRL_COUNT + ctrl_type].analog = TRUE;
+                    break;
+                    
+                // map buttons
+                case IPT_BUTTON1:
+                case IPT_BUTTON2:
+                case IPT_BUTTON3:
+                case IPT_BUTTON4:
+                case IPT_BUTTON5:
+                case IPT_BUTTON6:
+                case IPT_BUTTON7:
+                case IPT_BUTTON8:
+                case IPT_BUTTON9:
+                case IPT_BUTTON10:
+                case IPT_BUTTON11:
+                case IPT_BUTTON12:
+                case IPT_BUTTON13:
+                case IPT_BUTTON14:
+                case IPT_BUTTON15:
+                case IPT_BUTTON16:
+                    ctrl_analog = FALSE;
+                    if (control_info[field.player() * CTRL_COUNT + ctrl_type].type == nullptr)
+                    {
+                        control_info[field.player() * CTRL_COUNT + ctrl_type].type = "only_buttons";
+                        control_info[field.player() * CTRL_COUNT + ctrl_type].player = field.player() + 1;
+                        control_info[field.player() * CTRL_COUNT + ctrl_type].analog = FALSE;
+                    }
+                    control_info[field.player() * CTRL_COUNT + ctrl_type].maxbuttons = MAX(control_info[field.player() * CTRL_COUNT + ctrl_type].maxbuttons, field.type() - IPT_BUTTON1 + 1);
+                    control_info[field.player() * CTRL_COUNT + ctrl_type].nbuttons++;
+                    break;
+                    
+                // track maximum coin index
+                case IPT_COIN1:
+                case IPT_COIN2:
+                case IPT_COIN3:
+                case IPT_COIN4:
+                case IPT_COIN5:
+                case IPT_COIN6:
+                case IPT_COIN7:
+                case IPT_COIN8:
+                    ncoin = MAX(ncoin, field.type() - IPT_COIN1 + 1);
+                    break;
+                    
+                // track presence of keypads and keyboards
+                case IPT_KEYPAD:
+                    ctrl_type = CTRL_DIGITAL_KEYPAD;
+                    control_info[field.player() * CTRL_COUNT + ctrl_type].type = "keypad";
+                    control_info[field.player() * CTRL_COUNT + ctrl_type].player = field.player() + 1;
+                    control_info[field.player() * CTRL_COUNT + ctrl_type].nbuttons++;
+                    break;
+                    
+                case IPT_KEYBOARD:
+                    ctrl_type = CTRL_DIGITAL_KEYBOARD;
+                    control_info[field.player() * CTRL_COUNT + ctrl_type].type = "keyboard";
+                    control_info[field.player() * CTRL_COUNT + ctrl_type].player = field.player() + 1;
+                    control_info[field.player() * CTRL_COUNT + ctrl_type].nbuttons++;
+                    break;
+                    
+                // additional types
+                case IPT_SERVICE:
+                    service = true;
+                    break;
+                    
+                case IPT_TILT:
+                    tilt = true;
+                    break;
+                    
+                default:
+                    if (field.type() > IPT_MAHJONG_FIRST && field.type() < IPT_MAHJONG_LAST)
+                    {
+                        ctrl_type = CTRL_DIGITAL_MAHJONG;
+                        control_info[field.player() * CTRL_COUNT + ctrl_type].type = "mahjong";
+                        control_info[field.player() * CTRL_COUNT + ctrl_type].player = field.player() + 1;
+                        control_info[field.player() * CTRL_COUNT + ctrl_type].nbuttons++;
+                    }
+                    else if (field.type() > IPT_HANAFUDA_FIRST && field.type() < IPT_HANAFUDA_LAST)
+                    {
+                        ctrl_type = CTRL_DIGITAL_HANAFUDA;
+                        control_info[field.player() * CTRL_COUNT + ctrl_type].type = "hanafuda";
+                        control_info[field.player() * CTRL_COUNT + ctrl_type].player = field.player() + 1;
+                        control_info[field.player() * CTRL_COUNT + ctrl_type].nbuttons++;
+                    }
+                    else if (field.type() > IPT_GAMBLING_FIRST && field.type() < IPT_GAMBLING_LAST)
+                    {
+                        ctrl_type = CTRL_DIGITAL_GAMBLING;
+                        control_info[field.player() * CTRL_COUNT + ctrl_type].type = "gambling";
+                        control_info[field.player() * CTRL_COUNT + ctrl_type].player = field.player() + 1;
+                        control_info[field.player() * CTRL_COUNT + ctrl_type].nbuttons++;
+                    }
+                    break;
+            }
+            
+            if (ctrl_analog)
+            {
+                // get the analog stats
+                if (field.minval() != 0)
+                    control_info[field.player() * CTRL_COUNT + ctrl_type].min = field.minval();
+                if (field.maxval() != 0)
+                    control_info[field.player() * CTRL_COUNT + ctrl_type].max = field.maxval();
+                if (field.sensitivity() != 0)
+                    control_info[field.player() * CTRL_COUNT + ctrl_type].sensitivity = field.sensitivity();
+                if (field.delta() != 0)
+                    control_info[field.player() * CTRL_COUNT + ctrl_type].keydelta = field.delta();
+                if (field.analog_reverse() != 0)
+                    control_info[field.player() * CTRL_COUNT + ctrl_type].reverse = TRUE;
+            }
+        }
+    }
 
-	// tracking info as we iterate
-	int nplayer = 0;
-	int nbutton = 0;
-	int ncoin = 0;
-	UINT8 joytype[3] = { 0,0,0 };
-	bool service = false;
-	bool tilt = false;
-	bool keypad = false;
-	bool keyboard = false;
-	bool mahjong = false;
-	bool hanafuda = false;
-	bool gambling = false;
+    // Clean-up those entries, if any, where buttons were defined in a separate port than the actual controller they belong to.
+    // This is quite often the case, especially for arcades where controls can be easily mapped to separate input ports on PCB.
+    // If such situation would only happen for joystick, it would be possible to work it around by initializing differently
+    // ctrl_type above, but it is quite common among analog inputs as well (for instance, this is the tipical situation
+    // for lightguns) and therefore we really need this separate loop.
+    for (int i = 0; i < CTRL_PCOUNT; i++)
+    {
+        bool fix_done = FALSE;
+        for (int j = 1; j < CTRL_COUNT; j++)
+            if (control_info[i * CTRL_COUNT].type != nullptr && control_info[i * CTRL_COUNT + j].type != nullptr && !fix_done)
+            {
+                control_info[i * CTRL_COUNT + j].nbuttons += control_info[i * CTRL_COUNT].nbuttons;
+                control_info[i * CTRL_COUNT + j].maxbuttons = MAX(control_info[i * CTRL_COUNT + j].maxbuttons, control_info[i * CTRL_COUNT].maxbuttons);
 
-	// iterate over the ports
-	for (ioport_port *port = portlist.first(); port != nullptr; port = port->next())
-		for (ioport_field *field = port->first_field(); field != nullptr; field = field->next())
-		{
-			int analogtype = -1;
+                memset(&control_info[i * CTRL_COUNT], 0, sizeof(control_info[0]));
+                fix_done = TRUE;
+            }
+    }
 
-			// track the highest player number
-			if (nplayer < field->player() + 1)
-				nplayer = field->player() + 1;
+    // Output the input info
+    // First basic info
+    fprintf(m_output, "\t\t<input");
+    fprintf(m_output, " players=\"%d\"", nplayer);
+    if (ncoin != 0)
+        fprintf(m_output, " coins=\"%d\"", ncoin);
+    if (service)
+        fprintf(m_output, " service=\"yes\"");
+    if (tilt)
+        fprintf(m_output, " tilt=\"yes\"");
+    fprintf(m_output, ">\n");
 
-			// switch off of the type
-			switch (field->type())
-			{
-				// map which joystick directions are present
-				case IPT_JOYSTICK_UP:           joytype[0] |= DIR_UP | ((field->way() == 4) ? DIR_4WAY : 0);        break;
-				case IPT_JOYSTICK_DOWN:         joytype[0] |= DIR_DOWN | ((field->way() == 4) ? DIR_4WAY : 0);  break;
-				case IPT_JOYSTICK_LEFT:         joytype[0] |= DIR_LEFT | ((field->way() == 4) ? DIR_4WAY : 0);  break;
-				case IPT_JOYSTICK_RIGHT:        joytype[0] |= DIR_RIGHT | ((field->way() == 4) ? DIR_4WAY : 0); break;
-
-				case IPT_JOYSTICKLEFT_UP:       joytype[1] |= DIR_UP | ((field->way() == 4) ? DIR_4WAY : 0);        break;
-				case IPT_JOYSTICKLEFT_DOWN:     joytype[1] |= DIR_DOWN | ((field->way() == 4) ? DIR_4WAY : 0);  break;
-				case IPT_JOYSTICKLEFT_LEFT:     joytype[1] |= DIR_LEFT | ((field->way() == 4) ? DIR_4WAY : 0);  break;
-				case IPT_JOYSTICKLEFT_RIGHT:    joytype[1] |= DIR_RIGHT | ((field->way() == 4) ? DIR_4WAY : 0); break;
-
-				case IPT_JOYSTICKRIGHT_UP:      joytype[2] |= DIR_UP | ((field->way() == 4) ? DIR_4WAY : 0);        break;
-				case IPT_JOYSTICKRIGHT_DOWN:    joytype[2] |= DIR_DOWN | ((field->way() == 4) ? DIR_4WAY : 0);  break;
-				case IPT_JOYSTICKRIGHT_LEFT:    joytype[2] |= DIR_LEFT | ((field->way() == 4) ? DIR_4WAY : 0);  break;
-				case IPT_JOYSTICKRIGHT_RIGHT:   joytype[2] |= DIR_RIGHT | ((field->way() == 4) ? DIR_4WAY : 0); break;
-
-				// mark as an analog input, and get analog stats after switch
-				case IPT_AD_STICK_X:
-				case IPT_AD_STICK_Y:
-				case IPT_AD_STICK_Z:
-					control_info[analogtype = ANALOG_TYPE_JOYSTICK].type = "stick";
-					break;
-
-				case IPT_PADDLE:
-				case IPT_PADDLE_V:
-					control_info[analogtype = ANALOG_TYPE_PADDLE].type = "paddle";
-					break;
-
-				case IPT_PEDAL:
-				case IPT_PEDAL2:
-				case IPT_PEDAL3:
-					control_info[analogtype = ANALOG_TYPE_PEDAL].type = "pedal";
-					break;
-
-				case IPT_LIGHTGUN_X:
-				case IPT_LIGHTGUN_Y:
-					control_info[analogtype = ANALOG_TYPE_LIGHTGUN].type = "lightgun";
-					break;
-
-				case IPT_POSITIONAL:
-				case IPT_POSITIONAL_V:
-					control_info[analogtype = ANALOG_TYPE_POSITIONAL].type = "positional";
-					break;
-
-				case IPT_DIAL:
-				case IPT_DIAL_V:
-					control_info[analogtype = ANALOG_TYPE_DIAL].type = "dial";
-					break;
-
-				case IPT_TRACKBALL_X:
-				case IPT_TRACKBALL_Y:
-					control_info[analogtype = ANALOG_TYPE_TRACKBALL].type = "trackball";
-					break;
-
-				case IPT_MOUSE_X:
-				case IPT_MOUSE_Y:
-					control_info[analogtype = ANALOG_TYPE_MOUSE].type = "mouse";
-					break;
-
-				// track maximum button index
-				case IPT_BUTTON1:
-				case IPT_BUTTON2:
-				case IPT_BUTTON3:
-				case IPT_BUTTON4:
-				case IPT_BUTTON5:
-				case IPT_BUTTON6:
-				case IPT_BUTTON7:
-				case IPT_BUTTON8:
-				case IPT_BUTTON9:
-				case IPT_BUTTON10:
-				case IPT_BUTTON11:
-				case IPT_BUTTON12:
-				case IPT_BUTTON13:
-				case IPT_BUTTON14:
-				case IPT_BUTTON15:
-				case IPT_BUTTON16:
-					nbutton = MAX(nbutton, field->type() - IPT_BUTTON1 + 1);
-					break;
-
-				// track maximum coin index
-				case IPT_COIN1:
-				case IPT_COIN2:
-				case IPT_COIN3:
-				case IPT_COIN4:
-				case IPT_COIN5:
-				case IPT_COIN6:
-				case IPT_COIN7:
-				case IPT_COIN8:
-					ncoin = MAX(ncoin, field->type() - IPT_COIN1 + 1);
-					break;
-
-				// track presence of these guys
-				case IPT_KEYPAD:
-					keypad = true;
-					break;
-
-				case IPT_KEYBOARD:
-					keyboard = true;
-					break;
-
-				// additional types
-				case IPT_SERVICE:
-					service = true;
-					break;
-
-				case IPT_TILT:
-					tilt = true;
-					break;
-
-				default:
-					if (field->type() > IPT_MAHJONG_FIRST && field->type() < IPT_MAHJONG_LAST)
-						mahjong = true;
-					else if (field->type() > IPT_HANAFUDA_FIRST && field->type() < IPT_HANAFUDA_LAST)
-						hanafuda = true;
-					else if (field->type() > IPT_GAMBLING_FIRST && field->type() < IPT_GAMBLING_LAST)
-						gambling = true;
-					break;
-			}
-
-			// get the analog stats
-			if (analogtype != -1)
-			{
-				if (field->minval() != 0)
-					control_info[analogtype].min = field->minval();
-				if (field->maxval() != 0)
-					control_info[analogtype].max = field->maxval();
-				if (field->sensitivity() != 0)
-					control_info[analogtype].sensitivity = field->sensitivity();
-				if (field->delta() != 0)
-					control_info[analogtype].keydelta = field->delta();
-				if (field->analog_reverse() != 0)
-					control_info[analogtype].reverse = true;
-			}
-		}
-
-	// output the basic info
-	fprintf(m_output, "\t\t<input");
-	fprintf(m_output, " players=\"%d\"", nplayer);
-	if (nbutton != 0)
-		fprintf(m_output, " buttons=\"%d\"", nbutton);
-	if (ncoin != 0)
-		fprintf(m_output, " coins=\"%d\"", ncoin);
-	if (service)
-		fprintf(m_output, " service=\"yes\"");
-	if (tilt)
-		fprintf(m_output, " tilt=\"yes\"");
-	fprintf(m_output, ">\n");
-
-	// output the joystick types
-	if (joytype[1]==0 && joytype[2]!=0) { joytype[1] = joytype[2]; joytype[2] = 0; }
-	if (joytype[0]==0 && joytype[1]!=0) { joytype[0] = joytype[1]; joytype[1] = 0; }
-	if (joytype[1]==0 && joytype[2]!=0) { joytype[1] = joytype[2]; joytype[2] = 0; }
-	if (joytype[0] != 0)
-	{
-		const char *joys = (joytype[2]!=0) ? "triple" : (joytype[1]!=0) ? "double" : "";
-		fprintf(m_output, "\t\t\t<control type=\"%sjoy\"", joys);
-		for (int lp=0; lp<3 && joytype[lp]!=0; lp++)
-		{
-			const char *plural = (lp==2) ? "3" : (lp==1) ? "2" : "";
-			const char *ways;
-			switch (joytype[lp] & (DIR_UP | DIR_DOWN | DIR_LEFT | DIR_RIGHT))
-			{
-				case DIR_UP | DIR_DOWN | DIR_LEFT | DIR_RIGHT:
-					ways = ((joytype[lp] & DIR_4WAY) != 0) ? "4" : "8";
-					break;
-				case DIR_LEFT | DIR_RIGHT:
-					ways = "2";
-					break;
-				case DIR_UP | DIR_DOWN:
-					ways = "vertical2";
-					break;
-				case DIR_UP:
-				case DIR_DOWN:
-				case DIR_LEFT:
-				case DIR_RIGHT:
-					ways = "1";
-					break;
-				case DIR_UP | DIR_DOWN | DIR_LEFT:
-				case DIR_UP | DIR_DOWN | DIR_RIGHT:
-				case DIR_UP | DIR_LEFT | DIR_RIGHT:
-				case DIR_DOWN | DIR_LEFT | DIR_RIGHT:
-					ways = ((joytype[lp] & DIR_4WAY) != 0) ? "3 (half4)" : "5 (half8)";
-					break;
-				default:
-					ways = "strange2";
-					break;
-			}
-			fprintf(m_output, " ways%s=\"%s\"", plural,ways);
-		}
-		fprintf(m_output, "/>\n");
-	}
-
-	// output analog types
-	for (auto & elem : control_info)
-		if (elem.type != nullptr)
-		{
-			fprintf(m_output, "\t\t\t<control type=\"%s\"", xml_normalize_string(elem.type));
-			if (elem.min != 0 || elem.max != 0)
-			{
-				fprintf(m_output, " minimum=\"%d\"", elem.min);
-				fprintf(m_output, " maximum=\"%d\"", elem.max);
-			}
-			if (elem.sensitivity != 0)
-				fprintf(m_output, " sensitivity=\"%d\"", elem.sensitivity);
-			if (elem.keydelta != 0)
-				fprintf(m_output, " keydelta=\"%d\"", elem.keydelta);
-			if (elem.reverse)
-				fprintf(m_output, " reverse=\"yes\"");
-
-			fprintf(m_output, "/>\n");
-		}
-
-	// output keypad and keyboard
-	if (keypad)
-		fprintf(m_output, "\t\t\t<control type=\"keypad\"/>\n");
-	if (keyboard)
-		fprintf(m_output, "\t\t\t<control type=\"keyboard\"/>\n");
-
-	// misc
-	if (mahjong)
-		fprintf(m_output, "\t\t\t<control type=\"mahjong\"/>\n");
-	if (hanafuda)
-		fprintf(m_output, "\t\t\t<control type=\"hanafuda\"/>\n");
-	if (gambling)
-		fprintf(m_output, "\t\t\t<control type=\"gambling\"/>\n");
-
-	fprintf(m_output, "\t\t</input>\n");
+    // Then controller specific ones
+    for (auto & elem : control_info)
+        if (elem.type != nullptr)
+        {
+            //printf("type %s - player %d - buttons %d\n", elem.type, elem.player, elem.nbuttons);
+            if (elem.analog)
+            {
+                fprintf(m_output, "\t\t\t<control type=\"%s\"", xml_normalize_string(elem.type));
+                if (nplayer > 1)
+                    fprintf(m_output, " player=\"%d\"", elem.player);
+                if (elem.nbuttons > 0)
+                    fprintf(m_output, " buttons=\"%d\"", strcmp(elem.type, "stick") ? elem.nbuttons : elem.maxbuttons);
+                if (elem.min != 0 || elem.max != 0)
+                {
+                    fprintf(m_output, " minimum=\"%d\"", elem.min);
+                    fprintf(m_output, " maximum=\"%d\"", elem.max);
+                }
+                if (elem.sensitivity != 0)
+                    fprintf(m_output, " sensitivity=\"%d\"", elem.sensitivity);
+                if (elem.keydelta != 0)
+                    fprintf(m_output, " keydelta=\"%d\"", elem.keydelta);
+                if (elem.reverse)
+                    fprintf(m_output, " reverse=\"yes\"");
+                
+                fprintf(m_output, "/>\n");
+            }
+            else
+            {
+                if (elem.helper[1] == 0 && elem.helper[2] != 0) { elem.helper[1] = elem.helper[2]; elem.helper[2] = 0; }
+                if (elem.helper[0] == 0 && elem.helper[1] != 0) { elem.helper[0] = elem.helper[1]; elem.helper[1] = 0; }
+                if (elem.helper[1] == 0 && elem.helper[2] != 0) { elem.helper[1] = elem.helper[2]; elem.helper[2] = 0; }
+                const char *joys = (elem.helper[2] != 0) ? "triple" : (elem.helper[1] != 0) ? "double" : "";
+                fprintf(m_output, "\t\t\t<control type=\"%s%s\"", joys, xml_normalize_string(elem.type));
+                if (nplayer > 1)
+                    fprintf(m_output, " player=\"%d\"", elem.player);
+                if (elem.nbuttons > 0)
+                    fprintf(m_output, " buttons=\"%d\"", strcmp(elem.type, "joy") ? elem.nbuttons : elem.maxbuttons);
+                for (int lp = 0; lp < 3 && elem.helper[lp] != 0; lp++)
+                {
+                    const char *plural = (lp==2) ? "3" : (lp==1) ? "2" : "";
+                    const char *ways;
+                    std::string helper;
+                    switch (elem.helper[lp] & (DIR_UP | DIR_DOWN | DIR_LEFT | DIR_RIGHT))
+                    {
+                        case DIR_UP | DIR_DOWN | DIR_LEFT | DIR_RIGHT:
+                            helper = string_format("%d", (elem.ways == 0) ? 8 : elem.ways);
+                            ways = helper.c_str();
+                            break;
+                        case DIR_LEFT | DIR_RIGHT:
+                            ways = "2";
+                            break;
+                        case DIR_UP | DIR_DOWN:
+                            ways = "vertical2";
+                            break;
+                        case DIR_UP:
+                        case DIR_DOWN:
+                        case DIR_LEFT:
+                        case DIR_RIGHT:
+                            ways = "1";
+                            break;
+                        case DIR_UP | DIR_DOWN | DIR_LEFT:
+                        case DIR_UP | DIR_DOWN | DIR_RIGHT:
+                        case DIR_UP | DIR_LEFT | DIR_RIGHT:
+                        case DIR_DOWN | DIR_LEFT | DIR_RIGHT:
+                            ways = (elem.ways == 4) ? "3 (half4)" : "5 (half8)";
+                            break;
+                        default:
+                            ways = "strange2";
+                            break;
+                    }
+                    fprintf(m_output, " ways%s=\"%s\"", plural, ways);
+                }
+                fprintf(m_output, "/>\n");
+            }
+        }
+    
+    fprintf(m_output, "\t\t</input>\n");
 }
 
 
@@ -1092,24 +1289,24 @@ void info_xml_creator::output_input(const ioport_list &portlist)
 void info_xml_creator::output_switches(const ioport_list &portlist, const char *root_tag, int type, const char *outertag, const char *innertag)
 {
 	// iterate looking for DIP switches
-	for (ioport_port *port = portlist.first(); port != nullptr; port = port->next())
-		for (ioport_field *field = port->first_field(); field != nullptr; field = field->next())
-			if (field->type() == type)
+	for (ioport_port &port : portlist)
+		for (ioport_field &field : port.fields())
+			if (field.type() == type)
 			{
 				std::ostringstream output;
 
-				std::string newtag(port->tag()), oldtag(":");
+				std::string newtag(port.tag()), oldtag(":");
 				newtag = newtag.substr(newtag.find(oldtag.append(root_tag)) + oldtag.length());
 
 				// output the switch name information
-				std::string normalized_field_name(xml_normalize_string(field->name()));
+				std::string normalized_field_name(xml_normalize_string(field.name()));
 				std::string normalized_newtag(xml_normalize_string(newtag.c_str()));
-				util::stream_format(output,"\t\t<%s name=\"%s\" tag=\"%s\" mask=\"%u\">\n", outertag, normalized_field_name.c_str(), normalized_newtag.c_str(), field->mask());
+				util::stream_format(output,"\t\t<%s name=\"%s\" tag=\"%s\" mask=\"%u\">\n", outertag, normalized_field_name.c_str(), normalized_newtag.c_str(), field.mask());
 
 				// loop over settings
-				for (ioport_setting *setting = field->first_setting(); setting != nullptr; setting = setting->next())
+				for (ioport_setting &setting : field.settings())
 				{
-					util::stream_format(output,"\t\t\t<%s name=\"%s\" value=\"%u\"%s/>\n", innertag, xml_normalize_string(setting->name()), setting->value(), setting->value() == field->defvalue() ? " default=\"yes\"" : "");
+					util::stream_format(output,"\t\t\t<%s name=\"%s\" value=\"%u\"%s/>\n", innertag, xml_normalize_string(setting.name()), setting.value(), setting.value() == field.defvalue() ? " default=\"yes\"" : "");
 				}
 
 				// terminate the switch entry
@@ -1126,13 +1323,13 @@ void info_xml_creator::output_switches(const ioport_list &portlist, const char *
 void info_xml_creator::output_ports(const ioport_list &portlist)
 {
 	// cycle through ports
-	for (ioport_port *port = portlist.first(); port != nullptr; port = port->next())
+	for (ioport_port &port : portlist)
 	{
-		fprintf(m_output,"\t\t<port tag=\"%s\">\n",port->tag());
-		for (ioport_field *field = port->first_field(); field != nullptr; field = field->next())
+		fprintf(m_output,"\t\t<port tag=\"%s\">\n", xml_normalize_string(port.tag()));
+		for (ioport_field &field : port.fields())
 		{
-			if(field->is_analog())
-				fprintf(m_output,"\t\t\t<analog mask=\"%u\"/>\n",field->mask());
+			if(field.is_analog())
+				fprintf(m_output,"\t\t\t<analog mask=\"%u\"/>\n", field.mask());
 		}
 		// close element
 		fprintf(m_output,"\t\t</port>\n");
@@ -1148,10 +1345,10 @@ void info_xml_creator::output_ports(const ioport_list &portlist)
 void info_xml_creator::output_adjusters(const ioport_list &portlist)
 {
 	// iterate looking for Adjusters
-	for (ioport_port *port = portlist.first(); port != nullptr; port = port->next())
-		for (ioport_field *field = port->first_field(); field != nullptr; field = field->next())
-			if (field->type() == IPT_ADJUSTER)
-				fprintf(m_output, "\t\t<adjuster name=\"%s\" default=\"%d\"/>\n", xml_normalize_string(field->name()), field->defvalue());
+	for (ioport_port &port : portlist)
+		for (ioport_field &field : port.fields())
+			if (field.type() == IPT_ADJUSTER)
+				fprintf(m_output, "\t\t<adjuster name=\"%s\" default=\"%d\"/>\n", xml_normalize_string(field.name()), field.defvalue());
 }
 
 
@@ -1224,50 +1421,56 @@ void info_xml_creator::output_driver()
 
 void info_xml_creator::output_images(device_t &device, const char *root_tag)
 {
-	image_interface_iterator iter(device);
-	for (const device_image_interface *imagedev = iter.first(); imagedev != nullptr; imagedev = iter.next())
+	for (const device_image_interface &imagedev : image_interface_iterator(device))
 	{
-		if (strcmp(imagedev->device().tag(), device.tag()))
+		if (strcmp(imagedev.device().tag(), device.tag()))
 		{
-			std::string newtag(imagedev->device().tag()), oldtag(":");
+			bool loadable = imagedev.user_loadable();
+			std::string newtag(imagedev.device().tag()), oldtag(":");
 			newtag = newtag.substr(newtag.find(oldtag.append(root_tag)) + oldtag.length());
 
 			// print m_output device type
-			fprintf(m_output, "\t\t<device type=\"%s\"", xml_normalize_string(imagedev->image_type_name()));
+			fprintf(m_output, "\t\t<device type=\"%s\"", xml_normalize_string(imagedev.image_type_name()));
 
 			// does this device have a tag?
-			if (imagedev->device().tag())
+			if (imagedev.device().tag())
 				fprintf(m_output, " tag=\"%s\"", xml_normalize_string(newtag.c_str()));
 
-			// is this device mandatory?
-			if (imagedev->must_be_loaded())
-				fprintf(m_output, " mandatory=\"1\"");
+			// is this device available as media switch?
+			if (!loadable)
+				fprintf(m_output, " fixed_image=\"1\"");
+            
+            // is this device mandatory?
+            if (imagedev.must_be_loaded())
+                fprintf(m_output, " mandatory=\"1\"");
 
-			if (imagedev->image_interface() && imagedev->image_interface()[0])
-				fprintf(m_output, " interface=\"%s\"", xml_normalize_string(imagedev->image_interface()));
+			if (imagedev.image_interface() && imagedev.image_interface()[0])
+				fprintf(m_output, " interface=\"%s\"", xml_normalize_string(imagedev.image_interface()));
 
 			// close the XML tag
 			fprintf(m_output, ">\n");
 
-			const char *name = imagedev->instance_name();
-			const char *shortname = imagedev->brief_instance_name();
-
-			fprintf(m_output, "\t\t\t<instance");
-			fprintf(m_output, " name=\"%s\"", xml_normalize_string(name));
-			fprintf(m_output, " briefname=\"%s\"", xml_normalize_string(shortname));
-			fprintf(m_output, "/>\n");
-
-			std::string extensions(imagedev->file_extensions());
-
-			char *ext = strtok((char *)extensions.c_str(), ",");
-			while (ext != nullptr)
-			{
-				fprintf(m_output, "\t\t\t<extension");
-				fprintf(m_output, " name=\"%s\"", xml_normalize_string(ext));
-				fprintf(m_output, "/>\n");
-				ext = strtok(nullptr, ",");
-			}
-
+            if (loadable)
+            {
+                const char *name = imagedev.instance_name();
+                const char *shortname = imagedev.brief_instance_name();
+                
+                fprintf(m_output, "\t\t\t<instance");
+                fprintf(m_output, " name=\"%s\"", xml_normalize_string(name));
+                fprintf(m_output, " briefname=\"%s\"", xml_normalize_string(shortname));
+                fprintf(m_output, "/>\n");
+                
+                std::string extensions(imagedev.file_extensions());
+                
+                char *ext = strtok((char *)extensions.c_str(), ",");
+                while (ext != nullptr)
+                {
+                    fprintf(m_output, "\t\t\t<extension");
+                    fprintf(m_output, " name=\"%s\"", xml_normalize_string(ext));
+                    fprintf(m_output, "/>\n");
+                    ext = strtok(nullptr, ",");
+                }
+            }
 			fprintf(m_output, "\t\t</device>\n");
 		}
 	}
@@ -1280,36 +1483,35 @@ void info_xml_creator::output_images(device_t &device, const char *root_tag)
 
 void info_xml_creator::output_slots(device_t &device, const char *root_tag)
 {
-	slot_interface_iterator iter(device);
-	for (const device_slot_interface *slot = iter.first(); slot != nullptr; slot = iter.next())
+	for (const device_slot_interface &slot : slot_interface_iterator(device))
 	{
-		if (slot->fixed()) continue;    // or shall we list these as non-configurable?
+		if (slot.fixed()) continue;    // or shall we list these as non-configurable?
 
-		if (strcmp(slot->device().tag(), device.tag()))
+		if (strcmp(slot.device().tag(), device.tag()))
 		{
-			std::string newtag(slot->device().tag()), oldtag(":");
+			std::string newtag(slot.device().tag()), oldtag(":");
 			newtag = newtag.substr(newtag.find(oldtag.append(root_tag)) + oldtag.length());
 
 			// print m_output device type
 			fprintf(m_output, "\t\t<slot name=\"%s\">\n", xml_normalize_string(newtag.c_str()));
 
 			/*
-			 if (slot->slot_interface()[0])
-			 fprintf(m_output, " interface=\"%s\"", xml_normalize_string(slot->slot_interface()));
+			 if (slot.slot_interface()[0])
+			 fprintf(m_output, " interface=\"%s\"", xml_normalize_string(slot.slot_interface()));
 			 */
 
-			for (const device_slot_option *option = slot->first_option(); option != nullptr; option = option->next())
+			for (const device_slot_option &option : slot.option_list())
 			{
-				if (option->selectable())
+				if (option.selectable())
 				{
-					device_t *dev = const_cast<machine_config &>(m_drivlist.config()).device_add(&m_drivlist.config().root_device(), "dummy", option->devtype(), 0);
+					device_t *dev = const_cast<machine_config &>(m_drivlist.config()).device_add(&m_drivlist.config().root_device(), "dummy", option.devtype(), 0);
 					if (!dev->configured())
 						dev->config_complete();
 
 					fprintf(m_output, "\t\t\t<slotoption");
-					fprintf(m_output, " name=\"%s\"", xml_normalize_string(option->name()));
+					fprintf(m_output, " name=\"%s\"", xml_normalize_string(option.name()));
 					fprintf(m_output, " devname=\"%s\"", xml_normalize_string(dev->shortname()));
-					if (slot->default_option() != nullptr && strcmp(slot->default_option(),option->name())==0)
+					if (slot.default_option() != nullptr && strcmp(slot.default_option(),option.name())==0)
 						fprintf(m_output, " default=\"yes\"");
 					fprintf(m_output, "/>\n");
 					const_cast<machine_config &>(m_drivlist.config()).device_remove(&m_drivlist.config().root_device(), "dummy");
@@ -1329,14 +1531,12 @@ void info_xml_creator::output_slots(device_t &device, const char *root_tag)
 
 void info_xml_creator::output_software_list()
 {
-	software_list_device_iterator iter(m_drivlist.config().root_device());
-	for (const software_list_device *swlist = iter.first(); swlist != nullptr; swlist = iter.next())
+	for (const software_list_device &swlist : software_list_device_iterator(m_drivlist.config().root_device()))
 	{
-		fprintf(m_output, "\t\t<softwarelist name=\"%s\" ", swlist->list_name());
-		fprintf(m_output, "status=\"%s\" ", (swlist->list_type() == SOFTWARE_LIST_ORIGINAL_SYSTEM) ? "original" : "compatible");
-		if (swlist->filter()) {
-			fprintf(m_output, "filter=\"%s\" ", swlist->filter());
-		}
+		fprintf(m_output, "\t\t<softwarelist name=\"%s\" ", swlist.list_name());
+		fprintf(m_output, "status=\"%s\" ", (swlist.list_type() == SOFTWARE_LIST_ORIGINAL_SYSTEM) ? "original" : "compatible");
+		if (swlist.filter())
+			fprintf(m_output, "filter=\"%s\" ", swlist.filter());
 		fprintf(m_output, "/>\n");
 	}
 }
@@ -1350,14 +1550,13 @@ void info_xml_creator::output_software_list()
 
 void info_xml_creator::output_ramoptions()
 {
-	ram_device_iterator iter(m_drivlist.config().root_device());
-	for (const ram_device *ram = iter.first(); ram != nullptr; ram = iter.next())
+	for (const ram_device &ram : ram_device_iterator(m_drivlist.config().root_device()))
 	{
-		fprintf(m_output, "\t\t<ramoption default=\"1\">%u</ramoption>\n", ram->default_size());
+		fprintf(m_output, "\t\t<ramoption default=\"1\">%u</ramoption>\n", ram.default_size());
 
-		if (ram->extra_options() != nullptr)
+		if (ram.extra_options() != nullptr)
 		{
-			std::string options(ram->extra_options());
+			std::string options(ram.extra_options());
 			for (int start = 0, end = options.find_first_of(',');; start = end + 1, end = options.find_first_of(',', start))
 			{
 				std::string option;

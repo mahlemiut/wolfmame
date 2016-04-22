@@ -72,6 +72,7 @@
 
 #include "emu.h"
 #include "emuopts.h"
+#include "mameopts.h"
 #include "osdepend.h"
 #include "validity.h"
 #include "luaengine.h"
@@ -192,19 +193,19 @@ void machine_manager::start_luaengine()
 					osd_printf_error("**Error loading plugin.ini**");
 			}
 		}
-		for (auto curentry = m_plugins->first(); curentry != nullptr; curentry = curentry->next())
+		for (auto &curentry : *m_plugins)
 		{
-			if (!curentry->is_header())
+			if (!curentry.is_header())
 			{
-				if (std::find(include.begin(), include.end(), curentry->name()) != include.end())
+				if (std::find(include.begin(), include.end(), curentry.name()) != include.end())
 				{
 					std::string error_string;
-					m_plugins->set_value(curentry->name(), "1", OPTION_PRIORITY_CMDLINE, error_string);
+					m_plugins->set_value(curentry.name(), "1", OPTION_PRIORITY_CMDLINE, error_string);
 				}
-				if (std::find(exclude.begin(), exclude.end(), curentry->name()) != exclude.end())
+				if (std::find(exclude.begin(), exclude.end(), curentry.name()) != exclude.end())
 				{
 					std::string error_string;
-					m_plugins->set_value(curentry->name(), "0", OPTION_PRIORITY_CMDLINE, error_string);
+					m_plugins->set_value(curentry.name(), "0", OPTION_PRIORITY_CMDLINE, error_string);
 				}
 			}
 		}
@@ -259,7 +260,7 @@ int machine_manager::execute()
 		{
 			m_options.revert(OPTION_PRIORITY_INI);
 			std::string errors;
-			m_options.parse_standard_inis(errors);
+			mame_options::parse_standard_inis(m_options,errors);
 		}
 
 		// otherwise, perform validity checks before anything else
@@ -286,12 +287,12 @@ int machine_manager::execute()
 		if (m_new_driver_pending)
 		{
 			// set up new system name and adjust device options accordingly
-			m_options.set_system_name(m_new_driver_pending->name);
+			mame_options::set_system_name(m_options,m_new_driver_pending->name);
 			firstrun = true;
 		}
 		else
 		{
-			if (machine.exit_pending()) m_options.set_system_name("");
+			if (machine.exit_pending()) mame_options::set_system_name(m_options,"");
 		}
 
 		if (machine.exit_pending() && (!started_empty || (system == &GAME_NAME(___empty))))

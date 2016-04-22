@@ -11,11 +11,20 @@
 
 #include "emu.h"
 #include "ui/ui.h"
+#include "ui/menu.h"
 #include "osdhelper.h"
 
+// standard windows headers
+#ifdef OSD_WINDOWS
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#include <windowsx.h>
+#include <mmsystem.h>
+#endif
+
 #ifdef OSD_SDL
-// standard SDL headers
-#include "sdlinc.h"
+// forward declaration
+struct SDL_Window;
 #endif
 
 //============================================================
@@ -97,56 +106,93 @@ public:
 	int                 refresh;                    // decoded refresh
 };
 
-class osd_window
+class osd_renderer;
+
+class osd_window : public std::enable_shared_from_this<osd_window>
 {
 public:
 	osd_window()
 	:
 #ifndef OSD_SDL
-		m_hwnd(0), m_dc(0), m_focus_hwnd(0), m_resize_state(0),
+		m_dc(0), m_resize_state(0),
 #endif
 		m_primlist(nullptr),
 		m_index(0),
-		m_main(nullptr),
-		m_prescale(1)
+		m_prescale(1),
+		m_platform_window(nullptr),
+		m_renderer(nullptr),
+		m_main(nullptr)
 		{}
-	virtual ~osd_window() { }
+
+	virtual ~osd_window();
 
 	virtual render_target *target() = 0;
 	virtual int fullscreen() const = 0;
 	virtual running_machine &machine() const = 0;
 
+	osd_renderer &renderer() const { return *m_renderer; }
+	void set_renderer(std::unique_ptr<osd_renderer> renderer)
+	{
+		m_renderer = std::move(renderer);
+	}
+
 	int prescale() const { return m_prescale; };
 
 	float pixel_aspect() const { return monitor()->pixel_aspect(); }
 
+	bool swap_xy()
+	{
+		bool orientation_swap_xy =
+			(machine().system().flags & ORIENTATION_SWAP_XY) == ORIENTATION_SWAP_XY;
+		bool rotation_swap_xy =
+			(target()->orientation() & ORIENTATION_SWAP_XY) == ORIENTATION_SWAP_XY;
+		return orientation_swap_xy ^ rotation_swap_xy;
+	};
+
 	virtual osd_dim get_size() = 0;
 
-#ifdef OSD_SDL
 	virtual osd_monitor_info *monitor() const = 0;
-	virtual SDL_Window *sdl_window() = 0;
-#else
-	virtual osd_monitor_info *monitor() const = 0;
+
+	template <class TWindow>
+	TWindow platform_window() const { return static_cast<TWindow>(m_platform_window); }
+
+	void set_platform_window(void *window)
+	{
+		assert(window == nullptr || m_platform_window == nullptr);
+		m_platform_window = window;
+	}
+
+	std::shared_ptr<osd_window> main_window() { return m_main;	}
+	void set_main_window(std::shared_ptr<osd_window> main) { m_main = main; }
+
+	// Clips the pointer to the bounds of this window
+	virtual void capture_pointer() = 0;
+
+	// Releases the pointer from a previously captured state
+	virtual void release_pointer() = 0;
+
+	virtual void show_pointer() = 0;
+	virtual void hide_pointer() = 0;
+
+#ifndef OSD_SDL
 	virtual bool win_has_menu() = 0;
 	// FIXME: cann we replace winwindow_video_window_monitor(NULL) with monitor() ?
 	virtual osd_monitor_info *winwindow_video_window_monitor(const osd_rect *proposed) = 0;
 
-	// window handle and info
-	HWND                    m_hwnd;
 	HDC                     m_dc;       // only used by GDI renderer!
-	// FIXME: this is the same as win_window_list->m_hwnd, i.e. first window.
-	// During modularization, this should be passed in differently
-	HWND                    m_focus_hwnd;
 
 	int                     m_resize_state;
 #endif
 
 	render_primitive_list   *m_primlist;
 	osd_window_config       m_win_config;
-	int                     m_index;
-	osd_window              *m_main;
+	int                     m_index;	
 protected:
 	int                     m_prescale;
+private:
+	void                           *m_platform_window;
+	std::unique_ptr<osd_renderer>  m_renderer;
+	std::shared_ptr<osd_window>    m_main;
 };
 
 class osd_renderer
@@ -162,12 +208,23 @@ public:
 	static const int FLAG_NEEDS_DOUBLEBUF       = 0x0100;
 	static const int FLAG_NEEDS_ASYNCBLIT       = 0x0200;
 
-	osd_renderer(osd_window *window, const int flags)
+	osd_renderer(std::shared_ptr<osd_window> window, const int flags)
 	: m_sliders_dirty(false), m_window(window), m_flags(flags) { }
 
 	virtual ~osd_renderer() { }
 
-	osd_window &window() { return *m_window; }
+	std::shared_ptr<osd_window> assert_window() const
+	{
+		auto win = m_window.lock();
+		assert_always(win != nullptr, "Window weak_ptr is not available!");
+		return win;
+	}
+
+	std::shared_ptr<osd_window> try_getwindow() const
+	{
+		return m_window.lock();
+	}
+
 	bool has_flags(const int flag) { return ((m_flags & flag)) == flag; }
 	void set_flags(int aflag) { m_flags |= aflag; }
 	void clear_flags(int aflag) { m_flags &= ~aflag; }
@@ -179,26 +236,106 @@ public:
 	virtual int create() = 0;
 	virtual render_primitive_list *get_primitives() = 0;
 
-	virtual slider_state* get_slider_list() { return nullptr; }
+	virtual void add_audio_to_recording(const INT16 *buffer, int samples_this_frame) { }
+	virtual std::vector<ui_menu_item> get_slider_list() { return m_sliders; }
 	virtual int draw(const int update) = 0;
 	virtual int xy_to_render_target(const int x, const int y, int *xt, int *yt) { return 0; };
 	virtual void save() { };
 	virtual void record() { };
 	virtual void toggle_fsfx() { };
 	virtual bool sliders_dirty() { return m_sliders_dirty; }
-	virtual bool multi_window_sliders() { return false; }
 
-	static osd_renderer* make_for_type(int mode, osd_window *window, int extra_flags = FLAG_NONE);
+	static std::unique_ptr<osd_renderer> make_for_type(int mode, std::shared_ptr<osd_window> window, int extra_flags = FLAG_NONE);
 
 protected:
+	virtual void build_slider_list() { }
+
 	/* Internal flags */
 	static const int FI_CHANGED                 = 0x010000;
-	bool        m_sliders_dirty;
+	bool        				m_sliders_dirty;
+	std::vector<ui_menu_item>	m_sliders;
 
 private:
-	osd_window  *m_window;
+	std::weak_ptr<osd_window>  m_window;
 	int         m_flags;
 };
 
+
+
+//============================================================
+//  CONSTANTS
+//============================================================
+
+#define MAX_VIDEO_WINDOWS           (4)
+
+#define VIDEO_SCALE_MODE_NONE       (0)
+
+#define GLSL_SHADER_MAX 10
+
+
+//============================================================
+//  TYPE DEFINITIONS
+//============================================================
+
+struct osd_video_config
+{
+	// global configuration
+	int                 windowed;                   // start windowed?
+	int                 prescale;                   // prescale factor
+	int                 keepaspect;                 // keep aspect ratio
+	int                 numscreens;                 // number of screens
+	int                 fullstretch;                // fractional stretch
+
+	// hardware options
+	int                 mode;                       // output mode
+	int                 waitvsync;                  // spin until vsync
+	int                 syncrefresh;                // sync only to refresh rate
+	int                 switchres;                  // switch resolutions
+
+	// d3d, accel, opengl
+	int                 filter;                     // enable filtering
+	//int                 filter;         // enable filtering, disabled if glsl_filter>0
+
+	// OpenGL options
+	int                 glsl;
+	int                 glsl_filter;        // glsl filtering, >0 disables filter
+	char *              glsl_shader_mamebm[GLSL_SHADER_MAX]; // custom glsl shader set, mame bitmap
+	int                 glsl_shader_mamebm_num; // custom glsl shader set number, mame bitmap
+	char *              glsl_shader_scrn[GLSL_SHADER_MAX]; // custom glsl shader set, screen bitmap
+	int                 glsl_shader_scrn_num; // custom glsl shader number, screen bitmap
+	int                 pbo;
+	int                 vbo;
+	int                 allowtexturerect;   // allow GL_ARB_texture_rectangle, default: no
+	int                 forcepow2texture;   // force power of two textures, default: no
+
+	// dd, d3d
+	int                 triplebuf;                  // triple buffer
+
+	//============================================================
+	// SDL - options
+	//============================================================
+	int                 novideo;                // don't draw, for pure CPU benchmarking
+
+	int                 centerh;
+	int                 centerv;
+
+	// vector options
+	float               beamwidth;      // beam width
+
+	// perftest
+	int                 perftest;       // print out real video fps
+
+	// X11 options
+	int                 restrictonemonitor; // in fullscreen, confine to Xinerama monitor 0
+
+	// YUV options
+	int                 scale_mode;
+};
+
+//============================================================
+//  GLOBAL VARIABLES
+//============================================================
+
+extern osd_video_config video_config;
 
 #endif /* __OSDWINDOW__ */

@@ -11,7 +11,6 @@
 #include "emu.h"
 #include "emuopts.h"
 #include "ui/ui.h"
-#include "ui/menu.h"
 #include "uiinput.h"
 #include "ui/selgame.h"
 #include "ui/miscmenu.h"
@@ -30,7 +29,6 @@
 #include "ui/auditmenu.h"
 #include "rendutil.h"
 #include "softlist.h"
-#include <algorithm>
 
 extern const char UI_VERSION_TAG[];
 
@@ -206,7 +204,10 @@ void ui_menu_select_game::handle()
 	{
 		// reset the error on any future m_event
 		if (ui_error)
+		{
 			ui_error = false;
+			machine().ui_input().reset();
+		}
 
 		// handle selections
 		else if (m_event->iptkey == IPT_UI_SELECT)
@@ -224,6 +225,13 @@ void ui_menu_select_game::handle()
 				check_filter = true;
 				m_prev_selected = nullptr;
 			}
+		}
+
+		// handle IPT_CUSTOM (mouse right click)
+		else if (m_event->iptkey == IPT_CUSTOM)
+		{
+			if (!isfavorite())
+				ui_menu::stack_push(global_alloc_clear<ui_menu_machine_configure>(machine(), container, (const game_driver *)m_prev_selected, m_event->mouse.x0, m_event->mouse.y0));
 		}
 
 		// handle UI_LEFT
@@ -466,8 +474,9 @@ void ui_menu_select_game::handle()
 			inkey_special(m_event);
 		else if (m_event->iptkey == IPT_UI_CONFIGURE)
 			inkey_configure(m_event);
-		else if (m_event->iptkey == IPT_UI_SELECT && m_focus == focused_menu::left)
+		else if (m_event->iptkey == IPT_OTHER)
 		{
+			m_focus = focused_menu::left;
 			m_prev_selected = nullptr;
 			l_hover = highlight;
 			check_filter = true;
@@ -488,7 +497,7 @@ void ui_menu_select_game::handle()
 	// if we're in an error state, overlay an error message
 	if (ui_error)
 		machine().ui().draw_text_box(container, _("The selected machine is missing one or more required ROM or CHD images. "
-			"Please select a different machine.\n\nPress any key (except ESC) to continue."), JUSTIFY_CENTER, 0.5f, 0.5f, UI_RED_COLOR);
+			"Please select a different machine.\n\nPress any key to continue."), JUSTIFY_CENTER, 0.5f, 0.5f, UI_RED_COLOR);
 
 	// handle filters selection from key shortcuts
 	if (check_filter)
@@ -537,7 +546,6 @@ void ui_menu_select_game::populate()
 			// reset search string
 			m_search[0] = '\0';
 			m_displaylist.clear();
-			m_tmp.clear();
 
 			// if filter is set on category, build category list
 			switch (main_filters::actual)
@@ -546,16 +554,16 @@ void ui_menu_select_game::populate()
 					build_category();
 					break;
 				case FILTER_MANUFACTURER:
-					build_list(m_tmp, c_mnfct::ui[c_mnfct::actual].c_str());
+					build_list(c_mnfct::ui[c_mnfct::actual].c_str());
 					break;
 				case FILTER_YEAR:
-					build_list(m_tmp, c_year::ui[c_year::actual].c_str());
+					build_list(c_year::ui[c_year::actual].c_str());
 					break;
 				case FILTER_CUSTOM:
 					build_custom();
 					break;
 				default:
-					build_list(m_tmp);
+					build_list();
 					break;
 			}
 
@@ -627,8 +635,8 @@ void ui_menu_select_game::populate()
 	{
 		UINT32 flags_ui = MENU_FLAG_UI | MENU_FLAG_LEFT_ARROW | MENU_FLAG_RIGHT_ARROW;
 		item_append(_("Configure Options"), nullptr, flags_ui, (void *)(FPTR)CONF_OPTS);
-//      item_append(_("Configure Machine"), nullptr, flags_ui, (void *)(FPTR)CONF_MACHINE); TODO
-		skip_main_items = 1;
+		item_append(_("Configure Machine"), nullptr, flags_ui, (void *)(FPTR)CONF_MACHINE);
+		skip_main_items = 2;
 		if (machine().options().plugins())
 		{
 			item_append(_("Plugins"), nullptr, flags_ui, (void *)(FPTR)CONF_PLUGINS);
@@ -1053,14 +1061,16 @@ void ui_menu_select_game::inkey_select(const ui_menu_event *m_event)
 	// special case for configure options
 	if ((FPTR)driver == CONF_OPTS)
 		ui_menu::stack_push(global_alloc_clear<ui_menu_game_options>(machine(), container));
-	/* special case for configure machine TODO
+	
+	// special case for configure machine
 	else if ((FPTR)driver == CONF_MACHINE)
 	{
 	    if (m_prev_selected != nullptr)
 	        ui_menu::stack_push(global_alloc_clear<ui_menu_machine_configure>(machine(), container, (const game_driver *)m_prev_selected));
 	    else
 	        return;
-	} */
+	}
+
 	// special case for configure plugins
 	else if ((FPTR)driver == CONF_PLUGINS)
 	{
@@ -1080,9 +1090,8 @@ void ui_menu_select_game::inkey_select(const ui_menu_event *m_event)
 		{
 			if ((driver->flags & MACHINE_TYPE_ARCADE) == 0)
 			{
-				software_list_device_iterator iter(enumerator.config().root_device());
-				for (software_list_device *swlistdev = iter.first(); swlistdev != nullptr; swlistdev = iter.next())
-					if (swlistdev->first_software_info() != nullptr)
+				for (software_list_device &swlistdev : software_list_device_iterator(enumerator.config().root_device()))
+					if (!swlistdev.get_info().empty())
 					{
 						ui_menu::stack_push(global_alloc_clear<ui_menu_select_software>(machine(), container, driver));
 						return;
@@ -1193,14 +1202,14 @@ void ui_menu_select_game::inkey_select_favorite(const ui_menu_event *m_event)
 			else if (!mopt.skip_parts_menu() && swinfo->has_multiple_parts(ui_swinfo->interface.c_str()))
 			{
 				s_parts parts;
-				for (const software_part *swpart = swinfo->first_part(); swpart != nullptr; swpart = swpart->next())
+				for (const software_part &swpart : swinfo->parts())
 				{
-					if (swpart->matches_interface(ui_swinfo->interface.c_str()))
+					if (swpart.matches_interface(ui_swinfo->interface.c_str()))
 					{
-						std::string menu_part_name(swpart->name());
-						if (swpart->feature("part_id") != nullptr)
-							menu_part_name.assign("(").append(swpart->feature("part_id")).append(")");
-						parts.emplace(swpart->name(), menu_part_name);
+						std::string menu_part_name(swpart.name());
+						if (swpart.feature("part_id") != nullptr)
+							menu_part_name.assign("(").append(swpart.feature("part_id")).append(")");
+						parts.emplace(swpart.name(), menu_part_name);
 					}
 				}
 				ui_menu::stack_push(global_alloc_clear<ui_software_parts>(machine(), container, parts, ui_swinfo));
@@ -1321,7 +1330,7 @@ void ui_menu_select_game::inkey_configure(const ui_menu_event *m_event)
 //  build list
 //-------------------------------------------------
 
-void ui_menu_select_game::build_list(std::vector<const game_driver *> &s_drivers, const char *filter_text, int filter, bool bioscheck)
+void ui_menu_select_game::build_list(const char *filter_text, int filter, bool bioscheck, std::vector<const game_driver *> s_drivers)
 {
 	int cx = 0;
 	bool cloneof = false;
@@ -1485,13 +1494,13 @@ void ui_menu_select_game::build_custom()
 		switch (filter)
 		{
 			case FILTER_YEAR:
-				build_list(s_drivers, c_year::ui[custfltr::year[count]].c_str(), filter, bioscheck);
+				build_list(c_year::ui[custfltr::year[count]].c_str(), filter, bioscheck, s_drivers);
 				break;
 			case FILTER_MANUFACTURER:
-				build_list(s_drivers, c_mnfct::ui[custfltr::mnfct[count]].c_str(), filter, bioscheck);
+				build_list(c_mnfct::ui[custfltr::mnfct[count]].c_str(), filter, bioscheck, s_drivers);
 				break;
 			default:
-				build_list(s_drivers, nullptr, filter, bioscheck);
+				build_list(nullptr, filter, bioscheck, s_drivers);
 				break;
 		}
 	}
@@ -1503,14 +1512,14 @@ void ui_menu_select_game::build_custom()
 
 void ui_menu_select_game::build_category()
 {
+	m_displaylist.clear();
 	std::vector<int> temp_filter;
 	machine().inifile().load_ini_category(temp_filter);
 
 	for (auto actual : temp_filter)
-		m_tmp.push_back(&driver_list::driver(actual));
+		m_displaylist.push_back(&driver_list::driver(actual));
 
-	std::stable_sort(m_tmp.begin(), m_tmp.end(), sorted_game_list);
-	m_displaylist = m_tmp;
+	std::stable_sort(m_displaylist.begin(), m_displaylist.end(), sorted_game_list);
 }
 
 //-------------------------------------------------
@@ -1821,7 +1830,7 @@ float ui_menu_select_game::draw_left_panel(float x1, float y1, float x2, float y
 	{
 		float origy1 = y1;
 		float origy2 = y2;
-		float text_size = 0.75f;
+		float text_size = machine().ui().options().infos_size();
 		float line_height_max = line_height * text_size;
 		float left_width = 0.0f;
 		int text_lenght = main_filters::length;
@@ -1837,13 +1846,13 @@ float ui_menu_select_game::draw_left_panel(float x1, float y1, float x2, float y
 			line_height_max = line_height * text_size;
 		}
 
-		float text_sign = mui.get_string_width_ex("_# ", text_size);
+		float text_sign = mui.get_string_width("_# ", text_size);
 		for (int x = 0; x < text_lenght; ++x)
 		{
 			float total_width;
 
 			// compute width of left hand side
-			total_width = mui.get_string_width_ex(text[x], text_size);
+			total_width = mui.get_string_width(text[x], text_size);
 			total_width += text_sign;
 
 			// track the maximum
@@ -2117,7 +2126,7 @@ void ui_menu_select_game::infos_render(void *selectedref, float origx1, float or
 			else if (ui_globals::curdats_view == UI_STORY_LOAD)
 			{
 				// check size
-				float textlen = mui.get_string_width_ex(tempbuf.c_str(), text_size);
+				float textlen = mui.get_string_width(tempbuf.c_str(), text_size);
 				float tmp_size = (textlen > sc) ? text_size * (sc / textlen) : text_size;
 
 				size_t last_underscore = tempbuf.find_last_of("_");
@@ -2147,7 +2156,7 @@ void ui_menu_select_game::infos_render(void *selectedref, float origx1, float or
 			else if (ui_globals::curdats_view == UI_COMMAND_LOAD || ui_globals::curdats_view == UI_GENERAL_LOAD)
 			{
 				// check size
-				float textlen = mui.get_string_width_ex(tempbuf.c_str(), text_size);
+				float textlen = mui.get_string_width(tempbuf.c_str(), text_size);
 				float tmp_size = (textlen > sc) ? text_size * (sc / textlen) : text_size;
 
 				int first_dspace = (ui_globals::curdats_view == UI_COMMAND_LOAD) ? tempbuf.find("  ") : tempbuf.find(":");
@@ -2301,7 +2310,6 @@ void ui_menu_select_game::draw_right_panel(void *selectedref, float origx1, floa
 	float ar_x1 = ar_x0 + lr_arrow_width;
 	float ar_y1 = 0.5f * (origy2 + origy1) + 0.9f * space;
 
-	//machine().ui().draw_outlined_box(container, origx1, origy1, origx2, origy2, UI_BACKGROUND_COLOR);
 	mui.draw_outlined_box(container, origx1, origy1, origx2, origy2, rgb_t(0xEF, 0x12, 0x47, 0x7B));
 
 	if (mouse_hit && origx1 <= mouse_x && x2 > mouse_x && origy1 <= mouse_y && origy2 > mouse_y)

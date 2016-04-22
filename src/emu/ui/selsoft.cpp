@@ -4,7 +4,7 @@
 
     ui/selsoft.cpp
 
-    UI softwares menu.
+    UI software menu.
 
 ***************************************************************************/
 
@@ -22,7 +22,6 @@
 #include "rendfont.h"
 #include "rendutil.h"
 #include "softlist.h"
-#include <algorithm>
 
 std::string reselect_last::driver;
 std::string reselect_last::software;
@@ -89,7 +88,7 @@ bool compare_software(ui_software_info a, ui_software_info b)
 bool has_multiple_bios(const game_driver *driver, s_bios &biosname)
 {
 	if (driver->rom == nullptr)
-		return 0;
+		return false;
 
 	std::string default_name;
 	for (const rom_entry *rom = driver->rom; !ROMENTRY_ISEND(rom); ++rom)
@@ -171,7 +170,10 @@ void ui_menu_select_software::handle()
 	{
 		// reset the error on any future m_event
 		if (ui_error)
+		{
 			ui_error = false;
+			machine().ui_input().reset();
+		}
 
 		// handle selections
 		else if (m_event->iptkey == IPT_UI_SELECT)
@@ -363,7 +365,7 @@ void ui_menu_select_software::handle()
 		{
 			highlight++;
 		}
-		else if (m_event->iptkey == IPT_UI_SELECT && m_focus == focused_menu::left)
+		else if (m_event->iptkey == IPT_OTHER && m_focus == focused_menu::left)
 		{
 			l_sw_hover = highlight;
 			check_filter = true;
@@ -375,7 +377,7 @@ void ui_menu_select_software::handle()
 	// if we're in an error state, overlay an error message
 	if (ui_error)
 		machine().ui().draw_text_box(container, _("The selected software is missing one or more required files. "
-									"Please select a different software.\n\nPress any key (except ESC) to continue."),
+									"Please select a different software.\n\nPress any key to continue."),
 									JUSTIFY_CENTER, 0.5f, 0.5f, UI_RED_COLOR);
 
 	// handle filters selection from key shortcuts
@@ -427,10 +429,8 @@ void ui_menu_select_software::populate()
 	int old_software = -1;
 
 	machine_config config(*m_driver, machine().options());
-	image_interface_iterator iter(config.root_device());
-
-	for (device_image_interface *image = iter.first(); image != nullptr; image = iter.next())
-		if (image->filename() == nullptr && image->must_be_loaded())
+	for (device_image_interface &image : image_interface_iterator(config.root_device()))
+		if (image.filename() == nullptr && image.must_be_loaded())
 		{
 			m_has_empty_start = false;
 			break;
@@ -517,7 +517,7 @@ void ui_menu_select_software::populate()
 }
 
 //-------------------------------------------------
-//  build a list of softwares
+//  build a list of software
 //-------------------------------------------------
 
 void ui_menu_select_software::build_software_list()
@@ -526,32 +526,30 @@ void ui_menu_select_software::build_software_list()
 	m_swinfo.emplace_back(m_driver->name, m_driver->description, "", "", "", 0, "", m_driver, "", "", "", 1, "", "", "", true);
 
 	machine_config config(*m_driver, machine().options());
-	software_list_device_iterator deviter(config.root_device());
 
 	// iterate thru all software lists
-	for (software_list_device *swlist = deviter.first(); swlist != nullptr; swlist = deviter.next())
+	for (software_list_device &swlist : software_list_device_iterator(config.root_device()))
 	{
-		m_filter.swlist.name.push_back(swlist->list_name());
-		m_filter.swlist.description.push_back(swlist->description());
-		for (software_info *swinfo = swlist->first_software_info(); swinfo != nullptr; swinfo = swinfo->next())
+		m_filter.swlist.name.push_back(swlist.list_name());
+		m_filter.swlist.description.push_back(swlist.description());
+		for (software_info &swinfo : swlist.get_info())
 		{
-			software_part *part = swinfo->first_part();
-			if (part->is_compatible(*swlist))
+			software_part *part = swinfo.first_part();
+			if (part->is_compatible(swlist))
 			{
 				const char *instance_name = nullptr;
 				const char *type_name = nullptr;
 				ui_software_info tmpmatches;
-				image_interface_iterator imgiter(config.root_device());
-				for (device_image_interface *image = imgiter.first(); image != nullptr; image = imgiter.next())
+				for (device_image_interface &image : image_interface_iterator(config.root_device()))
 				{
-					const char *interface = image->image_interface();
+					const char *interface = image.image_interface();
 					if (interface != nullptr && part->matches_interface(interface))
 					{
-						instance_name = image->instance_name();
+						instance_name = image.instance_name();
 						if (instance_name != nullptr)
-							tmpmatches.instance = image->instance_name();
+							tmpmatches.instance = image.instance_name();
 
-						type_name = image->image_type_name();
+						type_name = image.image_type_name();
 						if (type_name != nullptr)
 							tmpmatches.devicetype = type_name;
 						break;
@@ -561,24 +559,24 @@ void ui_menu_select_software::build_software_list()
 				if (instance_name == nullptr || type_name == nullptr)
 					continue;
 
-				tmpmatches.shortname = strensure(swinfo->shortname());
-				tmpmatches.longname = strensure(swinfo->longname());
-				tmpmatches.parentname = strensure(swinfo->parentname());
-				tmpmatches.year = strensure(swinfo->year());
-				tmpmatches.publisher = strensure(swinfo->publisher());
-				tmpmatches.supported = swinfo->supported();
+				tmpmatches.shortname = strensure(swinfo.shortname());
+				tmpmatches.longname = strensure(swinfo.longname());
+				tmpmatches.parentname = strensure(swinfo.parentname());
+				tmpmatches.year = strensure(swinfo.year());
+				tmpmatches.publisher = strensure(swinfo.publisher());
+				tmpmatches.supported = swinfo.supported();
 				tmpmatches.part = strensure(part->name());
 				tmpmatches.driver = m_driver;
-				tmpmatches.listname = strensure(swlist->list_name());
+				tmpmatches.listname = strensure(swlist.list_name());
 				tmpmatches.interface = strensure(part->interface());
 				tmpmatches.startempty = 0;
 				tmpmatches.parentlongname.clear();
 				tmpmatches.usage.clear();
 				tmpmatches.available = false;
 
-				for (feature_list_item *flist = swinfo->other_info(); flist != nullptr; flist = flist->next())
-					if (!strcmp(flist->name(), "usage"))
-						tmpmatches.usage = flist->value();
+				for (feature_list_item &flist : swinfo.other_info())
+					if (!strcmp(flist.name(), "usage"))
+						tmpmatches.usage = flist.value();
 
 				m_swinfo.push_back(tmpmatches);
 				m_filter.region.set(tmpmatches.longname);
@@ -678,7 +676,7 @@ void ui_menu_select_software::custom_render(void *selectedref, float top, float 
 
 	// determine the text for the header
 	int vis_item = (m_search[0] != 0) ? visible_items : (m_has_empty_start ? visible_items - 1 : visible_items);
-	tempbuf[0] = string_format(_("%1$s %2$s ( %3$d / %4$d softwares )"), emulator_info::get_appname(), bare_build_version, vis_item, m_swinfo.size() - 1);
+	tempbuf[0] = string_format(_("%1$s %2$s ( %3$d / %4$d software packages )"), emulator_info::get_appname(), bare_build_version, vis_item, m_swinfo.size() - 1);
 	tempbuf[1] = string_format(_("Driver: \"%1$s\" software list "), m_driver->description);
 
 	if (sw_filters::actual == UI_SW_REGION && m_filter.region.ui.size() != 0)
@@ -937,14 +935,14 @@ void ui_menu_select_software::inkey_select(const ui_menu_event *m_event)
 			else if (!mopt.skip_parts_menu() && swinfo->has_multiple_parts(ui_swinfo->interface.c_str()))
 			{
 				s_parts parts;
-				for (const software_part *swpart = swinfo->first_part(); swpart != nullptr; swpart = swpart->next())
+				for (const software_part &swpart : swinfo->parts())
 				{
-					if (swpart->matches_interface(ui_swinfo->interface.c_str()))
+					if (swpart.matches_interface(ui_swinfo->interface.c_str()))
 					{
-						std::string menu_part_name(swpart->name());
-						if (swpart->feature("part_id") != nullptr)
-							menu_part_name.assign("(").append(swpart->feature("part_id")).append(")");
-						parts.emplace(swpart->name(), menu_part_name);
+						std::string menu_part_name(swpart.name());
+						if (swpart.feature("part_id") != nullptr)
+							menu_part_name.assign("(").append(swpart.feature("part_id")).append(")");
+						parts.emplace(swpart.name(), menu_part_name);
 					}
 				}
 				ui_menu::stack_push(global_alloc_clear<ui_software_parts>(machine(), container, parts, ui_swinfo));
@@ -1413,13 +1411,13 @@ float ui_menu_select_software::draw_left_panel(float x1, float y1, float x2, flo
 			line_height = l_height * text_size;
 		}
 
-		float text_sign = mui.get_string_width_ex("_# ", text_size);
+		float text_sign = mui.get_string_width("_# ", text_size);
 		for (int x = 0; x < text_lenght; ++x)
 		{
 			float total_width;
 
 			// compute width of left hand side
-			total_width = mui.get_string_width_ex(text[x], text_size);
+			total_width = mui.get_string_width(text[x], text_size);
 			total_width += text_sign;
 
 			// track the maximum
@@ -1428,7 +1426,6 @@ float ui_menu_select_software::draw_left_panel(float x1, float y1, float x2, flo
 		}
 
 		x2 = x1 + left_width + 2.0f * UI_BOX_LR_BORDER;
-		//machine().ui().draw_outlined_box(container, x1, y1, x2, y2, rgb_t(0xEF, 0x12, 0x47, 0x7B));
 		mui.draw_outlined_box(container, x1, y1, x2, y2, UI_BACKGROUND_COLOR);
 
 		// take off the borders
@@ -1509,7 +1506,6 @@ float ui_menu_select_software::draw_left_panel(float x1, float y1, float x2, flo
 		float ar_x1 = ar_x0 + lr_arrow_width;
 		float ar_y1 = 0.5f * (y2 + y1) + 0.9f * space;
 
-		//machine().ui().draw_outlined_box(container, x1, y1, x2, y2, UI_BACKGROUND_COLOR);
 		mui.draw_outlined_box(container, x1, y1, x2, y2, rgb_t(0xEF, 0x12, 0x47, 0x7B));
 
 		if (mouse_hit && x1 <= mouse_x && x2 > mouse_x && y1 <= mouse_y && y2 > mouse_y)
@@ -1533,7 +1529,6 @@ float ui_menu_select_software::draw_left_panel(float x1, float y1, float x2, flo
 		float ar_x1 = ar_x0 + lr_arrow_width;
 		float ar_y1 = 0.5f * (y2 + y1) + 0.9f * space;
 
-		//machine().ui().draw_outlined_box(container, x1, y1, x2, y2, UI_BACKGROUND_COLOR);
 		mui.draw_outlined_box(container, x1, y1, x2, y2, rgb_t(0xEF, 0x12, 0x47, 0x7B));
 
 		if (mouse_hit && x1 <= mouse_x && x2 > mouse_x && y1 <= mouse_y && y2 > mouse_y)
@@ -1896,7 +1891,6 @@ void ui_menu_select_software::draw_right_panel(void *selectedref, float origx1, 
 	float ar_x1 = ar_x0 + lr_arrow_width;
 	float ar_y1 = 0.5f * (origy2 + origy1) + 0.9f * space;
 
-	//machine().ui().draw_outlined_box(container, origx1, origy1, origx2, origy2, UI_BACKGROUND_COLOR);
 	mui.draw_outlined_box(container, origx1, origy1, origx2, origy2, rgb_t(0xEF, 0x12, 0x47, 0x7B));
 
 	if (mouse_hit && origx1 <= mouse_x && x2 > mouse_x && origy1 <= mouse_y && origy2 > mouse_y)
@@ -1948,7 +1942,7 @@ void ui_software_parts::populate()
 	for (auto & elem : m_parts)
 		item_append(elem.first.c_str(), elem.second.c_str(), 0, (void *)&elem);
 
-	item_append(MENU_SEPARATOR_ITEM, nullptr, 0, nullptr);
+	item_append(ui_menu_item_type::SEPARATOR);
 	customtop = machine().ui().get_line_height() + (3.0f * UI_BOX_TB_BORDER);
 }
 
@@ -2043,7 +2037,7 @@ void ui_bios_selection::populate()
 	for (auto & elem : m_bios)
 		item_append(elem.first.c_str(), nullptr, 0, (void *)&elem.first);
 
-	item_append(MENU_SEPARATOR_ITEM, nullptr, 0, nullptr);
+	item_append(ui_menu_item_type::SEPARATOR);
 	customtop = machine().ui().get_line_height() + (3.0f * UI_BOX_TB_BORDER);
 }
 
@@ -2074,7 +2068,7 @@ void ui_bios_selection::handle()
 					}
 
 					std::string error;
-					moptions.set_value("bios", elem.second, OPTION_PRIORITY_CMDLINE, error);
+					moptions.set_value(OPTION_BIOS, elem.second, OPTION_PRIORITY_CMDLINE, error);
 					machine().manager().schedule_new_driver(*s_driver);
 					machine().schedule_hard_reset();
 					ui_menu::stack_reset(machine());
@@ -2083,7 +2077,7 @@ void ui_bios_selection::handle()
 				{
 					ui_software_info *ui_swinfo = (ui_software_info *)m_driver;
 					std::string error;
-					machine().options().set_value("bios", elem.second, OPTION_PRIORITY_CMDLINE, error);
+					machine().options().set_value(OPTION_BIOS, elem.second, OPTION_PRIORITY_CMDLINE, error);
 					driver_enumerator drivlist(machine().options(), *ui_swinfo->driver);
 					drivlist.next();
 					software_list_device *swlist = software_list_device::find_by_name(drivlist.config(), ui_swinfo->listname.c_str());
@@ -2091,14 +2085,14 @@ void ui_bios_selection::handle()
 					if (!machine().ui().options().skip_parts_menu() && swinfo->has_multiple_parts(ui_swinfo->interface.c_str()))
 					{
 						s_parts parts;
-						for (const software_part *swpart = swinfo->first_part(); swpart != nullptr; swpart = swpart->next())
+						for (const software_part &swpart : swinfo->parts())
 						{
-							if (swpart->matches_interface(ui_swinfo->interface.c_str()))
+							if (swpart.matches_interface(ui_swinfo->interface.c_str()))
 							{
-								std::string menu_part_name(swpart->name());
-								if (swpart->feature("part_id") != nullptr)
-									menu_part_name.assign("(").append(swpart->feature("part_id")).append(")");
-								parts.emplace(swpart->name(), menu_part_name);
+								std::string menu_part_name(swpart.name());
+								if (swpart.feature("part_id") != nullptr)
+									menu_part_name.assign("(").append(swpart.feature("part_id")).append(")");
+								parts.emplace(swpart.name(), menu_part_name);
 							}
 						}
 						ui_menu::stack_push(global_alloc_clear<ui_software_parts>(machine(), container, parts, ui_swinfo));

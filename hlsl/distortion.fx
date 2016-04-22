@@ -89,8 +89,6 @@ uniform float2 ScreenDims; // size of the window or fullscreen
 uniform float2 TargetDims; // size of the target surface
 uniform float2 QuadDims; // size of the screen quad
 
-uniform bool VectorScreen;
-
 VS_OUTPUT vs_main(VS_INPUT Input)
 {
 	VS_OUTPUT Output = (VS_OUTPUT)0;
@@ -113,14 +111,15 @@ VS_OUTPUT vs_main(VS_INPUT Input)
 // Distortion Pixel Shader
 //-----------------------------------------------------------------------------
 
-uniform float CurvatureAmount = 0.0f;
+uniform float DistortionAmount = 0.0f;      // k     - quartic distortion coefficient
+uniform float CubicDistortionAmount = 0.0f; // kcube - cubic distortion modifier
+uniform float DistortCornerAmount = 0.0f;
 uniform float RoundCornerAmount = 0.0f;
 uniform float SmoothBorderAmount = 0.0f;
 uniform float VignettingAmount = 0.0f;
 uniform float ReflectionAmount = 0.0f;
 
 uniform bool SwapXY = false;
-uniform int RotationType = 0; // 0 = 0°, 1 = 90°, 2 = 180°, 3 = 270°
 
 float GetNoiseFactor(float3 n, float random)
 {
@@ -146,40 +145,16 @@ float GetSpotAddend(float2 coord, float amount)
 {
 	float2 SpotCoord = coord;
 
-	// hack for vector screen
-	if (VectorScreen)
-	{
-		// upper right quadrant
-		float2 spotOffset =
-			RotationType == 1 // 90°
-				? float2(-0.25f, -0.25f)
-				: RotationType == 2 // 180°
-					? float2(0.25f, -0.25f)
-					: RotationType == 3 // 270° else 0°
-						? float2(0.25f, 0.25f)
-						: float2(-0.25f, 0.25f);
+	// upper right quadrant
+	float2 spotOffset = float2(-0.25f, 0.25f);
 
-		// normalized screen canvas ratio
-		float2 CanvasRatio = SwapXY
-			? float2(QuadDims.x / QuadDims.y, 1.0f)
-			: float2(1.0f, QuadDims.y / QuadDims.x);
+	// normalized screen canvas ratio
+	float2 CanvasRatio = SwapXY 
+		? float2(1.0f, QuadDims.x / QuadDims.y)
+		: float2(1.0f, QuadDims.y / QuadDims.x);
 
-		SpotCoord += spotOffset;
-		SpotCoord *= CanvasRatio;
-	}
-	else
-	{
-		// upper right quadrant
-		float2 spotOffset = float2(-0.25f, 0.25f);
-
-		// normalized screen canvas ratio
-		float2 CanvasRatio = SwapXY 
-			? float2(1.0f, QuadDims.x / QuadDims.y)
-			: float2(1.0f, QuadDims.y / QuadDims.x);
-
-		SpotCoord += spotOffset;
-		SpotCoord *= CanvasRatio;
-	}
+	SpotCoord += spotOffset;
+	SpotCoord *= CanvasRatio;
 
 	float SpotBlur = amount;
 
@@ -201,7 +176,7 @@ float GetRoundCornerFactor(float2 coord, float radiusAmount, float smoothAmount)
 	smoothAmount = min(smoothAmount, radiusAmount);
 
 	float2 quadDims = QuadDims;
-	quadDims = !VectorScreen && SwapXY
+	quadDims = SwapXY
 		? quadDims.yx
 		: quadDims.xy;
 
@@ -222,13 +197,13 @@ float GetRoundCornerFactor(float2 coord, float radiusAmount, float smoothAmount)
 }
 
 // www.francois-tarlier.com/blog/cubic-lens-distortion-shader/
-float2 GetDistortedCoords(float2 centerCoord, float amount)
+float2 GetDistortedCoords(float2 centerCoord, float amount, float amountCube)
 {
 	// lens distortion coefficient
 	float k = amount;
 
 	// cubic distortion value
-	float kcube = amount * 2.0f;
+	float kcube = amountCube;
 
 	// compute cubic distortion factor
 	float r2 = centerCoord.x * centerCoord.x + centerCoord.y * centerCoord.y;
@@ -237,7 +212,7 @@ float2 GetDistortedCoords(float2 centerCoord, float amount)
 		: 1.0f + r2 * (k + kcube * sqrt(r2));
 
    	// fit screen bounds
-	f /= 1.0f + amount * 0.5f;
+	f /= 1.0f + amount * 0.25f + amountCube * 0.125f;
 
 	// apply cubic distortion factor
    	centerCoord *= f;
@@ -245,13 +220,13 @@ float2 GetDistortedCoords(float2 centerCoord, float amount)
 	return centerCoord;
 }
 
-float2 GetCoords(float2 coord, float distortionAmount)
+float2 GetCoords(float2 coord, float distortionAmount, float cubicDistortionAmount)
 {
 	// center coordinates
 	coord -= 0.5f;
 
 	// distort coordinates
-	coord = GetDistortedCoords(coord, distortionAmount);
+	coord = GetDistortedCoords(coord, distortionAmount, cubicDistortionAmount);
 
 	// un-center coordinates
 	coord += 0.5f;
@@ -261,18 +236,33 @@ float2 GetCoords(float2 coord, float distortionAmount)
 
 float4 ps_main(PS_INPUT Input) : COLOR
 {
+	float distortionAmount = DistortionAmount;
+	float cubicDistortionAmount = CubicDistortionAmount > 0.0f
+		? CubicDistortionAmount * 1.1f  // cubic distortion need to be a little higher to compensate the quartic distortion
+		: CubicDistortionAmount * 1.2f; // negativ values even more
+
+	float2 TexelDims = 1.0f / TargetDims;
+
 	// Screen Curvature
-	float2 TexCoord = GetCoords(Input.TexCoord, CurvatureAmount * 0.25f); // reduced amount
+	float2 TexCoord = GetCoords(Input.TexCoord, distortionAmount, cubicDistortionAmount);
+
+	// Corner Curvature
+	float2 CornerCoord = GetCoords(Input.TexCoord, DistortCornerAmount, 0.0f);
+
+	// clip border
+	clip(TexCoord < 0.0f - TexelDims || TexCoord > 1.0f + TexelDims ? -1 : 1);
 
 	float2 TexCoordCentered = TexCoord;
 	TexCoordCentered -= 0.5f;
+	float2 CornerCoordCentered = CornerCoord;
+	CornerCoordCentered -= 0.5f;
 
 	// Color
 	float4 BaseColor = tex2D(DiffuseSampler, TexCoord);
 	BaseColor.a = 1.0f;
 
 	// Vignetting Simulation
-	float2 VignetteCoord = TexCoordCentered;
+	float2 VignetteCoord = CornerCoordCentered;
 
 	float VignetteFactor = GetVignetteFactor(VignetteCoord, VignettingAmount);
 	BaseColor.rgb *= VignetteFactor;
@@ -280,15 +270,15 @@ float4 ps_main(PS_INPUT Input) : COLOR
 	// Light Reflection Simulation
 	float3 LightColor = float3(1.0f, 0.90f, 0.80f); // color temperature 5.000 Kelvin
 
-	float2 SpotCoord = TexCoordCentered;
-	float2 NoiseCoord = TexCoordCentered;
+	float2 SpotCoord = CornerCoordCentered;
+	float2 NoiseCoord = CornerCoordCentered;
 
 	float SpotAddend = GetSpotAddend(SpotCoord, ReflectionAmount);
 	float NoiseFactor = GetNoiseFactor(SpotAddend, random(NoiseCoord));
 	BaseColor.rgb += SpotAddend * NoiseFactor * LightColor;
 
 	// Round Corners Simulation
-	float2 RoundCornerCoord = TexCoordCentered;
+	float2 RoundCornerCoord = CornerCoordCentered;
 
 	float roundCornerFactor = GetRoundCornerFactor(RoundCornerCoord, RoundCornerAmount, SmoothBorderAmount);
 	BaseColor.rgb *= roundCornerFactor;

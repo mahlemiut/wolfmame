@@ -35,15 +35,14 @@
 #define GET_WINDOW(ev) window_from_id((ev)->windowID)
 //#define GET_WINDOW(ev) ((ev)->windowID)
 
-static inline sdl_window_info * window_from_id(Uint32 windowID)
+static inline std::shared_ptr<sdl_window_info> window_from_id(Uint32 windowID)
 {
-	sdl_window_info *w;
 	SDL_Window *window = SDL_GetWindowFromID(windowID);
 
-	for (w = sdl_window_list; w != NULL; w = w->m_next)
+	for (auto w : sdl_window_list)
 	{
 		//printf("w->window_id: %d\n", w->window_id);
-		if (w->sdl_window() == window)
+		if (w->platform_window<SDL_Window*>() == window)
 		{
 			return w;
 		}
@@ -72,7 +71,7 @@ void sdl_event_manager::process_events(running_machine &machine)
 
 void sdl_event_manager::process_window_event(running_machine &machine, SDL_Event &sdlevent)
 {
-	sdl_window_info *window = GET_WINDOW(&sdlevent.window);
+	std::shared_ptr<sdl_window_info> window = GET_WINDOW(&sdlevent.window);
 
 	if (window == NULL)
 		return;
@@ -139,14 +138,13 @@ void sdl_osd_interface::customize_input_type_list(simple_list<input_type_entry> 
 {
 	input_item_id mameid_code;
 	input_code ui_code;
-	input_type_entry *entry;
 	const char* uimode;
 	char fullmode[64];
 
 	// loop over the defaults
-	for (entry = typelist.first(); entry != NULL; entry = entry->next())
+	for (input_type_entry &entry : typelist)
 	{
-		switch (entry->type())
+		switch (entry.type())
 		{
 			// configurable UI mode switch
 		case IPT_UI_TOGGLE_UI:
@@ -165,23 +163,23 @@ void sdl_osd_interface::customize_input_type_list(simple_list<input_type_entry> 
 				mameid_code = keyboard_trans_table::instance().lookup_mame_code(fullmode);
 			}
 			ui_code = input_code(DEVICE_CLASS_KEYBOARD, 0, ITEM_CLASS_SWITCH, ITEM_MODIFIER_NONE, input_item_id(mameid_code));
-			entry->defseq(SEQ_TYPE_STANDARD).set(ui_code);
+			entry.defseq(SEQ_TYPE_STANDARD).set(ui_code);
 			break;
 			// alt-enter for fullscreen
 		case IPT_OSD_1:
-			entry->configure_osd("TOGGLE_FULLSCREEN", "Toggle Fullscreen");
-			entry->defseq(SEQ_TYPE_STANDARD).set(KEYCODE_ENTER, KEYCODE_LALT);
+			entry.configure_osd("TOGGLE_FULLSCREEN", "Toggle Fullscreen");
+			entry.defseq(SEQ_TYPE_STANDARD).set(KEYCODE_ENTER, KEYCODE_LALT);
 			break;
 
 			// disable UI_SELECT when LALT is down, this stops selecting
 			// things in the menu when toggling fullscreen with LALT+ENTER
 			/*          case IPT_UI_SELECT:
-			entry->defseq(SEQ_TYPE_STANDARD).set(KEYCODE_ENTER, input_seq::not_code, KEYCODE_LALT);
+			entry.defseq(SEQ_TYPE_STANDARD).set(KEYCODE_ENTER, input_seq::not_code, KEYCODE_LALT);
 			break;*/
 
 			// page down for fastforward (must be OSD_3 as per src/emu/ui.c)
 		case IPT_UI_FAST_FORWARD:
-			entry->defseq(SEQ_TYPE_STANDARD).set(KEYCODE_PGDN);
+			entry.defseq(SEQ_TYPE_STANDARD).set(KEYCODE_PGDN);
 			break;
 
 			// OSD hotkeys use LCTRL and start at F3, they start at
@@ -191,63 +189,70 @@ void sdl_osd_interface::customize_input_type_list(simple_list<input_type_entry> 
 
 			// LCTRL-F3 to toggle fullstretch
 		case IPT_OSD_2:
-			entry->configure_osd("TOGGLE_FULLSTRETCH", "Toggle Uneven stretch");
-			entry->defseq(SEQ_TYPE_STANDARD).set(KEYCODE_F3, KEYCODE_LCONTROL);
+			entry.configure_osd("TOGGLE_FULLSTRETCH", "Toggle Uneven stretch");
+			entry.defseq(SEQ_TYPE_STANDARD).set(KEYCODE_F3, KEYCODE_LCONTROL);
 			break;
 			// add a Not lcrtl condition to the reset key
 		case IPT_UI_SOFT_RESET:
-			entry->defseq(SEQ_TYPE_STANDARD).set(KEYCODE_F3, input_seq::not_code, KEYCODE_LCONTROL, input_seq::not_code, KEYCODE_LSHIFT);
+			entry.defseq(SEQ_TYPE_STANDARD).set(KEYCODE_F3, input_seq::not_code, KEYCODE_LCONTROL, input_seq::not_code, KEYCODE_LSHIFT);
 			break;
 
 			// LCTRL-F4 to toggle keep aspect
 		case IPT_OSD_4:
-			entry->configure_osd("TOGGLE_KEEP_ASPECT", "Toggle Keepaspect");
-			entry->defseq(SEQ_TYPE_STANDARD).set(KEYCODE_F4, KEYCODE_LCONTROL);
+			entry.configure_osd("TOGGLE_KEEP_ASPECT", "Toggle Keepaspect");
+			entry.defseq(SEQ_TYPE_STANDARD).set(KEYCODE_F4, KEYCODE_LCONTROL);
 			break;
 			// add a Not lcrtl condition to the show gfx key
 		case IPT_UI_SHOW_GFX:
-			entry->defseq(SEQ_TYPE_STANDARD).set(KEYCODE_F4, input_seq::not_code, KEYCODE_LCONTROL);
+			entry.defseq(SEQ_TYPE_STANDARD).set(KEYCODE_F4, input_seq::not_code, KEYCODE_LCONTROL);
 			break;
 
 			// LCTRL-F5 to toggle OpenGL filtering
 		case IPT_OSD_5:
-			entry->configure_osd("TOGGLE_FILTER", "Toggle Filter");
-			entry->defseq(SEQ_TYPE_STANDARD).set(KEYCODE_F5, KEYCODE_LCONTROL);
+			entry.configure_osd("TOGGLE_FILTER", "Toggle Filter");
+			entry.defseq(SEQ_TYPE_STANDARD).set(KEYCODE_F5, KEYCODE_LCONTROL);
 			break;
 			// add a Not lcrtl condition to the toggle debug key
 		case IPT_UI_TOGGLE_DEBUG:
-			entry->defseq(SEQ_TYPE_STANDARD).set(KEYCODE_F5, input_seq::not_code, KEYCODE_LCONTROL);
+			entry.defseq(SEQ_TYPE_STANDARD).set(KEYCODE_F5, input_seq::not_code, KEYCODE_LCONTROL);
 			break;
 
 			// LCTRL-F6 to decrease OpenGL prescaling
 		case IPT_OSD_6:
-			entry->configure_osd("DECREASE_PRESCALE", "Decrease Prescaling");
-			entry->defseq(SEQ_TYPE_STANDARD).set(KEYCODE_F6, KEYCODE_LCONTROL);
+			entry.configure_osd("DECREASE_PRESCALE", "Decrease Prescaling");
+			entry.defseq(SEQ_TYPE_STANDARD).set(KEYCODE_F6, KEYCODE_LCONTROL);
 			break;
 			// add a Not lcrtl condition to the toggle cheat key
 		case IPT_UI_TOGGLE_CHEAT:
-			entry->defseq(SEQ_TYPE_STANDARD).set(KEYCODE_F6, input_seq::not_code, KEYCODE_LCONTROL);
+			entry.defseq(SEQ_TYPE_STANDARD).set(KEYCODE_F6, input_seq::not_code, KEYCODE_LCONTROL);
 			break;
 
 			// LCTRL-F7 to increase OpenGL prescaling
 		case IPT_OSD_7:
-			entry->configure_osd("INCREASE_PRESCALE", "Increase Prescaling");
-			entry->defseq(SEQ_TYPE_STANDARD).set(KEYCODE_F7, KEYCODE_LCONTROL);
+			entry.configure_osd("INCREASE_PRESCALE", "Increase Prescaling");
+			entry.defseq(SEQ_TYPE_STANDARD).set(KEYCODE_F7, KEYCODE_LCONTROL);
 			break;
-			// add a Not lcrtl condition to the load state key
+
+		// lshift-lalt-F12 for fullscreen video (BGFX)
+		case IPT_OSD_8:
+			entry.configure_osd("RENDER_AVI", "Record Rendered Video");
+			entry.defseq(SEQ_TYPE_STANDARD).set(KEYCODE_F12, KEYCODE_LSHIFT, KEYCODE_LALT);
+			break;
+
+		// add a Not lcrtl condition to the load state key
 		case IPT_UI_LOAD_STATE:
-			entry->defseq(SEQ_TYPE_STANDARD).set(KEYCODE_F7, input_seq::not_code, KEYCODE_LCONTROL, input_seq::not_code, KEYCODE_LSHIFT);
+			entry.defseq(SEQ_TYPE_STANDARD).set(KEYCODE_F7, input_seq::not_code, KEYCODE_LCONTROL, input_seq::not_code, KEYCODE_LSHIFT);
 			break;
 
 			// add a Not lcrtl condition to the throttle key
 		case IPT_UI_THROTTLE:
-			entry->defseq(SEQ_TYPE_STANDARD).set(KEYCODE_F10, input_seq::not_code, KEYCODE_LCONTROL);
+			entry.defseq(SEQ_TYPE_STANDARD).set(KEYCODE_F10, input_seq::not_code, KEYCODE_LCONTROL);
 			break;
 
 			// disable the config menu if the ALT key is down
 			// (allows ALT-TAB to switch between apps)
 		case IPT_UI_CONFIGURE:
-			entry->defseq(SEQ_TYPE_STANDARD).set(KEYCODE_TAB, input_seq::not_code, KEYCODE_LALT, input_seq::not_code, KEYCODE_RALT);
+			entry.defseq(SEQ_TYPE_STANDARD).set(KEYCODE_TAB, input_seq::not_code, KEYCODE_LALT, input_seq::not_code, KEYCODE_RALT);
 			break;
 
 			// leave everything else alone
@@ -267,7 +272,9 @@ void sdl_osd_interface::poll_inputs(running_machine &machine)
 
 void sdl_osd_interface::release_keys()
 {
-	downcast<input_module_base*>(m_keyboard_input)->devicelist()->reset_devices();
+	auto keybd = dynamic_cast<input_module_base*>(m_keyboard_input);
+	if (keybd != nullptr)
+		keybd->devicelist()->reset_devices();
 }
 
 bool sdl_osd_interface::should_hide_mouse()

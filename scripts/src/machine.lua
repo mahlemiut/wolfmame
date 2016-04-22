@@ -2086,6 +2086,18 @@ end
 
 ---------------------------------------------------
 --
+--@src/devices/machine/tmc0430.h,MACHINES["TMC0430"] = true
+---------------------------------------------------
+
+if (MACHINES["TMC0430"]~=null) then
+	files {
+		MAME_DIR .. "src/devices/machine/tmc0430.cpp",
+		MAME_DIR .. "src/devices/machine/tmc0430.h",
+	}
+end
+
+---------------------------------------------------
+--
 --@src/devices/machine/tmp68301.h,MACHINES["TMP68301"] = true
 ---------------------------------------------------
 
@@ -2736,5 +2748,17 @@ if (MACHINES["GENPC"]~=null) then
 	files {
 		MAME_DIR .. "src/devices/machine/genpc.cpp",
 		MAME_DIR .. "src/devices/machine/genpc.h",
+	}
+end
+
+---------------------------------------------------
+--
+--@src/devices/machine/gen_latch.h,MACHINES["GEN_LATCH] = true
+---------------------------------------------------
+
+if (MACHINES["GEN_LATCH"]~=null) then
+	files {
+		MAME_DIR .. "src/devices/machine/gen_latch.cpp",
+		MAME_DIR .. "src/devices/machine/gen_latch.h",
 	}
 end

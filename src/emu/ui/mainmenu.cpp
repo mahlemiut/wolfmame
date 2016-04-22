@@ -33,6 +33,7 @@
 #include "ui/datfile.h"
 #include "ui/inifile.h"
 #include "ui/datmenu.h"
+#include "ui/pluginopt.h"
 
 
 /***************************************************************************
@@ -70,48 +71,41 @@ void ui_menu_main::populate()
 	/* add game info menu */
 	item_append(_("Machine Information"), nullptr, 0, (void *)GAME_INFO);
 
-	image_interface_iterator imgiter(machine().root_device());
-	if (imgiter.first() != nullptr)
+	for (device_image_interface &image : image_interface_iterator(machine().root_device()))
 	{
-		/* add image info menu */
-		item_append(_("Image Information"), nullptr, 0, (void *)IMAGE_MENU_IMAGE_INFO);
+		if (image.user_loadable())
+		{
+			/* add image info menu */
+			item_append(_("Image Information"), nullptr, 0, (void *)IMAGE_MENU_IMAGE_INFO);
 
-		/* add file manager menu */
-		item_append(_("File Manager"), nullptr, 0, (void *)IMAGE_MENU_FILE_MANAGER);
+			/* add file manager menu */
+			item_append(_("File Manager"), nullptr, 0, (void *)IMAGE_MENU_FILE_MANAGER);
 
-		/* add tape control menu */
-		cassette_device_iterator cassiter(machine().root_device());
-		if (cassiter.first() != nullptr)
-			item_append(_("Tape Control"), nullptr, 0, (void *)TAPE_CONTROL);
+			break;
+		}
 	}
 
-		pty_interface_iterator ptyiter(machine().root_device());
-		if (ptyiter.first() != nullptr) {
-			item_append(_("Pseudo terminals"), nullptr, 0, (void *)PTY_INFO);
-		}
+	/* add tape control menu */
+	if (cassette_device_iterator(machine().root_device()).first() != nullptr)
+		item_append(_("Tape Control"), nullptr, 0, (void *)TAPE_CONTROL);
+
+	if (pty_interface_iterator(machine().root_device()).first() != nullptr)
+		item_append(_("Pseudo terminals"), nullptr, 0, (void *)PTY_INFO);
+
 	if (machine().ioport().has_bioses())
 		item_append(_("Bios Selection"), nullptr, 0, (void *)BIOS_SELECTION);
 
-	slot_interface_iterator slotiter(machine().root_device());
-	if (slotiter.first() != nullptr)
-	{
-		/* add slot info menu */
+	/* add slot info menu */
+	if (slot_interface_iterator(machine().root_device()).first() != nullptr)
 		item_append(_("Slot Devices"), nullptr, 0, (void *)SLOT_DEVICES);
-	}
 
-	barcode_reader_device_iterator bcriter(machine().root_device());
-	if (bcriter.first() != nullptr)
-	{
-		/* add slot info menu */
+	/* add Barcode reader menu */
+	if (barcode_reader_device_iterator(machine().root_device()).first() != nullptr)
 		item_append(_("Barcode Reader"), nullptr, 0, (void *)BARCODE_READ);
-	}
 
-	network_interface_iterator netiter(machine().root_device());
-	if (netiter.first() != nullptr)
-	{
-		/* add image info menu */
+	/* add network info menu */
+	if (network_interface_iterator(machine().root_device()).first() != nullptr)
 		item_append(_("Network Devices"), nullptr, 0, (void*)NETWORK_DEVICES);
-	}
 
 	/* add keyboard mode menu */
 	if (machine().ioport().has_keyboard() && machine().ioport().natkeyboard().can_post())
@@ -131,11 +125,14 @@ void ui_menu_main::populate()
 	if (machine().options().cheat())
 		item_append(_("Cheat"), nullptr, 0, (void *)CHEAT);
 
+	if (machine().options().plugins())
+		item_append(_("Plugin Options"), nullptr, 0, (void *)PLUGINS);
+
 	// add dats menu
 	if (machine().ui().options().enabled_dats() && machine().datfile().has_data())
 		item_append(_("External DAT View"), nullptr, 0, (void *)EXTERNAL_DATS);
 
-	item_append(MENU_SEPARATOR_ITEM, nullptr, 0, nullptr);
+	item_append(ui_menu_item_type::SEPARATOR);
 
 	/* add favorite menu */
 	if (!machine().favorite().isgame_favorite())
@@ -143,7 +140,7 @@ void ui_menu_main::populate()
 	else
 		item_append(_("Remove From Favorites"), nullptr, 0, (void *)REMOVE_FAVORITE);
 
-	item_append(MENU_SEPARATOR_ITEM, nullptr, 0, nullptr);
+	item_append(ui_menu_item_type::SEPARATOR);
 
 //  item_append(_("Quit from Machine"), nullptr, 0, (void *)QUIT_GAME);
 
@@ -239,6 +236,10 @@ void ui_menu_main::handle()
 
 		case CHEAT:
 			ui_menu::stack_push(global_alloc_clear<ui_menu_cheat>(machine(), container));
+			break;
+
+		case PLUGINS:
+			ui_menu::stack_push(global_alloc_clear<ui_menu_plugin>(machine(), container));
 			break;
 
 		case SELECT_GAME:

@@ -1,0 +1,477 @@
+-- license:BSD-3-Clause
+-- copyright-holders:Carl
+-- This includes a library of functions to be used at the Lua console as cf.getspaces() etc...
+local exports = {}
+exports.name = "cheatfind"
+exports.version = "0.0.1"
+exports.description = "Cheat finder helper library"
+exports.license = "The BSD 3-Clause License"
+exports.author = { name = "Carl" }
+
+local cheatfind = exports
+
+function cheatfind.startplugin()
+	local cheat = {}
+	local watches = {}
+
+	-- return table of devices and spaces
+	function cheat.getspaces()
+		local spaces = {}
+		for tag, device in pairs(manager:machine().devices) do
+			if device.spaces then
+				spaces[tag] = {}
+				for name, space in pairs(device.spaces) do
+					spaces[tag][name] = space
+				end
+			end
+		end
+		return spaces
+	end
+
+	-- return table of ram devices
+	function cheat.getram()
+		local ram = {}
+		for tag, device in pairs(manager:machine().devices) do
+			if device:shortname() == "ram" then
+				ram[tag] = {}
+				ram[tag].dev = device
+				ram[tag].size = emu.item(device.items["0/m_size"]):read(0)
+			end
+		end
+		return ram
+	end
+
+	-- save data block
+	function cheat.save(space, start, size)
+		local data = { block = "", start = start, size = size, space = space }
+		if space.shortname then
+			if space:shortname() == "ram" then
+				data.block = emu.item(space.items["0/m_pointer"]):read_block(start, size)
+				if not data.block then
+					return nil
+				end
+			end
+		else
+			local block = ""
+			for i = start, start + size do
+				block = block .. string.pack("B", space:read_u8(i))
+			end
+			data.block = block
+		end
+		return data
+	end
+
+	-- compare two data blocks, format is as lua string.unpack
+	function cheat.comp(olddata, newdata, oper, format, val, bcd)
+		local ret = {}
+		local ref = {} -- this is a helper for comparing two match lists
+
+		local cfoper = { 
+			lt = function(a, b, val) return (a < b and val == 0) or (val > 0 and (a + val) == b) end,
+			gt = function(a, b, val) return (a > b and val == 0) or (val > 0 and (a - val) == b) end,
+			eq = function(a, b, val) return a == b end,
+			ne = function(a, b, val) return (a ~= b and val == 0) or
+				(val > 0 and ((a - val) == b or (a + val) == b)) end }
+
+		local function check_bcd(val)
+			local a = val + 0x0666666666666666
+			a = a ~ val
+			return (a & 0x1111111111111110) == 0
+		end
+
+		local function frombcd(val)
+			local result = 0
+			local mul = 1
+			while val ~= 0 do
+				result = result + ((val % 16) * mul)
+				val = val >> 4
+				mul = mul * 10
+			end
+			return result
+		end
+
+		if olddata.start ~= newdata.start or olddata.size ~= newdata.size or not cfoper[oper] then
+			return {} 
+		end
+		if not val then
+			val = 0
+		end
+		for i = 1, olddata.size do
+			local old = string.unpack(format, olddata.block, i)
+			local new = string.unpack(format, newdata.block, i)
+			local oldc, newc = old, new
+			local comp = false
+			if not bcd or (check_bcd(old) and check_bcd(new)) then
+				if bcd then
+					oldc = frombcd(old)
+					newc = frombcd(new)
+				end
+				if cfoper[oper](oldc, newc, val) then
+					ret[#ret + 1] = { addr = olddata.start + i - 1,
+					oldval = old,
+					newval = new}
+					ref[ret[#ret].addr] = #ret
+				end
+			end
+		end
+		return ret, ref
+	end
+
+	-- compare two blocks and filter by table of previous matches
+	function cheat.compnext(olddata, newdata, oldmatch, oper, format, val, bcd)
+		local matches, refs = cheat.comp(olddata, newdata, oper, format, val, bcd)
+		local nonmatch = {}
+		local oldrefs = {}
+		for num, match in pairs(oldmatch) do
+			oldrefs[match.addr] = num
+		end
+		for addr, ref in pairs(refs) do
+			if not oldrefs[addr] then
+				nonmatch[ref] = true
+				refs[addr] = nil
+			else
+				matches[ref].oldval = oldmatch[oldrefs[addr]].oldval
+			end
+		end
+		local resort = {}
+		for num, match in pairs(matches) do
+			if not nonmatch[num] then
+				resort[#resort + 1] = match
+			end
+		end
+		return resort 
+	end
+			 
+
+	-- compare a data block to the current state
+	function cheat.compcur(olddata, oper, format, val, bcd)
+		local newdata = cheat.save(olddata.space, olddata.start, olddata.size, olddata.space)
+		return cheat.comp(olddata, newdata, oper, format, val, bcd)
+	end
+
+	-- compare a data block to the current state and filter
+	function cheat.compcurnext(olddata, oldmatch, oper, format, val, bcd)
+		local newdata = cheat.save(olddata.space, olddata.start, olddata.size, olddata.space)
+		return cheat.compnext(olddata, newdata, oldmatch, oper, format, val, bcd)
+	end
+
+
+	_G.cf = cheat
+
+	local devtable = {}
+	local devsel = 1
+	local devcur = 1
+	local formtable = { "<B", ">B", "<b", ">b", "<H", ">H", "<h", ">h", "<L", ">L", "<l", ">l", "<J", ">J", "<j", ">j" }
+	local formname = { "little u8", "big u8", "little s8", "big s8", "little u16", "big u16", "little s16", "big s16",
+			   "little u32", "big u32", "little s32", "big s32", "little u64", "big u64", "little s64", "big s64" }
+	local width = 1
+	local bcd = 0
+	local optable = { "lt", "gt", "eq", "ne" }
+	local opsel = 1
+	local value = 0
+	local leftop = 1
+	local rightop = 0
+	local matches = {}
+	local matchsel = 1
+	local menu_blocks = {}
+	local midx = { region = 1, init = 2, undo = 3, save = 4, lop = 6, op = 7, rop = 8, val = 9,
+		       width = 11,  bcd = 12, comp = 13, match = 15, watch = 0 }
+
+	local function start()
+		devtable = {}
+		devsel = 1
+		devcur = 1
+		width = 1
+		bcd = 0
+		opsel = 1
+		value = 0
+		leftop = 1
+		rightop = 1
+		matches = {}
+		matchsel = 1
+		menu_blocks = {}
+
+		local space_table = cheat.getspaces()
+		for tag, list in pairs(space_table) do
+			if list.program then
+				local ram = {}
+				for num, entry in pairs(list.program.map) do
+					if entry.writetype == "ram" then
+						ram[#ram + 1] = { offset = entry.offset, size = entry.endoff - entry.offset }
+					end
+				end
+				if next(ram) then
+					devtable[#devtable + 1] = { tag = tag, space = list.program, ram = ram }
+				end
+			end
+		end
+		space_table = cheat.getram()
+		for tag, ram in pairs(space_table) do
+			devtable[#devtable + 1] = { tag = tag, space = ram.dev, ram = {{ offset = 0, size = ram.size }} }
+		end
+	end
+
+	emu.register_start(start)
+
+	local function menu_populate()
+		local menu = {}
+
+		local function menu_lim(val, min, max, menuitem)
+			if val == min then
+				menuitem[3] = "r"
+			elseif val == max then
+				menuitem[3] = "l"
+			else
+				menuitem[3] = "lr"
+			end
+		end
+
+		menu[midx.region] = { "CPU or RAM", devtable[devsel].tag, 0 }
+		if #devtable == 1 then
+			menu[midx.region][3] = 0
+		else
+			menu_lim(devsel, 1, #devtable, menu[midx.region])
+		end
+		menu[midx.init] = { "Start new search", "", 0 }
+		if #menu_blocks ~= 0 then
+			menu[midx.undo] = { "Undo last search -- #" .. #matches, "", 0 }
+			menu[midx.save] = { "Save current -- #" .. #menu_blocks[1] + 1, "", 0 }
+			menu[midx.save + 1] = { "---", "", "off" }
+			menu[midx.lop] = { "Left operand", leftop, "" }
+			menu_lim(leftop, 1, #menu_blocks[1] + 1, menu[midx.lop])
+			if leftop == #menu_blocks[1] + 1 then
+				menu[midx.lop][2] = "All"
+			end
+			menu[midx.op] = { "Operator", optable[opsel], "" }
+			menu_lim(opsel, 1, #optable, menu[midx.op])
+			menu[midx.rop] = { "Right operand", rightop, "" }
+			menu_lim(rightop, 1, #menu_blocks[1] + 1, menu[midx.rop])
+			if rightop == #menu_blocks[1] + 1 then
+				menu[midx.rop][2] = "Current"
+			end
+			menu[midx.val] = { "Value", value, "" }
+			menu_lim(value, 0, 100, menu[midx.val]) -- max value?
+			if value == 0 then
+				menu[midx.val][2] = "Any"
+			end
+			menu[midx.val + 1] = { "---", "", "off" }
+			menu[midx.width] = { "Data Format", formname[width], 0 }
+			menu_lim(width, 1, #formtable, menu[midx.width])
+			menu[midx.bcd] = { "BCD", "Off", 0 }
+			menu_lim(bcd, 0, 1, menu[midx.bcd])
+			if bcd == 1 then
+				menu[midx.bcd][2] = "On"
+			end
+			menu[midx.comp] = { "Compare", "", 0 }
+			if #matches ~= 0 then
+				menu[midx.comp + 1] = { "---", "", "off" }
+				menu[midx.match] = { "Match block", matchsel, "" }
+				if #matches[#matches] == 1 then
+					menu[midx.match][3] = 0
+				else
+					menu_lim(matchsel, 1, #matches[#matches], menu[midx.match])
+				end
+				for num2, match in ipairs(matches[#matches][matchsel]) do
+					if #menu > 50 then
+						break
+					end
+					local numform = ""
+					local bitwidth = formtable[width]:sub(2, 2):lower()
+					if bitwidth == "h" then
+						numform = " %04x"
+					elseif bitwidth == "l" then
+						numform = " %08x"
+					elseif bitwidth == "j" then
+						numform = " %016x"
+					else
+						numform = " %02x"
+					end
+					menu[#menu + 1] = { string.format("%08x" .. numform .. numform, match.addr, match.oldval, 
+					                                  match.newval), "", 0 }
+					if not match.mode then
+						match.mode = 1
+					end
+					if match.mode == 1 then
+						menu[#menu][2] = "Test"
+					elseif match.mode == 2 then
+						menu[#menu][2] = "Write"
+					else
+						menu[#menu][2] = "Watch"
+					end
+					menu_lim(match.mode, 1, 3, menu[#menu])
+				end
+			end
+			if #watches ~= 0 then
+				menu[#menu + 1] = { "Clear Watches", "", 0 }
+				midx.watch = #menu
+			end
+		end
+		return menu
+	end
+
+	local function menu_callback(index, event)
+		local ret = false
+
+		local function incdec(val, min, max)
+			if event == "left" and val ~= min then
+				val = val - 1
+				ret = true
+			elseif event == "right" and val ~= max then
+				val = val + 1
+				ret = true
+			end
+			return val
+		end
+
+		if index == midx.region then
+			if (event == "left" or event == "right") and #menu_blocks ~= 0 then
+				manager:machine():popmessage("Changes to this only take effect when \"Start new search\" is selected")
+			end
+			devsel = incdec(devsel, 1, #devtable)
+			return true
+		elseif index == midx.init then
+			if event == "select" then
+				menu_blocks = {}
+				matches = {}
+				for num, region in ipairs(devtable[devcur].ram) do
+					menu_blocks[num] = {}
+					menu_blocks[num][1] = cheat.save(devtable[devcur].space, region.offset, region.size)
+				end
+				manager:machine():popmessage("Data cleared and current state saved")
+				watches = {}
+				leftop = 1
+				rightop = 2
+				ret = true
+			end
+			devcur = devsel
+		elseif index == midx.undo then
+			if event == "select" and #matches > 0 then
+				matches[#matches] = nil
+			end
+			ret = true
+		elseif index == midx.save then
+			if event == "select" then
+				for num, region in ipairs(devtable[devcur].ram) do
+					menu_blocks[num][#menu_blocks[num] + 1] = cheat.save(devtable[devcur].space, region.offset, region.size)
+				end
+				manager:machine():popmessage("Current state saved")
+				ret = true
+			end
+		elseif index == midx.op then
+			opsel = incdec(opsel, 1, #optable)
+			if event == "left" or event == "right" or event == "comment" then
+				if optable[opsel] == "lt" then
+					manager:machine():popmessage("Left less than right, value is difference")
+				elseif optable[opsel] == "gt" then
+					manager:machine():popmessage("Left greater than right, value is difference")
+				elseif optable[opsel] == "eq" then
+					manager:machine():popmessage("Left equal to right, value is ignored")
+				elseif optable[opsel] == "ne" then
+					manager:machine():popmessage("Left not equal to right, value is difference")
+				end
+			end
+		elseif index == midx.val then
+			value = incdec(value, 0, 100)
+		elseif index == midx.lop then
+			leftop = incdec(leftop, 1, #menu_blocks[1])
+		elseif index == midx.rop then
+			rightop = incdec(rightop, 1, #menu_blocks[1] + 1)
+		elseif index == midx.width then
+			width = incdec(width, 1, #formtable)
+		elseif index == midx.bcd then
+			bcd = incdec(bcd, 0, 1)
+		elseif index == midx.comp then
+			if event == "select" then
+				for num = 1, #menu_blocks do
+					if #matches == 0 then
+						matches[1] = {}
+						if rightop == #menu_blocks[1] + 1 then
+							matches[1][num] = cheat.compcur(menu_blocks[num][leftop], optable[opsel],
+										formtable[width], value, bcd == 1)
+						else
+							matches[1][num] = cheat.comp(menu_blocks[num][leftop], menu_blocks[num][rightop],
+										   optable[opsel], formtable[width], value, bcd == 1)
+						end
+					else
+						lastmatch = matches[#matches]
+						matches[#matches + 1] = {}
+						if rightop == #menu_blocks[1] + 1 then
+							matches[#matches][num] = cheat.compcurnext(menu_blocks[num][leftop], lastmatch[num],
+											optable[opsel], formtable[width], value, bcd == 1)
+						else
+							matches[#matches][num] = cheat.compnext(menu_blocks[num][leftop], menu_blocks[num][rightop],
+											lastmatch[num], optable[opsel], formtable[width], value, bcd == 1)
+						end
+					end
+
+
+				end
+				ret = true
+			end
+		elseif index == midx.match then
+			matchsel = incdec(matchsel, 0, #matches[#matches])
+		elseif index == midx.watch then
+			watches = {}
+			ret = true
+		elseif index > midx.match then 
+			local match = matches[#matches][matchsel][index - midx.match]
+			match.mode = incdec(match.mode, 1, 3)
+			if event == "select" then
+				local dev = devtable[devcur]
+				local cheat = { desc = string.format("Test cheat at addr %08x", match.addr), script = {} }
+				local wid = formtable[width]:sub(2, 2):lower()
+				if wid == "h" then
+					wid = "u16"
+				elseif wid == "l" then
+					wid = "u32"
+				elseif wid == "j" then
+					wid = "u64"
+				else
+					wid = "u8"
+				end
+				
+				if dev.space.shortname then
+					cheat.ram = dev.tag
+					cheat.script.on = "ram:write(" .. match.addr .. "," .. match.newval .. ")"
+				else
+					cheat.space = { cpu = { tag = dev.tag, type = "program" } }
+					cheat.script.on = "cpu:write_" .. wid .. "(" .. match.addr .. "," .. match.newval .. ")"
+				end
+				if match.mode == 1 then
+					if not _G.ce then
+						manager:machine():popmessage("Cheat engine not available")
+					else
+						_G.ce.inject(cheat)
+					end
+				elseif match.mode == 2 then
+					local filename = string.format("%s_%08x_cheat.json", emu.romname(), match.addr)
+					local json = require("json")
+					local file = io.open(filename, "w")
+					file:write(json.stringify(cheat))
+					file:close()
+					manager:machine():popmessage("Cheat written to " .. filename)
+				else
+					local func = "return space:read"
+					local env = { space = devtable[devcur].space, read = devtable[devcur].space.read }
+					if not dev.space.shortname then
+						func = func .. "_" .. wid
+					end
+					func = func .. "(" .. match.addr .. ")"
+					watches[#watches + 1] = { addr = match.addr, func = load(func, func, "t", env) }
+				end
+			end
+		end
+		devsel = devcur
+		return ret
+	end
+	emu.register_menu(menu_callback, menu_populate, "Cheat Finder")
+	emu.register_frame_done(function () 
+			local tag, screen = next(manager:machine().screens)
+			local height = manager:machine():ui():get_line_height()
+			for num, watch in ipairs(watches) do
+				screen:draw_text("left", num * height, string.format("%08x %08x", watch.addr, watch.func()))
+			end
+		end)
+end
+
+return exports

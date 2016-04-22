@@ -13,7 +13,6 @@
 #ifndef __UI_MAIN_H__
 #define __UI_MAIN_H__
 
-#include "drivenum.h"
 #include "ui/menu.h"
 
 class ui_menu_select_game : public ui_menu
@@ -40,7 +39,7 @@ private:
 	enum
 	{
 		CONF_OPTS = 1,
-//      CONF_MACHINE,
+		CONF_MACHINE,
 		CONF_PLUGINS,
 	};
 
@@ -53,7 +52,6 @@ private:
 	std::vector<const game_driver *> m_availsortedlist;
 	std::vector<const game_driver *> m_unavailsortedlist;
 	std::vector<const game_driver *> m_displaylist;
-	std::vector<const game_driver *> m_tmp;
 
 	const game_driver *m_searchlist[VISIBLE_GAMES_IN_SEARCH + 1];
 
@@ -61,7 +59,7 @@ private:
 	void build_custom();
 	void build_category();
 	void build_available_list();
-	void build_list(std::vector<const game_driver *> &vec, const char *filter_text = nullptr, int filter = 0, bool bioscheck = false);
+	void build_list(const char *filter_text = nullptr, int filter = 0, bool bioscheck = false, std::vector<const game_driver *> vec = {});
 
 	bool isfavorite();
 	void populate_search();

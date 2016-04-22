@@ -49,9 +49,6 @@ public:
 		CU_QUAD_DIMS,
 
 		CU_SWAP_XY,
-		CU_ORIENTATION_SWAP,
-		CU_ROTATION_SWAP,
-		CU_ROTATION_TYPE,
 		CU_VECTOR_SCREEN,
 
 		CU_NTSC_CCFREQ,
@@ -84,7 +81,9 @@ public:
 		CU_PHOSPHOR_IGNORE,
 
 		CU_POST_VIGNETTING,
-		CU_POST_CURVATURE,
+		CU_POST_DISTORTION,
+		CU_POST_CUBIC_DISTORTION,
+		CU_POST_DISTORT_CORNER,
 		CU_POST_ROUND_CORNER,
 		CU_POST_SMOOTH_BORDER,
 		CU_POST_REFLECTION,
@@ -200,7 +199,9 @@ struct hlsl_options
 	float                   shadow_mask_v_size;
 	float                   shadow_mask_u_offset;
 	float                   shadow_mask_v_offset;
-	float                   curvature;
+	float                   distortion;
+	float                   cubic_distortion;
+	float                   distort_corner;
 	float                   round_corner;
 	float                   smooth_border;
 	float                   reflection;
@@ -303,7 +304,7 @@ public:
 	void init(d3d_base *d3dintf, running_machine *machine, renderer_d3d9 *renderer);
 
 	bool enabled() { return master_enable; }
-	void toggle();
+	void toggle(std::vector<ui_menu_item>& sliders);
 
 	bool vector_enabled() { return master_enable && vector_enable; }
 	d3d_render_target* get_vector_target(render_primitive *prim);
@@ -338,11 +339,11 @@ public:
 	void                    remove_render_target(int source_width, int source_height, UINT32 screen_index, UINT32 page_index);
 	void                    remove_render_target(d3d_render_target *rt);
 
-	int create_resources(bool reset);
+	int create_resources(bool reset, std::vector<ui_menu_item>& sliders);
 	void delete_resources(bool reset);
 
 	// slider-related functions
-	void init_slider_list();
+	std::vector<ui_menu_item> init_slider_list();
 	void *get_slider_option(int id, int index = 0);
 
 private:
@@ -438,10 +439,11 @@ private:
 	d3d_render_target *     targethead;
 	cache_target *          cachehead;
 
-	std::vector<slider*>    sliders;
+	std::vector<slider*>    internal_sliders;
 
 	static slider_desc      s_sliders[];
 	static hlsl_options     last_options;               // last used options
+	static char             last_system_name[16];       // last used system
 };
 
 #endif

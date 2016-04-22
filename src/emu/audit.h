@@ -141,12 +141,11 @@ public:
 	media_auditor(const driver_enumerator &enumerator);
 
 	// getters
-	audit_record *first() const { return m_record_list.first(); }
-	int count() const { return m_record_list.count(); }
+	const simple_list<audit_record> &records() const { return m_record_list; }
 
 	// audit operations
 	summary audit_media(const char *validation = AUDIT_VALIDATE_FULL);
-	summary audit_device(device_t *device, const char *validation = AUDIT_VALIDATE_FULL);
+	summary audit_device(device_t &device, const char *validation = AUDIT_VALIDATE_FULL);
 	summary audit_software(const char *list_name, software_info *swinfo, const char *validation = AUDIT_VALIDATE_FULL);
 	summary audit_samples();
 	summary summarize(const char *name,std::string *output = nullptr);

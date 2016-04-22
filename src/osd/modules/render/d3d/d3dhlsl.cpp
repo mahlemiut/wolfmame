@@ -23,6 +23,7 @@
 #include "aviio.h"
 #include "png.h"
 #include "screen.h"
+#include "ui/ui.h"
 
 // MAMEOS headers
 #include "winmain.h"
@@ -37,8 +38,6 @@
 //  GLOBALS
 //============================================================
 
-static slider_state *g_slider_list;
-static osd_file::error open_next(renderer_d3d9 *d3d, emu_file &file, const char *templ, const char *extension, int idx);
 
 //============================================================
 //  PROTOTYPES
@@ -86,7 +85,7 @@ shaders::shaders() :
 
 shaders::~shaders()
 {
-	for (slider* slider : sliders)
+	for (slider* slider : internal_sliders)
 	{
 		delete slider;
 	}
@@ -237,9 +236,9 @@ void shaders::render_snapshot(surface *surface)
 	render_snap = false;
 
 	// if we don't have a bitmap, or if it's not the right size, allocate a new one
-	if (!avi_snap.valid() || snap_width != (avi_snap.width() / 2) || snap_height != (avi_snap.height() / 2))
+	if (!avi_snap.valid() || snap_width != avi_snap.width() || snap_height != avi_snap.height())
 	{
-		avi_snap.allocate(snap_width / 2, snap_height / 2);
+		avi_snap.allocate(snap_width, snap_height);
 	}
 
 	// copy the texture
@@ -256,51 +255,41 @@ void shaders::render_snapshot(surface *surface)
 		return;
 	}
 
-	for (int cy = 0; cy < 2; cy++)
+	// loop over Y
+	for (int srcy = 0; srcy < snap_height; srcy++)
 	{
-		for (int cx = 0; cx < 2; cx++)
+		DWORD *src = (DWORD *)((BYTE *)rect.pBits + srcy * rect.Pitch);
+		UINT32 *dst = &avi_snap.pix32(srcy);
+
+		for (int x = 0; x < snap_width; x++)
 		{
-			// loop over Y
-			for (int srcy = 0; srcy < snap_height / 2; srcy++)
-			{
-				int toty = (srcy + cy * (snap_height / 2));
-				int totx = cx * (snap_width / 2);
-				DWORD *src = (DWORD *)((BYTE *)rect.pBits + toty * rect.Pitch + totx * 4);
-				UINT32 *dst = &avi_snap.pix32(srcy);
-
-				for (int x = 0; x < snap_width / 2; x++)
-				{
-					*dst++ = *src++;
-				}
-			}
-
-			int idx = cy * 2 + cx;
-
-			emu_file file(machine->options().snapshot_directory(), OPEN_FLAG_WRITE | OPEN_FLAG_CREATE | OPEN_FLAG_CREATE_PATHS);
-			osd_file::error filerr = open_next(d3d, file, nullptr, "png", idx);
-			if (filerr != osd_file::error::NONE)
-			{
-				return;
-			}
-
-			// add two text entries describing the image
-			std::string text1 = std::string(emulator_info::get_appname()).append(" ").append(build_version);
-			std::string text2 = std::string(machine->system().manufacturer).append(" ").append(machine->system().description);
-			png_info pnginfo = { 0 };
-			png_add_text(&pnginfo, "Software", text1.c_str());
-			png_add_text(&pnginfo, "System", text2.c_str());
-
-			// now do the actual work
-			png_error error = png_write_bitmap(file, &pnginfo, avi_snap, 1 << 24, nullptr);
-			if (error != PNGERR_NONE)
-			{
-				osd_printf_error("Error generating PNG for HLSL snapshot: png_error = %d\n", error);
-			}
-
-			// free any data allocated
-			png_free(&pnginfo);
+			*dst++ = *src++;
 		}
 	}
+
+	emu_file file(machine->options().snapshot_directory(), OPEN_FLAG_WRITE | OPEN_FLAG_CREATE | OPEN_FLAG_CREATE_PATHS);
+	osd_file::error filerr = machine->video().open_next(file, "png");
+	if (filerr != osd_file::error::NONE)
+	{
+		return;
+	}
+
+	// add two text entries describing the image
+	std::string text1 = std::string(emulator_info::get_appname()).append(" ").append(build_version);
+	std::string text2 = std::string(machine->system().manufacturer).append(" ").append(machine->system().description);
+	png_info pnginfo = { 0 };
+	png_add_text(&pnginfo, "Software", text1.c_str());
+	png_add_text(&pnginfo, "System", text2.c_str());
+
+	// now do the actual work
+	png_error error = png_write_bitmap(file, &pnginfo, avi_snap, 1 << 24, nullptr);
+	if (error != PNGERR_NONE)
+	{
+		osd_printf_error("Error generating PNG for HLSL snapshot: png_error = %d\n", error);
+	}
+
+	// free any data allocated
+	png_free(&pnginfo);
 
 	// unlock
 	result = (*d3dintf->surface.unlock_rect)(snap_copy_target);
@@ -400,7 +389,7 @@ void shaders::end_avi_recording()
 //  shaders::toggle
 //============================================================
 
-void shaders::toggle()
+void shaders::toggle(std::vector<ui_menu_item>& sliders)
 {
 	if (master_enable)
 	{
@@ -427,7 +416,7 @@ void shaders::toggle()
 		if (!initialized)
 		{
 			// re-create shader resources after renderer resources
-			bool failed = create_resources(false);
+			bool failed = create_resources(false, sliders);
 			if (failed)
 			{
 				master_enable = false;
@@ -483,7 +472,7 @@ void shaders::begin_avi_recording(const char *name)
 		}
 		else
 		{
-			filerr = open_next(d3d, tempfile, nullptr, "avi", 0);
+			filerr = machine->video().open_next(tempfile, "avi");
 		}
 
 		// compute the frame time
@@ -654,10 +643,16 @@ void shaders::init(d3d_base *d3dintf, running_machine *machine, renderer_d3d9 *r
 	// check if no driver loaded (not all settings might be loaded yet)
 	if (&machine->system() == &GAME_NAME(___empty))
 	{
+		return;
+	}
+
+	// check if another driver is loaded
+	if (std::strcmp(machine->system().name, last_system_name) != 0)
+	{
+		strncpy(last_system_name, machine->system().name, sizeof(last_system_name));
+
 		options->params_init = false;
 		last_options.params_init = false;
-
-		return;
 	}
 
 	enumerate_screens();
@@ -685,7 +680,9 @@ void shaders::init(d3d_base *d3dintf, running_machine *machine, renderer_d3d9 *r
 		options->shadow_mask_v_size = winoptions.screen_shadow_mask_v_size();
 		options->shadow_mask_u_offset = winoptions.screen_shadow_mask_u_offset();
 		options->shadow_mask_v_offset = winoptions.screen_shadow_mask_v_offset();
-		options->curvature = winoptions.screen_curvature();
+		options->distortion = winoptions.screen_distortion();
+		options->cubic_distortion = winoptions.screen_cubic_distortion();
+		options->distort_corner = winoptions.screen_distort_corner();
 		options->round_corner = winoptions.screen_round_corner();
 		options->smooth_border = winoptions.screen_smooth_border();
 		options->reflection = winoptions.screen_reflection();
@@ -827,7 +824,7 @@ void shaders::init_fsfx_quad(void *vertbuf)
 //  shaders::create_resources
 //============================================================
 
-int shaders::create_resources(bool reset)
+int shaders::create_resources(bool reset, std::vector<ui_menu_item>& sliders)
 {
 	if (!master_enable || !d3dintf->post_fx_available)
 	{
@@ -992,18 +989,19 @@ int shaders::create_resources(bool reset)
 	post_effect->add_uniform("ScanlineBrightOffset", uniform::UT_FLOAT, uniform::CU_POST_SCANLINE_BRIGHT_OFFSET);
 	post_effect->add_uniform("Power", uniform::UT_VEC3, uniform::CU_POST_POWER);
 	post_effect->add_uniform("Floor", uniform::UT_VEC3, uniform::CU_POST_FLOOR);
-	post_effect->add_uniform("RotationType", uniform::UT_INT, uniform::CU_ROTATION_TYPE);
 
 	distortion_effect->add_uniform("VignettingAmount", uniform::UT_FLOAT, uniform::CU_POST_VIGNETTING);
-	distortion_effect->add_uniform("CurvatureAmount", uniform::UT_FLOAT, uniform::CU_POST_CURVATURE);
+	distortion_effect->add_uniform("DistortionAmount", uniform::UT_FLOAT, uniform::CU_POST_DISTORTION);
+	distortion_effect->add_uniform("CubicDistortionAmount", uniform::UT_FLOAT, uniform::CU_POST_CUBIC_DISTORTION);
+	distortion_effect->add_uniform("DistortCornerAmount", uniform::UT_FLOAT, uniform::CU_POST_DISTORT_CORNER);
 	distortion_effect->add_uniform("RoundCornerAmount", uniform::UT_FLOAT, uniform::CU_POST_ROUND_CORNER);
 	distortion_effect->add_uniform("SmoothBorderAmount", uniform::UT_FLOAT, uniform::CU_POST_SMOOTH_BORDER);
 	distortion_effect->add_uniform("ReflectionAmount", uniform::UT_FLOAT, uniform::CU_POST_REFLECTION);
-	distortion_effect->add_uniform("RotationType", uniform::UT_INT, uniform::CU_ROTATION_TYPE);
 
 	initialized = true;
 
-	init_slider_list();
+	std::vector<ui_menu_item> my_sliders = init_slider_list();
+	sliders.insert(sliders.end(), my_sliders.begin(), my_sliders.end());
 
 	return 0;
 }
@@ -1378,15 +1376,11 @@ int shaders::post_pass(d3d_render_target *rt, int source_index, poly_info *poly,
 	int next_index = source_index;
 
 	screen_device_iterator screen_iterator(machine->root_device());
-	screen_device *screen = screen_iterator.first();
-	for (int i = 0; i < curr_screen; i++)
-	{
-		screen = screen_iterator.next();
-	}
+	screen_device *screen = screen_iterator.byindex(curr_screen);
 	render_container &screen_container = screen->container();
 
-	float xscale = screen_container.xscale();
-	float yscale = screen_container.yscale();
+	float xscale = 1.0f / screen_container.xscale();
+	float yscale = 1.0f / screen_container.yscale();
 	float xoffset = -screen_container.xoffset();
 	float yoffset = -screen_container.yoffset();
 
@@ -1502,7 +1496,9 @@ int shaders::distortion_pass(d3d_render_target *rt, int source_index, poly_info 
 	// skip distortion if no influencing settings
 	if (options->reflection == 0 &&
 		options->vignetting == 0 &&
-		options->curvature == 0 &&
+		options->distortion == 0 &&
+		options->cubic_distortion == 0 &&
+		options->distort_corner == 0 &&
 		options->round_corner == 0 &&
 		options->smooth_border == 0)
 	{
@@ -1562,17 +1558,29 @@ int shaders::screen_pass(d3d_render_target *rt, int source_index, poly_info *pol
 
 	curr_effect->set_texture("Diffuse", rt->target_texture[next_index]);
 
-	// we do not clear the backbuffe here because multiple screens might be rendered into
+	// we do not clear the backbuffer here because multiple screens might be rendered into
 	blit(backbuffer, false, poly->get_type(), vertnum, poly->get_count());
 
 	if (avi_output_file != nullptr)
 	{
 		blit(avi_final_target, false, poly->get_type(), vertnum, poly->get_count());
+
+		HRESULT result = (*d3dintf->device.set_render_target)(d3d->get_device(), 0, backbuffer);
+		if (result != D3D_OK)
+		{
+			osd_printf_verbose("Direct3D: Error %08X during device set_render_target call\n", (int)result);
+		}
 	}
 
 	if (render_snap)
 	{
 		blit(snap_target, false, poly->get_type(), vertnum, poly->get_count());
+
+		HRESULT result = (*d3dintf->device.set_render_target)(d3d->get_device(), 0, backbuffer);
+		if (result != D3D_OK)
+		{
+			osd_printf_verbose("Direct3D: Error %08X during device set_render_target call\n", (int)result);
+		}
 
 		snap_rendered = true;
 	}
@@ -1603,6 +1611,8 @@ void shaders::render_quad(poly_info *poly, int vertnum)
 
 	curr_texture = poly->get_texture();
 	curr_poly = poly;
+
+	auto win = d3d->assert_window();
 
 	if (PRIMFLAG_GET_SCREENTEX(d3d->get_last_texture_flags()) && curr_texture != nullptr)
 	{
@@ -1655,7 +1665,11 @@ void shaders::render_quad(poly_info *poly, int vertnum)
 	{
 		lines_pending = true;
 
-		curr_render_target = find_render_target(d3d->get_width(), d3d->get_height(), 0, 0);
+		bool swap_xy = win->swap_xy();
+		int source_width = swap_xy ? (float)d3d->get_height() : (float)d3d->get_width();
+		int source_height = swap_xy ? (float)d3d->get_width() : (float)d3d->get_height();
+
+		curr_render_target = find_render_target(source_width, source_height, 0, 0);
 
 		d3d_render_target *rt = curr_render_target;
 		if (rt == nullptr)
@@ -1678,7 +1692,11 @@ void shaders::render_quad(poly_info *poly, int vertnum)
 	{
 		curr_screen = curr_screen < num_screens ? curr_screen : 0;
 
-		curr_render_target = find_render_target(d3d->get_width(), d3d->get_height(), 0, 0);
+		bool swap_xy = win->swap_xy();
+		int source_width = swap_xy ? (float)d3d->get_height() : (float)d3d->get_width();
+		int source_height = swap_xy ? (float)d3d->get_width() : (float)d3d->get_height();
+
+		curr_render_target = find_render_target(source_width, source_height, 0, 0);
 
 		d3d_render_target *rt = curr_render_target;
 		if (rt == nullptr)
@@ -1789,7 +1807,9 @@ d3d_render_target* shaders::get_texture_target(render_primitive *prim, texture_i
 		return nullptr;
 	}
 
-	bool swap_xy = d3d->swap_xy();
+	auto win = d3d->assert_window();
+
+	bool swap_xy = win->swap_xy();
 	int target_width = swap_xy
 		? static_cast<int>(prim->get_quad_height() + 0.5f)
 		: static_cast<int>(prim->get_quad_width() + 0.5f);
@@ -1819,14 +1839,23 @@ d3d_render_target* shaders::get_vector_target(render_primitive *prim)
 		return nullptr;
 	}
 
-	int target_width = static_cast<int>(prim->get_quad_width() + 0.5f);
-	int target_height = static_cast<int>(prim->get_quad_height() + 0.5f);
+	auto win = d3d->assert_window();
+
+	bool swap_xy = win->swap_xy();
+	int target_width = swap_xy
+		? static_cast<int>(prim->get_quad_height() + 0.5f)
+		: static_cast<int>(prim->get_quad_width() + 0.5f);
+	int target_height = swap_xy
+		? static_cast<int>(prim->get_quad_width() + 0.5f)
+		: static_cast<int>(prim->get_quad_height() + 0.5f);
+	int source_width = swap_xy ? (float)d3d->get_height() : (float)d3d->get_width();
+	int source_height = swap_xy ? (float)d3d->get_width() : (float)d3d->get_height();
 
 	target_width *= oversampling_enable ? 2 : 1;
 	target_height *= oversampling_enable ? 2 : 1;
 
 	// find render target and check of the size of the target quad has changed
-	d3d_render_target *target = find_render_target(d3d->get_width(), d3d->get_height(), 0, 0);
+	d3d_render_target *target = find_render_target(source_width, source_height, 0, 0);
 	if (target != nullptr && target->target_width == target_width && target->target_height == target_height)
 	{
 		return target;
@@ -1839,14 +1868,23 @@ d3d_render_target* shaders::get_vector_target(render_primitive *prim)
 
 void shaders::create_vector_target(render_primitive *prim)
 {
-	int target_width = static_cast<int>(prim->get_quad_width() + 0.5f);
-	int target_height = static_cast<int>(prim->get_quad_height() + 0.5f);
+	auto win = d3d->assert_window();
+
+	bool swap_xy = win->swap_xy();
+	int target_width = swap_xy
+		? static_cast<int>(prim->get_quad_height() + 0.5f)
+		: static_cast<int>(prim->get_quad_width() + 0.5f);
+	int target_height = swap_xy
+		? static_cast<int>(prim->get_quad_width() + 0.5f)
+		: static_cast<int>(prim->get_quad_height() + 0.5f);
+	int source_width = swap_xy ? (float)d3d->get_height() : (float)d3d->get_width();
+	int source_height = swap_xy ? (float)d3d->get_width() : (float)d3d->get_height();
 
 	target_width *= oversampling_enable ? 2 : 1;
 	target_height *= oversampling_enable ? 2 : 1;
 
 	osd_printf_verbose("create_vector_target() - %d, %d\n", target_width, target_height);
-	if (!add_render_target(d3d, nullptr, d3d->get_width(), d3d->get_height(), target_width, target_height))
+	if (!add_render_target(d3d, nullptr, source_width, source_height, target_width, target_height))
 	{
 		vector_enable = false;
 	}
@@ -1944,7 +1982,9 @@ bool shaders::register_texture(render_primitive *prim, texture_info *texture)
 		return false;
 	}
 
-	bool swap_xy = d3d->swap_xy();
+	auto win = d3d->assert_window();
+
+	bool swap_xy = win->swap_xy();
 	int target_width = swap_xy
 		? static_cast<int>(prim->get_quad_height() + 0.5f)
 		: static_cast<int>(prim->get_quad_width() + 0.5f);
@@ -2103,8 +2143,6 @@ void shaders::delete_resources(bool reset)
 	}
 
 	shadow_bitmap.reset();
-
-	g_slider_list = nullptr;
 }
 
 
@@ -2226,7 +2264,7 @@ INT32 slider::update(std::string *str, INT32 newval)
 	return 0;
 }
 
-static INT32 slider_update_trampoline(running_machine &machine, void *arg, std::string *str, INT32 newval)
+static INT32 slider_update_trampoline(running_machine &machine, void *arg, int id, std::string *str, INT32 newval)
 {
 	if (arg != nullptr)
 	{
@@ -2234,6 +2272,8 @@ static INT32 slider_update_trampoline(running_machine &machine, void *arg, std::
 	}
 	return 0;
 }
+
+char shaders::last_system_name[16];
 
 hlsl_options shaders::last_options = { false };
 
@@ -2249,7 +2289,9 @@ enum slider_option
 	SLIDER_SHADOW_MASK_V_SIZE,
 	SLIDER_SHADOW_MASK_U_OFFSET,
 	SLIDER_SHADOW_MASK_V_OFFSET,
-	SLIDER_CURVATURE,
+	SLIDER_DISTORTION,
+	SLIDER_CUBIC_DISTORTION,
+	SLIDER_DISTORT_CORNER,
 	SLIDER_ROUND_CORNER,
 	SLIDER_SMOOTH_BORDER,
 	SLIDER_REFLECTION,
@@ -2324,7 +2366,9 @@ slider_desc shaders::s_sliders[] =
 	{ "Shadow Mask Pixel Count Y",          1,     1,    64, 1, SLIDER_FLOAT,    SLIDER_SCREEN_TYPE_ANY,           SLIDER_SHADOW_MASK_V_SIZE,      0.03125f, "%2.5f", {} },
 	{ "Shadow Mask Offset X",            -100,     0,   100, 1, SLIDER_FLOAT,    SLIDER_SCREEN_TYPE_ANY,           SLIDER_SHADOW_MASK_U_OFFSET,    0.01f,    "%1.2f", {} },
 	{ "Shadow Mask Offset Y",            -100,     0,   100, 1, SLIDER_FLOAT,    SLIDER_SCREEN_TYPE_ANY,           SLIDER_SHADOW_MASK_V_OFFSET,    0.01f,    "%1.2f", {} },
-	{ "Screen Curvature",                   0,     0,   100, 1, SLIDER_FLOAT,    SLIDER_SCREEN_TYPE_ANY,           SLIDER_CURVATURE,               0.01f,    "%2.2f", {} },
+	{ "Screen Distortion",               -100,     0,   100, 1, SLIDER_FLOAT,    SLIDER_SCREEN_TYPE_ANY,           SLIDER_DISTORTION,              0.01f,    "%2.2f", {} },
+	{ "Screen Distortion (Cubic)",       -100,     0,   100, 1, SLIDER_FLOAT,    SLIDER_SCREEN_TYPE_ANY,           SLIDER_CUBIC_DISTORTION,        0.01f,    "%2.2f", {} },
+	{ "Screen Distort Corner",              0,     0,   100, 1, SLIDER_FLOAT,    SLIDER_SCREEN_TYPE_ANY,           SLIDER_DISTORT_CORNER,          0.01f,    "%1.2f", {} },
 	{ "Screen Round Corner",                0,     0,   100, 1, SLIDER_FLOAT,    SLIDER_SCREEN_TYPE_ANY,           SLIDER_ROUND_CORNER,            0.01f,    "%1.2f", {} },
 	{ "Screen Smooth Border",               0,     0,   100, 1, SLIDER_FLOAT,    SLIDER_SCREEN_TYPE_ANY,           SLIDER_SMOOTH_BORDER,           0.01f,    "%1.2f", {} },
 	{ "Screen Reflection",                  0,     0,   100, 1, SLIDER_FLOAT,    SLIDER_SCREEN_TYPE_ANY,           SLIDER_REFLECTION,              0.01f,    "%1.2f", {} },
@@ -2379,10 +2423,6 @@ slider_desc shaders::s_sliders[] =
 };
 
 
-//============================================================
-//  init_slider_list
-//============================================================
-
 void *shaders::get_slider_option(int id, int index)
 {
 	switch (id)
@@ -2397,7 +2437,9 @@ void *shaders::get_slider_option(int id, int index)
 		case SLIDER_SHADOW_MASK_V_SIZE: return &(options->shadow_mask_v_size);
 		case SLIDER_SHADOW_MASK_U_OFFSET: return &(options->shadow_mask_u_offset);
 		case SLIDER_SHADOW_MASK_V_OFFSET: return &(options->shadow_mask_v_offset);
-		case SLIDER_CURVATURE: return &(options->curvature);
+		case SLIDER_DISTORTION: return &(options->distortion);
+		case SLIDER_CUBIC_DISTORTION: return &(options->cubic_distortion);
+		case SLIDER_DISTORT_CORNER: return &(options->distort_corner);
 		case SLIDER_ROUND_CORNER: return &(options->round_corner);
 		case SLIDER_SMOOTH_BORDER: return &(options->smooth_border);
 		case SLIDER_REFLECTION: return &(options->reflection);
@@ -2452,15 +2494,15 @@ void *shaders::get_slider_option(int id, int index)
 	return nullptr;
 }
 
-void shaders::init_slider_list()
+std::vector<ui_menu_item> shaders::init_slider_list()
 {
-	if (!master_enable || !d3dintf->post_fx_available)
-	{
-		g_slider_list = nullptr;
-	}
+	std::vector<ui_menu_item> sliders;
 
-	slider_state *listhead = nullptr;
-	slider_state **tailptr = &listhead;
+	for (slider* slider : internal_sliders)
+	{
+		delete slider;
+	}
+	internal_sliders.clear();
 
 	for (int i = 0; s_sliders[i].name != nullptr; i++)
 	{
@@ -2488,7 +2530,7 @@ void shaders::init_slider_list()
 			for (int j = 0; j < count; j++)
 			{
 				slider* slider_arg = new slider(desc, get_slider_option(desc->id, j), &options->params_dirty);
-				sliders.push_back(slider_arg);
+				internal_sliders.push_back(slider_arg);
 				std::string name = desc->name;
 				switch (desc->slider_type)
 				{
@@ -2507,13 +2549,21 @@ void shaders::init_slider_list()
 					default:
 						break;
 				}
-				*tailptr = slider_alloc(*machine, desc->id, name.c_str(), desc->minval, desc->defval, desc->maxval, desc->step, slider_update_trampoline, slider_arg);
-				tailptr = &(*tailptr)->next;
+
+                slider_state* core_slider = slider_alloc(*machine, desc->id, name.c_str(), desc->minval, desc->defval, desc->maxval, desc->step, slider_update_trampoline, slider_arg);
+
+                ui_menu_item item;
+                item.text = core_slider->description;
+                item.subtext = "";
+                item.flags = 0;
+                item.ref = core_slider;
+                item.type = ui_menu_item_type::SLIDER;
+                sliders.push_back(item);
 			}
 		}
 	}
 
-	g_slider_list = listhead;
+	return sliders;
 }
 
 
@@ -2574,6 +2624,8 @@ void uniform::update()
 	hlsl_options *options = shadersys->options;
 	renderer_d3d9 *d3d = shadersys->d3d;
 
+	auto win = d3d->assert_window();
+
 	switch (m_id)
 	{
 		case CU_SCREEN_DIMS:
@@ -2584,10 +2636,26 @@ void uniform::update()
 		}
 		case CU_SOURCE_DIMS:
 		{
-			if (shadersys->curr_texture)
+			bool vector_screen =
+				win->machine().first_screen()->screen_type() == SCREEN_TYPE_VECTOR;
+			if (vector_screen)
 			{
-				vec2f sourcedims = shadersys->curr_texture->get_rawdims();
-				m_shader->set_vector("SourceDims", 2, &sourcedims.c.x);
+				if (shadersys->curr_render_target)
+				{
+					// vector screen has no source texture, so take the source dimensions of the render target
+					float sourcedims[2] = {
+						static_cast<float>(shadersys->curr_render_target->width),
+						static_cast<float>(shadersys->curr_render_target->height) };
+					m_shader->set_vector("SourceDims", 2, sourcedims);
+				}
+			}
+			else
+			{
+				if (shadersys->curr_texture)
+				{
+					vec2f sourcedims = shadersys->curr_texture->get_rawdims();
+					m_shader->set_vector("SourceDims", 2, &sourcedims.c.x);
+				}
 			}
 			break;
 		}
@@ -2617,42 +2685,13 @@ void uniform::update()
 
 		case CU_SWAP_XY:
 		{
-			m_shader->set_bool("SwapXY", d3d->swap_xy());
-			break;
-		}
-		case CU_ORIENTATION_SWAP:
-		{
-			bool orientation_swap_xy =
-				(d3d->window().machine().system().flags & ORIENTATION_SWAP_XY) == ORIENTATION_SWAP_XY;
-			m_shader->set_bool("OrientationSwapXY", orientation_swap_xy);
-			break;
-
-		}
-		case CU_ROTATION_SWAP:
-		{
-			bool rotation_swap_xy =
-				(d3d->window().target()->orientation() & ROT90) == ROT90 ||
-				(d3d->window().target()->orientation() & ROT270) == ROT270;
-			m_shader->set_bool("RotationSwapXY", rotation_swap_xy);
-			break;
-		}
-		case CU_ROTATION_TYPE:
-		{
-			int rotation_type =
-				(d3d->window().target()->orientation() & ROT90) == ROT90
-					? 1
-					: (d3d->window().target()->orientation() & ROT180) == ROT180
-						? 2
-						: (d3d->window().target()->orientation() & ROT270) == ROT270
-							? 3
-							: 0;
-			m_shader->set_int("RotationType", rotation_type);
+			m_shader->set_bool("SwapXY", win->swap_xy());
 			break;
 		}
 		case CU_VECTOR_SCREEN:
 		{
 			bool vector_screen =
-				d3d->window().machine().first_screen()->screen_type() == SCREEN_TYPE_VECTOR;
+				win->machine().first_screen()->screen_type() == SCREEN_TYPE_VECTOR;
 			m_shader->set_bool("VectorScreen", vector_screen);
 			break;
 		}
@@ -2737,8 +2776,14 @@ void uniform::update()
 		case CU_POST_VIGNETTING:
 			m_shader->set_float("VignettingAmount", options->vignetting);
 			break;
-		case CU_POST_CURVATURE:
-			m_shader->set_float("CurvatureAmount", options->curvature);
+		case CU_POST_DISTORTION:
+			m_shader->set_float("DistortionAmount", options->distortion);
+			break;
+		case CU_POST_CUBIC_DISTORTION:
+			m_shader->set_float("CubicDistortionAmount", options->cubic_distortion);
+			break;
+		case CU_POST_DISTORT_CORNER:
+			m_shader->set_float("DistortCornerAmount", options->distort_corner);
 			break;
 		case CU_POST_ROUND_CORNER:
 			m_shader->set_float("RoundCornerAmount", options->round_corner);
@@ -3049,166 +3094,4 @@ D3DXHANDLE effect::get_parameter(D3DXHANDLE param, const char *name)
 ULONG effect::release()
 {
 	return m_effect->Release();
-}
-
-
-//============================================================
-//  get_slider_list
-//============================================================
-
-slider_state *renderer_d3d9::get_slider_list()
-{
-	if (window().m_index > 0)
-	{
-		return nullptr;
-	}
-	return g_slider_list;
-}
-
-
-// NOTE: The function below is taken directly from src/emu/video.c and should likely be moved into a global helper function.
-//-------------------------------------------------
-//  open_next - open the next non-existing file of
-//  type filetype according to our numbering
-//  scheme
-//-------------------------------------------------
-
-static osd_file::error open_next(renderer_d3d9 *d3d, emu_file &file, const char *templ, const char *extension, int idx)
-{
-	UINT32 origflags = file.openflags();
-
-	// handle defaults
-	const char *snapname = templ ? templ : d3d->window().machine().options().snap_name();
-
-	if (snapname == nullptr || snapname[0] == 0)
-	{
-		snapname = "%g/%i";
-	}
-	std::string snapstr(snapname);
-
-	// strip any extension in the provided name
-	int index = snapstr.find_last_of('.');
-	if (index != -1)
-	{
-		snapstr.substr(0, index);
-	}
-
-	// handle %d in the template (for image devices)
-	std::string snapdev("%d_");
-	int pos = snapstr.find(snapdev,0);
-
-	if (pos != -1)
-	{
-		// if more %d are found, revert to default and ignore them all
-		if (snapstr.find(snapdev, pos + 3) != -1)
-		{
-			snapstr.assign("%g/%i");
-		}
-		// else if there is a single %d, try to create the correct snapname
-		else
-		{
-			int name_found = 0;
-
-			// find length of the device name
-			int end1 = snapstr.find("/", pos + 3);
-			int end2 = snapstr.find("%", pos + 3);
-			int end;
-
-			if ((end1 != -1) && (end2 != -1))
-			{
-				end = MIN(end1, end2);
-			}
-			else if (end1 != -1)
-			{
-				end = end1;
-			}
-			else if (end2 != -1)
-			{
-				end = end2;
-			}
-			else
-			{
-				end = snapstr.length();
-			}
-
-			if (end - pos < 3)
-			{
-				fatalerror("Something very wrong is going on!!!\n");
-			}
-
-			// copy the device name to a string
-			std::string snapdevname;
-			snapdevname.assign(snapstr.substr(pos + 3, end - pos - 3));
-
-			// verify that there is such a device for this system
-			image_interface_iterator iter(d3d->window().machine().root_device());
-			for (device_image_interface *image = iter.first(); image != nullptr; iter.next())
-			{
-				// get the device name
-				std::string tempdevname(image->brief_instance_name());
-
-				if (snapdevname.compare(tempdevname) == 0)
-				{
-					// verify that such a device has an image mounted
-					if (image->basename() != nullptr)
-					{
-						std::string filename(image->basename());
-
-						// strip extension
-						filename.substr(0, filename.find_last_of('.'));
-
-						// setup snapname and remove the %d_
-						strreplace(snapstr, snapdevname.c_str(), filename.c_str());
-						snapstr.erase(pos, 3);
-
-						name_found = 1;
-					}
-				}
-			}
-
-			// or fallback to default
-			if (name_found == 0)
-			{
-				snapstr.assign("%g/%i");
-			}
-		}
-	}
-
-	// add our own index
-	// add our own extension
-	snapstr.append(".").append(extension);
-
-	// substitute path and gamename up front
-	strreplace(snapstr, "/", PATH_SEPARATOR);
-	strreplace(snapstr, "%g", d3d->window().machine().basename());
-
-	// determine if the template has an index; if not, we always use the same name
-	std::string fname;
-	if (snapstr.find("%i") == -1)
-	{
-		fname.assign(snapstr);
-	}
-
-	// otherwise, we scan for the next available filename
-	else
-	{
-		// try until we succeed
-		file.set_openflags(OPEN_FLAG_READ);
-		for (int seq = 0; ; seq++)
-		{
-			// build up the filename
-			strreplace(fname.assign(snapstr), "%i", string_format("%04d_%d", seq, idx).c_str());
-
-			// try to open the file; stop when we fail
-			osd_file::error filerr = file.open(fname.c_str());
-			if (filerr != osd_file::error::NONE)
-			{
-				break;
-			}
-		}
-	}
-
-	// create the final file
-	file.set_openflags(origflags);
-	return file.open(fname.c_str());
 }

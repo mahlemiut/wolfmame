@@ -32,6 +32,7 @@
 #define MENU_FLAG_UI_SWLIST         (1 << 8)
 #define MENU_FLAG_UI_FAVORITE       (1 << 9)
 #define MENU_FLAG_UI_PALETTE        (1 << 10)
+#define MENU_FLAG_UI_HEADING        (1 << 11)
 
 // special menu item for separators
 #define MENU_SEPARATOR_ITEM         "---"
@@ -52,6 +53,13 @@ enum ui_menu_reset_options
 	UI_MENU_RESET_REMEMBER_REF
 };
 
+// types of menu items (TODO: please expand)
+enum class ui_menu_item_type
+{
+	UNKNOWN,
+	SLIDER,
+	SEPARATOR
+};
 
 
 /***************************************************************************
@@ -61,9 +69,11 @@ enum ui_menu_reset_options
 // menu-related events
 struct ui_menu_event
 {
-	void         *itemref;   // reference for the selected item
-	int          iptkey;     // one of the IPT_* values from inptport.h
-	unicode_char unichar;    // unicode character if iptkey == IPT_SPECIAL
+	void         		*itemref;   // reference for the selected item
+	ui_menu_item_type	type;		// item type (eventually will go away when itemref is proper ui_menu_item class rather than void*)
+	int          		iptkey;     // one of the IPT_* values from inptport.h
+	unicode_char 		unichar;    // unicode character if iptkey == IPT_SPECIAL
+	render_bounds       mouse;		// mouse position if iptkey == IPT_CUSTOM
 };
 
 struct ui_menu_pool
@@ -77,10 +87,11 @@ struct ui_menu_pool
 class ui_menu_item
 {
 public:
-	const char  *text;
-	const char  *subtext;
-	UINT32      flags;
-	void        *ref;
+	const char  		*text;
+	const char  		*subtext;
+	UINT32      		flags;
+	void        		*ref;
+	ui_menu_item_type	type;	// item type (eventually will go away when itemref is proper ui_menu_item class rather than void*)
 
 	inline bool is_selectable() const;
 };
@@ -110,10 +121,12 @@ public:
 	void reset(ui_menu_reset_options options);
 
 	// append a new item to the end of the menu
-	void item_append(const char *text, const char *subtext, UINT32 flags, void *ref);
+	void item_append(const char *text, const char *subtext, UINT32 flags, void *ref, ui_menu_item_type type = ui_menu_item_type::UNKNOWN);
+	void item_append(ui_menu_item item);
+	void item_append(ui_menu_item_type type);
 
 	// process a menu, drawing it and returning any interesting events
-	const ui_menu_event *process(UINT32 flags);
+	const ui_menu_event *process(UINT32 flags, float x0 = 0.0f, float y0 = 0.0f);
 
 	// configure the menu for custom rendering
 	virtual void custom_render(void *selectedref, float top, float bottom, float x, float y, float x2, float y2);
@@ -182,7 +195,7 @@ private:
 	bool m_special_main_menu;
 	running_machine &m_machine;  // machine we are attached to
 
-	void draw(bool customonly, bool noimage, bool noinput);
+	void draw(UINT32 flags, float x0 = 0.0f, float y0 = 0.0f);
 	void draw_text_box();
 	void handle_events(UINT32 flags);
 	void handle_keys(UINT32 flags);
@@ -284,7 +297,7 @@ private:
 	static render_texture *toolbar_texture[], *sw_toolbar_texture[];
 
 	// draw game list
-	void draw_select_game(bool noinput);
+	void draw_select_game(UINT32 flags);
 
 	// draw palette menu
 	void draw_palette_menu();

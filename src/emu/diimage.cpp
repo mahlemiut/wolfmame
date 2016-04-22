@@ -68,6 +68,7 @@ device_image_interface::device_image_interface(const machine_config &mconfig, de
 		m_from_swlist(false),
 		m_create_format(0),
 		m_create_args(nullptr),
+        m_user_loadable(TRUE),
 		m_is_loading(FALSE)
 {
 }
@@ -161,16 +162,16 @@ image_error_t device_image_interface::set_image_filename(const char *filename)
 	util::zippath_parent(m_working_directory, filename);
 	m_basename.assign(m_image_name);
 
-	size_t loc1 = m_image_name.find_last_of('\\');
-	size_t loc2 = m_image_name.find_last_of('/');
-	size_t loc3 = m_image_name.find_last_of(':');
-	size_t loc = MAX(loc1,MAX(loc2, loc3));
+	int loc1 = m_image_name.find_last_of('\\');
+	int loc2 = m_image_name.find_last_of('/');
+	int loc3 = m_image_name.find_last_of(':');
+	int loc = MAX(loc1, MAX(loc2, loc3));
 	if (loc != -1) {
 		if (loc == loc3)
 		{
 			// temp workaround for softlists now that m_image_name contains the part name too (e.g. list:gamename:cart)
 			m_basename = m_basename.substr(0, loc);
-			size_t tmploc = m_basename.find_last_of(':');
+			int tmploc = m_basename.find_last_of(':');
 			m_basename = m_basename.substr(tmploc + 1, loc - tmploc);
 		}
 		else
@@ -199,9 +200,9 @@ image_error_t device_image_interface::set_image_filename(const char *filename)
 
 const image_device_format *device_image_interface::device_get_named_creatable_format(const char *format_name)
 {
-	for (const image_device_format *format = m_formatlist.first(); format != nullptr; format = format->next())
-		if (strcmp(format->name(), format_name) == 0)
-			return format;
+	for (const image_device_format &format : m_formatlist)
+		if (strcmp(format.name(), format_name) == 0)
+			return &format;
 	return nullptr;
 }
 
@@ -1150,14 +1151,13 @@ void device_image_interface::unload()
 
 void device_image_interface::update_names(const device_type device_type, const char *inst, const char *brief)
 {
-	image_interface_iterator iter(device().mconfig().root_device());
 	int count = 0;
 	int index = -1;
-	for (const device_image_interface *image = iter.first(); image != nullptr; image = iter.next())
+	for (const device_image_interface &image : image_interface_iterator(device().mconfig().root_device()))
 	{
-		if (this == image)
+		if (this == &image)
 			index = count;
-		if ((image->image_type() == image_type() && device_type==nullptr) || (device_type==image->device().type()))
+		if ((image.image_type() == image_type() && device_type == nullptr) || (device_type == image.device().type()))
 			count++;
 	}
 	const char *inst_name = (device_type!=nullptr) ? inst : device_typename(image_type());
@@ -1233,12 +1233,11 @@ software_part *device_image_interface::find_software_item(const char *path, bool
 		interface = image_interface();
 
 	// find the software list if explicitly specified
-	software_list_device_iterator deviter(device().mconfig().root_device());
-	for (software_list_device *swlistdev = deviter.first(); swlistdev != nullptr; swlistdev = deviter.next())
+	for (software_list_device &swlistdev : software_list_device_iterator(device().mconfig().root_device()))
 	{
-		if (swlist_name.compare(swlistdev->list_name())==0 || !(swlist_name.length() > 0))
+		if (swlist_name.compare(swlistdev.list_name())==0 || !(swlist_name.length() > 0))
 		{
-			software_info *info = swlistdev->find(swinfo_name.c_str());
+			software_info *info = swlistdev.find(swinfo_name.c_str());
 			if (info != nullptr)
 			{
 				software_part *part = info->find_part(swpart_name.c_str(), interface);
@@ -1247,13 +1246,13 @@ software_part *device_image_interface::find_software_item(const char *path, bool
 			}
 		}
 
-		if (swinfo_name == swlistdev->list_name())
+		if (swinfo_name == swlistdev.list_name())
 		{
 			// ad hoc handling for the case path = swlist_name:swinfo_name (e.g.
 			// gameboy:sml) which is not handled properly by software_name_split
 			// since the function cannot distinguish between this and the case
 			// path = swinfo_name:swpart_name
-			software_info *info = swlistdev->find(swpart_name.c_str());
+			software_info *info = swlistdev.find(swpart_name.c_str());
 			if (info != nullptr)
 			{
 				software_part *part = info->find_part(nullptr, interface);
@@ -1308,20 +1307,19 @@ bool device_image_interface::load_software_part(const char *path, software_part 
 		software_part *req_swpart = find_software_item(requirement, false);
 		if (req_swpart != nullptr)
 		{
-			image_interface_iterator imgiter(device().machine().root_device());
-			for (device_image_interface *req_image = imgiter.first(); req_image != nullptr; req_image = imgiter.next())
+			for (device_image_interface &req_image : image_interface_iterator(device().machine().root_device()))
 			{
-				const char *interface = req_image->image_interface();
+				const char *interface = req_image.image_interface();
 				if (interface != nullptr)
 				{
 					if (req_swpart->matches_interface(interface))
 					{
-						const char *option = device().mconfig().options().value(req_image->brief_instance_name());
+						const char *option = device().mconfig().options().value(req_image.brief_instance_name());
 						// mount only if not already mounted
-						if (*option == '\0' && !req_image->filename())
+						if (*option == '\0' && !req_image.filename())
 						{
-							req_image->set_init_phase();
-							req_image->load(requirement);
+							req_image.set_init_phase();
+							req_image.load(requirement);
 						}
 						break;
 					}

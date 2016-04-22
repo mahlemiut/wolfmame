@@ -66,9 +66,9 @@ debug_view_disasm::debug_view_disasm(running_machine &machine, debug_view_osd_up
 
 	// count the number of comments
 	int total_comments = 0;
-	for (const debug_view_source *source = m_source_list.first(); source != nullptr; source = source->next())
+	for (const debug_view_source &source : m_source_list)
 	{
-		const debug_view_disasm_source &dasmsource = downcast<const debug_view_disasm_source &>(*source);
+		const debug_view_disasm_source &dasmsource = downcast<const debug_view_disasm_source &>(source);
 		total_comments += dasmsource.m_device.debug()->comment_count();
 	}
 
@@ -98,13 +98,12 @@ void debug_view_disasm::enumerate_sources()
 	m_source_list.reset();
 
 	// iterate over devices with disassembly interfaces
-	disasm_interface_iterator iter(machine().root_device());
 	std::string name;
-	for (device_disasm_interface *dasm = iter.first(); dasm != nullptr; dasm = iter.next())
+	for (device_disasm_interface &dasm : disasm_interface_iterator(machine().root_device()))
 	{
-		name = string_format("%s '%s'", dasm->device().name(), dasm->device().tag());
-		if (dasm->device().memory().space_config(AS_PROGRAM)!=nullptr)
-			m_source_list.append(*global_alloc(debug_view_disasm_source(name.c_str(), dasm->device())));
+		name = string_format("%s '%s'", dasm.device().name(), dasm.device().tag());
+		if (dasm.device().memory().space_config(AS_PROGRAM)!=nullptr)
+			m_source_list.append(*global_alloc(debug_view_disasm_source(name.c_str(), dasm.device())));
 	}
 
 	// reset the source to a known good entry

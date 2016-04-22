@@ -103,7 +103,10 @@ void ui_simple_menu_select_game::handle()
 	{
 		// reset the error on any future menu_event
 		if (m_error)
+		{
 			m_error = false;
+			machine().ui_input().reset();
+		}
 
 		// handle selections
 		else
@@ -258,7 +261,7 @@ void ui_simple_menu_select_game::populate()
 	// if we're forced into this, allow general input configuration as well
 	if (ui_menu::stack_has_special_main_menu())
 	{
-		item_append(MENU_SEPARATOR_ITEM, nullptr, 0, nullptr);
+		item_append(ui_menu_item_type::SEPARATOR);
 		item_append(_("Configure Options"), nullptr, 0, (void *)1);
 		skip_main_items = 1;
 	}

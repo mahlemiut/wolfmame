@@ -153,12 +153,11 @@ void debug_view_watchpoints::enumerate_sources()
 	m_source_list.reset();
 
 	// iterate over devices with disassembly interfaces
-	disasm_interface_iterator iter(machine().root_device());
-	for (device_disasm_interface *dasm = iter.first(); dasm != nullptr; dasm = iter.next())
+	for (device_disasm_interface &dasm : disasm_interface_iterator(machine().root_device()))
 	{
 		std::string name;
-		name = string_format("%s '%s'", dasm->device().name(), dasm->device().tag());
-		m_source_list.append(*global_alloc(debug_view_source(name.c_str(), &dasm->device())));
+		name = string_format("%s '%s'", dasm.device().name(), dasm.device().tag());
+		m_source_list.append(*global_alloc(debug_view_source(name.c_str(), &dasm.device())));
 	}
 
 	// reset the source to a known good entry
@@ -224,10 +223,10 @@ void debug_view_watchpoints::pad_ostream_to_length(std::ostream& str, int len)
 void debug_view_watchpoints::gather_watchpoints()
 {
 	m_buffer.resize(0);
-	for (const debug_view_source *source = m_source_list.first(); source != nullptr; source = source->next())
+	for (const debug_view_source &source : m_source_list)
 	{
 		// Collect
-		device_debug &debugInterface = *source->device()->debug();
+		device_debug &debugInterface = *source.device()->debug();
 		for (address_spacenum spacenum = AS_0; spacenum < ADDRESS_SPACES; ++spacenum)
 		{
 			for (device_debug::watchpoint *wp = debugInterface.watchpoint_first(spacenum); wp != nullptr; wp = wp->next())

@@ -85,9 +85,6 @@
 
 /**************************** common *******************************/
 
-/* layout */
-static const char layout_thomson[] = "thomson";
-
 #define KEY(pos,name,key)                   \
 	PORT_BIT  ( 1<<(pos), IP_ACTIVE_LOW, IPT_KEYBOARD ) \
 	PORT_NAME ( name )                  \
@@ -630,7 +627,6 @@ static MACHINE_CONFIG_START( to7, thomson_state )
 	MCFG_PALETTE_ADD ( "palette", 4097 ) /* 12-bit color + transparency */
 	MCFG_PALETTE_INIT_OWNER(thomson_state, thom)
 	MCFG_VIDEO_START_OVERRIDE( thomson_state, thom )
-	MCFG_DEFAULT_LAYOUT( layout_thomson )
 
 /* sound */
 	MCFG_SPEAKER_STANDARD_MONO("mono")
@@ -667,16 +663,16 @@ static MACHINE_CONFIG_START( to7, thomson_state )
 	MCFG_FLOPPY_DRIVE_ADD("wd2793:1", cd90_640_floppies, "dd", thomson_state::cd90_640_formats)
 
 	MCFG_DEVICE_ADD(FLOPPY_0, LEGACY_FLOPPY, 0)
-	MCFG_DEVICE_CONFIG(thomson_floppy_interface)
+	MCFG_LEGACY_FLOPPY_CONFIG(thomson_floppy_interface)
 	MCFG_LEGACY_FLOPPY_IDX_CB(WRITELINE(thomson_state, fdc_index_0_w))
 	MCFG_DEVICE_ADD(FLOPPY_1, LEGACY_FLOPPY, 0)
-	MCFG_DEVICE_CONFIG(thomson_floppy_interface)
+	MCFG_LEGACY_FLOPPY_CONFIG(thomson_floppy_interface)
 	MCFG_LEGACY_FLOPPY_IDX_CB(WRITELINE(thomson_state, fdc_index_1_w))
 	MCFG_DEVICE_ADD(FLOPPY_2, LEGACY_FLOPPY, 0)
-	MCFG_DEVICE_CONFIG(thomson_floppy_interface)
+	MCFG_LEGACY_FLOPPY_CONFIG(thomson_floppy_interface)
 	MCFG_LEGACY_FLOPPY_IDX_CB(WRITELINE(thomson_state, fdc_index_2_w))
 	MCFG_DEVICE_ADD(FLOPPY_3, LEGACY_FLOPPY, 0)
-	MCFG_DEVICE_CONFIG(thomson_floppy_interface)
+	MCFG_LEGACY_FLOPPY_CONFIG(thomson_floppy_interface)
 	MCFG_LEGACY_FLOPPY_IDX_CB(WRITELINE(thomson_state, fdc_index_3_w))
 
 /* network */

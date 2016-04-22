@@ -13,8 +13,12 @@
 #ifndef __USRINTRF_H__
 #define __USRINTRF_H__
 
+#include <vector>
+
 #include "render.h"
 #include "moptions.h"
+
+class ui_menu_item;
 
 /***************************************************************************
     CONSTANTS
@@ -92,7 +96,7 @@ enum
 
 typedef UINT32 (*ui_callback)(running_machine &, render_container *, UINT32);
 
-typedef INT32(*slider_update)(running_machine &machine, void *arg, std::string *str, INT32 newval);
+typedef INT32(*slider_update)(running_machine &machine, void *arg, int id, std::string *str, INT32 newval);
 
 struct slider_state
 {
@@ -128,6 +132,7 @@ public:
 
 	// methods
 	void initialize(running_machine &machine);
+	std::vector<ui_menu_item> slider_init(running_machine &machine);
 	UINT32 set_handler(ui_callback callback, UINT32 param);
 	void display_startup_screens(bool first_time);
 	void set_startup_text(const char *text, bool force);
@@ -135,7 +140,7 @@ public:
 	render_font *get_font();
 	float get_line_height();
 	float get_char_width(unicode_char ch);
-	float get_string_width(const char *s);
+	float get_string_width(const char *s, float text_size = 1.0f);
 	void draw_outlined_box(render_container *container, float x0, float y0, float x1, float y1, rgb_t backcolor);
 	void draw_outlined_box(render_container *container, float x0, float y0, float x1, float y1, rgb_t fgcolor, rgb_t bgcolor);
 	void draw_text(render_container *container, const char *buf, float x, float y);
@@ -166,7 +171,7 @@ public:
 	std::string &game_info_astring(std::string &str);
 
 	// slider controls
-	const slider_state *get_slider_list(void);
+	std::vector<ui_menu_item>&	get_slider_list(void);
 
 	// other
 	void process_natural_keyboard();
@@ -180,9 +185,6 @@ public:
 
 	// draw an outlined box with given line color and filled with a texture
 	void draw_textured_box(render_container *container, float x0, float y0, float x1, float y1, rgb_t backcolor, rgb_t linecolor, render_texture *texture = nullptr, UINT32 flags = PRIMFLAG_BLENDMODE(BLENDMODE_ALPHA));
-
-	// return text string width with given text size
-	float get_string_width_ex(const char *s, float text_size);
 
 private:
 	// instance variables
@@ -209,7 +211,7 @@ private:
 	static std::string      messagebox_poptext;
 	static rgb_t            messagebox_backcolor;
 
-	static slider_state     *slider_list;
+	static std::vector<ui_menu_item> slider_list;
 	static slider_state     *slider_current;
 
 	// text generators

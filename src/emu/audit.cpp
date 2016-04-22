@@ -54,26 +54,25 @@ const char *driverpath = m_enumerator.config().root_device().searchpath();
 	int shared_required = 0;
 
 	// iterate over devices and regions
-	device_iterator deviter(m_enumerator.config().root_device());
-	for (device_t *device = deviter.first(); device != nullptr; device = deviter.next())
+	for (device_t &device : device_iterator(m_enumerator.config().root_device()))
 	{
 		// determine the search path for this source and iterate through the regions
-		m_searchpath = device->searchpath();
+		m_searchpath = device.searchpath();
 
 		// now iterate over regions and ROMs within
-		for (const rom_entry *region = rom_first_region(*device); region != nullptr; region = rom_next_region(region))
+		for (const rom_entry *region = rom_first_region(device); region != nullptr; region = rom_next_region(region))
 		{
 // temporary hack: add the driver path & region name
-std::string combinedpath = std::string(device->searchpath()).append(";").append(driverpath);
-if (device->shortname())
-	combinedpath.append(";").append(device->shortname());
+std::string combinedpath = std::string(device.searchpath()).append(";").append(driverpath);
+if (device.shortname())
+	combinedpath.append(";").append(device.shortname());
 m_searchpath = combinedpath.c_str();
 
 			for (const rom_entry *rom = rom_first_file(region); rom; rom = rom_next_file(rom))
 			{
 				const char *name = ROM_GETNAME(rom);
 				hash_collection hashes(ROM_GETHASHDATA(rom));
-				device_t *shared_device = find_shared_device(*device, name, hashes, ROM_GETLENGTH(rom));
+				device_t *shared_device = find_shared_device(device, name, hashes, ROM_GETLENGTH(rom));
 
 				// count the number of files with hashes
 				if (!hashes.flag(hash_collection::FLAG_NO_DUMP) && !ROM_ISOPTIONAL(rom))
@@ -95,7 +94,7 @@ m_searchpath = combinedpath.c_str();
 				if (record != nullptr)
 				{
 					// count the number of files that are found.
-					if (record->status() == audit_record::STATUS_GOOD || (record->status() == audit_record::STATUS_FOUND_INVALID && find_shared_device(*device, name, record->actual_hashes(), record->actual_length()) == nullptr))
+					if (record->status() == audit_record::STATUS_GOOD || (record->status() == audit_record::STATUS_FOUND_INVALID && find_shared_device(device, name, record->actual_hashes(), record->actual_length()) == nullptr))
 					{
 						found++;
 						if (shared_device != nullptr)
@@ -124,20 +123,20 @@ m_searchpath = combinedpath.c_str();
 //  audit_device - audit the device
 //-------------------------------------------------
 
-media_auditor::summary media_auditor::audit_device(device_t *device, const char *validation)
+media_auditor::summary media_auditor::audit_device(device_t &device, const char *validation)
 {
 	// start fresh
 	m_record_list.reset();
 
 	// store validation for later
 	m_validation = validation;
-	m_searchpath = device->shortname();
+	m_searchpath = device.shortname();
 
 	int found = 0;
 	int required = 0;
 
 	// now iterate over regions and ROMs within
-	for (const rom_entry *region = rom_first_region(*device); region != nullptr; region = rom_next_region(region))
+	for (const rom_entry *region = rom_first_region(device); region != nullptr; region = rom_next_region(region))
 	{
 		for (const rom_entry *rom = rom_first_file(region); rom; rom = rom_next_file(rom))
 		{
@@ -173,7 +172,7 @@ media_auditor::summary media_auditor::audit_device(device_t *device, const char 
 	}
 
 	// return a summary
-	return summarize(device->shortname());
+	return summarize(device.shortname());
 }
 
 
@@ -208,10 +207,10 @@ media_auditor::summary media_auditor::audit_software(const char *list_name, soft
 	int required = 0;
 
 	// now iterate over software parts
-	for ( software_part *part = swinfo->first_part(); part != nullptr; part = part->next() )
+	for (software_part &part : swinfo->parts())
 	{
 		// now iterate over regions
-		for ( const rom_entry *region = part->romdata(); region; region = rom_next_region( region ) )
+		for ( const rom_entry *region = part.romdata(); region; region = rom_next_region( region ) )
 		{
 			// now iterate over rom definitions
 			for (const rom_entry *rom = rom_first_file(region); rom; rom = rom_next_file(rom))
@@ -270,14 +269,13 @@ media_auditor::summary media_auditor::audit_samples()
 	int found = 0;
 
 	// iterate over sample entries
-	samples_device_iterator iterator(m_enumerator.config().root_device());
-	for (samples_device *device = iterator.first(); device != nullptr; device = iterator.next())
+	for (samples_device &device : samples_device_iterator(m_enumerator.config().root_device()))
 	{
 		// by default we just search using the driver name
 		std::string searchpath(m_enumerator.driver().name);
 
 		// add the alternate path if present
-		samples_iterator iter(*device);
+		samples_iterator iter(device);
 		if (iter.altbasename() != nullptr)
 			searchpath.append(";").append(iter.altbasename());
 
@@ -336,25 +334,25 @@ media_auditor::summary media_auditor::summarize(const char *name, std::string *o
 
 	// loop over records
 	summary overall_status = CORRECT;
-	for (audit_record *record = m_record_list.first(); record != nullptr; record = record->next())
+	for (audit_record &record : m_record_list)
 	{
 		summary best_new_status = INCORRECT;
 
 		// skip anything that's fine
-		if (record->substatus() == audit_record::SUBSTATUS_GOOD)
+		if (record.substatus() == audit_record::SUBSTATUS_GOOD)
 			continue;
 
 		// output the game name, file name, and length (if applicable)
 		if (output != nullptr)
 		{
-			output->append(string_format("%-12s: %s", name, record->name()));
-			if (record->expected_length() > 0)
-				output->append(string_format(" (%d bytes)", record->expected_length()));
+			output->append(string_format("%-12s: %s", name, record.name()));
+			if (record.expected_length() > 0)
+				output->append(string_format(" (%d bytes)", record.expected_length()));
 			output->append(" - ");
 		}
 
 		// use the substatus for finer details
-		switch (record->substatus())
+		switch (record.substatus())
 		{
 			case audit_record::SUBSTATUS_GOOD_NEEDS_REDUMP:
 				if (output != nullptr) output->append("NEEDS REDUMP\n");
@@ -370,25 +368,24 @@ media_auditor::summary media_auditor::summarize(const char *name, std::string *o
 				if (output != nullptr)
 				{
 					output->append("INCORRECT CHECKSUM:\n");
-					output->append(string_format("EXPECTED: %s\n", record->expected_hashes().macro_string().c_str()));
-					output->append(string_format("   FOUND: %s\n", record->actual_hashes().macro_string().c_str()));
+					output->append(string_format("EXPECTED: %s\n", record.expected_hashes().macro_string().c_str()));
+					output->append(string_format("   FOUND: %s\n", record.actual_hashes().macro_string().c_str()));
 				}
 				break;
 
 			case audit_record::SUBSTATUS_FOUND_WRONG_LENGTH:
-				if (output != nullptr) output->append(string_format("INCORRECT LENGTH: %d bytes\n", record->actual_length()));
+				if (output != nullptr) output->append(string_format("INCORRECT LENGTH: %d bytes\n", record.actual_length()));
 				break;
 
 			case audit_record::SUBSTATUS_NOT_FOUND:
 				if (output != nullptr)
 				{
-					device_t *shared_device = record->shared_device();
+					device_t *shared_device = record.shared_device();
 					if (shared_device == nullptr)
 						output->append("NOT FOUND\n");
 					else
 						output->append(string_format("NOT FOUND (%s)\n", shared_device->shortname()));
 				}
-				best_new_status = NOTFOUND;
 				break;
 
 			case audit_record::SUBSTATUS_NOT_FOUND_NODUMP:
@@ -561,15 +558,14 @@ device_t *media_auditor::find_shared_device(device_t &device, const char *name, 
 		// iterate up the parent chain
 		for (int drvindex = m_enumerator.find(m_enumerator.driver().parent); drvindex != -1; drvindex = m_enumerator.find(m_enumerator.driver(drvindex).parent))
 		{
-			device_iterator deviter(m_enumerator.config(drvindex).root_device());
-			for (device_t *scandevice = deviter.first(); scandevice != nullptr; scandevice = deviter.next())
-				for (const rom_entry *region = rom_first_region(*scandevice); region; region = rom_next_region(region))
+			for (device_t &scandevice : device_iterator(m_enumerator.config(drvindex).root_device()))
+				for (const rom_entry *region = rom_first_region(scandevice); region; region = rom_next_region(region))
 					for (const rom_entry *rom = rom_first_file(region); rom; rom = rom_next_file(rom))
 						if (ROM_GETLENGTH(rom) == romlength)
 						{
 							hash_collection hashes(ROM_GETHASHDATA(rom));
 							if ((dumped && hashes == romhashes) || (!dumped && ROM_GETNAME(rom) == name))
-								highest_device = scandevice;
+								highest_device = &scandevice;
 						}
 		}
 	}

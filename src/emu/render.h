@@ -51,6 +51,9 @@
 #include <math.h>
 #include <mutex>
 
+#include "emu.h"
+//#include "bitmap.h"
+//#include "screen.h"
 
 //**************************************************************************
 //  CONSTANTS
@@ -372,6 +375,11 @@ public:
 	// getters
 	render_primitive *first() const { return m_primlist.first(); }
 
+	// range iterators
+	using auto_iterator = simple_list<render_primitive>::auto_iterator;
+	auto_iterator begin() const { return m_primlist.begin(); }
+	auto_iterator end() const { return m_primlist.end(); }
+
 	// lock management
 	void acquire_lock() { m_lock.lock(); }
 	void release_lock() { m_lock.unlock(); }
@@ -573,7 +581,7 @@ private:
 	static void overlay_scale(bitmap_argb32 &dest, bitmap_argb32 &source, const rectangle &sbounds, void *param);
 
 	// internal helpers
-	item *first_item() const { return m_itemlist.first(); }
+	const simple_list<item> &items() const { return m_itemlist; }
 	item &add_generic(UINT8 type, float x0, float y0, float x1, float y1, rgb_t argb);
 	void recompute_lookups();
 	void update_palette();
@@ -817,7 +825,7 @@ public:
 
 	// getters
 	layout_view *next() const { return m_next; }
-	item *first_item(item_layer layer) const;
+	const simple_list<item> &items(item_layer layer) const;
 	const char *name() const { return m_name.c_str(); }
 	const render_bounds &bounds() const { return m_bounds; }
 	const render_bounds &screen_bounds() const { return m_scrbounds; }
@@ -868,8 +876,8 @@ public:
 
 	// getters
 	layout_file *next() const { return m_next; }
-	layout_element *first_element() const { return m_elemlist.first(); }
-	layout_view *first_view() const { return m_viewlist.first(); }
+	const simple_list<layout_element> &elements() const { return m_elemlist; }
+	const simple_list<layout_view> &views() const { return m_viewlist; }
 
 private:
 	// internal state
@@ -888,7 +896,7 @@ class render_target
 	friend class render_manager;
 
 	// construction/destruction
-	render_target(render_manager &manager, const char *layoutfile = nullptr, UINT32 flags = 0);
+	render_target(render_manager &manager, const internal_layout *layoutfile = nullptr, UINT32 flags = 0);
 	~render_target();
 
 public:
@@ -914,7 +922,9 @@ public:
 	void set_orientation(int orientation) { m_orientation = orientation; }
 	void set_view(int viewindex);
 	void set_max_texture_size(int maxwidth, int maxheight);
-	void set_transform_primitives(bool transform_primitives) { m_transform_primitives = transform_primitives; }
+	void set_transform_container(bool transform_container) { m_transform_container = transform_container; }
+	void set_keepaspect(bool keepaspect) { m_keepaspect = keepaspect; }
+	void set_scale_mode(bool scale_mode) { m_scale_mode = scale_mode; }
 
 	// layer config getters
 	bool backdrops_enabled() const { return m_layerconfig.backdrops_enabled(); }
@@ -966,8 +976,9 @@ public:
 private:
 	// internal helpers
 	void update_layer_config();
-	void load_layout_files(const char *layoutfile, bool singlefile);
+	void load_layout_files(const internal_layout *layoutfile, bool singlefile);
 	bool load_layout_file(const char *dirname, const char *filename);
+	bool load_layout_file(const char *dirname, const internal_layout *layout_data);
 	void add_container_primitives(render_primitive_list &list, const object_transform &xform, render_container &container, int blendmode);
 	void add_element_primitives(render_primitive_list &list, const object_transform &xform, layout_element &element, int state, int blendmode);
 	bool map_point_internal(INT32 target_x, INT32 target_y, render_container *container, float &mapped_x, float &mapped_y, ioport_port *&mapped_input_port, ioport_value &mapped_input_mask);
@@ -1002,6 +1013,7 @@ private:
 	INT32                   m_height;                   // height in pixels
 	render_bounds           m_bounds;                   // bounds of the target
 	bool                    m_keepaspect;               // constrain aspect ratio
+	bool                    m_int_overscan;             // allow overscan on integer scaled targets
 	float                   m_pixel_aspect;             // aspect ratio of individual pixels
 	int                     m_scale_mode;               // type of scale to apply
 	int                     m_int_scale_x;              // horizontal integer scale factor
@@ -1017,8 +1029,8 @@ private:
 	simple_list<render_container> m_debug_containers;   // list of debug containers
 	INT32                   m_clear_extent_count;       // number of clear extents
 	INT32                   m_clear_extents[MAX_CLEAR_EXTENTS]; // array of clear extents
-	bool                    m_transform_primitives;     // determines if the primitives shall be scaled/offset by screen settings,
-														// otherwise the respective render API will handle it (default is true)
+	bool                    m_transform_container;      // determines whether the screen container is transformed by the core renderer,
+														// otherwise the respective render API will handle the transformation (scale, offset)
 
 	static render_screen_list s_empty_screen_list;
 };
@@ -1044,8 +1056,9 @@ public:
 	float max_update_rate() const;
 
 	// targets
-	render_target *target_alloc(const char *layoutfile = nullptr, UINT32 flags = 0);
+	render_target *target_alloc(const internal_layout *layoutfile = nullptr, UINT32 flags = 0);
 	void target_free(render_target *target);
+	const simple_list<render_target> &targets() const { return m_targetlist; }
 	render_target *first_target() const { return m_targetlist.first(); }
 	render_target *target_by_index(int index) const;
 

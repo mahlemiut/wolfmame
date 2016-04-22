@@ -1,5 +1,6 @@
 // license:BSD-3-Clause
 // copyright-holders:hap
+// thanks-to:Berger
 /******************************************************************************
 
     Fidelity Electronics 68000 based board driver
@@ -8,7 +9,9 @@
     - how does dual-CPU work?
     - IRQ level/timing is unknown
     - USART is not emulated
-    - V11 CPU should be M68EC060, not yet emulated
+    - V11 CPU should be M68EC060, not yet emulated. Now using M68EC040 in its place
+      at twice the frequency due to lack of superscalar.
+    - V11 beeper is too high pitched, obviously related to wrong CPU type too
 
 ******************************************************************************
 
@@ -425,7 +428,7 @@ MACHINE_CONFIG_END
 static MACHINE_CONFIG_DERIVED( eagv11, eag )
 
 	/* basic machine hardware */
-	MCFG_CPU_REPLACE("maincpu", M68EC040, XTAL_36MHz*2) // wrong! should be M68EC060
+	MCFG_CPU_REPLACE("maincpu", M68EC040, XTAL_36MHz*2*2) // wrong! should be M68EC060 @ 72MHz
 	MCFG_CPU_PROGRAM_MAP(eagv11_map)
 	MCFG_CPU_PERIODIC_INT_DRIVER(fidel68k_state, irq2_line_hold, 600) // complete guess
 MACHINE_CONFIG_END
@@ -453,9 +456,9 @@ ROM_END
 ROM_START( feagv11 )
 	ROM_REGION( 0x20000, "maincpu", 0 )
 	ROM_LOAD32_BYTE("16", 0x00000, 0x08000, CRC(8375d61f) SHA1(e042f6f01480c59ee09a458cf34f135664479824) ) // 27c256
+	ROM_LOAD32_BYTE("17", 0x00001, 0x08000, CRC(bfd14916) SHA1(115af6dfd29ddd8ad6d2ce390f8ecc4d60de6fce) ) // "
 	ROM_LOAD32_BYTE("18", 0x00002, 0x08000, CRC(9341dcaf) SHA1(686bd4799e89ffaf11a813d4cf5a2aedd4c2d97a) ) // "
 	ROM_LOAD32_BYTE("19", 0x00003, 0x08000, CRC(a70c5468) SHA1(7f6b4f46577d5cfdaa84d387c7ce35d941e5bbc7) ) // "
-	ROM_LOAD32_BYTE("17", 0x00001, 0x08000, CRC(bfd14916) SHA1(115af6dfd29ddd8ad6d2ce390f8ecc4d60de6fce) ) // "
 ROM_END
 
 #define rom_feagv10 rom_feagv11

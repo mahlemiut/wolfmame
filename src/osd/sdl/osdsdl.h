@@ -3,28 +3,9 @@
 #ifndef _osdsdl_h_
 #define _osdsdl_h_
 
-#include "sdlinc.h"
-
-#include "watchdog.h"
-#include "clifront.h"
 #include "modules/lib/osdobj_common.h"
 #include "modules/osdmodule.h"
 #include "modules/font/font_module.h"
-
-//============================================================
-//  System dependent defines
-//============================================================
-
-
-#if defined(SDLMAME_WIN32)
-		#define SDLMAME_EVENTS_IN_WORKER_THREAD (0)
-		#define SDLMAME_INIT_IN_WORKER_THREAD   (0)
-		#define SDL13_COMBINE_RESIZE (0) //(1) no longer needed
-#else
-	#define SDLMAME_EVENTS_IN_WORKER_THREAD (0)
-	#define SDLMAME_INIT_IN_WORKER_THREAD   (0)
-	#define SDL13_COMBINE_RESIZE (0)
-#endif
 
 //============================================================
 //  Defines
@@ -142,9 +123,6 @@ public:
 	virtual void init(running_machine &machine) override;
 	virtual void update(bool skip_redraw) override;
 
-	// video overridables
-	virtual slider_state *get_slider_list() override;
-
 	// input overridables
 	virtual void customize_input_type_list(simple_list<input_type_entry> &typelist) override;
 
@@ -152,13 +130,9 @@ public:
 
 	virtual bool video_init() override;
 	virtual bool window_init() override;
-	virtual bool output_init() override;
-	//virtual bool midi_init();
 
 	virtual void video_exit() override;
 	virtual void window_exit() override;
-	virtual void output_exit() override;
-	//virtual void midi_exit();
 
 	// sdl specific
 	void poll_inputs(running_machine &machine);
@@ -178,9 +152,6 @@ private:
 	void extract_video_config();
 
 	sdl_options &m_options;
-
-	watchdog *m_watchdog;
-	slider_state *      m_sliders;
 };
 
 //============================================================

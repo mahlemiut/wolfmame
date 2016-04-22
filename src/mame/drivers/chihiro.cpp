@@ -5,7 +5,7 @@ Chihiro is an Xbox-based arcade system from SEGA.
 
 Games on this system include....
 
-   yyyymmdd       Game                                                 Manufacturer / Developer   Media    Number       Key Chip
+   yyyymmdd   Game                                                 Manufacturer / Developer   Media    Number       Key Chip
 +-+----------+----------------------------------------------------+--------------------------+--------+------------+--------------|
 |*| 20021029 | The House of the Dead III                          | Sega / Wow Entertainment | GDROM  | GDX-0001   | 317-0348-COM |
 | | 2003     | Crazy Taxi High Roller                             | Sega / Hitmaker          | GDROM  | GDX-0002   | 317-0353-COM |
@@ -382,6 +382,70 @@ Thanks to Alex, Mr Mudkips, and Philip Burke for this info.
 #define LOG_PCI
 //#define LOG_BASEBOARD
 
+extern const device_type OHCI_HLEAN2131QC;
+
+class ohci_hlean2131qc_device : public device_t, public ohci_function_device
+{
+public:
+	ohci_hlean2131qc_device(const machine_config &mconfig, const char *tag, device_t *owner, UINT32 clock);
+	void initialize(running_machine &machine, ohci_usb_controller *usb_bus_manager) override;
+	int handle_nonstandard_request(int endpoint, USBSetupPacket *setup) override;
+	int handle_bulk_pid(int endpoint, int pid, UINT8 *buffer, int size) override;
+	void set_region_base(UINT8 *data);
+
+protected:
+	virtual void device_start() override;
+private:
+	static const USBStandardDeviceDescriptor devdesc;
+	static const USBStandardConfigurationDescriptor condesc;
+	static const USBStandardInterfaceDescriptor intdesc;
+	static const USBStandardEndpointDescriptor enddesc01;
+	static const USBStandardEndpointDescriptor enddesc02;
+	static const USBStandardEndpointDescriptor enddesc03;
+	static const USBStandardEndpointDescriptor enddesc04;
+	static const USBStandardEndpointDescriptor enddesc05;
+	static const USBStandardEndpointDescriptor enddesc81;
+	static const USBStandardEndpointDescriptor enddesc82;
+	static const USBStandardEndpointDescriptor enddesc83;
+	static const USBStandardEndpointDescriptor enddesc84;
+	static const USBStandardEndpointDescriptor enddesc85;
+	static const UINT8 strdesc0[];
+	static const UINT8 strdesc1[];
+	static const UINT8 strdesc2[];
+	int maximum_send;
+	UINT8 *region;
+};
+
+const device_type OHCI_HLEAN2131QC = &device_creator<ohci_hlean2131qc_device>;
+
+extern const device_type OHCI_HLEAN2131SC;
+
+class ohci_hlean2131sc_device : public device_t, public ohci_function_device
+{
+public:
+	ohci_hlean2131sc_device(const machine_config &mconfig, const char *tag, device_t *owner, UINT32 clock);
+	void initialize(running_machine &machine, ohci_usb_controller *usb_bus_manager) override;
+	int handle_nonstandard_request(int endpoint, USBSetupPacket *setup) override;
+
+protected:
+	virtual void device_start() override;
+private:
+	static const USBStandardDeviceDescriptor devdesc;
+	static const USBStandardConfigurationDescriptor condesc;
+	static const USBStandardInterfaceDescriptor intdesc;
+	static const USBStandardEndpointDescriptor enddesc01;
+	static const USBStandardEndpointDescriptor enddesc02;
+	static const USBStandardEndpointDescriptor enddesc03;
+	static const USBStandardEndpointDescriptor enddesc81;
+	static const USBStandardEndpointDescriptor enddesc82;
+	static const USBStandardEndpointDescriptor enddesc83;
+	static const UINT8 strdesc0[];
+	static const UINT8 strdesc1[];
+	static const UINT8 strdesc2[];
+};
+
+const device_type OHCI_HLEAN2131SC = &device_creator<ohci_hlean2131sc_device>;
+
 class chihiro_state : public xbox_base_state
 {
 public:
@@ -593,6 +657,182 @@ void chihiro_state::hack_usb()
 		}
 	}
 	usbhack_counter++;
+}
+
+//**************************************************************************
+//  BASE BOARD USB
+//**************************************************************************
+
+//ic10
+const USBStandardDeviceDescriptor ohci_hlean2131qc_device::devdesc = { 0x12,0x01,0x0100,0x60,0x00,0x00,0x40,0x0CA3,0x0002,0x0108,0x01,0x02,0x00,0x01 };
+const USBStandardConfigurationDescriptor ohci_hlean2131qc_device::condesc = { 0x09,0x02,0x0058,0x01,0x01,0x00,0x80,0x96 };
+const USBStandardInterfaceDescriptor ohci_hlean2131qc_device::intdesc = { 0x09,0x04,0x00,0x00,0x0A,0xFF,0x00,0x00,0x00 };
+const USBStandardEndpointDescriptor ohci_hlean2131qc_device::enddesc01 = { 0x07,0x05,0x01,0x02,0x0040,0x00 };
+const USBStandardEndpointDescriptor ohci_hlean2131qc_device::enddesc02 = { 0x07,0x05,0x02,0x02,0x0040,0x00 };
+const USBStandardEndpointDescriptor ohci_hlean2131qc_device::enddesc03 = { 0x07,0x05,0x03,0x02,0x0040,0x00 };
+const USBStandardEndpointDescriptor ohci_hlean2131qc_device::enddesc04 = { 0x07,0x05,0x04,0x02,0x0040,0x00 };
+const USBStandardEndpointDescriptor ohci_hlean2131qc_device::enddesc05 = { 0x07,0x05,0x05,0x02,0x0040,0x00 };
+const USBStandardEndpointDescriptor ohci_hlean2131qc_device::enddesc81 = { 0x07,0x05,0x81,0x02,0x0040,0x00 };
+const USBStandardEndpointDescriptor ohci_hlean2131qc_device::enddesc82 = { 0x07,0x05,0x82,0x02,0x0040,0x00 };
+const USBStandardEndpointDescriptor ohci_hlean2131qc_device::enddesc83 = { 0x07,0x05,0x83,0x02,0x0040,0x00 };
+const USBStandardEndpointDescriptor ohci_hlean2131qc_device::enddesc84 = { 0x07,0x05,0x84,0x02,0x0040,0x00 };
+const USBStandardEndpointDescriptor ohci_hlean2131qc_device::enddesc85 = { 0x07,0x05,0x85,0x02,0x0040,0x00 };
+const UINT8 ohci_hlean2131qc_device::strdesc0[] = { 0x04,0x03,0x00,0x00 };
+const UINT8 ohci_hlean2131qc_device::strdesc1[] = { 0x0A,0x03,0x53,0x00,0x45,0x00,0x47,0x00,0x41,0x00 };
+const UINT8 ohci_hlean2131qc_device::strdesc2[] = { 0x0E,0x03,0x42,0x00,0x41,0x00,0x53,0x00,0x45,0x00,0x42,0x03,0xFF,0x0B };
+
+ohci_hlean2131qc_device::ohci_hlean2131qc_device(const machine_config &mconfig, const char *tag, device_t *owner, UINT32 clock) :
+	device_t(mconfig, OHCI_HLEAN2131QC, "OHCI Hlean2131qc", tag, owner, clock, "ohci_hlean2131qc", __FILE__),
+	ohci_function_device()
+{
+	maximum_send = 0;
+	region = nullptr;
+}
+
+void ohci_hlean2131qc_device::initialize(running_machine &machine, ohci_usb_controller *usb_bus_manager)
+{
+	ohci_function_device::initialize(machine, usb_bus_manager);
+	add_device_descriptor(devdesc);
+	add_configuration_descriptor(condesc);
+	add_interface_descriptor(intdesc);
+	// it is important to add the endpoints in the same order they are found in the device firmware
+	add_endpoint_descriptor(enddesc01);
+	add_endpoint_descriptor(enddesc02);
+	add_endpoint_descriptor(enddesc03);
+	add_endpoint_descriptor(enddesc04);
+	add_endpoint_descriptor(enddesc05);
+	add_endpoint_descriptor(enddesc81);
+	add_endpoint_descriptor(enddesc82);
+	add_endpoint_descriptor(enddesc83);
+	add_endpoint_descriptor(enddesc84);
+	add_endpoint_descriptor(enddesc85);
+	add_string_descriptor(strdesc0);
+	add_string_descriptor(strdesc1);
+	add_string_descriptor(strdesc2);
+}
+
+void ohci_hlean2131qc_device::set_region_base(UINT8 *data)
+{
+	region = data;
+}
+
+int ohci_hlean2131qc_device::handle_nonstandard_request(int endpoint, USBSetupPacket *setup)
+{
+	if (endpoint != 0)
+		return -1;
+	printf("Control request: %x %x %x %x %x %x %x\n\r", endpoint, endpoints[endpoint].controldirection, setup->bmRequestType, setup->bRequest, setup->wValue, setup->wIndex, setup->wLength);
+	for (int n = 0; n < setup->wLength; n++)
+		endpoints[endpoint].buffer[n] = 0x50 ^ n;
+	//if ((setup->bRequest == 0x18) && (setup->wValue == 0x8000))
+	if (setup->bRequest == 0x17)
+	{
+		maximum_send = setup->wIndex;
+		if (maximum_send > 0x40)
+			maximum_send = 0x40;
+		endpoints[2].remain = maximum_send;
+		endpoints[2].position = region + 0x2000 + setup->wValue;
+	}
+	if ((setup->bRequest == 0x16) && (setup->wValue == 0x1f00))
+	{
+		// should be for an2131sc
+		endpoints[1].remain = setup->wIndex;
+		endpoints[1].position = region + 0x1f00;
+	}
+	if (setup->bRequest == 0x19) // 19 used to receive packet, 20 to send ?
+	{
+		// amount to transfer
+		endpoints[endpoint].buffer[5] = 20 >> 8;
+		endpoints[endpoint].buffer[4] = (20 & 0xff);
+		endpoints[4].remain = 20;
+		endpoints[4].position = endpoints[4].buffer;
+		memset(endpoints[4].buffer, 0, 20);
+	}
+	if (setup->bRequest == 0x20)
+	{
+		printf(" Jvs packet of %d bytes\n\r", setup->wIndex-3);
+	}
+
+	endpoints[endpoint].buffer[0] = 0;
+	endpoints[endpoint].position = endpoints[endpoint].buffer;
+	endpoints[endpoint].remain = setup->wLength;
+	return 0;
+}
+
+int ohci_hlean2131qc_device::handle_bulk_pid(int endpoint, int pid, UINT8 *buffer, int size)
+{
+	printf("Bulk request: %x %d %x\n\r", endpoint, pid, size);
+	if (((endpoint == 1) || (endpoint == 2) || (endpoint == 4)) && (pid == InPid))
+	{
+		if (size > endpoints[endpoint].remain)
+			size = endpoints[endpoint].remain;
+		memcpy(buffer, endpoints[endpoint].position, size);
+		endpoints[endpoint].position = endpoints[endpoint].position + size;
+		endpoints[endpoint].remain = endpoints[endpoint].remain - size;
+	}
+	if ((endpoint == 4) && (pid == OutPid))
+	{
+		for (int n = 0; n < size; n++)
+			printf(" %02x",buffer[n]);
+		printf("\n\r");
+	}
+	return size;
+}
+
+void ohci_hlean2131qc_device::device_start()
+{
+}
+
+//pc20
+const USBStandardDeviceDescriptor ohci_hlean2131sc_device::devdesc = { 0x12,0x01,0x0100,0x60,0x01,0x00,0x40,0x0CA3,0x0003,0x0110,0x01,0x02,0x00,0x01 };
+const USBStandardConfigurationDescriptor ohci_hlean2131sc_device::condesc = { 0x09,0x02,0x003C,0x01,0x01,0x00,0x80,0x96 };
+const USBStandardInterfaceDescriptor ohci_hlean2131sc_device::intdesc = { 0x09,0x04,0x00,0x00,0x06,0xFF,0x00,0x00,0x00 };
+const USBStandardEndpointDescriptor ohci_hlean2131sc_device::enddesc01 = { 0x07,0x05,0x01,0x02,0x0040,0x00 };
+const USBStandardEndpointDescriptor ohci_hlean2131sc_device::enddesc02 = { 0x07,0x05,0x02,0x02,0x0040,0x00 };
+const USBStandardEndpointDescriptor ohci_hlean2131sc_device::enddesc03 = { 0x07,0x05,0x03,0x02,0x0040,0x00 };
+const USBStandardEndpointDescriptor ohci_hlean2131sc_device::enddesc81 = { 0x07,0x05,0x81,0x02,0x0040,0x00 };
+const USBStandardEndpointDescriptor ohci_hlean2131sc_device::enddesc82 = { 0x07,0x05,0x82,0x02,0x0040,0x00 };
+const USBStandardEndpointDescriptor ohci_hlean2131sc_device::enddesc83 = { 0x07,0x05,0x83,0x02,0x0040,0x00 };
+const UINT8 ohci_hlean2131sc_device::strdesc0[] = { 0x04,0x03,0x00,0x00 };
+const UINT8 ohci_hlean2131sc_device::strdesc1[] = { 0x0A,0x03,0x53,0x00,0x45,0x00,0x47,0x00,0x41,0x00 };
+const UINT8 ohci_hlean2131sc_device::strdesc2[] = { 0x0E,0x03,0x42,0x00,0x41,0x00,0x53,0x00,0x45,0x00,0x42,0x00,0x44,0x00 };
+
+ohci_hlean2131sc_device::ohci_hlean2131sc_device(const machine_config &mconfig, const char *tag, device_t *owner, UINT32 clock) :
+	device_t(mconfig, OHCI_HLEAN2131SC, "OHCI Hlean2131sc", tag, owner, clock, "ohci_hlean2131sc", __FILE__),
+	ohci_function_device()
+{
+}
+
+void ohci_hlean2131sc_device::initialize(running_machine &machine, ohci_usb_controller *usb_bus_manager)
+{
+	ohci_function_device::initialize(machine, usb_bus_manager);
+	add_device_descriptor(devdesc);
+	add_configuration_descriptor(condesc);
+	add_interface_descriptor(intdesc);
+	// it is important to add the endpoints in the same order they are found in the device firmware
+	add_endpoint_descriptor(enddesc01);
+	add_endpoint_descriptor(enddesc02);
+	add_endpoint_descriptor(enddesc03);
+	add_endpoint_descriptor(enddesc81);
+	add_endpoint_descriptor(enddesc82);
+	add_endpoint_descriptor(enddesc83);
+	add_string_descriptor(strdesc0);
+	add_string_descriptor(strdesc1);
+	add_string_descriptor(strdesc2);
+}
+
+int ohci_hlean2131sc_device::handle_nonstandard_request(int endpoint, USBSetupPacket *setup)
+{
+	if (endpoint != 0)
+		return -1;
+	for (int n = 0; n < setup->wLength; n++)
+		endpoints[endpoint].buffer[n] = 0xa0 ^ n;
+	endpoints[endpoint].position = endpoints[endpoint].buffer;
+	endpoints[endpoint].remain = setup->wLength;
+	return 0;
+}
+
+void ohci_hlean2131sc_device::device_start()
+{
 }
 
 // ======================> ide_baseboard_device
@@ -847,6 +1087,9 @@ INPUT_PORTS_END
 
 void chihiro_state::machine_start()
 {
+	ohci_hlean2131qc_device *usb_device;
+	//ohci_hlean2131sc_device *usb_device;
+
 	xbox_base_state::machine_start();
 	chihiro_devs.ide = machine().device<bus_master_ide_controller_device>("ide");
 	chihiro_devs.dimmboard = machine().device<naomi_gdrom_board>("rom_board");
@@ -862,6 +1105,11 @@ void chihiro_state::machine_start()
 			break;
 		}
 	usbhack_counter = 0;
+	usb_device = machine().device<ohci_hlean2131qc_device>("ohci_hlean2131qc");
+	usb_device->initialize(machine(), ohci_usb);
+	usb_device->set_region_base(memregion(":others")->base()); // temporary
+	//usb_device = machine().device<ohci_hlean2131sc_device>("ohci_hlean2131sc");
+	ohci_usb->usb_ohci_plug(1, usb_device); // connect
 	// savestates
 	save_item(NAME(usbhack_counter));
 }
@@ -880,10 +1128,13 @@ static MACHINE_CONFIG_DERIVED_CLASS(chihiro_base, xbox_base, chihiro_state)
 	MCFG_DEVICE_SLOT_INTERFACE(ide_baseboard, nullptr, true)
 	MCFG_DEVICE_MODIFY("ide:1")
 	MCFG_DEVICE_SLOT_INTERFACE(ide_baseboard, "bb", true)
+	
+	// next line is temporary
+	MCFG_DEVICE_ADD("ohci_hlean2131qc", OHCI_HLEAN2131QC, 0)
 MACHINE_CONFIG_END
 
 static MACHINE_CONFIG_DERIVED(chihirogd, chihiro_base)
-	MCFG_NAOMI_GDROM_BOARD_ADD("rom_board", ":gdrom", ":pic", nullptr, NOOP)
+	MCFG_NAOMI_GDROM_BOARD_ADD("rom_board", "gdrom", "pic", nullptr, NOOP)
 MACHINE_CONFIG_END
 
 #define ROM_LOAD16_WORD_SWAP_BIOS(bios,name,offset,length,hash) \
@@ -1134,7 +1385,7 @@ ROM_START( outr2st )
 	ROM_LOAD( "317-0xxx-com.pic", 0x000000, 0x004000, CRC(f94cf26f) SHA1(dd4af2b52935c7b2d8cd196ec1a30c0ef0993322) )
 ROM_END
 
-ROM_START( wangmid2 )
+ROM_START( wangmid2j )
 	CHIHIRO_BIOS
 
 	DISK_REGION( "gdrom" )
@@ -1144,7 +1395,7 @@ ROM_START( wangmid2 )
 	ROM_LOAD("317-5106-jpn.data", 0x00, 0x50, CRC(75c716aa) SHA1(5c2bcf3d28a80b336c6882d5aeb010d04327f8c1) )
 ROM_END
 
-ROM_START( wangmd2b )
+ROM_START( wangmid2 )
 	CHIHIRO_BIOS
 
 	DISK_REGION( "gdrom" )
@@ -1246,8 +1497,8 @@ ROM_END
 /* 0006F */ GAME( 2004, mj2f,     mj2,      chihirogd,    chihiro, driver_device, 0, ROT0, "Sega",                     "Sega Network Taisen Mahjong MJ 2 (Rev F) (GDX-0006F)", MACHINE_NO_SOUND|MACHINE_NOT_WORKING )
 /* 0006G */ GAME( 2004, mj2,      chihiro,  chihirogd,    chihiro, driver_device, 0, ROT0, "Sega",                     "Sega Network Taisen Mahjong MJ 2 (Rev G) (GDX-0006G)", MACHINE_NO_SOUND|MACHINE_NOT_WORKING )
 /* 0007  */ GAME( 2004, ollie,    chihiro,  chihirogd,    chihiro, driver_device, 0, ROT0, "Sega / Amusement Vision",  "Ollie King (GDX-0007)", MACHINE_NO_SOUND|MACHINE_NOT_WORKING )
-// 0008     GAME( 2004, wangmdjo, wangmidj, chihirogd,    chihiro, driver_device, 0, ROT0, "Namco",                    "Wangan Midnight Maximum Tune (Japan) (GDX-0008)", MACHINE_NO_SOUND|MACHINE_NOT_WORKING )
-// 0008A    GAME( 2004, wangmdja, wangmidj, chihirogd,    chihiro, driver_device, 0, ROT0, "Namco",                    "Wangan Midnight Maximum Tune (Japan) (Rev A) (GDX-0008A)", MACHINE_NO_SOUND|MACHINE_NOT_WORKING )
+// 0008     GAME( 2004, wangmidjo,wangmidj, chihirogd,    chihiro, driver_device, 0, ROT0, "Namco",                    "Wangan Midnight Maximum Tune (Japan) (GDX-0008)", MACHINE_NO_SOUND|MACHINE_NOT_WORKING )
+// 0008A    GAME( 2004, wangmidja,wangmidj, chihirogd,    chihiro, driver_device, 0, ROT0, "Namco",                    "Wangan Midnight Maximum Tune (Japan) (Rev A) (GDX-0008A)", MACHINE_NO_SOUND|MACHINE_NOT_WORKING )
 // 0008B    GAME( 2004, wangmidj, chihiro,  chihirogd,    chihiro, driver_device, 0, ROT0, "Namco",                    "Wangan Midnight Maximum Tune (Japan) (Rev B) (GDX-0008B)", MACHINE_NO_SOUND|MACHINE_NOT_WORKING )
 // 0009     GAME( 2004, wangmido, wangmid,  chihirogd,    chihiro, driver_device, 0, ROT0, "Namco",                    "Wangan Midnight Maximum Tune (Export) (GDX-0009)", MACHINE_NO_SOUND|MACHINE_NOT_WORKING )
 // 0009A    GAME( 2004, wangmida, wangmid,  chihirogd,    chihiro, driver_device, 0, ROT0, "Namco",                    "Wangan Midnight Maximum Tune (Export) (Rev A) (GDX-0009A)", MACHINE_NO_SOUND|MACHINE_NOT_WORKING )
@@ -1259,9 +1510,9 @@ ROM_END
 /* 0013  */ GAME( 2005, gundamos, chihiro,  chihirogd,    chihiro, driver_device, 0, ROT0, "Banpresto",                "Gundam Battle Operating Simulator (GDX-0013)", MACHINE_NO_SOUND|MACHINE_NOT_WORKING )
 // 0014     GAME( 2004, outr2sto, outr2st,  chihirogd,    chihiro, driver_device, 0, ROT0, "Sega",                     "OutRun 2 Special Tours (GDX-0014)", MACHINE_NO_SOUND|MACHINE_NOT_WORKING )
 /* 0014A */ GAME( 2004, outr2st,  chihiro,  chihirogd,    chihiro, driver_device, 0, ROT0, "Sega",                     "OutRun 2 Special Tours (Rev A) (GDX-0014A)", MACHINE_NO_SOUND|MACHINE_NOT_WORKING )
-/* 0015  */ GAME( 2005, wangmid2, chihiro,  chihirogd,    chihiro, driver_device, 0, ROT0, "Namco",                    "Wangan Midnight Maximum Tune 2 (Japan) (GDX-0015)", MACHINE_NO_SOUND|MACHINE_NOT_WORKING )
-// 0016     GAME( 2005, wanmd2bo, wangmd2b, chihirogd,    chihiro, driver_device, 0, ROT0, "Namco",                    "Wangan Midnight Maximum Tune 2 (Export) (GDX-0016)", MACHINE_NO_SOUND|MACHINE_NOT_WORKING )
-/* 0016A */ GAME( 2005, wangmd2b, chihiro,  chihirogd,    chihiro, driver_device, 0, ROT0, "Namco",                    "Wangan Midnight Maximum Tune 2 (Export) (Rev A) (GDX-0016A)", MACHINE_NO_SOUND|MACHINE_NOT_WORKING )
+/* 0015  */ GAME( 2005, wangmid2j,wangmid2, chihirogd,    chihiro, driver_device, 0, ROT0, "Namco",                    "Wangan Midnight Maximum Tune 2 (Japan) (GDX-0015)", MACHINE_NO_SOUND|MACHINE_NOT_WORKING )
+// 0016     GAME( 2005, wangmid2o,wangmid2, chihirogd,   chihiro, driver_device, 0, ROT0, "Namco",                    "Wangan Midnight Maximum Tune 2 (Export) (GDX-0016)", MACHINE_NO_SOUND|MACHINE_NOT_WORKING )
+/* 0016A */ GAME( 2005, wangmid2, chihiro,  chihirogd,    chihiro, driver_device, 0, ROT0, "Namco",                    "Wangan Midnight Maximum Tune 2 (Export) (Rev A) (GDX-0016A)", MACHINE_NO_SOUND|MACHINE_NOT_WORKING )
 // 0017     GAME( 2005, mj3o,     mj3,      chihirogd,    chihiro, driver_device, 0, ROT0, "Sega",                     "Sega Network Taisen Mahjong MJ 3 (GDX-0017)", MACHINE_NO_SOUND|MACHINE_NOT_WORKING )
 // 0017A    GAME( 2005, mj3a,     mj3,      chihirogd,    chihiro, driver_device, 0, ROT0, "Sega",                     "Sega Network Taisen Mahjong MJ 3 (Rev A) (GDX-0017A)", MACHINE_NO_SOUND|MACHINE_NOT_WORKING )
 // 0017B    GAME( 2005, mj3b,     mj3,      chihirogd,    chihiro, driver_device, 0, ROT0, "Sega",                     "Sega Network Taisen Mahjong MJ 3 (Rev B) (GDX-0017B)", MACHINE_NO_SOUND|MACHINE_NOT_WORKING )

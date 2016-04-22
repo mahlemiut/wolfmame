@@ -213,23 +213,18 @@ void input_viewer::render_input()
 void input_viewer::render_dips()
 {
 	render_container* ui = &(machine().render().ui_container());
-	ioport_port* port;
-	ioport_field* bit;
 	int dip_num = 0;
 	float height = machine().ui().get_line_height();
 	int x;
 
 	// determine number of DIP switches to display
 	/* loop over all input ports */
-	for (port = machine().ioport().first_port(); port != NULL; port = port->next())
+	for (ioport_port &port : machine().ioport().ports())
 	{
-		/* loop over all bitfields for this port */
-		for (bit = port->first_field(); bit != NULL; bit = bit->next())
+		for (ioport_field &field : port.fields())
 		{
-			if (bit->type() == IPT_DIPSWITCH)
-			{
+			if (field.type() == IPT_DIPSWITCH)
 				dip_num++;
-			}
 		}
 	}
 
@@ -237,40 +232,37 @@ void input_viewer::render_dips()
 	x = dip_num;
 
 	/* loop over all input ports */
-	for (port = machine().ioport().first_port(); port != NULL; port = port->next())
+	for (ioport_port &port : machine().ioport().ports())
 	{
 		/* loop over all bitfields for this port */
-		for (bit = port->first_field(); bit != NULL; bit = bit->next())
+		for (ioport_field &field : port.fields())
 		{
-			if (bit->type() == IPT_DIPSWITCH)
+			if (field.type() == IPT_DIPSWITCH)
 			{
 				char txt[512];
 				const char* dip;
 				const char* value = "INVALID";
 				const char* def = "INVALID";
 				ioport_value portdata;
-
-				// scan the list of settings looking for a match on the current value
-				if(bit->first_setting() != NULL)
+				/* get current settings */
+				dip = field.name();
+				portdata = port.live().defvalue;
+				for (ioport_setting &ptr : field.settings())
 				{
-					dip = bit->name();
-					portdata = machine().ioport().get_defvalue(port);
-					for (ioport_setting *setting = bit->first_setting(); setting != NULL; setting = setting->next())
-						if (setting->enabled())
-						{
-							if (setting->value() == (portdata & bit->mask()))
-								value = setting->name();
-							if (setting->value() == (bit->defvalue() & bit->mask()))
-								def = setting->name();
-						}
-					sprintf(txt,"%s : %s [%s]",dip,value,def);
-					machine().ui().draw_text_full(ui,txt,0.0f,1.0f - (float)(height * x),1.0f,JUSTIFY_LEFT,WRAP_NEVER,DRAW_OPAQUE,COL_WHITE,0,NULL,NULL);
-					x--;
+					if(field.enabled())
+					{
+						if (ptr.value() == (portdata & field.mask()))
+							value = ptr.name();
+						if (ptr.value() == (field.defvalue() & field.mask()))
+							def = ptr.name();
+					}
 				}
+				sprintf(txt,"%s : %s [%s]",dip,value,def);
+				machine().ui().draw_text_full(ui,txt,0.0f,1.0f - (float)(height * x),1.0f,JUSTIFY_LEFT,WRAP_NEVER,DRAW_OPAQUE,COL_WHITE,0,NULL,NULL);
+				x--;
 			}
 		}
 	}
-
 }
 
 void input_viewer::inpview_set_data(int ply, const char* lay)
@@ -298,24 +290,21 @@ int input_viewer::get_player()
 
 int input_viewer::input_port_used(int type,int player)
 {
-	ioport_port* port;
-	ioport_field* bit;
-
 	/* loop over all input ports */
-	for (port = machine().ioport().first_port(); port != NULL; port = port->next())
+	for (ioport_port &port : machine().ioport().ports())
 	{
 		UINT32 portvalue;
 
 		/* loop over all bitfields for this port */
-		for (bit = port->first_field(); bit != NULL; bit = bit->next())
+		for (ioport_field &field : port.fields())
 		{
-			if((bit->defvalue() & bit->mask()) != 0)  // default value for the bit should be 0 if active high.
-				portvalue = ~machine().ioport().get_digital(port);
+			if((field.defvalue() & field.mask()) != 0)  // default value for the bit should be 0 if active high.
+				portvalue = ~port.live().digital;
 			else
-				portvalue = machine().ioport().get_digital(port);
-			if(bit->type() == type && bit->player() == player)
+				portvalue = port.live().digital;
+			if(field.type() == type && field.player() == player)
 			{
-				if((bit->type() == type) && (portvalue & bit->mask()) != (bit->defvalue() & bit->mask()))
+				if((field.type() == type) && (portvalue & field.mask()) != (field.defvalue() & field.mask()))
 					return 1;
 				else
 					return 0;
@@ -324,6 +313,5 @@ int input_viewer::input_port_used(int type,int player)
 	}
 	return 0;
 }
-
 
 

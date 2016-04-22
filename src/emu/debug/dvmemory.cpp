@@ -135,22 +135,21 @@ void debug_view_memory::enumerate_sources()
 	std::string name;
 
 	// first add all the devices' address spaces
-	memory_interface_iterator iter(machine().root_device());
-	for (device_memory_interface *memintf = iter.first(); memintf != nullptr; memintf = iter.next())
-		if (&memintf->device() != &machine().root_device())
+	for (device_memory_interface &memintf : memory_interface_iterator(machine().root_device()))
+		if (&memintf.device() != &machine().root_device())
 			for (address_spacenum spacenum = AS_0; spacenum < ADDRESS_SPACES; ++spacenum)
-				if (memintf->has_space(spacenum))
+				if (memintf.has_space(spacenum))
 				{
-					address_space &space = memintf->space(spacenum);
-					name = string_format("%s '%s' %s space memory", memintf->device().name(), memintf->device().tag(), space.name());
+					address_space &space = memintf.space(spacenum);
+					name = string_format("%s '%s' %s space memory", memintf.device().name(), memintf.device().tag(), space.name());
 					m_source_list.append(*global_alloc(debug_view_memory_source(name.c_str(), space)));
 				}
 
 	// then add all the memory regions
-	for (memory_region *region = machine().memory().first_region(); region != nullptr; region = region->next())
+	for (memory_region &region : machine().memory().regions())
 	{
-		name = string_format("Region '%s'", region->name());
-		m_source_list.append(*global_alloc(debug_view_memory_source(name.c_str(), *region)));
+		name = string_format("Region '%s'", region.name());
+		m_source_list.append(*global_alloc(debug_view_memory_source(name.c_str(), region)));
 	}
 
 	// finally add all global array symbols

@@ -49,9 +49,25 @@ public:
 	bool frame_hook();
 	void execute_function(const char *id);
 
+	struct menu_item {
+		std::string text;
+		std::string subtext;
+		std::string flags;
+	};
+	void menu_populate(std::string &menu, std::vector<menu_item> &menu_list);
+	bool menu_callback(std::string &menu, int index, std::string event);
+
 	void resume(lua_State *L, int nparam = 0, lua_State *root = nullptr);
 	void set_machine(running_machine *machine) { m_machine = machine; update_machine(); }
+	std::vector<std::string> &get_menu() { return m_menu; }
 	void attach_notifiers();
+	void on_frame_done();
+
+	int compile_with_env(const char *envname, const char *script, const char *env = nullptr);
+	template <typename Tout, typename Tin> Tout run(const char *envname, int ref, Tin in);
+	template <typename Tout> Tout run(const char *envname, int ref);
+	template <typename Tin> void run(const char *envname, int ref, Tin in);
+	void run(const char *envname, int ref);
 private:
 	struct hook {
 		lua_State *L;
@@ -69,6 +85,8 @@ private:
 	// internal state
 	lua_State          *m_lua_state;
 	running_machine *   m_machine;
+
+	std::vector<std::string> m_menu;
 
 	hook hook_output_cb;
 	bool output_notifier_set;
@@ -121,10 +139,18 @@ private:
 	static int l_emu_register_pause(lua_State *L);
 	static int l_emu_register_resume(lua_State *L);
 	static int l_emu_register_frame(lua_State *L);
+	static int l_emu_register_frame_done(lua_State *L);
+	static int l_emu_register_menu(lua_State *L);
+	static std::string get_print_buffer(lua_State *L);
+	static int l_osd_printf_verbose(lua_State *L);
+	static int l_osd_printf_error(lua_State *L);
+	static int l_osd_printf_info(lua_State *L);
+	static int l_osd_printf_debug(lua_State *L);
 	static int register_function(lua_State *L, const char *id);
 
 	// "emu.machine" namespace
 	static luabridge::LuaRef l_machine_get_devices(const running_machine *r);
+	static luabridge::LuaRef l_machine_get_images(const running_machine *r);
 	static luabridge::LuaRef l_ioport_get_ports(const ioport_manager *i);
 	static luabridge::LuaRef l_render_get_targets(const render_manager *r);
 	static luabridge::LuaRef l_ioports_port_get_fields(const ioport_port *i);
@@ -140,7 +166,11 @@ private:
 	struct lua_addr_space {
 		template<typename T> int l_mem_read(lua_State *L);
 		template<typename T> int l_mem_write(lua_State *L);
+		template<typename T> int l_direct_mem_read(lua_State *L);
+		template<typename T> int l_direct_mem_write(lua_State *L);
 	};
+	static luabridge::LuaRef l_addr_space_map(const address_space *as);
+
 	static luabridge::LuaRef l_machine_get_screens(const running_machine *r);
 	struct lua_screen {
 		int l_height(lua_State *L);
@@ -153,6 +183,7 @@ private:
 		int l_draw_line(lua_State *L);
 		int l_draw_text(lua_State *L);
 	};
+	static luabridge::LuaRef l_dev_get_items(const device_t *d);
 
 	struct lua_video {
 		int l_begin_recording(lua_State *L);
@@ -168,6 +199,41 @@ private:
 	struct lua_options_entry {
 		int l_entry_value(lua_State *L);
 	};
+
+	static luabridge::LuaRef l_memory_get_banks(const memory_manager *m);
+	static luabridge::LuaRef l_memory_get_regions(const memory_manager *m);
+	struct lua_memory_region {
+		template<typename T> int l_region_read(lua_State *L);
+		template<typename T> int l_region_write(lua_State *L);
+	};
+
+	struct lua_emu_file {
+		lua_emu_file(const char *searchpath, UINT32 openflags) :
+			path(searchpath),
+			file(path.c_str(), openflags) {}
+
+		int l_emu_file_read(lua_State *L);
+		osd_file::error open(const char *name) {return file.open(name);}
+		osd_file::error open_next() {return file.open_next();}
+		int seek(INT64 offset, int whence) {return file.seek(offset, whence);}
+		UINT64 size() {return file.size();}
+		const char *filename() {return file.filename();}
+		const char *fullpath() {return file.fullpath();}
+
+		std::string path;
+		emu_file file;
+	};
+
+	struct lua_item {
+		lua_item(int index);
+		void *l_item_base;
+		unsigned int l_item_size;
+		unsigned int l_item_count;
+		int l_item_read(lua_State *L);
+		int l_item_read_block(lua_State *L);
+		int l_item_write(lua_State *L);
+	};
+	void run_internal(const char *env, int ref);
 
 	void resume(void *L, INT32 param);
 	void start();

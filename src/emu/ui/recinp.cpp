@@ -13,7 +13,7 @@
 #include "ui/filesel.h"
 #include "ui/selsoft.h"
 #include "ui/utils.h"
-#include "cliopts.h"
+#include "emuopts.h"
 #include "audit.h"
 #include "softlist.h"
 
@@ -189,16 +189,16 @@ void ui_menu_record_inp::start_inp()
 	// if everything looks good, schedule the new driver
 	if (summary == media_auditor::CORRECT || summary == media_auditor::BEST_AVAILABLE || summary == media_auditor::NONE_NEEDED)
 	{
-		if ((m_driver->flags & MACHINE_TYPE_ARCADE) == 0)
-		{
-			software_list_device_iterator iter(enumerator.config().root_device());
-			for (software_list_device *swlistdev = iter.first(); swlistdev != nullptr; swlistdev = iter.next())
-				if (swlistdev->first_software_info() != nullptr)
-				{
-					ui_menu::stack_push(global_alloc_clear<ui_menu_select_software>(machine(), container, m_driver));
-					return;
-				}
-		}
+//		if ((m_driver->flags & MACHINE_TYPE_ARCADE) == 0)
+//		{
+//			software_list_device_iterator iter(enumerator.config().root_device());
+//			for (software_list_device *swlistdev = iter.first(); swlistdev != nullptr; swlistdev = iter.next())
+//				if (swlistdev->first_software_info() != nullptr)
+//				{
+//					ui_menu::stack_push(global_alloc_clear<ui_menu_select_software>(machine(), container, m_driver));
+//					return;
+//				}
+//		}
 
 		s_bios biosname;
 		if (!machine().ui().options().skip_bios_menu() && has_multiple_bios(m_driver, biosname))
@@ -359,16 +359,16 @@ void ui_menu_playback_inp::start_inp()
 	// if everything looks good, schedule the new driver
 	if (summary == media_auditor::CORRECT || summary == media_auditor::BEST_AVAILABLE || summary == media_auditor::NONE_NEEDED)
 	{
-		if ((m_driver->flags & MACHINE_TYPE_ARCADE) == 0)
-		{
-			software_list_device_iterator iter(enumerator.config().root_device());
-			for (software_list_device *swlistdev = iter.first(); swlistdev != nullptr; swlistdev = iter.next())
-				if (swlistdev->first_software_info() != nullptr)
-				{
-					ui_menu::stack_push(global_alloc_clear<ui_menu_select_software>(machine(), container, m_driver));
-					return;
-				}
-		}
+//		if ((m_driver->flags & MACHINE_TYPE_ARCADE) == 0)
+//		{
+//			software_list_device_iterator iter(enumerator.config().root_device());
+//			for (software_list_device *swlistdev = iter.first(); swlistdev != nullptr; swlistdev = iter.next())
+//				if (swlistdev->first_software_info() != nullptr)
+//				{
+//					ui_menu::stack_push(global_alloc_clear<ui_menu_select_software>(machine(), container, m_driver));
+//					return;
+//				}
+//		}
 
 		s_bios biosname;
 		if (!machine().ui().options().skip_bios_menu() && has_multiple_bios(m_driver, biosname))

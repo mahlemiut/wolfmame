@@ -67,7 +67,7 @@ device_execute_interface::device_execute_interface(const machine_config &mconfig
 	memset(&m_localtime, 0, sizeof(m_localtime));
 
 	// configure the fast accessor
-	device.m_execute = this;
+	device.interfaces().m_execute = this;
 }
 
 
@@ -476,8 +476,7 @@ void device_execute_interface::interface_pre_start()
 	m_driver_irq.bind_relative_to(*device().owner());
 
 	// fill in the initial states
-	device_iterator iter(device().machine().root_device());
-	int index = iter.indexof(*this);
+	int index = device_iterator(device().machine().root_device()).indexof(*this);
 	m_suspend = SUSPEND_REASON_RESET;
 	m_profiler = profile_type(index + PROFILER_DEVICE_FIRST);
 	m_inttrigger = index + TRIGGER_INT;

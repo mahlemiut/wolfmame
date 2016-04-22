@@ -277,7 +277,7 @@ static void texture_set_data(ogl_texture_info *texture, const render_texinfo *te
 bool renderer_ogl::s_shown_video_info = false;
 bool renderer_ogl::s_dll_loaded = false;
 
-bool renderer_ogl::init(running_machine &machine)
+void renderer_ogl::init(running_machine &machine)
 {
 	s_dll_loaded = false;
 
@@ -287,8 +287,6 @@ bool renderer_ogl::init(running_machine &machine)
 #else
 	osd_printf_verbose("Using SDL multi-window OpenGL driver (SDL 2.0+)\n");
 #endif
-
-	return false;
 }
 
 //============================================================
@@ -561,11 +559,13 @@ void renderer_ogl::initialize_gl()
 
 int renderer_ogl::create()
 {
+	auto win = assert_window();
+
 	// create renderer
 #if defined(OSD_WINDOWS)
-	m_gl_context = global_alloc(win_gl_context(window().m_hwnd));
+	m_gl_context = global_alloc(win_gl_context(win->platform_window<HWND>()));
 #else
-	m_gl_context = global_alloc(sdl_gl_context(window().sdl_window()));
+	m_gl_context = global_alloc(sdl_gl_context(win->platform_window<SDL_Window*>()));
 #endif
 	if  (m_gl_context->LastErrorMsg() != nullptr)
 	{
@@ -629,12 +629,19 @@ void renderer_ogl::destroy_all_textures()
 	if ( !m_initialized )
 		return;
 
+	auto win = try_getwindow();
+
+	// During destroy this can get called 
+	// and the window is no longer available
+	if (win == nullptr)
+		return;
+
 	m_gl_context->MakeCurrent();
 
-	if(window().m_primlist)
+	if(win->m_primlist)
 	{
 		lock=TRUE;
-		window().m_primlist->acquire_lock();
+		win->m_primlist->acquire_lock();
 	}
 
 	glFinish();
@@ -696,7 +703,7 @@ void renderer_ogl::destroy_all_textures()
 	m_initialized = 0;
 
 	if (lock)
-		window().m_primlist->release_lock();
+		win->m_primlist->release_lock();
 }
 //============================================================
 //  loadGLExtensions
@@ -916,7 +923,7 @@ void renderer_ogl::loadGLExtensions()
 
 	if ( m_useglsl )
 	{
-		if ( window().prescale() != 1 )
+		if (assert_window()->prescale() != 1 )
 		{
 			m_useglsl = 0;
 			if (_once)
@@ -1014,7 +1021,6 @@ void renderer_ogl::loadGLExtensions()
 
 int renderer_ogl::draw(const int update)
 {
-	render_primitive *prim;
 	ogl_texture_info *texture=nullptr;
 	float vofs, hofs;
 	int  pendingPrimitive=GL_NO_PRIMITIVE, curPrimitive=GL_NO_PRIMITIVE;
@@ -1026,7 +1032,9 @@ int renderer_ogl::draw(const int update)
 	}
 #endif
 
-	osd_dim wdim = window().get_size();
+	auto win = assert_window();
+
+	osd_dim wdim = win->get_size();
 
 	if (has_flags(FI_CHANGED) || (wdim.width() != m_width) || (wdim.height() != m_height))
 	{
@@ -1077,7 +1085,7 @@ int renderer_ogl::draw(const int update)
 		// we're doing nothing 3d, so the Z-buffer is currently not interesting
 		glDisable(GL_DEPTH_TEST);
 
-		if (window().machine().options().antialias())
+		if (win->machine().options().antialias())
 		{
 			// enable antialiasing for lines
 			glEnable(GL_LINE_SMOOTH);
@@ -1157,14 +1165,14 @@ int renderer_ogl::draw(const int update)
 	m_last_hofs = hofs;
 	m_last_vofs = vofs;
 
-	window().m_primlist->acquire_lock();
+	win->m_primlist->acquire_lock();
 
 	// now draw
-	for (prim = window().m_primlist->first(); prim != nullptr; prim = prim->next())
+	for (render_primitive &prim : *win->m_primlist)
 	{
 		int i;
 
-		switch (prim->type)
+		switch (prim.type)
 		{
 			/**
 			 * Try to stay in one Begin/End block as long as possible,
@@ -1173,7 +1181,7 @@ int renderer_ogl::draw(const int update)
 			case render_primitive::LINE:
 				#if !USE_WIN32_STYLE_LINES
 				// check if it's really a point
-				if (((prim->bounds.x1 - prim->bounds.x0) == 0) && ((prim->bounds.y1 - prim->bounds.y0) == 0))
+				if (((prim.bounds.x1 - prim.bounds.x0) == 0) && ((prim.bounds.y1 - prim.bounds.y0) == 0))
 				{
 					curPrimitive=GL_POINTS;
 				} else {
@@ -1188,10 +1196,10 @@ int renderer_ogl::draw(const int update)
 
 						if ( pendingPrimitive==GL_NO_PRIMITIVE )
 				{
-							set_blendmode(PRIMFLAG_GET_BLENDMODE(prim->flags));
+							set_blendmode(PRIMFLAG_GET_BLENDMODE(prim.flags));
 				}
 
-				glColor4f(prim->color.r, prim->color.g, prim->color.b, prim->color.a);
+				glColor4f(prim.color.r, prim.color.g, prim.color.b, prim.color.a);
 
 				if(pendingPrimitive!=curPrimitive)
 				{
@@ -1202,12 +1210,12 @@ int renderer_ogl::draw(const int update)
 				// check if it's really a point
 				if (curPrimitive==GL_POINTS)
 				{
-					glVertex2f(prim->bounds.x0+hofs, prim->bounds.y0+vofs);
+					glVertex2f(prim.bounds.x0+hofs, prim.bounds.y0+vofs);
 				}
 				else
 				{
-					glVertex2f(prim->bounds.x0+hofs, prim->bounds.y0+vofs);
-					glVertex2f(prim->bounds.x1+hofs, prim->bounds.y1+vofs);
+					glVertex2f(prim.bounds.x0+hofs, prim.bounds.y0+vofs);
+					glVertex2f(prim.bounds.x1+hofs, prim.bounds.y1+vofs);
 				}
 				#else
 				{
@@ -1223,15 +1231,15 @@ int renderer_ogl::draw(const int update)
 						pendingPrimitive=GL_NO_PRIMITIVE;
 					}
 
-					set_blendmode(sdl, PRIMFLAG_GET_BLENDMODE(prim->flags));
+					set_blendmode(sdl, PRIMFLAG_GET_BLENDMODE(prim.flags));
 
 					// compute the effective width based on the direction of the line
-					effwidth = prim->width();
+					effwidth = prim.width();
 					if (effwidth < 0.5f)
 						effwidth = 0.5f;
 
 					// determine the bounds of a quad to draw this line
-					render_line_to_quad(&prim->bounds, effwidth, &b0, &b1);
+					render_line_to_quad(&prim.bounds, effwidth, &b0, &b1);
 
 					// fix window position
 					b0.x0 += hofs;
@@ -1244,7 +1252,7 @@ int renderer_ogl::draw(const int update)
 					b1.y1 += vofs;
 
 					// iterate over AA steps
-					for (step = PRIMFLAG_GET_ANTIALIAS(prim->flags) ? line_aa_4step : line_aa_1step; step->weight != 0; step++)
+					for (step = PRIMFLAG_GET_ANTIALIAS(prim.flags) ? line_aa_4step : line_aa_1step; step->weight != 0; step++)
 					{
 						glBegin(GL_TRIANGLE_STRIP);
 
@@ -1261,17 +1269,17 @@ int renderer_ogl::draw(const int update)
 						glVertex2f(b1.x1 + step->xoffs, b1.y1 + step->yoffs);
 
 						// determine the color of the line
-						r = (prim->color.r * step->weight);
-						g = (prim->color.g * step->weight);
-						b = (prim->color.b * step->weight);
-						a = (prim->color.a * 255.0f);
+						r = (prim.color.r * step->weight);
+						g = (prim.color.g * step->weight);
+						b = (prim.color.b * step->weight);
+						a = (prim.color.a * 255.0f);
 						if (r > 1.0) r = 1.0;
 						if (g > 1.0) g = 1.0;
 						if (b > 1.0) b = 1.0;
 						if (a > 1.0) a = 1.0;
 						glColor4f(r, g, b, a);
 
-//                      texture = texture_update(window, prim, 0);
+//                      texture = texture_update(window, &prim, 0);
 //                      if (texture) printf("line has texture!\n");
 
 						// if we have a texture to use for the vectors, use it here
@@ -1306,11 +1314,11 @@ int renderer_ogl::draw(const int update)
 					pendingPrimitive=GL_NO_PRIMITIVE;
 				}
 
-				glColor4f(prim->color.r, prim->color.g, prim->color.b, prim->color.a);
+				glColor4f(prim.color.r, prim.color.g, prim.color.b, prim.color.a);
 
-				set_blendmode(PRIMFLAG_GET_BLENDMODE(prim->flags));
+				set_blendmode(PRIMFLAG_GET_BLENDMODE(prim.flags));
 
-				texture = texture_update(prim, 0);
+				texture = texture_update(&prim, 0);
 
 				if ( texture && texture->type==TEXTURE_TYPE_SHADER )
 				{
@@ -1319,14 +1327,14 @@ int renderer_ogl::draw(const int update)
 						if ( i==m_glsl_program_mb2sc )
 						{
 							// i==glsl_program_mb2sc -> transformation mamebm->scrn
-							m_texVerticex[0]=prim->bounds.x0 + hofs;
-							m_texVerticex[1]=prim->bounds.y0 + vofs;
-							m_texVerticex[2]=prim->bounds.x1 + hofs;
-							m_texVerticex[3]=prim->bounds.y0 + vofs;
-							m_texVerticex[4]=prim->bounds.x1 + hofs;
-							m_texVerticex[5]=prim->bounds.y1 + vofs;
-							m_texVerticex[6]=prim->bounds.x0 + hofs;
-							m_texVerticex[7]=prim->bounds.y1 + vofs;
+							m_texVerticex[0]=prim.bounds.x0 + hofs;
+							m_texVerticex[1]=prim.bounds.y0 + vofs;
+							m_texVerticex[2]=prim.bounds.x1 + hofs;
+							m_texVerticex[3]=prim.bounds.y0 + vofs;
+							m_texVerticex[4]=prim.bounds.x1 + hofs;
+							m_texVerticex[5]=prim.bounds.y1 + vofs;
+							m_texVerticex[6]=prim.bounds.x0 + hofs;
+							m_texVerticex[7]=prim.bounds.y1 + vofs;
 						} else {
 							// 1:1 tex coord CCW (0/0) (1/0) (1/1) (0/1) on texture dimensions
 							m_texVerticex[0]=(GLfloat)0.0;
@@ -1341,19 +1349,19 @@ int renderer_ogl::draw(const int update)
 
 						if(i>0) // first fetch already done
 						{
-							texture = texture_update(prim, i);
+							texture = texture_update(&prim, i);
 						}
 						glDrawArrays(GL_QUADS, 0, 4);
 					}
 				} else {
-					m_texVerticex[0]=prim->bounds.x0 + hofs;
-					m_texVerticex[1]=prim->bounds.y0 + vofs;
-					m_texVerticex[2]=prim->bounds.x1 + hofs;
-					m_texVerticex[3]=prim->bounds.y0 + vofs;
-					m_texVerticex[4]=prim->bounds.x1 + hofs;
-					m_texVerticex[5]=prim->bounds.y1 + vofs;
-					m_texVerticex[6]=prim->bounds.x0 + hofs;
-					m_texVerticex[7]=prim->bounds.y1 + vofs;
+					m_texVerticex[0]=prim.bounds.x0 + hofs;
+					m_texVerticex[1]=prim.bounds.y0 + vofs;
+					m_texVerticex[2]=prim.bounds.x1 + hofs;
+					m_texVerticex[3]=prim.bounds.y0 + vofs;
+					m_texVerticex[4]=prim.bounds.x1 + hofs;
+					m_texVerticex[5]=prim.bounds.y1 + vofs;
+					m_texVerticex[6]=prim.bounds.x0 + hofs;
+					m_texVerticex[7]=prim.bounds.y1 + vofs;
 
 					glDrawArrays(GL_QUADS, 0, 4);
 				}
@@ -1376,7 +1384,7 @@ int renderer_ogl::draw(const int update)
 		pendingPrimitive=GL_NO_PRIMITIVE;
 	}
 
-	window().m_primlist->release_lock();
+	win->m_primlist->release_lock();
 	m_init_context = 0;
 
 	m_gl_context->SwapBuffer();
@@ -1511,8 +1519,10 @@ void renderer_ogl::texture_compute_size_subroutine(ogl_texture_info *texture, UI
 		texture->xprescale--;
 	while (texture->yprescale > 1 && height_create * texture->yprescale > m_texture_max_height)
 		texture->yprescale--;
-	if (PRIMFLAG_GET_SCREENTEX(flags) && (texture->xprescale != window().prescale() || texture->yprescale != window().prescale()))
-		osd_printf_warning("SDL: adjusting prescale from %dx%d to %dx%d\n", window().prescale(), window().prescale(), texture->xprescale, texture->yprescale);
+
+	auto win = assert_window();
+	if (PRIMFLAG_GET_SCREENTEX(flags) && (texture->xprescale != win->prescale() || texture->yprescale != win->prescale()))
+		osd_printf_warning("SDL: adjusting prescale from %dx%d to %dx%d\n", win->prescale(), win->prescale(), texture->xprescale, texture->yprescale);
 
 	width  *= texture->xprescale;
 	height *= texture->yprescale;
@@ -1874,8 +1884,9 @@ ogl_texture_info *renderer_ogl::texture_create(const render_texinfo *texsource, 
 	texture->texinfo.seqid = -1; // force set data
 	if (PRIMFLAG_GET_SCREENTEX(flags))
 	{
-		texture->xprescale = window().prescale();
-		texture->yprescale = window().prescale();
+		auto win = assert_window();
+		texture->xprescale = win->prescale();
+		texture->yprescale = win->prescale();
 	}
 	else
 	{

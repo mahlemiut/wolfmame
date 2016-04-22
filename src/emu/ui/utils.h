@@ -13,9 +13,6 @@
 #ifndef __UI_UTILS_H__
 #define __UI_UTILS_H__
 
-#include "osdepend.h"
-#include "rendutil.h"
-
 #define MAX_CHAR_INFO            256
 #define MAX_CUST_FILTER          8
 
@@ -161,7 +158,7 @@ struct ui_software_info
 	std::string publisher;
 	UINT8 supported = 0;
 	std::string part;
-	const game_driver *driver;
+	const game_driver *driver = nullptr;
 	std::string listname;
 	std::string interface;
 	std::string instance;
@@ -256,5 +253,6 @@ char* chartrimcarriage(char str[]);
 
 const char* strensure(const char* s);
 
+int getprecisionchr(const char* s);
 
 #endif /* __UI_UTILS_H__ */

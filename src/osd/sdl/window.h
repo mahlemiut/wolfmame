@@ -11,18 +11,23 @@
 #ifndef __SDLWINDOW__
 #define __SDLWINDOW__
 
-#include "sdlinc.h"
 #include "osdsdl.h"
 #include "video.h"
 
 #include "modules/osdwindow.h"
 
 #include <cstdint>
+#include <memory>
+#include <list>
 
 
 //============================================================
 //  TYPE DEFINITIONS
 //============================================================
+
+// forward of SDL_DisplayMode not possible (typedef struct) - define wrapper
+
+class SDL_DM_Wrapper;
 
 typedef uintptr_t HashT;
 
@@ -32,32 +37,9 @@ class sdl_window_info : public osd_window
 {
 public:
 	sdl_window_info(running_machine &a_machine, int index, osd_monitor_info *a_monitor,
-			const osd_window_config *config)
-	: osd_window(), m_next(NULL),
-		// Following three are used by input code to defer resizes
-		m_resize_width(0),
-		m_resize_height(0),
-		m_last_resize(0),
-		m_minimum_dim(0,0),
-		m_windowed_dim(0,0),
-		m_rendered_event(0), m_target(0),
-		m_sdl_window(NULL),
-		m_machine(a_machine), m_monitor(a_monitor), m_fullscreen(0)
-	{
-		m_win_config = *config;
-		m_index = index;
+			const osd_window_config *config);
 
-		//FIXME: these should be per_window in config-> or even better a bit set
-		m_fullscreen = !video_config.windowed;
-		m_prescale = video_config.prescale;
-
-		m_windowed_dim = osd_dim(config->width, config->height);
-	}
-
-	~sdl_window_info()
-	{
-		global_free(m_renderer);
-	}
+	~sdl_window_info();
 
 	int window_init();
 
@@ -67,14 +49,14 @@ public:
 	void resize(INT32 width, INT32 height);
 	void destroy();
 
+	void capture_pointer() override;
+	void release_pointer() override;
+	void show_pointer() override;
+	void hide_pointer() override;
+
 	void notify_changed();
 
-	osd_dim get_size() override
-	{
-		int w=0; int h=0;
-		SDL_GetWindowSize(m_sdl_window, &w, &h);
-		return osd_dim(w,h);
-	}
+	osd_dim get_size() override;
 
 	int xy_to_render_target(int x, int y, int *xt, int *yt);
 
@@ -83,18 +65,11 @@ public:
 	int fullscreen() const override { return m_fullscreen; }
 
 	render_target *target() override { return m_target; }
-	SDL_Window *sdl_window() override { return m_sdl_window; }
 
 	int prescale() const { return m_prescale; }
-	osd_renderer &renderer() const { return *m_renderer; }
 
 	// Pointer to next window
 	sdl_window_info *   m_next;
-
-	// These are used in combine resizing events ... #if SDL13_COMBINE_RESIZE
-	int                 m_resize_width;
-	int                 m_resize_height;
-	osd_ticks_t         m_last_resize;
 
 private:
 	// window handle and info
@@ -106,20 +81,13 @@ private:
 	osd_dim             m_windowed_dim;
 
 	// rendering info
-	osd_event *         m_rendered_event;
+	osd_event           m_rendered_event;
 	render_target *     m_target;
 
-	// Needs to be here as well so we can identify window
-	SDL_Window          *m_sdl_window;
 	// Original display_mode
-	SDL_DisplayMode m_original_mode;
+	SDL_DM_Wrapper	 	*m_original_mode;
 
 	int                 m_extra_flags;
-
-	void set_renderer(osd_renderer *renderer)
-	{
-		m_renderer = renderer;
-	}
 
 	static OSDWORK_CALLBACK( complete_create_wt );
 
@@ -139,7 +107,6 @@ private:
 	// monitor info
 	osd_monitor_info *  m_monitor;
 	int                 m_fullscreen;
-	osd_renderer *      m_renderer;
 
 	// static callbacks ...
 
@@ -164,7 +131,7 @@ struct osd_draw_callbacks
 //============================================================
 
 // window - list
-extern sdl_window_info *sdl_window_list;
+extern std::list<std::shared_ptr<sdl_window_info>> sdl_window_list;
 
 //============================================================
 //  PROTOTYPES

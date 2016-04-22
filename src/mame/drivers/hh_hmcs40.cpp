@@ -36,7 +36,7 @@
  *29      HD38800B  1984, Tomy Portable 6000 Bombman
  *35      HD38800B  1983, Bandai Gundam vs Gelgoog Zaku
  @43      HD38800B  1983, Bandai Dokodemo Dorayaki Doraemon (PT-412)
- @52      HD38800B  1983, Bandai Ultra Man (PT-424)
+ @52      HD38800B  1983, Bandai Ultraman Monster Battle (PT-424)
 
  @09      HD38820A  1980, Mattel World Championship Baseball
  @13      HD38820A  1981, Entex Galaxian 2
@@ -72,11 +72,13 @@
   - gckong random lockups (tap the jump button repeatedly): mcu stack overflow,
     works ok if stack levels is increased, 38800 B rev. has more stack levels?
     Or it could be a race condition: irq happening too late/early.
+  - bultrman building explosions are wrong, especially visible on the first one
   - epacman booting the game in demo mode, pacman should go straight to the
     upper-left power pill: mcu cycle/interrupt timing related
   - Though very uncommon when compared to games with LED/lamp display,
     some games may manipulate VFD plate brightness by strobing it longer,
     eg. cgalaxn when the player ship explodes.
+  - bzaxxon 3D effect is difficult to simulate
 
 ***************************************************************************/
 
@@ -86,6 +88,7 @@
 #include "sound/speaker.h"
 
 // internal artwork
+#include "rendlay.h"
 #include "pairmtch.lh"
 
 #include "hh_hmcs40_test.lh" // common test-layout - use external artwork
@@ -1518,7 +1521,7 @@ MACHINE_CONFIG_END
 
 /***************************************************************************
 
-  Bandai Ultra Man (FL LSI Game Push Up) (manufactured in Japan)
+  Bandai Ultraman Monster Battle (FL LSI Game Push Up) (manufactured in Japan)
   * PCB label Kaken Corp. PT-424 FL Ultra Man
   * Hitachi HD38800B52 MCU
   * cyan/red/blue VFD display NEC FIP8BM25T no. 21-8 2
@@ -1548,7 +1551,7 @@ WRITE8_MEMBER(bultrman_state::plate_w)
 
 	// update display
 	UINT8 grid = BITSWAP8(m_grid,0,1,2,3,4,5,6,7);
-	UINT32 plate = BITSWAP24(m_plate,23,22,21,20,19,18,17,16,15,14,13,12,11,2,10,9,8,7,6,5,4,3,0,1);
+	UINT32 plate = BITSWAP24(m_plate,23,22,21,20,19,0,18,17,16,15,14,13,12,3,11,10,9,8,7,6,5,4,1,2);
 	display_matrix(18, 8, plate, grid);
 }
 
@@ -1583,7 +1586,7 @@ INPUT_PORTS_END
 static MACHINE_CONFIG_START( bultrman, bultrman_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", HD38800, 400000) // approximation
+	MCFG_CPU_ADD("maincpu", HD38800, 350000) // approximation
 	MCFG_HMCS40_WRITE_R_CB(0, WRITE8(bultrman_state, plate_w))
 	MCFG_HMCS40_WRITE_R_CB(1, WRITE8(bultrman_state, plate_w))
 	MCFG_HMCS40_WRITE_R_CB(2, WRITE8(bultrman_state, plate_w))
@@ -1962,8 +1965,6 @@ MACHINE_CONFIG_END
   * Hitachi QFP HD38820A45 MCU
   * cyan/red VFD display Futaba DM-47ZK 2K, with color overlay
 
-  NOTE!: MAME external artwork is required
-
 ***************************************************************************/
 
 class cdkong_state : public hh_hmcs40_state
@@ -2067,14 +2068,19 @@ static MACHINE_CONFIG_START( cdkong, cdkong_state )
 	MCFG_HMCS40_WRITE_D_CB(WRITE16(cdkong_state, grid_w))
 	MCFG_HMCS40_READ_D_CB(IOPORT("IN.1"))
 
-	MCFG_TIMER_DRIVER_ADD_PERIODIC("speaker_decay", cdkong_state, speaker_decay_sim, attotime::from_msec(CDKONG_SPEAKER_DECAY))
+	/* video hardware */
+	MCFG_SCREEN_SVG_ADD("screen", "svg")
+	MCFG_SCREEN_REFRESH_RATE(50)
+	MCFG_SCREEN_SIZE(559, 998)
+	MCFG_SCREEN_VISIBLE_AREA(0, 558, 0, 997)
+	MCFG_DEFAULT_LAYOUT(layout_svg)
 	MCFG_TIMER_DRIVER_ADD_PERIODIC("display_decay", hh_hmcs40_state, display_decay_tick, attotime::from_msec(1))
-	MCFG_DEFAULT_LAYOUT(layout_hh_hmcs40_test)
 
 	/* sound hardware */
 	MCFG_SPEAKER_STANDARD_MONO("mono")
 	MCFG_SOUND_ADD("speaker", SPEAKER_SOUND, 0)
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 0.25)
+	MCFG_TIMER_DRIVER_ADD_PERIODIC("speaker_decay", cdkong_state, speaker_decay_sim, attotime::from_msec(CDKONG_SPEAKER_DECAY))
 MACHINE_CONFIG_END
 
 
@@ -2446,8 +2452,6 @@ MACHINE_CONFIG_END
   * Hitachi QFP HD38820A13 MCU
   * cyan/red/green VFD display Futaba DM-20
 
-  NOTE!: MAME external artwork is required
-
 ***************************************************************************/
 
 class egalaxn2_state : public hh_hmcs40_state
@@ -2532,7 +2536,6 @@ static INPUT_PORTS_START( egalaxn2 )
 	PORT_CONFSETTING(    0x04, "2" )
 INPUT_PORTS_END
 
-
 static MACHINE_CONFIG_START( egalaxn2, egalaxn2_state )
 
 	/* basic machine hardware */
@@ -2546,8 +2549,13 @@ static MACHINE_CONFIG_START( egalaxn2, egalaxn2_state )
 	MCFG_HMCS40_WRITE_R_CB(6, WRITE8(egalaxn2_state, plate_w))
 	MCFG_HMCS40_WRITE_D_CB(WRITE16(egalaxn2_state, grid_w))
 
+	/* video hardware */
+	MCFG_SCREEN_SVG_ADD("screen", "svg")
+	MCFG_SCREEN_REFRESH_RATE(50)
+	MCFG_SCREEN_SIZE(421, 900)
+	MCFG_SCREEN_VISIBLE_AREA(0, 420, 0, 899)
+	MCFG_DEFAULT_LAYOUT(layout_svg)
 	MCFG_TIMER_DRIVER_ADD_PERIODIC("display_decay", hh_hmcs40_state, display_decay_tick, attotime::from_msec(1))
-	MCFG_DEFAULT_LAYOUT(layout_hh_hmcs40_test)
 
 	/* sound hardware */
 	MCFG_SPEAKER_STANDARD_MONO("mono")
@@ -2567,8 +2575,6 @@ MACHINE_CONFIG_END
   * cyan/red VFD display Futaba DM-28Z 1G(cyan Pac-Man) or DM-28 1K(orange Pac-Man)
 
   2 VFD revisions are known, the difference is Pac-Man's color: cyan or red.
-
-  NOTE!: MAME external artwork is required
 
 ***************************************************************************/
 #if 0
@@ -2613,6 +2619,14 @@ static INPUT_PORTS_START( epacman2 )
 	PORT_CONFSETTING(    0x04, "1" )
 	PORT_CONFSETTING(    0x00, "2" )
 INPUT_PORTS_END
+
+static MACHINE_CONFIG_DERIVED( epacman2, egalaxn2 )
+
+	/* video hardware */
+	MCFG_SCREEN_MODIFY("screen")
+	MCFG_SCREEN_SIZE(467, 1000)
+	MCFG_SCREEN_VISIBLE_AREA(0, 466, 0, 999)
+MACHINE_CONFIG_END
 
 
 
@@ -3959,6 +3973,9 @@ ROM_START( cdkong )
 	ROM_REGION( 0x2000, "maincpu", ROMREGION_ERASE00 )
 	ROM_LOAD( "hd38820a45", 0x0000, 0x1000, CRC(196b8070) SHA1(da85d1eb4b048b77f3168630662ab94ec9baa262) )
 	ROM_CONTINUE(           0x1e80, 0x0100 )
+
+	ROM_REGION( 359199, "svg", 0)
+	ROM_LOAD( "cdkong.svg", 0, 359199, CRC(ba159fd5) SHA1(3188e2ed3234f39ac9ee93a485a7e73314bc3457) ) // by Rik/kevtris, ver. 8 apr 2016
 ROM_END
 
 
@@ -3993,6 +4010,9 @@ ROM_START( egalaxn2 )
 	ROM_REGION( 0x2000, "maincpu", ROMREGION_ERASE00 )
 	ROM_LOAD( "hd38820a13", 0x0000, 0x1000, CRC(112b721b) SHA1(4a185bc57ea03fe64f61f7db4da37b16eeb0cb54) )
 	ROM_CONTINUE(           0x1e80, 0x0100 )
+
+	ROM_REGION( 507945, "svg", 0)
+	ROM_LOAD( "egalaxn2.svg", 0, 507945, CRC(b72a8721) SHA1(2d90fca6ce962710525b631e5bc8f75d79332b9d) ) // by kevtris, ver. 25 mar 2015
 ROM_END
 
 
@@ -4000,6 +4020,18 @@ ROM_START( epacman2 )
 	ROM_REGION( 0x2000, "maincpu", ROMREGION_ERASE00 )
 	ROM_LOAD( "hd38820a23", 0x0000, 0x1000, CRC(6eab640f) SHA1(509bdd02be915089e13769f22a08e03509f03af4) )
 	ROM_CONTINUE(           0x1e80, 0x0100 )
+
+	ROM_REGION( 262480, "svg", 0)
+	ROM_LOAD( "epacman2.svg", 0, 262480, CRC(73bd9671) SHA1(a3ac754c0e060da50b65f3d0f9630d9c3d871650) ) // by Rik/kevtris, ver. 9 apr 2016
+ROM_END
+
+ROM_START( epacman2r )
+	ROM_REGION( 0x2000, "maincpu", ROMREGION_ERASE00 )
+	ROM_LOAD( "hd38820a23", 0x0000, 0x1000, CRC(6eab640f) SHA1(509bdd02be915089e13769f22a08e03509f03af4) )
+	ROM_CONTINUE(           0x1e80, 0x0100 )
+
+	ROM_REGION( 262483, "svg", 0)
+	ROM_LOAD( "epacman2r.svg", 0, 262483, CRC(279b629a) SHA1(4c499fb143aadf4f6722b994a22a0d0d3c5150b6) ) // by Rik/kevtris, ver. 9 apr 2016
 ROM_END
 
 
@@ -4092,19 +4124,20 @@ CONS( 1983, zackman,   0,        0, zackman,  zackman,  driver_device, 0, "Banda
 CONS( 1983, bpengo,    0,        0, bpengo,   bpengo,   driver_device, 0, "Bandai", "Pengo (Bandai)", MACHINE_SUPPORTS_SAVE | MACHINE_REQUIRES_ARTWORK )
 CONS( 1983, bbtime,    0,        0, bbtime,   bbtime,   driver_device, 0, "Bandai", "Burger Time (Bandai)", MACHINE_SUPPORTS_SAVE | MACHINE_REQUIRES_ARTWORK )
 CONS( 1983, bdoramon,  0,        0, bdoramon, bdoramon, driver_device, 0, "Bandai", "Dokodemo Dorayaki Doraemon", MACHINE_SUPPORTS_SAVE | MACHINE_REQUIRES_ARTWORK )
-CONS( 1983, bultrman,  0,        0, bultrman, bultrman, driver_device, 0, "Bandai", "Ultra Man (Bandai)", MACHINE_SUPPORTS_SAVE | MACHINE_REQUIRES_ARTWORK | MACHINE_NOT_WORKING )
+CONS( 1983, bultrman,  0,        0, bultrman, bultrman, driver_device, 0, "Bandai", "Ultraman Monster Battle", MACHINE_SUPPORTS_SAVE | MACHINE_REQUIRES_ARTWORK )
 CONS( 1984, machiman,  0,        0, machiman, machiman, driver_device, 0, "Bandai", "Machine Man", MACHINE_SUPPORTS_SAVE | MACHINE_REQUIRES_ARTWORK )
 CONS( 1984, pairmtch,  0,        0, pairmtch, pairmtch, driver_device, 0, "Bandai", "Pair Match", MACHINE_SUPPORTS_SAVE )
 
 CONS( 1981, alnattck,  0,        0, alnattck, alnattck, driver_device, 0, "Coleco", "Alien Attack", MACHINE_SUPPORTS_SAVE | MACHINE_REQUIRES_ARTWORK )
-CONS( 1982, cdkong,    0,        0, cdkong,   cdkong,   driver_device, 0, "Coleco", "Donkey Kong (Coleco)", MACHINE_SUPPORTS_SAVE | MACHINE_REQUIRES_ARTWORK | MACHINE_IMPERFECT_SOUND )
+CONS( 1982, cdkong,    0,        0, cdkong,   cdkong,   driver_device, 0, "Coleco", "Donkey Kong (Coleco)", MACHINE_SUPPORTS_SAVE )
 CONS( 1982, cgalaxn,   0,        0, cgalaxn,  cgalaxn,  driver_device, 0, "Coleco", "Galaxian (Coleco)", MACHINE_SUPPORTS_SAVE | MACHINE_REQUIRES_ARTWORK | MACHINE_IMPERFECT_SOUND )
 CONS( 1981, cpacman,   0,        0, cpacman,  cpacman,  driver_device, 0, "Coleco", "Pac-Man (Coleco, Rev. 29)", MACHINE_SUPPORTS_SAVE | MACHINE_REQUIRES_ARTWORK )
 CONS( 1981, cpacmanr1, cpacman,  0, cpacman,  cpacman,  driver_device, 0, "Coleco", "Pac-Man (Coleco, Rev. 28)", MACHINE_SUPPORTS_SAVE | MACHINE_REQUIRES_ARTWORK )
 CONS( 1983, cmspacmn,  0,        0, cmspacmn, cmspacmn, driver_device, 0, "Coleco", "Ms. Pac-Man (Coleco)", MACHINE_SUPPORTS_SAVE | MACHINE_REQUIRES_ARTWORK )
 
-CONS( 1981, egalaxn2,  0,        0, egalaxn2, egalaxn2, driver_device, 0, "Entex", "Galaxian 2 (Entex)", MACHINE_SUPPORTS_SAVE | MACHINE_REQUIRES_ARTWORK )
-CONS( 1981, epacman2,  0,        0, egalaxn2, epacman2, driver_device, 0, "Entex", "Pac Man 2 (Entex)", MACHINE_SUPPORTS_SAVE | MACHINE_REQUIRES_ARTWORK )
+CONS( 1981, egalaxn2,  0,        0, egalaxn2, egalaxn2, driver_device, 0, "Entex", "Galaxian 2 (Entex)", MACHINE_SUPPORTS_SAVE )
+CONS( 1981, epacman2,  0,        0, epacman2, epacman2, driver_device, 0, "Entex", "Pac Man 2 (Entex, cyan Pacman)", MACHINE_SUPPORTS_SAVE )
+CONS( 1981, epacman2r, epacman2, 0, epacman2, epacman2, driver_device, 0, "Entex", "Pac Man 2 (Entex, red Pacman)", MACHINE_SUPPORTS_SAVE )
 CONS( 1982, estargte,  0,        0, estargte, estargte, driver_device, 0, "Entex", "Stargate (Entex)", MACHINE_SUPPORTS_SAVE | MACHINE_REQUIRES_ARTWORK )
 CONS( 1982, eturtles,  0,        0, eturtles, eturtles, driver_device, 0, "Entex", "Turtles (Entex)", MACHINE_SUPPORTS_SAVE | MACHINE_REQUIRES_ARTWORK )
 

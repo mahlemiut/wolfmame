@@ -59,9 +59,6 @@ typedef device_t * (*machine_config_constructor)(machine_config &config, device_
 #include "ioport.h"
 #include "output.h"
 
-// input viewer
-#include "inpview.h"
-
 // devices and callbacks
 #include "device.h"
 #include "devfind.h"
@@ -93,8 +90,7 @@ typedef device_t * (*machine_config_constructor)(machine_config &config, device_
 #include "devcpu.h"
 
 // the running machine
-#include "mame.h"
-#include "language.h"
+#include "main.h"
 #include "machine.h"
 #include "driver.h"
 

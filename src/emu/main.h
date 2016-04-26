@@ -76,12 +76,13 @@ public:
 	osd_interface &osd() const { return m_osd; }
 	emu_options &options() const { return m_options; }
 
-	running_machine *machine() { return m_machine; }
+	running_machine *machine() const { return m_machine; }
 
 	void set_machine(running_machine *machine) { m_machine = machine; }
 
 	virtual ui_manager* create_ui(running_machine& machine) { return nullptr;  }
-	virtual void ui_initialize(running_machine& machine,bool firstrun) { }
+	virtual void create_custom(running_machine& machine) { }
+	virtual void ui_initialize(running_machine& machine) { }
 
 	virtual void update_machine() { }
 protected:

@@ -203,7 +203,7 @@ public:
 	template<class _DeviceClass> inline _DeviceClass *device(const char *tag) { return downcast<_DeviceClass *>(device(tag)); }
 
 	// immediate operations
-	int run(bool firstrun);
+	int run(bool quiet);
 	void pause();
 	void resume();
 	void toggle_pause();
@@ -244,7 +244,7 @@ public:
 
 private:
 	// video-related information
-	screen_device *         primary_screen;     // the primary screen device, or NULL if screenless
+	screen_device *         primary_screen;     // the primary screen device, or nullptr if screenless
 
 public:
 	// debugger-related information
@@ -382,7 +382,7 @@ private:
 template <typename Format, typename... Params>
 inline void running_machine::popmessage(Format &&fmt, Params &&... args) const
 {
-	// if the format is NULL, it is a signal to clear the popmessage
+	// if the format is nullptr, it is a signal to clear the popmessage
 	// otherwise, generate the buffer and call the UI to display the message
 	if (is_null<Format>::value(fmt))
 		popup_clear();

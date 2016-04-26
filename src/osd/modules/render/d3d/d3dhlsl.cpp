@@ -16,6 +16,7 @@
 
 // MAME headers
 #include "emu.h"
+#include "drivenum.h"
 #include "render.h"
 #include "ui/uimain.h"
 #include "rendutil.h"
@@ -276,7 +277,7 @@ void shaders::render_snapshot(surface *surface)
 	// add two text entries describing the image
 	std::string text1 = std::string(emulator_info::get_appname()).append(" ").append(emulator_info::get_build_version());
 	std::string text2 = std::string(machine->system().manufacturer).append(" ").append(machine->system().description);
-	png_info pnginfo = { 0 };
+	png_info pnginfo = { nullptr };
 	png_add_text(&pnginfo, "Software", text1.c_str());
 	png_add_text(&pnginfo, "System", text2.c_str());
 

@@ -18,6 +18,6 @@ const char bare_build_version[] = BARE_BUILD_VERSION;
 #define XVERSION_TO_STRING(ver) #ver
 const char build_version[] = BARE_BUILD_VERSION "W " VERSION_TO_STRING(GIT_VERSION);
 #else
-const char build_version[] = BARE_BUILD_VERSION "W";
+const char build_version[] = BARE_BUILD_VERSION "W " __DATE__;
 #endif
 

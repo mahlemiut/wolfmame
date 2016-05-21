@@ -203,6 +203,7 @@ void ui_menu_record_inp::start_inp()
 //		}
 
 		s_bios biosname;
+		machine().options().set_value(OPTION_RECORD,m_filename_entry,OPTION_PRIORITY_HIGH,error);
 		if (!mame_machine_manager::instance()->ui().options().skip_bios_menu() && has_multiple_bios(m_driver, biosname))
 			ui_menu::stack_push(global_alloc_clear<ui_bios_selection>(ui(), container, biosname, (void *)m_driver, false, false));
 		else
@@ -210,7 +211,6 @@ void ui_menu_record_inp::start_inp()
 			reselect_last::driver = m_driver->name;
 			reselect_last::software.clear();
 			reselect_last::swlist.clear();
-			machine().options().set_value(OPTION_RECORD,m_filename_entry,OPTION_PRIORITY_HIGH,error);
 			mame_machine_manager::instance()->schedule_new_driver(*m_driver);
 			machine().schedule_hard_reset();
 			ui_menu::stack_reset(machine());
@@ -373,6 +373,7 @@ void ui_menu_playback_inp::start_inp()
 //		}
 
 		s_bios biosname;
+		machine().options().set_value(OPTION_PLAYBACK,m_filename_entry,OPTION_PRIORITY_HIGH,error);
 		if (!mame_machine_manager::instance()->ui().options().skip_bios_menu() && has_multiple_bios(m_driver, biosname))
 			ui_menu::stack_push(global_alloc_clear<ui_bios_selection>(ui(), container, biosname, (void *)m_driver, false, false));
 		else
@@ -380,7 +381,6 @@ void ui_menu_playback_inp::start_inp()
 			reselect_last::driver = m_driver->name;
 			reselect_last::software.clear();
 			reselect_last::swlist.clear();
-			machine().options().set_value(OPTION_PLAYBACK,m_filename_entry,OPTION_PRIORITY_HIGH,error);
 			mame_machine_manager::instance()->schedule_new_driver(*m_driver);
 			machine().schedule_hard_reset();
 			ui_menu::stack_reset(machine());

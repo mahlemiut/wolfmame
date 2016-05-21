@@ -419,7 +419,7 @@ void ui_menu_select_game::handle()
 			{
 				const game_driver *driver = (const game_driver *)m_event->itemref;
 				if ((FPTR)driver > 3)
-					ui_menu::stack_push(global_alloc_clear<ui_menu_record_inp>(machine(), container, driver));
+					ui_menu::stack_push(global_alloc_clear<ui_menu_record_inp>(ui(), container, driver));
 			}
 			else
 			{
@@ -427,9 +427,9 @@ void ui_menu_select_game::handle()
 //				if ((FPTR)swinfo > 3 && machine().datfile().has_data(swinfo->driver))
 //				{
 //					if (swinfo->startempty == 1)
-//						ui_menu::stack_push(global_alloc_clear<ui_menu_record_inp>(machine(), container, swinfo->driver));
+//						ui_menu::stack_push(global_alloc_clear<ui_menu_record_inp>(ui(), container, swinfo->driver));
 //					else
-//						ui_menu::stack_push(global_alloc_clear<ui_menu_record_inp>(machine(), container, swinfo));
+//						ui_menu::stack_push(global_alloc_clear<ui_menu_record_inp>(ui(), container, swinfo));
 //				}
 			}
 		}
@@ -440,7 +440,7 @@ void ui_menu_select_game::handle()
 			{
 				const game_driver *driver = (const game_driver *)m_event->itemref;
 				if ((FPTR)driver > 3)
-					ui_menu::stack_push(global_alloc_clear<ui_menu_playback_inp>(machine(), container, driver));
+					ui_menu::stack_push(global_alloc_clear<ui_menu_playback_inp>(ui(), container, driver));
 			}
 			else
 			{
@@ -448,9 +448,9 @@ void ui_menu_select_game::handle()
 //				if ((FPTR)swinfo > 3 && machine().datfile().has_data(swinfo->driver))
 //				{
 //					if (swinfo->startempty == 1)
-//						ui_menu::stack_push(global_alloc_clear<ui_menu_playback_inp>(machine(), container, swinfo->driver));
+//						ui_menu::stack_push(global_alloc_clear<ui_menu_playback_inp>(ui(), container, swinfo->driver));
 //					else
-//						ui_menu::stack_push(global_alloc_clear<ui_menu_playback_inp>(machine(), container, swinfo));
+//						ui_menu::stack_push(global_alloc_clear<ui_menu_playback_inp>(ui(), container, swinfo));
 //				}
 			}
 		}

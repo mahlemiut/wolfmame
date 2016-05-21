@@ -1554,7 +1554,7 @@ UINT32 mame_ui_manager::handler_ingame(mame_ui_manager &mui, render_container *c
 	}
 
 	// if we're single-stepping, pause now
-	if (mui.single_step() && !machine.ioport().get_record_file()->is_open())
+	if (mui.single_step() && !mui.machine().ioport().get_record_file()->is_open())
 	{
 		mui.machine().pause();
 		mui.set_single_step(false);
@@ -1632,14 +1632,14 @@ UINT32 mame_ui_manager::handler_ingame(mame_ui_manager &mui, render_container *c
 
 	// handle a reset request
 	if (mui.machine().ui_input().pressed(IPT_UI_RESET_MACHINE))
-		if (!if_recording_or_playing_back_stop_and_return_true(machine))
+		if (!if_recording_or_playing_back_stop_and_return_true(mui.machine()))
 			mui.machine().schedule_hard_reset();
 	if (mui.machine().ui_input().pressed(IPT_UI_SOFT_RESET))
-		if (!if_recording_or_playing_back_stop_and_return_true(machine))
+		if (!if_recording_or_playing_back_stop_and_return_true(mui.machine()))
 			mui.machine().schedule_soft_reset();
 
 	// handle a request to display graphics/palette
-	if (mui.machine().ui_input().pressed(IPT_UI_SHOW_GFX) && !machine.ioport().get_record_file()->is_open())
+	if (mui.machine().ui_input().pressed(IPT_UI_SHOW_GFX) && !mui.machine().ioport().get_record_file()->is_open())
 	{
 		if (!is_paused)
 			mui.machine().pause();
@@ -1665,7 +1665,7 @@ UINT32 mame_ui_manager::handler_ingame(mame_ui_manager &mui, render_container *c
 	}
 
 	// handle a save state request
-	if (mui.machine().ui_input().pressed(IPT_UI_SAVE_STATE) && !machine.ioport().get_record_file()->is_open())
+	if (mui.machine().ui_input().pressed(IPT_UI_SAVE_STATE) && !mui.machine().ioport().get_record_file()->is_open())
 	{
 		mui.machine().pause();
 		mui.m_load_save_hold = true;
@@ -1673,7 +1673,7 @@ UINT32 mame_ui_manager::handler_ingame(mame_ui_manager &mui, render_container *c
 	}
 
 	// handle a load state request
-	if (mui.machine().ui_input().pressed(IPT_UI_LOAD_STATE) && !machine.ioport().get_record_file()->is_open())
+	if (mui.machine().ui_input().pressed(IPT_UI_LOAD_STATE) && !mui.machine().ioport().get_record_file()->is_open())
 	{
 		mui.machine().pause();
 		mui.m_load_save_hold = true;
@@ -1685,11 +1685,11 @@ UINT32 mame_ui_manager::handler_ingame(mame_ui_manager &mui, render_container *c
 		mui.machine().video().save_active_screen_snapshots();
 
 	// toggle pause
-	if (mui.machine().ui_input().pressed(IPT_UI_PAUSE) && !machine.ioport().get_record_file()->is_open())
+	if (mui.machine().ui_input().pressed(IPT_UI_PAUSE) && !mui.machine().ioport().get_record_file()->is_open())
 		mui.machine().toggle_pause();
 
 	// pause single step
-	if (mui.machine().ui_input().pressed(IPT_UI_PAUSE_SINGLE) && !machine.ioport().get_record_file()->is_open())
+	if (mui.machine().ui_input().pressed(IPT_UI_PAUSE_SINGLE) && !mui.machine().ioport().get_record_file()->is_open())
 	{
 		mui.set_single_step(true);
 		mui.machine().resume();
@@ -1720,7 +1720,7 @@ UINT32 mame_ui_manager::handler_ingame(mame_ui_manager &mui, render_container *c
 		mui.decrease_frameskip();
 
 	// toggle throttle?
-	if (mui.machine().ui_input().pressed(IPT_UI_THROTTLE) && !machine.ioport().get_record_file()->is_open())
+	if (mui.machine().ui_input().pressed(IPT_UI_THROTTLE) && !mui.machine().ioport().get_record_file()->is_open())
 		mui.machine().video().toggle_throttle();
 
 	// toggle autofire
@@ -1739,7 +1739,7 @@ UINT32 mame_ui_manager::handler_ingame(mame_ui_manager &mui, render_container *c
 	}
 
 	// check for fast forward
-	if (mui.machine().ioport().type_pressed(IPT_UI_FAST_FORWARD) && !machine.ioport().get_record_file()->is_open())
+	if (mui.machine().ioport().type_pressed(IPT_UI_FAST_FORWARD) && !mui.machine().ioport().get_record_file()->is_open())
 	{
 		mui.machine().video().set_fastforward(true);
 		mui.show_fps_temp(0.5);
@@ -1890,7 +1890,7 @@ UINT32 mame_ui_manager::handler_confirm_quit(mame_ui_manager &mui, render_contai
 			ui_cancel_text);
 
 	mui.draw_text_box(container, quit_message.c_str(), JUSTIFY_CENTER, 0.5f, 0.5f, UI_RED_COLOR);
-	if(!machine.ioport().get_record_file()->is_open())
+	if(!mui.machine().ioport().get_record_file()->is_open())
 		mui.machine().pause();
 
 	// if the user press ENTER, quit the game

@@ -7,7 +7,9 @@
 #include "emu.h"
 #include "mame.h"
 #include "ui/uimain.h"
+#include "ui/ui.h"
 #include "render.h"
+#include "inpview.h"
 
 static const struct _input_type_definition
 {

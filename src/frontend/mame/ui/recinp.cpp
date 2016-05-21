@@ -5,7 +5,7 @@
 */
 
 #include "emu.h"
-//#include "mame.h"
+#include "mame.h"
 #include "drivenum.h"
 #include "ui/ui.h"
 #include "ui/menu.h"
@@ -15,26 +15,27 @@
 #include "ui/selsoft.h"
 #include "ui/utils.h"
 #include "emuopts.h"
+#include "mameopts.h"
 #include "audit.h"
 #include "softlist.h"
 
 
 // INP recording class
 
-ui_menu_record_inp::ui_menu_record_inp(running_machine &machine, render_container *container, const game_driver *driver) : ui_menu(machine, container)
+ui_menu_record_inp::ui_menu_record_inp(mame_ui_manager &mui, render_container *container, const game_driver *driver) : ui_menu(mui, container)
 {
 	std::string path;
-	m_driver = (driver == nullptr) ? &machine.system() : driver;
+	m_driver = (driver == nullptr) ? mame_options::system(mui.machine().options()) : driver;
 	m_warning_count = 0;
 	emu_file f(OPEN_FLAG_READ);
 
 	// check if setup is correct for MARP use
 	// first, NVRAM
-	path = machine.options().nvram_directory();
+	path = mui.machine().options().nvram_directory();
 	path += "/";
 	path += m_driver->name;
 	m_warning[0] = false;
-	if(!strcmp(machine.options().nvram_directory(),"NUL") && !strcmp(machine.options().nvram_directory(),"/dev/null"))
+	if(!strcmp(mui.machine().options().nvram_directory(),"NUL") && !strcmp(mui.machine().options().nvram_directory(),"/dev/null"))
 	{
 		// silence warning if nvram folder doesn't exist
 		if(f.open(path.c_str()) == osd_file::error::NONE)
@@ -47,7 +48,7 @@ ui_menu_record_inp::ui_menu_record_inp(running_machine &machine, render_containe
 	
 	// DIFF file
 	m_warning[1] = false;
-	path = machine.options().diff_directory();
+	path = mui.machine().options().diff_directory();
 	path += "/";
 	path += m_driver->name;
 	path += ".dif";
@@ -60,7 +61,7 @@ ui_menu_record_inp::ui_menu_record_inp(running_machine &machine, render_containe
 	
 	// Lua console
 	m_warning[2] = false;
-	if(machine.options().console())
+	if(mui.machine().options().console())
 	{
 		m_warning_count++;
 		m_warning[2] = true;
@@ -203,7 +204,7 @@ void ui_menu_record_inp::start_inp()
 
 		s_bios biosname;
 		if (!mame_machine_manager::instance()->ui().options().skip_bios_menu() && has_multiple_bios(m_driver, biosname))
-			ui_menu::stack_push(global_alloc_clear<ui_bios_selection>(machine(), container, biosname, (void *)m_driver, false, false));
+			ui_menu::stack_push(global_alloc_clear<ui_bios_selection>(ui(), container, biosname, (void *)m_driver, false, false));
 		else
 		{
 			reselect_last::driver = m_driver->name;
@@ -224,12 +225,12 @@ void ui_menu_record_inp::start_inp()
 
 
 // INP playback class
-ui_menu_playback_inp::ui_menu_playback_inp(running_machine &machine, render_container *container, const game_driver *driver) 
-	: ui_menu_record_inp(machine, container, driver),
+ui_menu_playback_inp::ui_menu_playback_inp(mame_ui_manager &mui, render_container *container, const game_driver *driver) 
+	: ui_menu_record_inp(mui, container, driver),
 	  browse_done(false)
 {
 	inp_file = "";
-	inp_dir += machine.options().input_directory();
+	inp_dir += mui.machine().options().input_directory();
 }
 
 ui_menu_playback_inp::~ui_menu_playback_inp()
@@ -310,7 +311,7 @@ void ui_menu_playback_inp::handle()
 				if(m_event->iptkey == IPT_UI_SELECT)
 				{
 					// browse for INP file
-					ui_menu::stack_push(global_alloc_clear<ui_menu_file_selector>(machine(), container, nullptr, inp_dir, inp_file, false, false, false, &browse_result));
+					ui_menu::stack_push(global_alloc_clear<ui_menu_file_selector>(ui(), container, nullptr, inp_dir, inp_file, false, false, false, &browse_result));
 					browse_done = true;
 				}
 				break;
@@ -366,14 +367,14 @@ void ui_menu_playback_inp::start_inp()
 //			for (software_list_device *swlistdev = iter.first(); swlistdev != nullptr; swlistdev = iter.next())
 //				if (swlistdev->first_software_info() != nullptr)
 //				{
-//					ui_menu::stack_push(global_alloc_clear<ui_menu_select_software>(machine(), container, m_driver));
+//					ui_menu::stack_push(global_alloc_clear<ui_menu_select_software>(ui(), container, m_driver));
 //					return;
 //				}
 //		}
 
 		s_bios biosname;
 		if (!mame_machine_manager::instance()->ui().options().skip_bios_menu() && has_multiple_bios(m_driver, biosname))
-			ui_menu::stack_push(global_alloc_clear<ui_bios_selection>(machine(), container, biosname, (void *)m_driver, false, false));
+			ui_menu::stack_push(global_alloc_clear<ui_bios_selection>(ui(), container, biosname, (void *)m_driver, false, false));
 		else
 		{
 			reselect_last::driver = m_driver->name;

@@ -103,8 +103,7 @@ public:
 
 	void init()
 	{
-		m_setup = palloc(netlist::setup_t(this));
-		m_setup->init();
+		m_setup = palloc(netlist::setup_t(*this));
 	}
 
 	void read_netlist(const pstring &filename, const pstring &name)
@@ -304,8 +303,7 @@ static void listdevices()
 		pstring out = pfmt("{1} {2}(<id>")(f->classname(),"-20")(f->name());
 		pstring terms("");
 
-		netlist::device_t *d = f->Create();
-		d->init(nt, pfmt("dummy{1}")(i));
+		netlist::device_t *d = f->Create(nt.setup().netlist(), pfmt("dummy{1}")(i));
 		d->start_dev();
 
 		// get the list of terminals ...

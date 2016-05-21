@@ -18,6 +18,7 @@
 #include "devices/net_lib.h"
 #include "devices/nld_system.h"
 #include "analog/nld_twoterm.h"
+#include "solver/nld_solver.h"
 
 static NETLIST_START(base)
 	TTL_INPUT(ttlhigh, 1)
@@ -50,21 +51,16 @@ NETLIST_END()
 
 namespace netlist
 {
-setup_t::setup_t(netlist_t *netlist)
+setup_t::setup_t(netlist_t &netlist)
 	: m_netlist(netlist)
+	, m_factory(*this)
 	, m_proxy_cnt(0)
 	, m_frontier_cnt(0)
 {
-	netlist->set_setup(this);
-	m_factory = palloc(factory_list_t(*this));
-}
-
-void setup_t::init()
-{
-	initialize_factory(factory());
+	netlist.set_setup(this);
+	initialize_factory(m_factory);
 	NETLIST_NAME(base)(*this);
 }
-
 
 setup_t::~setup_t()
 {
@@ -72,10 +68,9 @@ setup_t::~setup_t()
 	m_alias.clear();
 	m_params.clear();
 	m_terminals.clear();
-	m_params_temp.clear();
+	m_param_values.clear();
 
 	netlist().set_setup(nullptr);
-	pfree(m_factory);
 	m_sources.clear_and_free();
 
 	pstring::resetmem();
@@ -83,38 +78,35 @@ setup_t::~setup_t()
 
 ATTR_COLD pstring setup_t::build_fqn(const pstring &obj_name) const
 {
-	if (m_stack.empty())
-		return netlist().name() + "." + obj_name;
+	if (m_namespace_stack.empty())
+		//return netlist().name() + "." + obj_name;
+		return obj_name;
 	else
-		return m_stack.top() + "." + obj_name;
+		return m_namespace_stack.top() + "." + obj_name;
 }
 
 void setup_t::namespace_push(const pstring &aname)
 {
-	if (m_stack.empty())
-		m_stack.push(netlist().name() + "." + aname);
+	if (m_namespace_stack.empty())
+		//m_namespace_stack.push(netlist().name() + "." + aname);
+		m_namespace_stack.push(aname);
 	else
-		m_stack.push(m_stack.top() + "." + aname);
+		m_namespace_stack.push(m_namespace_stack.top() + "." + aname);
 }
 
 void setup_t::namespace_pop()
 {
-	m_stack.pop();
+	m_namespace_stack.pop();
 }
 
 
-device_t *setup_t::register_dev(device_t *dev, const pstring &name)
+void setup_t::register_dev(std::shared_ptr<device_t> dev)
 {
-	pstring fqn = build_fqn(name);
-
-	dev->init(netlist(), fqn);
-
 	for (auto & d : netlist().m_devices)
 		if (d->name() == dev->name())
-			log().fatal("Error adding {1} to device list. Duplicate name \n", name);
+			log().fatal("Error adding {1} to device list. Duplicate name \n", d->name());
 
 	netlist().m_devices.push_back(dev);
-	return dev;
 }
 
 void setup_t::register_lib_entry(const pstring &name)
@@ -125,24 +117,33 @@ void setup_t::register_lib_entry(const pstring &name)
 		m_lib.push_back(name);
 }
 
-device_t *setup_t::register_dev(const pstring &classname, const pstring &name)
+void setup_t::register_dev(const pstring &classname, const pstring &name)
 {
 	if (m_lib.contains(classname))
 	{
 		namespace_push(name);
 		include(classname);
 		namespace_pop();
-		return nullptr;
 	}
 	else
 	{
-		device_t *dev = factory().new_device_by_name(classname);
-		//device_t *dev = factory().new_device_by_classname(classname);
-		if (dev == nullptr)
+		auto f = factory().factory_by_name(classname);
+		if (f == nullptr)
 			log().fatal("Class {1} not found!\n", classname);
-		return register_dev(dev, name);
+		m_device_factory.push_back(std::pair<pstring, base_factory_t *>(build_fqn(name), f));
 	}
 }
+
+bool setup_t::device_exists(const pstring name) const
+{
+	for (auto e : m_device_factory)
+	{
+		if (e.first == name)
+			return true;
+	}
+	return false;
+}
+
 
 void setup_t::register_model(const pstring &model_in)
 {
@@ -215,17 +216,34 @@ void setup_t::register_object(device_t &dev, const pstring &name, object_t &obj)
 		case terminal_t::OUTPUT:
 			{
 				core_terminal_t &term = dynamic_cast<core_terminal_t &>(obj);
-				if (obj.isType(terminal_t::OUTPUT))
+				if (term.isType(terminal_t::OUTPUT))
 				{
-					if (obj.isFamily(terminal_t::LOGIC))
+					if (term.is_logic())
+					{
+						logic_output_t &port = dynamic_cast<logic_output_t &>(term);
+						port.set_logic_family(dev.logic_family());
 						dynamic_cast<logic_output_t &>(term).init_object(dev, dev.name() + "." + name);
-					else if (obj.isFamily(terminal_t::ANALOG))
+					}
+					else if (term.is_analog())
 						dynamic_cast<analog_output_t &>(term).init_object(dev, dev.name() + "." + name);
 					else
 						log().fatal("Error adding {1} {2} to terminal list, neither LOGIC nor ANALOG\n", objtype_as_astr(term), term.name());
 				}
-				else
+				else if (term.isType(terminal_t::INPUT))
+				{
+					if (term.is_logic())
+					{
+						logic_input_t &port = dynamic_cast<logic_input_t &>(term);
+						port.set_logic_family(dev.logic_family());
+					}
 					term.init_object(dev, dev.name() + "." + name);
+					dev.m_terminals.push_back(obj.name());
+				}
+				else
+				{
+					term.init_object(dev, dev.name() + "." + name);
+					dev.m_terminals.push_back(obj.name());
+				}
 
 				if (!m_terminals.add(term.name(), &term))
 					log().fatal("Error adding {1} {2} to terminal list\n", objtype_as_astr(term), term.name());
@@ -237,9 +255,9 @@ void setup_t::register_object(device_t &dev, const pstring &name, object_t &obj)
 		case terminal_t::PARAM:
 			{
 				param_t &param = dynamic_cast<param_t &>(obj);
-				if (m_params_temp.contains(name))
+				if (m_param_values.contains(name))
 				{
-					const pstring val = m_params_temp[name];
+					const pstring val = m_param_values[name];
 					switch (param.param_type())
 					{
 						case param_t::DOUBLE:
@@ -319,9 +337,9 @@ void setup_t::remove_connections(const pstring pin)
 	for (int i = m_links.size() - 1; i >= 0; i--)
 	{
 		auto &link = m_links[i];
-		if ((link.e1 == pinfn) || (link.e2 == pinfn))
+		if ((link.first == pinfn) || (link.second == pinfn))
 		{
-			log().verbose("removing connection: {1} <==> {2}\n", link.e1, link.e2);
+			log().verbose("removing connection: {1} <==> {2}\n", link.first, link.second);
 			m_links.remove_at(i);
 			found = true;
 		}
@@ -335,22 +353,23 @@ void setup_t::register_frontier(const pstring attach, const double r_IN, const d
 {
 	pstring frontier_name = pfmt("frontier_{1}")(m_frontier_cnt);
 	m_frontier_cnt++;
-	device_t *front = register_dev("FRONTIER_DEV", frontier_name);
+	register_dev("FRONTIER_DEV", frontier_name);
 	register_param(frontier_name + ".RIN", r_IN);
 	register_param(frontier_name + ".ROUT", r_OUT);
 	register_link(frontier_name + ".G", "GND");
 	pstring attfn = build_fqn(attach);
+	pstring front_fqn = build_fqn(frontier_name);
 	bool found = false;
 	for (auto & link  : m_links)
 	{
-		if (link.e1 == attfn)
+		if (link.first == attfn)
 		{
-			link.e1 = front->name() + ".I";
+			link.first = front_fqn + ".I";
 			found = true;
 		}
-		else if (link.e2 == attfn)
+		else if (link.second == attfn)
 		{
-			link.e2 = front->name() + ".I";
+			link.second = front_fqn + ".I";
 			found = true;
 		}
 	}
@@ -370,16 +389,16 @@ void setup_t::register_param(const pstring &param, const pstring &value)
 {
 	pstring fqn = build_fqn(param);
 
-	int idx = m_params_temp.index_of(fqn);
+	int idx = m_param_values.index_of(fqn);
 	if (idx < 0)
 	{
-		if (!m_params_temp.add(fqn, value))
+		if (!m_param_values.add(fqn, value))
 			log().fatal("Unexpected error adding parameter {1} to parameter list\n", param);
 	}
 	else
 	{
-		log().warning("Overwriting {1} old <{2}> new <{3}>\n", fqn, m_params_temp.value_at(idx), value);
-		m_params_temp[fqn] = value;
+		log().warning("Overwriting {1} old <{2}> new <{3}>\n", fqn, m_param_values.value_at(idx), value);
+		m_param_values[fqn] = value;
 	}
 }
 
@@ -469,7 +488,7 @@ param_t *setup_t::find_param(const pstring &param_in, bool required)
 // FIXME avoid dynamic cast here
 devices::nld_base_proxy *setup_t::get_d_a_proxy(core_terminal_t &out)
 {
-	nl_assert(out.isFamily(terminal_t::LOGIC));
+	nl_assert(out.is_logic());
 
 	logic_output_t &out_cast = dynamic_cast<logic_output_t &>(out);
 	devices::nld_base_proxy *proxy = out_cast.get_proxy();
@@ -477,11 +496,12 @@ devices::nld_base_proxy *setup_t::get_d_a_proxy(core_terminal_t &out)
 	if (proxy == nullptr)
 	{
 		// create a new one ...
-		devices::nld_base_d_to_a_proxy *new_proxy = out_cast.logic_family()->create_d_a_proxy(&out_cast);
 		pstring x = pfmt("proxy_da_{1}_{2}")(out.name())(m_proxy_cnt);
+		auto new_proxy =
+				out_cast.logic_family()->create_d_a_proxy(netlist(), x, &out_cast);
 		m_proxy_cnt++;
 
-		register_dev(new_proxy, x);
+		register_dev_s(new_proxy);
 		new_proxy->start_dev();
 
 		/* connect all existing terminals to new net */
@@ -495,30 +515,30 @@ devices::nld_base_proxy *setup_t::get_d_a_proxy(core_terminal_t &out)
 		out.net().m_core_terms.clear(); // clear the list
 
 		out.net().register_con(new_proxy->in());
-		out_cast.set_proxy(new_proxy);
-		proxy = new_proxy;
+		out_cast.set_proxy(new_proxy.get());
+		proxy = new_proxy.get();
 	}
 	return proxy;
 }
 
 void setup_t::connect_input_output(core_terminal_t &in, core_terminal_t &out)
 {
-	if (out.isFamily(terminal_t::ANALOG) && in.isFamily(terminal_t::LOGIC))
+	if (out.is_analog() && in.is_logic())
 	{
 		logic_input_t &incast = dynamic_cast<logic_input_t &>(in);
-		devices::nld_a_to_d_proxy *proxy = palloc(devices::nld_a_to_d_proxy(&incast));
-		incast.set_proxy(proxy);
 		pstring x = pfmt("proxy_ad_{1}_{2}")(in.name())( m_proxy_cnt);
+		auto proxy = std::make_shared<devices::nld_a_to_d_proxy>(netlist(), x, &incast);
+		incast.set_proxy(proxy.get());
 		m_proxy_cnt++;
 
-		register_dev(proxy, x);
+		register_dev_s(proxy);
 		proxy->start_dev();
 
 		proxy->m_Q.net().register_con(in);
 		out.net().register_con(proxy->m_I);
 
 	}
-	else if (out.isFamily(terminal_t::LOGIC) && in.isFamily(terminal_t::ANALOG))
+	else if (out.is_logic() && in.is_analog())
 	{
 		devices::nld_base_proxy *proxy = get_d_a_proxy(out);
 
@@ -537,20 +557,20 @@ void setup_t::connect_input_output(core_terminal_t &in, core_terminal_t &out)
 
 void setup_t::connect_terminal_input(terminal_t &term, core_terminal_t &inp)
 {
-	if (inp.isFamily(terminal_t::ANALOG))
+	if (inp.is_analog())
 	{
 		connect_terminals(inp, term);
 	}
-	else if (inp.isFamily(terminal_t::LOGIC))
+	else if (inp.is_logic())
 	{
 		logic_input_t &incast = dynamic_cast<logic_input_t &>(inp);
 		log().debug("connect_terminal_input: connecting proxy\n");
-		devices::nld_a_to_d_proxy *proxy = palloc(devices::nld_a_to_d_proxy(&incast));
-		incast.set_proxy(proxy);
 		pstring x = pfmt("proxy_ad_{1}_{2}")(inp.name())(m_proxy_cnt);
+		auto proxy = std::make_shared<devices::nld_a_to_d_proxy>(netlist(), x, &incast);
+		incast.set_proxy(proxy.get());
 		m_proxy_cnt++;
 
-		register_dev(proxy, x);
+		register_dev_s(proxy);
 		proxy->start_dev();
 
 		connect_terminals(term, proxy->m_I);
@@ -569,7 +589,7 @@ void setup_t::connect_terminal_input(terminal_t &term, core_terminal_t &inp)
 
 void setup_t::connect_terminal_output(terminal_t &in, core_terminal_t &out)
 {
-	if (out.isFamily(terminal_t::ANALOG))
+	if (out.is_analog())
 	{
 		log().debug("connect_terminal_output: {1} {2}\n", in.name(), out.name());
 		/* no proxy needed, just merge existing terminal net */
@@ -578,7 +598,7 @@ void setup_t::connect_terminal_output(terminal_t &in, core_terminal_t &out)
 		else
 			out.net().register_con(in);
 	}
-	else if (out.isFamily(terminal_t::LOGIC))
+	else if (out.is_logic())
 	{
 		log().debug("connect_terminal_output: connecting proxy\n");
 		devices::nld_base_proxy *proxy = get_d_a_proxy(out);
@@ -610,19 +630,18 @@ void setup_t::connect_terminals(core_terminal_t &t1, core_terminal_t &t2)
 	}
 	else
 	{
-		log().debug("adding net ...\n");
-		analog_net_t *anet =  palloc(analog_net_t);
-		t1.set_net(*anet);
+		log().debug("adding analog net ...\n");
 		// FIXME: Nets should have a unique name
-		t1.net().init_object(netlist(),"net." + t1.name() );
-		t1.net().register_con(t2);
-		t1.net().register_con(t1);
+		analog_net_t::ptr_t anet = palloc(analog_net_t(netlist(),"net." + t1.name()));
+		t1.set_net(anet);
+		anet->register_con(t2);
+		anet->register_con(t1);
 	}
 }
 
 static core_terminal_t &resolve_proxy(core_terminal_t &term)
 {
-	if (term.isFamily(core_terminal_t::LOGIC))
+	if (term.is_logic())
 	{
 		logic_t &out = dynamic_cast<logic_t &>(term);
 		if (out.has_proxy())
@@ -734,8 +753,8 @@ void setup_t::resolve_inputs()
 		unsigned li = 0;
 		while (li < m_links.size())
 		{
-			const pstring t1s = m_links[li].e1;
-			const pstring t2s = m_links[li].e2;
+			const pstring t1s = m_links[li].first;
+			const pstring t2s = m_links[li].second;
 			core_terminal_t *t1 = find_terminal(t1s);
 			core_terminal_t *t2 = find_terminal(t2s);
 
@@ -749,7 +768,7 @@ void setup_t::resolve_inputs()
 	if (tries == 0)
 	{
 		for (std::size_t i = 0; i < m_links.size(); i++ )
-			log().warning("Error connecting {1} to {2}\n", m_links[i].e1, m_links[i].e2);
+			log().warning("Error connecting {1} to {2}\n", m_links[i].first, m_links[i].second);
 
 		log().fatal("Error connecting -- bailing out\n");
 	}
@@ -760,7 +779,7 @@ void setup_t::resolve_inputs()
 
 	net_t::list_t todelete;
 
-	for (net_t *net : netlist().m_nets)
+	for (auto & net : netlist().m_nets)
 	{
 		if (net->num_cons() == 0)
 			todelete.push_back(net);
@@ -768,12 +787,10 @@ void setup_t::resolve_inputs()
 			net->rebuild_list();
 	}
 
-	for (net_t *net : todelete)
+	for (auto & net : todelete)
 	{
 		log().verbose("Deleting net {1} ...", net->name());
 		netlist().m_nets.remove(net);
-		if (!net->isRailNet())
-			pfree(net);
 	}
 
 	pstring errstr("");
@@ -797,7 +814,7 @@ void setup_t::resolve_inputs()
 	// FIXME: doesn't find internal devices. This needs to be more clever
 	for (std::size_t i=0; i < netlist().m_devices.size(); i++)
 	{
-		devices::NETLIB_NAME(twoterm) *t = dynamic_cast<devices::NETLIB_NAME(twoterm) *>(netlist().m_devices[i]);
+		devices::NETLIB_NAME(twoterm) *t = dynamic_cast<devices::NETLIB_NAME(twoterm) *>(netlist().m_devices[i].get());
 		if (t != nullptr)
 		{
 			has_twoterms = true;
@@ -829,30 +846,16 @@ void setup_t::start_devices()
 		pstring_vector_t loglist(env, ":");
 		for (pstring ll : loglist)
 		{
-			device_t *nc = factory().new_device_by_name("LOG");
 			pstring name = "log_" + ll;
-			register_dev(nc, name);
+			auto nc = factory().new_device_by_name("LOG", netlist(), name);
+			register_dev_s(nc);
 			register_link(name + ".I", ll);
 			log().debug("    dynamic link {1}: <{2}>\n",ll, name);
 		}
 	}
 
-	netlist().start();
-}
 
-void setup_t::print_stats() const
-{
-#if (NL_KEEP_STATISTICS)
-	{
-		for (std::size_t i = 0; i < netlist().m_started_devices.size(); i++)
-		{
-			core_device_t *entry = netlist().m_started_devices[i];
-			printf("Device %20s : %12d %12d %15ld\n", entry->name(), entry->stat_call_count, entry->stat_update_count, (long int) entry->stat_total_time / (entry->stat_update_count + 1));
-		}
-		printf("Queue Pushes %15d\n", netlist().queue().m_prof_call);
-		printf("Queue Moves  %15d\n", netlist().queue().m_prof_sortmove);
-	}
-#endif
+	netlist().start();
 }
 
 // ----------------------------------------------------------------------------------------
@@ -863,9 +866,10 @@ class logic_family_std_proxy_t : public logic_family_desc_t
 {
 public:
 	logic_family_std_proxy_t() { }
-	virtual devices::nld_base_d_to_a_proxy *create_d_a_proxy(logic_output_t *proxied) const override
+	virtual std::shared_ptr<devices::nld_base_d_to_a_proxy> create_d_a_proxy(netlist_t &anetlist,
+			const pstring &name, logic_output_t *proxied) const override
 	{
-		return palloc(devices::nld_d_to_a_proxy(proxied));
+		return std::make_shared<devices::nld_d_to_a_proxy>(anetlist, name, proxied);
 	}
 };
 

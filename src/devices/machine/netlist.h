@@ -503,12 +503,12 @@ private:
 class NETLIB_NAME(analog_callback) : public netlist::device_t
 {
 public:
-	NETLIB_NAME(analog_callback)()
-		: device_t(), m_cpu_device(nullptr), m_last(0) { }
+	NETLIB_NAME(analog_callback)(netlist::netlist_t &anetlist, const pstring &name)
+		: device_t(anetlist, name), m_cpu_device(nullptr), m_last(0) { }
 
 	ATTR_COLD void start() override
 	{
-		register_input("IN", m_in);
+		enregister("IN", m_in);
 		m_cpu_device = downcast<netlist_mame_cpu_device_t *>(&downcast<netlist_mame_t &>(netlist()).parent());
 		save(NLNAME(m_last));
 	}
@@ -552,14 +552,14 @@ private:
 class NETLIB_NAME(sound_out) : public netlist::device_t
 {
 public:
-	NETLIB_NAME(sound_out)()
-		: netlist::device_t() { }
+	NETLIB_NAME(sound_out)(netlist::netlist_t &anetlist, const pstring &name)
+		: netlist::device_t(anetlist, name) { }
 
 	static const int BUFSIZE = 2048;
 
 	ATTR_COLD void start() override
 	{
-		register_input("IN", m_in);
+		enregister("IN", m_in);
 		register_param("CHAN", m_channel, 0);
 		register_param("MULT", m_mult, 1000.0);
 		register_param("OFFSET", m_offset, 0.0);
@@ -626,16 +626,16 @@ private:
 class NETLIB_NAME(sound_in) : public netlist::device_t
 {
 public:
-	NETLIB_NAME(sound_in)()
-		: netlist::device_t() { }
+	NETLIB_NAME(sound_in)(netlist::netlist_t &anetlist, const pstring &name)
+		: netlist::device_t(anetlist, name) { }
 
 	static const int MAX_INPUT_CHANNELS = 10;
 
 	ATTR_COLD void start() override
 	{
 		// clock part
-		register_output("Q", m_Q);
-		register_input("FB", m_feedback);
+		enregister("Q", m_Q);
+		enregister("FB", m_feedback);
 
 		connect_late(m_feedback, m_Q);
 		m_inc = netlist::netlist_time::from_nsec(1);

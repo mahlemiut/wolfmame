@@ -30,17 +30,8 @@
 
 
 //============================================================
-//  DEBUGGING
-//============================================================
-
-extern void mtlog_add(const char *event);
-
-
-//============================================================
 //  CONSTANTS
 //============================================================
-
-#define ENABLE_BORDER_PIX   (1)
 
 enum
 {
@@ -587,7 +578,7 @@ int renderer_d3d9::initialize()
 		return false;
 	}
 
-	// create the device immediately for the full screen case (defer for window mode)
+	// create the device immediately for the full screen case (defer for window mode in update_window_size())
 	auto win = assert_window();
 	if (win->fullscreen() && device_create(win->main_window()->platform_window<HWND>()))
 	{
@@ -681,11 +672,14 @@ void d3d_texture_manager::update_textures()
 				}
 			}
 		}
-		else if(m_renderer->get_shaders()->vector_enabled() && PRIMFLAG_GET_VECTORBUF(prim.flags))
+		else if(PRIMFLAG_GET_VECTORBUF(prim.flags))
 		{
-			if (!m_renderer->get_shaders()->get_vector_target(&prim))
+			if (m_renderer->get_shaders()->vector_enabled())
 			{
-				m_renderer->get_shaders()->create_vector_target(&prim);
+				if (!m_renderer->get_shaders()->get_vector_target(&prim))
+				{
+					m_renderer->get_shaders()->create_vector_target(&prim);
+				}
 			}
 		}
 	}
@@ -706,7 +700,6 @@ void renderer_d3d9::begin_frame()
 	m_texture_manager->update_textures();
 
 	// begin the scene
-	mtlog_add("drawd3d_window_draw: begin_scene");
 	result = (*d3dintf->device.begin_scene)(m_device);
 	if (result != D3D_OK) osd_printf_verbose("Direct3D: Error %08X during device begin_scene call\n", (int)result);
 
@@ -848,7 +841,7 @@ try_again:
 	m_presentation.MultiSampleType               = D3DMULTISAMPLE_NONE;
 	m_presentation.SwapEffect                    = D3DSWAPEFFECT_DISCARD;
 	m_presentation.hDeviceWindow                 = win->platform_window<HWND>();
-	m_presentation.Windowed                      = !win->fullscreen() || win->win_has_menu();
+	m_presentation.Windowed                      = !win->fullscreen() || !video_config.switchres || win->win_has_menu();
 	m_presentation.EnableAutoDepthStencil        = FALSE;
 	m_presentation.AutoDepthStencilFormat        = D3DFMT_D16;
 	m_presentation.Flags                         = 0;
@@ -1044,7 +1037,6 @@ void renderer_d3d9::device_delete()
 	// free the device itself
 	if (m_device != nullptr)
 	{
-		(*d3dintf->device.reset)(m_device, &m_presentation);
 		(*d3dintf->device.release)(m_device);
 		m_device = nullptr;
 	}
@@ -1644,6 +1636,8 @@ void renderer_d3d9::batch_vector(const render_primitive &prim, float line_time)
 		// set the color, Z parameters to standard values
 		for (int i = 0; i < 6; i++)
 		{
+			m_vectorbatch[m_batchindex + i].x -= 0.5f;
+			m_vectorbatch[m_batchindex + i].y -= 0.5f;
 			m_vectorbatch[m_batchindex + i].z = 0.0f;
 			m_vectorbatch[m_batchindex + i].rhw = 1.0f;
 			m_vectorbatch[m_batchindex + i].color = color;
@@ -2265,14 +2259,12 @@ void texture_info::compute_size(int texwidth, int texheight)
 
 	bool shaders_enabled = m_renderer->get_shaders()->enabled();
 	bool wrap_texture = (m_flags & PRIMFLAG_TEXWRAP_MASK) == PRIMFLAG_TEXWRAP_MASK;
-	bool border_texture = ENABLE_BORDER_PIX && !wrap_texture;
-	bool surface_texture = m_type == TEXTURE_TYPE_SURFACE;
 
-	// skip border when shaders are enabled and we're not creating a surface (UI) texture
-	if (!shaders_enabled || surface_texture)
+	// skip border when shaders are enabled
+	if (!shaders_enabled)
 	{
 		// if we're not wrapping, add a 1-2 pixel border on all sides
-		if (border_texture)
+		if (!wrap_texture)
 		{
 			// note we need 2 pixels in X for YUY textures
 			m_xborderpix = (PRIMFLAG_GET_TEXFORMAT(m_flags) == TEXFORMAT_YUY16) ? 2 : 1;
@@ -2283,8 +2275,8 @@ void texture_info::compute_size(int texwidth, int texheight)
 	finalwidth += 2 * m_xborderpix;
 	finalheight += 2 * m_yborderpix;
 
-	// take texture size as given when shaders are enabled and we're not creating a surface (UI) texture, still update wrapped textures
-	if (!shaders_enabled || surface_texture || wrap_texture)
+	// take texture size as given when shaders are enabled
+	if (!shaders_enabled)
 	{
 		compute_size_subroutine(finalwidth, finalheight, &finalwidth, &finalheight);
 
@@ -2972,11 +2964,15 @@ bool d3d_render_target::init(renderer_d3d9 *d3d, d3d_base *d3dintf, int source_w
 		(*d3dintf->texture.get_surface_level)(target_texture[index], 0, &target_surface[index]);
 	}
 
+	auto win = d3d->assert_window();
+
+	auto first_screen = win->machine().first_screen();
 	bool vector_screen =
-		d3d->assert_window()->machine().first_screen()->screen_type() == SCREEN_TYPE_VECTOR;
+		first_screen != nullptr &&
+		first_screen->screen_type() == SCREEN_TYPE_VECTOR;
 
 	float scale_factor = 0.75f;
-	int scale_count = vector_screen ? MAX_BLOOM_COUNT : MAX_BLOOM_COUNT / 2;
+	int scale_count = vector_screen ? MAX_BLOOM_COUNT : HALF_BLOOM_COUNT;
 
 	float bloom_width = (float)source_width;
 	float bloom_height = (float)source_height;

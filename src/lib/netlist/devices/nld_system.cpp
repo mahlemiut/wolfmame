@@ -39,8 +39,8 @@ NETLIB_UPDATE(netlistparams)
 
 NETLIB_START(clock)
 {
-	register_output("Q", m_Q);
-	register_input("FB", m_feedback);
+	enregister("Q", m_Q);
+	enregister("FB", m_feedback);
 
 	register_param("FREQ", m_freq, 7159000.0 * 5.0);
 	m_inc = netlist_time::from_hz(m_freq.Value()*2);
@@ -68,8 +68,8 @@ NETLIB_UPDATE(clock)
 
 NETLIB_START(extclock)
 {
-	register_output("Q", m_Q);
-	register_input("FB", m_feedback);
+	enregister("Q", m_Q);
+	enregister("FB", m_feedback);
 
 	register_param("FREQ", m_freq, 7159000.0 * 5.0);
 	register_param("PATTERN", m_pattern, "1,1");
@@ -138,7 +138,7 @@ NETLIB_START(logic_input)
 	register_param("FAMILY", m_FAMILY, "FAMILY(TYPE=TTL)");
 	set_logic_family(netlist().setup().family_from_model(m_FAMILY.Value()));
 
-	register_output("Q", m_Q);
+	enregister("Q", m_Q);
 	register_param("IN", m_IN, 0);
 }
 
@@ -170,7 +170,7 @@ NETLIB_UPDATE_PARAM(logic_input)
 
 NETLIB_START(analog_input)
 {
-	register_output("Q", m_Q);
+	enregister("Q", m_Q);
 	register_param("IN", m_IN, 0.0);
 }
 
@@ -196,14 +196,14 @@ void nld_d_to_a_proxy::start()
 {
 	nld_base_d_to_a_proxy::start();
 
-	register_sub("RV", m_RV);
-	register_terminal("1", m_RV.m_P);
-	register_terminal("2", m_RV.m_N);
+	register_sub(m_RV);
+	enregister("1", m_RV.m_P);
+	enregister("2", m_RV.m_N);
 
-	register_output("_Q", m_Q);
+	enregister("_Q", m_Q);
 	register_subalias("Q", m_RV.m_P);
 
-	connect_direct(m_RV.m_N, m_Q);
+	connect_late(m_RV.m_N, m_Q);
 
 	save(NLNAME(m_last_state));
 }
@@ -213,7 +213,7 @@ void nld_d_to_a_proxy::reset()
 	m_Q.initial(0.0);
 	m_last_state = -1;
 	m_RV.do_reset();
-	m_is_timestep = m_RV.m_P.net().solver()->is_timestep();
+	m_is_timestep = m_RV.m_P.net().solver()->has_timestep_devices();
 	m_RV.set(NL_FCONST(1.0) / logic_family().m_R_low, logic_family().m_low_V, 0.0);
 }
 
@@ -241,24 +241,6 @@ ATTR_HOT void nld_d_to_a_proxy::update()
 // nld_res_sw
 // -----------------------------------------------------------------------------
 
-NETLIB_START(res_sw)
-{
-	register_sub("R", m_R);
-	register_input("I", m_I);
-	register_param("RON", m_RON, 1.0);
-	register_param("ROFF", m_ROFF, 1.0E20);
-
-	register_subalias("1", m_R.m_P);
-	register_subalias("2", m_R.m_N);
-
-	save(NLNAME(m_last_state));
-}
-
-NETLIB_RESET(res_sw)
-{
-	m_last_state = 0;
-	m_R.set_R(m_ROFF.Value());
-}
 
 NETLIB_UPDATE(res_sw)
 {
@@ -269,7 +251,7 @@ NETLIB_UPDATE(res_sw)
 		const nl_double R = state ? m_RON.Value() : m_ROFF.Value();
 
 		// We only need to update the net first if this is a time stepping net
-		if (0) // m_R.m_P.net().as_analog().solver()->is_timestep())
+		if (0) // m_R->m_P.net().as_analog().solver()->is_timestep())
 		{
 			m_R.update_dev();
 			m_R.set_R(R);
@@ -279,7 +261,7 @@ NETLIB_UPDATE(res_sw)
 		{
 			m_R.set_R(R);
 			m_R.m_P.schedule_after(NLTIME_FROM_NS(1));
-			//m_R.update_dev();
+			//m_R->update_dev();
 		}
 	}
 }
@@ -297,10 +279,10 @@ NETLIB_START(function)
 {
 	register_param("N", m_N, 2);
 	register_param("FUNC", m_func, "");
-	register_output("Q", m_Q);
+	enregister("Q", m_Q);
 
 	for (int i=0; i < m_N; i++)
-		register_input(pfmt("A{1}")(i), m_I[i]);
+		enregister(pfmt("A{1}")(i), m_I[i]);
 
 	pstring_vector_t cmds(m_func.Value(), " ");
 	m_precompiled.clear();

@@ -17,9 +17,10 @@
 
 #include "render.h"
 #include "moptions.h"
-#include "mame.h"
 #include "language.h"
 #include "ui/uimain.h"
+#include "ui/menuitem.h"
+#include "ui/slider.h"
 
 class ui_menu_item;
 
@@ -41,8 +42,6 @@ class ui_menu_item;
 #define UI_BOX_TB_BORDER        (UI_TARGET_FONT_HEIGHT * 0.25f)
 
 /* handy colors */
-#define ARGB_WHITE              rgb_t(0xff,0xff,0xff,0xff)
-#define ARGB_BLACK              rgb_t(0xff,0x00,0x00,0x00)
 #define UI_GREEN_COLOR          rgb_t(0xef,0x10,0x60,0x10)
 #define UI_YELLOW_COLOR         rgb_t(0xef,0x60,0x60,0x10)
 #define UI_RED_COLOR            rgb_t(0xf0,0x60,0x10,0x10)
@@ -95,7 +94,8 @@ enum
     TYPE DEFINITIONS
 ***************************************************************************/
 
-typedef UINT32 (*ui_callback)(running_machine &, render_container *, UINT32);
+class mame_ui_manager;
+typedef UINT32 (*ui_callback)(mame_ui_manager &, render_container *, UINT32);
 
 // ======================> mame_ui_manager
 
@@ -133,6 +133,11 @@ public:
 	void draw_text_box(render_container *container, const char *text, int justify, float xpos, float ypos, rgb_t backcolor);
 	void draw_message_window(render_container *container, const char *text);
 
+	// load/save options to file
+	void load_ui_options();
+	void save_ui_options();
+	void save_main_option();
+
 	template <typename Format, typename... Params> void popup_time(int seconds, Format &&fmt, Params &&... args);
 	void show_fps_temp(double seconds);
 	void set_show_fps(bool show);
@@ -168,6 +173,8 @@ public:
 	virtual void popup_time_string(int seconds, std::string message) override;
 
 	virtual void image_display(const device_type &type, device_image_interface *image) override;
+
+	virtual void menu_reset() override;
 private:
 	// instance variables
 	render_font *           m_font;
@@ -196,11 +203,11 @@ private:
 	std::string &warnings_string(std::string &buffer);
 
 	// UI handlers
-	static UINT32 handler_messagebox(running_machine &machine, render_container *container, UINT32 state);
-	static UINT32 handler_messagebox_anykey(running_machine &machine, render_container *container, UINT32 state);
-	static UINT32 handler_ingame(running_machine &machine, render_container *container, UINT32 state);
-	static UINT32 handler_load_save(running_machine &machine, render_container *container, UINT32 state);
-	static UINT32 handler_confirm_quit(running_machine &machine, render_container *container, UINT32 state);
+	static UINT32 handler_messagebox(mame_ui_manager &mui, render_container *container, UINT32 state);
+	static UINT32 handler_messagebox_anykey(mame_ui_manager &mui, render_container *container, UINT32 state);
+	static UINT32 handler_ingame(mame_ui_manager &mui, render_container *container, UINT32 state);
+	static UINT32 handler_load_save(mame_ui_manager &mui, render_container *container, UINT32 state);
+	static UINT32 handler_confirm_quit(mame_ui_manager &mui, render_container *container, UINT32 state);
 
 	// private methods
 	void exit();

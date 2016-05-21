@@ -14,21 +14,21 @@ NETLIB_NAMESPACE_DEVICES_START()
 NETLIB_START(74192)
 {
 	register_sub("subABCD", m_ABCD);
-	register_subalias("A", m_ABCD.m_A);
-	register_subalias("B", m_ABCD.m_B);
-	register_subalias("C", m_ABCD.m_C);
-	register_subalias("D", m_ABCD.m_D);
-	register_input("CLEAR",  m_CLEAR);
-	register_input("LOADQ",  m_LOADQ);
-	register_input("CU", m_CU);
-	register_input("CD", m_CD);
+	register_subalias("A", m_ABCD->m_A);
+	register_subalias("B", m_ABCD->m_B);
+	register_subalias("C", m_ABCD->m_C);
+	register_subalias("D", m_ABCD->m_D);
+	enregister("CLEAR",  m_CLEAR);
+	enregister("LOADQ",  m_LOADQ);
+	enregister("CU", m_CU);
+	enregister("CD", m_CD);
 
-	register_output("QA", m_Q[0]);
-	register_output("QB", m_Q[1]);
-	register_output("QC", m_Q[2]);
-	register_output("QD", m_Q[3]);
-	register_output("BORROWQ", m_BORROWQ);
-	register_output("CARRYQ", m_CARRYQ);
+	enregister("QA", m_Q[0]);
+	enregister("QB", m_Q[1]);
+	enregister("QC", m_Q[2]);
+	enregister("QD", m_Q[3]);
+	enregister("BORROWQ", m_BORROWQ);
+	enregister("CARRYQ", m_CARRYQ);
 
 	save(NLNAME(m_cnt));
 	save(NLNAME(m_last_CU));
@@ -62,7 +62,7 @@ NETLIB_UPDATE(74192)
 	}
 	else if (!INPLOGIC(m_LOADQ))
 	{
-		m_cnt = m_ABCD.read_ABCD();
+		m_cnt = m_ABCD->read_ABCD();
 	}
 	else
 	{
@@ -105,7 +105,7 @@ NETLIB_START(74192_dip)
 {
 	NETLIB_NAME(74192)::start();
 
-	register_subalias("1", m_ABCD.m_B);
+	register_subalias("1", m_ABCD->m_B);
 	register_subalias("2", m_Q[1]);
 	register_subalias("3", m_Q[0]);
 	register_subalias("4", m_CD);
@@ -113,13 +113,13 @@ NETLIB_START(74192_dip)
 	register_subalias("6", m_Q[2]);
 	register_subalias("7", m_Q[3]);
 
-	register_subalias("9", m_ABCD.m_D);
-	register_subalias("10", m_ABCD.m_C);
+	register_subalias("9", m_ABCD->m_D);
+	register_subalias("10", m_ABCD->m_C);
 	register_subalias("11", m_LOADQ);
 	register_subalias("12", m_CARRYQ);
 	register_subalias("13", m_BORROWQ);
 	register_subalias("14", m_CLEAR);
-	register_subalias("15", m_ABCD.m_A);
+	register_subalias("15", m_ABCD->m_A);
 
 }
 

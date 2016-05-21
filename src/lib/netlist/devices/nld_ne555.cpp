@@ -26,30 +26,6 @@ inline nl_double NETLIB_NAME(NE555)::clamp(const nl_double v, const nl_double a,
 	return ret;
 }
 
-NETLIB_START(NE555)
-{
-	register_sub("R1", m_R1);
-	register_sub("R2", m_R2);
-	register_sub("R3", m_R3);
-	register_sub("RDIS", m_RDIS);
-
-	register_subalias("GND",  m_R3.m_N);    // Pin 1
-	register_input("TRIG",    m_TRIG);      // Pin 2
-	register_output("OUT",    m_OUT);       // Pin 3
-	register_input("RESET",   m_RESET);     // Pin 4
-	register_subalias("CONT", m_R1.m_N);    // Pin 5
-	register_input("THRESH",  m_THRES);     // Pin 6
-	register_subalias("DISCH", m_RDIS.m_P); // Pin 7
-	register_subalias("VCC",  m_R1.m_P);    // Pin 8
-
-	connect_late(m_R1.m_N, m_R2.m_P);
-	connect_late(m_R2.m_N, m_R3.m_P);
-	connect_late(m_RDIS.m_N, m_R3.m_N);
-
-	save(NLNAME(m_last_out));
-	save(NLNAME(m_ff));
-}
-
 NETLIB_RESET(NE555)
 {
 	m_R1.do_reset();

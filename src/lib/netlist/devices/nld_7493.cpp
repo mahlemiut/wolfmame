@@ -10,27 +10,6 @@
 
 NETLIB_NAMESPACE_DEVICES_START()
 
-NETLIB_START(7493)
-{
-	register_sub("A", A);
-	register_sub("B", B);
-	register_sub("C", C);
-	register_sub("D", D);
-
-	register_subalias("CLKA", A.m_I);
-	register_subalias("CLKB", B.m_I);
-	register_input("R1",  m_R1);
-	register_input("R2",  m_R2);
-
-	register_subalias("QA", A.m_Q);
-	register_subalias("QB", B.m_Q);
-	register_subalias("QC", C.m_Q);
-	register_subalias("QD", D.m_Q);
-
-	connect_late(C.m_I, B.m_Q);
-	connect_late(D.m_I, C.m_Q);
-}
-
 NETLIB_RESET(7493)
 {
 	A.do_reset();
@@ -39,14 +18,6 @@ NETLIB_RESET(7493)
 	D.do_reset();
 }
 
-NETLIB_START(7493ff)
-{
-	register_input("CLK", m_I);
-	register_output("Q", m_Q);
-
-	save(NLNAME(m_reset));
-	save(NLNAME(m_state));
-}
 
 NETLIB_RESET(7493ff)
 {
@@ -103,10 +74,10 @@ NETLIB_START(7493_dip)
 
 	register_subalias("8", C.m_Q);
 	register_subalias("9", B.m_Q);
-	// register_subalias("10", ); --> GND
+	// register_subalias("10", ); -. GND
 	register_subalias("11", D.m_Q);
 	register_subalias("12", A.m_Q);
-	// register_subalias("13", ); --> NC
+	// register_subalias("13", ); -. NC
 	register_subalias("14", A.m_I);
 }
 

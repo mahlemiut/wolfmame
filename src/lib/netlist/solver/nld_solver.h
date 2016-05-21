@@ -54,13 +54,13 @@ class matrix_solver_t;
 class NETLIB_NAME(solver) : public device_t
 {
 public:
-	NETLIB_NAME(solver)()
-	: device_t()    { }
+	NETLIB_NAME(solver)(netlist_t &anetlist, const pstring &name)
+	: device_t(anetlist, name)    { }
 
 	virtual ~NETLIB_NAME(solver)();
 
-	ATTR_COLD void post_start();
-	ATTR_COLD void stop() override;
+	void post_start();
+	void stop() override;
 
 	inline nl_double gmin() { return m_gmin.Value(); }
 

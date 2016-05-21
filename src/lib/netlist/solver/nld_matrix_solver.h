@@ -52,9 +52,9 @@ public:
 
 	unsigned m_railstart;
 
-	pvector_t<int> m_nz;   /* all non zero for multiplication */
-	pvector_t<int> m_nzrd; /* non zero right of the diagonal for elimination, may include RHS element */
-	pvector_t<int> m_nzbd; /* non zero below of the diagonal for elimination */
+	pvector_t<unsigned> m_nz;   /* all non zero for multiplication */
+	pvector_t<unsigned> m_nzrd; /* non zero right of the diagonal for elimination, may include RHS element */
+	pvector_t<unsigned> m_nzbd; /* non zero below of the diagonal for elimination */
 
 	/* state */
 	nl_double m_last_V;
@@ -74,8 +74,8 @@ private:
 class matrix_solver_t : public device_t
 {
 public:
-	typedef pvector_t<matrix_solver_t *> list_t;
-	typedef core_device_t::list_t dev_list_t;
+	using list_t = pvector_t<matrix_solver_t *>;
+	using dev_list_t = core_device_t::list_t;
 
 	enum eSortType
 	{
@@ -84,7 +84,8 @@ public:
 		DESCENDING
 	};
 
-	matrix_solver_t(const eSortType sort, const solver_parameters_t *params);
+	matrix_solver_t(netlist_t &anetlist, const pstring &name,
+			const eSortType sort, const solver_parameters_t *params);
 	virtual ~matrix_solver_t();
 
 	void setup(analog_net_t::list_t &nets) { vsetup(nets); }
@@ -93,8 +94,8 @@ public:
 
 	netlist_time solve();
 
-	inline bool is_dynamic() const { return m_dynamic_devices.size() > 0; }
-	inline bool is_timestep() const { return m_step_devices.size() > 0; }
+	inline bool has_dynamic_devices() const { return m_dynamic_devices.size() > 0; }
+	inline bool has_timestep_devices() const { return m_step_devices.size() > 0; }
 
 	void update_forced();
 	void update_after(const netlist_time after)

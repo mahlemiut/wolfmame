@@ -15,27 +15,21 @@ NETLIB_NAMESPACE_DEVICES_START()
 // nld_VCCS
 // ----------------------------------------------------------------------------------------
 
-NETLIB_START(VCCS)
-{
-	start_internal(NL_FCONST(1.0) / netlist().gmin());
-	m_gfac = NL_FCONST(1.0);
-}
-
 void NETLIB_NAME(VCCS)::start_internal(const nl_double def_RI)
 {
 	register_param("G", m_G, 1.0);
 	register_param("RI", m_RI, def_RI);
 
-	register_terminal("IP", m_IP);
-	register_terminal("IN", m_IN);
-	register_terminal("OP", m_OP);
-	register_terminal("ON", m_ON);
+	enregister("IP", m_IP);
+	enregister("IN", m_IN);
+	enregister("OP", m_OP);
+	enregister("ON", m_ON);
 
-	register_terminal("_OP1", m_OP1);
-	register_terminal("_ON1", m_ON1);
+	enregister("_OP1", m_OP1);
+	enregister("_ON1", m_ON1);
 
-	m_IP.m_otherterm = &m_IN; // <= this should be nullptr and terminal be filtered out prior to solving...
-	m_IN.m_otherterm = &m_IP; // <= this should be nullptr and terminal be filtered out prior to solving...
+	m_IP.m_otherterm = &m_IN; // <= this should be NULL and terminal be filtered out prior to solving...
+	m_IN.m_otherterm = &m_IP; // <= this should be NULL and terminal be filtered out prior to solving...
 
 	m_OP.m_otherterm = &m_IP;
 	m_OP1.m_otherterm = &m_IN;
@@ -60,11 +54,6 @@ NETLIB_RESET(VCCS)
 
 	m_ON.set(-m_mult, NL_FCONST(0.0));
 	m_ON1.set(m_mult, NL_FCONST(0.0));
-}
-
-NETLIB_UPDATE_PARAM(VCCS)
-{
-	NETLIB_NAME(VCCS)::reset();
 }
 
 NETLIB_UPDATE(VCCS)
@@ -163,8 +152,8 @@ NETLIB_START(VCVS)
 
 	register_param("RO", m_RO, 1.0);
 
-	register_terminal("_OP2", m_OP2);
-	register_terminal("_ON2", m_ON2);
+	enregister("_OP2", m_OP2);
+	enregister("_ON2", m_ON2);
 
 	m_OP2.m_otherterm = &m_ON2;
 	m_ON2.m_otherterm = &m_OP2;

@@ -329,8 +329,8 @@ static MACHINE_CONFIG_START( ufombs, ufombs_state )
 	/* video hardware */
 	MCFG_SCREEN_SVG_ADD("screen", "svg")
 	MCFG_SCREEN_REFRESH_RATE(50)
-	MCFG_SCREEN_SIZE(225, 1000)
-	MCFG_SCREEN_VISIBLE_AREA(0, 225-1, 0, 1000-1)
+	MCFG_SCREEN_SIZE(243, 1080)
+	MCFG_SCREEN_VISIBLE_AREA(0, 243-1, 0, 1080-1)
 	MCFG_DEFAULT_LAYOUT(layout_svg)
 	MCFG_TIMER_DRIVER_ADD_PERIODIC("display_decay", hh_ucom4_state, display_decay_tick, attotime::from_msec(1))
 
@@ -475,8 +475,8 @@ static MACHINE_CONFIG_START( ssfball, ssfball_state )
 	/* video hardware */
 	MCFG_SCREEN_SVG_ADD("screen", "svg")
 	MCFG_SCREEN_REFRESH_RATE(50)
-	MCFG_SCREEN_SIZE(1000, 251)
-	MCFG_SCREEN_VISIBLE_AREA(0, 1000-1, 0, 251-1)
+	MCFG_SCREEN_SIZE(1920, 482)
+	MCFG_SCREEN_VISIBLE_AREA(0, 1920-1, 0, 482-1)
 	MCFG_DEFAULT_LAYOUT(layout_svg)
 	MCFG_TIMER_DRIVER_ADD_PERIODIC("display_decay", hh_ucom4_state, display_decay_tick, attotime::from_msec(1))
 
@@ -603,8 +603,8 @@ static MACHINE_CONFIG_START( bmsoccer, bmsoccer_state )
 	/* video hardware */
 	MCFG_SCREEN_SVG_ADD("screen", "svg")
 	MCFG_SCREEN_REFRESH_RATE(50)
-	MCFG_SCREEN_SIZE(251, 1000)
-	MCFG_SCREEN_VISIBLE_AREA(0, 251-1, 0, 1000-1)
+	MCFG_SCREEN_SIZE(271, 1080)
+	MCFG_SCREEN_VISIBLE_AREA(0, 271-1, 0, 1080-1)
 	MCFG_DEFAULT_LAYOUT(layout_svg)
 	MCFG_TIMER_DRIVER_ADD_PERIODIC("display_decay", hh_ucom4_state, display_decay_tick, attotime::from_msec(1))
 
@@ -710,8 +710,8 @@ static MACHINE_CONFIG_START( bmsafari, bmsafari_state )
 	/* video hardware */
 	MCFG_SCREEN_SVG_ADD("screen", "svg")
 	MCFG_SCREEN_REFRESH_RATE(50)
-	MCFG_SCREEN_SIZE(230, 1000)
-	MCFG_SCREEN_VISIBLE_AREA(0, 230-1, 0, 1000-1)
+	MCFG_SCREEN_SIZE(248, 1080)
+	MCFG_SCREEN_VISIBLE_AREA(0, 248-1, 0, 1080-1)
 	MCFG_DEFAULT_LAYOUT(layout_svg)
 	MCFG_TIMER_DRIVER_ADD_PERIODIC("display_decay", hh_ucom4_state, display_decay_tick, attotime::from_msec(1))
 
@@ -861,8 +861,8 @@ static MACHINE_CONFIG_START( splasfgt, splasfgt_state )
 	/* video hardware */
 	MCFG_SCREEN_SVG_ADD("screen", "svg")
 	MCFG_SCREEN_REFRESH_RATE(50)
-	MCFG_SCREEN_SIZE(1000, 248)
-	MCFG_SCREEN_VISIBLE_AREA(0, 1000-1, 0, 248-1)
+	MCFG_SCREEN_SIZE(1920, 476)
+	MCFG_SCREEN_VISIBLE_AREA(0, 1920-1, 0, 476-1)
 	MCFG_DEFAULT_LAYOUT(layout_svg)
 	MCFG_TIMER_DRIVER_ADD_PERIODIC("display_decay", hh_ucom4_state, display_decay_tick, attotime::from_msec(1))
 
@@ -965,8 +965,8 @@ static MACHINE_CONFIG_START( bcclimbr, bcclimbr_state )
 	/* video hardware */
 	MCFG_SCREEN_SVG_ADD("screen", "svg")
 	MCFG_SCREEN_REFRESH_RATE(50)
-	MCFG_SCREEN_SIZE(287, 1000)
-	MCFG_SCREEN_VISIBLE_AREA(0, 287-1, 0, 1000-1)
+	MCFG_SCREEN_SIZE(310, 1080)
+	MCFG_SCREEN_VISIBLE_AREA(0, 310-1, 0, 1080-1)
 	MCFG_DEFAULT_LAYOUT(layout_svg)
 	MCFG_TIMER_DRIVER_ADD_PERIODIC("display_decay", hh_ucom4_state, display_decay_tick, attotime::from_msec(1))
 
@@ -1182,8 +1182,8 @@ static MACHINE_CONFIG_START( invspace, invspace_state )
 	/* video hardware */
 	MCFG_SCREEN_SVG_ADD("screen", "svg")
 	MCFG_SCREEN_REFRESH_RATE(50)
-	MCFG_SCREEN_SIZE(268, 1000)
-	MCFG_SCREEN_VISIBLE_AREA(0, 268-1, 0, 1000-1)
+	MCFG_SCREEN_SIZE(289, 1080)
+	MCFG_SCREEN_VISIBLE_AREA(0, 289-1, 0, 1080-1)
 	MCFG_DEFAULT_LAYOUT(layout_svg)
 	MCFG_TIMER_DRIVER_ADD_PERIODIC("display_decay", hh_ucom4_state, display_decay_tick, attotime::from_msec(1))
 
@@ -1399,8 +1399,8 @@ static MACHINE_CONFIG_START( galaxy2, galaxy2_state )
 	/* video hardware */
 	MCFG_SCREEN_SVG_ADD("screen", "svg")
 	MCFG_SCREEN_REFRESH_RATE(50)
-	MCFG_SCREEN_SIZE(281, 1000)
-	MCFG_SCREEN_VISIBLE_AREA(0, 281-1, 0, 1000-1)
+	MCFG_SCREEN_SIZE(304, 1080)
+	MCFG_SCREEN_VISIBLE_AREA(0, 304-1, 0, 1080-1)
 	MCFG_DEFAULT_LAYOUT(layout_svg)
 	MCFG_TIMER_DRIVER_ADD_PERIODIC("display_decay", hh_ucom4_state, display_decay_tick, attotime::from_msec(1))
 
@@ -1414,8 +1414,8 @@ static MACHINE_CONFIG_DERIVED( galaxy2b, galaxy2 )
 
 	/* video hardware */
 	MCFG_SCREEN_MODIFY("screen")
-	MCFG_SCREEN_SIZE(283, 1000)
-	MCFG_SCREEN_VISIBLE_AREA(0, 283-2, 0, 1000-1)
+	MCFG_SCREEN_SIZE(306, 1080)
+	MCFG_SCREEN_VISIBLE_AREA(0, 306-1, 0, 1080-1)
 MACHINE_CONFIG_END
 
 
@@ -1517,8 +1517,8 @@ static MACHINE_CONFIG_START( astrocmd, astrocmd_state )
 	/* video hardware */
 	MCFG_SCREEN_SVG_ADD("screen", "svg")
 	MCFG_SCREEN_REFRESH_RATE(50)
-	MCFG_SCREEN_SIZE(1000, 273)
-	MCFG_SCREEN_VISIBLE_AREA(0, 1000-1, 0, 273-1)
+	MCFG_SCREEN_SIZE(1920, 525)
+	MCFG_SCREEN_VISIBLE_AREA(0, 1920-1, 0, 525-1)
 	MCFG_DEFAULT_LAYOUT(layout_svg)
 	MCFG_TIMER_DRIVER_ADD_PERIODIC("display_decay", hh_ucom4_state, display_decay_tick, attotime::from_msec(1))
 
@@ -1613,8 +1613,8 @@ static MACHINE_CONFIG_START( edracula, edracula_state )
 	/* video hardware */
 	MCFG_SCREEN_SVG_ADD("screen", "svg")
 	MCFG_SCREEN_REFRESH_RATE(50)
-	MCFG_SCREEN_SIZE(1000, 274)
-	MCFG_SCREEN_VISIBLE_AREA(0, 1000-1, 0, 274-1)
+	MCFG_SCREEN_SIZE(1920, 526)
+	MCFG_SCREEN_VISIBLE_AREA(0, 1920-1, 0, 526-1)
 	MCFG_DEFAULT_LAYOUT(layout_svg)
 	MCFG_TIMER_DRIVER_ADD_PERIODIC("display_decay", hh_ucom4_state, display_decay_tick, attotime::from_msec(1))
 
@@ -1889,8 +1889,8 @@ static MACHINE_CONFIG_START( tccombat, tccombat_state )
 	/* video hardware */
 	MCFG_SCREEN_SVG_ADD("screen", "svg")
 	MCFG_SCREEN_REFRESH_RATE(50)
-	MCFG_SCREEN_SIZE(278, 1000)
-	MCFG_SCREEN_VISIBLE_AREA(0, 278-1, 0, 1000-1)
+	MCFG_SCREEN_SIZE(300, 1080)
+	MCFG_SCREEN_VISIBLE_AREA(0, 300-1, 0, 1080-1)
 	MCFG_DEFAULT_LAYOUT(layout_svg)
 	MCFG_TIMER_DRIVER_ADD_PERIODIC("display_decay", hh_ucom4_state, display_decay_tick, attotime::from_msec(1))
 
@@ -2048,8 +2048,8 @@ static MACHINE_CONFIG_START( tmtennis, tmtennis_state )
 	/* video hardware */
 	MCFG_SCREEN_SVG_ADD("screen", "svg")
 	MCFG_SCREEN_REFRESH_RATE(50)
-	MCFG_SCREEN_SIZE(1000, 217)
-	MCFG_SCREEN_VISIBLE_AREA(0, 1000-1, 0, 217-1)
+	MCFG_SCREEN_SIZE(1920, 417)
+	MCFG_SCREEN_VISIBLE_AREA(0, 1920-1, 0, 417-1)
 	MCFG_DEFAULT_LAYOUT(layout_svg)
 	MCFG_TIMER_DRIVER_ADD_PERIODIC("display_decay", hh_ucom4_state, display_decay_tick, attotime::from_msec(1))
 
@@ -2157,8 +2157,8 @@ static MACHINE_CONFIG_START( tmpacman, tmpacman_state )
 	/* video hardware */
 	MCFG_SCREEN_SVG_ADD("screen", "svg")
 	MCFG_SCREEN_REFRESH_RATE(50)
-	MCFG_SCREEN_SIZE(1000, 265)
-	MCFG_SCREEN_VISIBLE_AREA(0, 1000-1, 0, 265-1)
+	MCFG_SCREEN_SIZE(1920, 508)
+	MCFG_SCREEN_VISIBLE_AREA(0, 1920-1, 0, 508-1)
 	MCFG_DEFAULT_LAYOUT(layout_svg)
 	MCFG_TIMER_DRIVER_ADD_PERIODIC("display_decay", hh_ucom4_state, display_decay_tick, attotime::from_msec(1))
 
@@ -2260,8 +2260,8 @@ static MACHINE_CONFIG_START( tmscramb, tmscramb_state )
 	/* video hardware */
 	MCFG_SCREEN_SVG_ADD("screen", "svg")
 	MCFG_SCREEN_REFRESH_RATE(50)
-	MCFG_SCREEN_SIZE(1000, 289)
-	MCFG_SCREEN_VISIBLE_AREA(0, 1000-1, 0, 289-1)
+	MCFG_SCREEN_SIZE(1920, 556)
+	MCFG_SCREEN_VISIBLE_AREA(0, 1920-1, 0, 556-1)
 	MCFG_DEFAULT_LAYOUT(layout_svg)
 	MCFG_TIMER_DRIVER_ADD_PERIODIC("display_decay", hh_ucom4_state, display_decay_tick, attotime::from_msec(1))
 
@@ -2359,8 +2359,8 @@ static MACHINE_CONFIG_START( tcaveman, tcaveman_state )
 	/* video hardware */
 	MCFG_SCREEN_SVG_ADD("screen", "svg")
 	MCFG_SCREEN_REFRESH_RATE(50)
-	MCFG_SCREEN_SIZE(1000, 291)
-	MCFG_SCREEN_VISIBLE_AREA(0, 1000-1, 0, 291-1)
+	MCFG_SCREEN_SIZE(1920, 559)
+	MCFG_SCREEN_VISIBLE_AREA(0, 1920-1, 0, 559-1)
 	MCFG_DEFAULT_LAYOUT(layout_svg)
 	MCFG_TIMER_DRIVER_ADD_PERIODIC("display_decay", hh_ucom4_state, display_decay_tick, attotime::from_msec(1))
 
@@ -2492,8 +2492,8 @@ static MACHINE_CONFIG_START( alnchase, alnchase_state )
 	/* video hardware */
 	MCFG_SCREEN_SVG_ADD("screen", "svg")
 	MCFG_SCREEN_REFRESH_RATE(50)
-	MCFG_SCREEN_SIZE(338, 1000)
-	MCFG_SCREEN_VISIBLE_AREA(0, 338-1, 0, 1000-1)
+	MCFG_SCREEN_SIZE(365, 1080)
+	MCFG_SCREEN_VISIBLE_AREA(0, 365-1, 0, 1080-1)
 	MCFG_DEFAULT_LAYOUT(layout_svg)
 	MCFG_TIMER_DRIVER_ADD_PERIODIC("display_decay", hh_ucom4_state, display_decay_tick, attotime::from_msec(1))
 

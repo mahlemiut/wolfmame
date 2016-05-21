@@ -324,26 +324,32 @@ EXE=.exe
 endif
 
 geometryc: .build/projects/$(BUILD_PROJECT_DIR) ## Build geometryc tool.
-	$(SILENT) $(MAKE) -C .build/projects/$(BUILD_PROJECT_DIR) -f geometryc.make config=$(BUILD_TOOLS_CONFIG)
+	$(SILENT) $(MAKE) -C .build/projects/$(BUILD_PROJECT_DIR) geometryc config=$(BUILD_TOOLS_CONFIG)
 	$(SILENT) cp .build/$(BUILD_OUTPUT_DIR)/bin/geometryc$(BUILD_TOOLS_SUFFIX)$(EXE) tools/bin/$(OS)/geometryc$(EXE)
 
 shaderc: .build/projects/$(BUILD_PROJECT_DIR) ## Build shaderc tool.
-	$(SILENT) $(MAKE) -C .build/projects/$(BUILD_PROJECT_DIR) -f shaderc.make config=$(BUILD_TOOLS_CONFIG)
+	$(SILENT) $(MAKE) -C .build/projects/$(BUILD_PROJECT_DIR) shaderc config=$(BUILD_TOOLS_CONFIG)
 	$(SILENT) cp .build/$(BUILD_OUTPUT_DIR)/bin/shaderc$(BUILD_TOOLS_SUFFIX)$(EXE) tools/bin/$(OS)/shaderc$(EXE)
 
 texturec: .build/projects/$(BUILD_PROJECT_DIR) ## Build texturec tool.
-	$(SILENT) $(MAKE) -C .build/projects/$(BUILD_PROJECT_DIR) -f texturec.make config=$(BUILD_TOOLS_CONFIG)
+	$(SILENT) $(MAKE) -C .build/projects/$(BUILD_PROJECT_DIR) texturec config=$(BUILD_TOOLS_CONFIG)
 	$(SILENT) cp .build/$(BUILD_OUTPUT_DIR)/bin/texturec$(BUILD_TOOLS_SUFFIX)$(EXE) tools/bin/$(OS)/texturec$(EXE)
 
-tools: geometryc shaderc texturec ## Build tools.
+texturev: .build/projects/$(BUILD_PROJECT_DIR) ## Build texturev tool.
+	$(SILENT) $(MAKE) -C .build/projects/$(BUILD_PROJECT_DIR) texturev config=$(BUILD_TOOLS_CONFIG)
+	$(SILENT) cp .build/$(BUILD_OUTPUT_DIR)/bin/texturev$(BUILD_TOOLS_SUFFIX)$(EXE) tools/bin/$(OS)/texturev$(EXE)
+
+tools: geometryc shaderc texturec texturev ## Build tools.
 
 dist-windows: .build/projects/gmake-mingw-gcc
 	$(SILENT) $(MAKE) -C .build/projects/gmake-mingw-gcc config=release64 -j 6 geometryc
-	$(SILENT) cp .build/win64_mingw-gcc/bin/geometrycRelease tools/bin/windows/geometryc.exe
+	$(SILENT) cp .build/win64_mingw-gcc/bin/geometrycRelease.exe tools/bin/windows/geometryc.exe
 	$(SILENT) $(MAKE) -C .build/projects/gmake-mingw-gcc config=release64 -j 6 shaderc
-	$(SILENT) cp .build/win64_mingw-gcc/bin/shadercRelease   tools/bin/windows/shaderc.exe
+	$(SILENT) cp .build/win64_mingw-gcc/bin/shadercRelease.exe   tools/bin/windows/shaderc.exe
 	$(SILENT) $(MAKE) -C .build/projects/gmake-mingw-gcc config=release64 -j 6 texturec
-	$(SILENT) cp .build/win64_mingw-gcc/bin/texturecRelease  tools/bin/windows/texturec.exe
+	$(SILENT) cp .build/win64_mingw-gcc/bin/texturecRelease.exe  tools/bin/windows/texturec.exe
+	$(SILENT) $(MAKE) -C .build/projects/gmake-mingw-gcc config=release64 -j 6 texturev
+	$(SILENT) cp .build/win64_mingw-gcc/bin/texturevRelease.exe tools/bin/windows/texturev.exe
 
 dist-linux: .build/projects/gmake-linux
 	$(SILENT) $(MAKE) -C .build/projects/gmake-linux     config=release64 -j 6 geometryc
@@ -352,6 +358,8 @@ dist-linux: .build/projects/gmake-linux
 	$(SILENT) cp .build/linux64_gcc/bin/shadercRelease   tools/bin/linux/shaderc
 	$(SILENT) $(MAKE) -C .build/projects/gmake-linux     config=release64 -j 6 texturec
 	$(SILENT) cp .build/linux64_gcc/bin/texturecRelease  tools/bin/linux/texturec
+	$(SILENT) $(MAKE) -C .build/projects/gmake-linux     config=release64 -j 6 texturev
+	$(SILENT) cp .build/linux64_gcc/bin/texturevRelease  tools/bin/linux/texturev
 
 dist-darwin: .build/projects/gmake-osx
 	$(SILENT) $(MAKE) -C .build/projects/gmake-osx       config=release64 -j 6 geometryc
@@ -360,5 +368,7 @@ dist-darwin: .build/projects/gmake-osx
 	$(SILENT) cp .build/osx64_clang/bin/shadercRelease   tools/bin/darwin/shaderc
 	$(SILENT) $(MAKE) -C .build/projects/gmake-osx       config=release64 -j 6 texturec
 	$(SILENT) cp .build/osx64_clang/bin/texturecRelease  tools/bin/darwin/texturec
+	$(SILENT) $(MAKE) -C .build/projects/gmake-osx       config=release64 -j 6 texturev
+	$(SILENT) cp .build/osx64_clang/bin/texturevRelease  tools/bin/darwin/texturev
 
 dist: clean dist-windows dist-linux dist-darwin

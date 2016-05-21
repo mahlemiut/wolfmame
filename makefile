@@ -211,6 +211,9 @@ ifndef SUBTARGET
 SUBTARGET := $(TARGET)
 endif
 
+SUBTARGET_FULL := $(subst -,_,$(SUBTARGET))
+
+
 CONFIG = release
 ifdef DEBUG
 CONFIG := debug
@@ -360,6 +363,10 @@ OSD := sdl
 endif
 
 ifeq ($(TARGETOS),netbsd)
+OSD := sdl
+endif
+
+ifeq ($(TARGETOS),openbsd)
 OSD := sdl
 endif
 
@@ -578,8 +585,8 @@ ifdef TARGET
 PARAMS += --target='$(TARGET)'
 endif
 
-ifdef SUBTARGET
-PARAMS += --subtarget='$(SUBTARGET)'
+ifdef SUBTARGET_FULL
+PARAMS += --subtarget='$(SUBTARGET_FULL)'
 endif
 
 ifdef OSD
@@ -757,15 +764,15 @@ SCRIPTS = scripts/genie.lua \
 	scripts/toolchain.lua \
 	scripts/src/osd/modules.lua \
 	$(wildcard src/osd/$(OSD)/$(OSD).mak) \
-	$(wildcard src/$(TARGET)/$(SUBTARGET).mak)
+	$(wildcard src/$(TARGET)/$(SUBTARGET_FULL).mak)
 
-ifeq ($(SUBTARGET),mame)
+ifeq ($(SUBTARGET_FULL),mame)
 SCRIPTS += scripts/target/$(TARGET)/arcade.lua
 SCRIPTS += scripts/target/$(TARGET)/mess.lua
 endif
 
 ifndef SOURCES
-SCRIPTS += scripts/target/$(TARGET)/$(SUBTARGET).lua
+SCRIPTS += scripts/target/$(TARGET)/$(SUBTARGET_FULL).lua
 endif
 
 ifdef REGENIE
@@ -809,12 +816,12 @@ SRC = src
 
 # all 3rd party sources are under the 3rdparty/ directory
 3RDPARTY = 3rdparty
-ifeq ($(SUBTARGET),mame)
-PROJECT_NAME := $(SUBTARGET)
-else ifeq ($(SUBTARGET),mess)
-PROJECT_NAME := $(SUBTARGET)
+ifeq ($(SUBTARGET_FULL),mame)
+PROJECT_NAME := $(SUBTARGET_FULL)
+else ifeq ($(SUBTARGET_FULL),mess)
+PROJECT_NAME := $(SUBTARGET_FULL)
 else
-PROJECT_NAME := $(TARGET)$(SUBTARGET)
+PROJECT_NAME := $(TARGET)$(SUBTARGET_FULL)
 endif
 
 
@@ -892,10 +899,10 @@ endif
 
 GENIE := 3rdparty/genie/bin/$(GENIEOS)/genie$(EXE)
 
-ifeq ($(TARGET),$(SUBTARGET))
+ifeq ($(TARGET),$(SUBTARGET_FULL))
 FULLTARGET := $(TARGET)
 else
-FULLTARGET := $(TARGET)$(SUBTARGET)
+FULLTARGET := $(TARGET)$(SUBTARGET_FULL)
 endif
 PROJECTDIR := $(BUILDDIR)/projects/$(OSD)/$(FULLTARGET)
 PROJECTDIR_SDL := $(BUILDDIR)/projects/sdl/$(FULLTARGET)
@@ -1327,6 +1334,26 @@ netbsd_x86: generate $(PROJECTDIR)/gmake-netbsd/Makefile
 	$(SILENT) $(MAKE) -C $(PROJECTDIR)/gmake-netbsd config=$(CONFIG)32
 
 #-------------------------------------------------
+# gmake-openbsd
+#-------------------------------------------------
+
+$(PROJECTDIR)/gmake-openbsd/Makefile: makefile $(SCRIPTS) $(GENIE)
+	$(SILENT) $(GENIE) $(PARAMS) $(TARGET_PARAMS) --gcc=openbsd --gcc_version=$(GCC_VERSION) gmake
+
+.PHONY: openbsd_x64
+openbsd_x64: generate $(PROJECTDIR)/gmake-openbsd/Makefile
+	$(SILENT) $(MAKE) -C $(PROJECTDIR)/gmake-openbsd config=$(CONFIG)64 precompile
+	$(SILENT) $(MAKE) -C $(PROJECTDIR)/gmake-openbsd config=$(CONFIG)64
+
+.PHONY: openbsd
+openbsd: openbsd_x86
+
+.PHONY: openbsd_x86
+openbsd_x86: generate $(PROJECTDIR)/gmake-openbsd/Makefile
+	$(SILENT) $(MAKE) -C $(PROJECTDIR)/gmake-openbsd config=$(CONFIG)32 precompile
+	$(SILENT) $(MAKE) -C $(PROJECTDIR)/gmake-openbsd config=$(CONFIG)32
+
+#-------------------------------------------------
 # gmake-steamlink
 #-------------------------------------------------
 
@@ -1431,8 +1458,9 @@ clean: genieclean
 	@echo Cleaning...
 	-@rm -rf $(BUILDDIR)
 	$(SILENT) $(MAKE) -C $(SRC)/devices/cpu/m68000 clean
+	-@rm -rf 3rdparty/bgfx/.build
 
-GEN_FOLDERS := $(GENDIR)/$(TARGET)/layout/ $(GENDIR)/$(TARGET)/$(SUBTARGET)/
+GEN_FOLDERS := $(GENDIR)/$(TARGET)/layout/ $(GENDIR)/$(TARGET)/$(SUBTARGET_FULL)/ $(GENDIR)/mame/drivers/
 
 rwildcard=$(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2) $(filter $(subst *,%,$2),$d))
 LAYOUTS=$(wildcard $(SRC)/$(TARGET)/layout/*.lay)
@@ -1455,6 +1483,7 @@ generate: \
 		$(GEN_FOLDERS) \
 		$(patsubst %.po,%.mo,$(call rwildcard, language/, *.po)) \
 		$(patsubst $(SRC)/%.lay,$(GENDIR)/%.lh,$(LAYOUTS)) \
+		$(GENDIR)/mame/drivers/ymmu100.hxx \
 		$(SRC)/devices/cpu/m68000/m68kops.cpp \
 		$(GENDIR)/includes/SDL2
 
@@ -1465,6 +1494,10 @@ $(GENDIR)/includes/SDL2:
 $(GENDIR)/%.lh: $(SRC)/%.lay scripts/build/complay.py | $(GEN_FOLDERS)
 	@echo Compressing $<...
 	$(SILENT)$(PYTHON) scripts/build/complay.py $< $@ layout_$(basename $(notdir $<))
+
+$(GENDIR)/mame/drivers/ymmu100.hxx: $(SRC)/mame/drivers/ymmu100.ppm scripts/build/file2str.py
+	@echo Converting $<...
+	$(SILENT)$(PYTHON) scripts/build/file2str.py $< $@ ymmu100_bkg UINT8
 
 $(SRC)/devices/cpu/m68000/m68kops.cpp: $(SRC)/devices/cpu/m68000/m68k_in.cpp $(SRC)/devices/cpu/m68000/m68kmake.cpp
 ifeq ($(TARGETOS),asmjs)
@@ -1504,7 +1537,7 @@ ifeq ($(OS),windows)
 	$(shell for /r src %%i in (*.mak) do srcclean %%i >&2 )
 	$(shell for /r src %%i in (*.lst) do srcclean %%i >&2 )
 	$(shell for /r src %%i in (*.lay) do srcclean %%i >&2 )
-	$(shell for /r src %%i in (*.inc) do srcclean %%i >&2 )
+	$(shell for /r src %%i in (*.hxx) do srcclean %%i >&2 )
 	$(shell for /r hash %%i in (*.xml) do srcclean %%i >&2 )
 else
 	$(shell find src/ -name *.c -exec ./srcclean {} >&2 ;)
@@ -1512,7 +1545,7 @@ else
 	$(shell find src/ -name *.mak -exec ./srcclean {} >&2 ;)
 	$(shell find src/ -name *.lst -exec ./srcclean {} >&2 ;)
 	$(shell find src/ -name *.lay -exec ./srcclean {} >&2 ;)
-	$(shell find src/ -name *.inc -exec ./srcclean {} >&2 ;)
+	$(shell find src/ -name *.hxx -exec ./srcclean {} >&2 ;)
 	$(shell find hash/ -name *.xml -exec ./srcclean {} >&2 ;)
 endif
 
@@ -1581,14 +1614,15 @@ cppcheck:
 .PHONY: shaders bgfx-tools
 
 bgfx-tools:
+	-@rm -rf 3rdparty/bgfx/.build/projects
 	$(SILENT) $(MAKE) -C 3rdparty/bgfx -f makefile dist-$(GENIEOS) CC="$(CC)" CXX="$(CXX)" MINGW="$(MINGW)"
 
 shaders: bgfx-tools
-	-$(call MKDIR,build/bgfx/shaders/dx11)
-	-$(call MKDIR,build/bgfx/shaders/dx9)
-	-$(call MKDIR,build/bgfx/shaders/gles)
-	-$(call MKDIR,build/bgfx/shaders/glsl)
-	-$(call MKDIR,build/bgfx/shaders/metal)	
+	-$(call MKDIR,build/shaders/dx11)
+	-$(call MKDIR,build/shaders/dx9)
+	-$(call MKDIR,build/shaders/gles)
+	-$(call MKDIR,build/shaders/glsl)
+	-$(call MKDIR,build/shaders/metal)	
 	$(SILENT) $(MAKE) -C $(SRC)/osd/modules/render/bgfx/shaders rebuild CHAIN="$(CHAIN)"
 	
 #-------------------------------------------------

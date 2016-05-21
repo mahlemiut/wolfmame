@@ -30,8 +30,9 @@ class matrix_solver_GCR_t: public matrix_solver_t
 {
 public:
 
-	matrix_solver_GCR_t(const solver_parameters_t *params, int size)
-		: matrix_solver_t(matrix_solver_t::ASCENDING, params)
+	matrix_solver_GCR_t(netlist_t &anetlist, const pstring &name,
+			const solver_parameters_t *params, int size)
+		: matrix_solver_t(anetlist, name, matrix_solver_t::ASCENDING, params)
 		, m_dim(size)
 		, m_proc(nullptr)
 		{
@@ -52,7 +53,7 @@ private:
 
 	void csc_private(postream &strm);
 
-	typedef void extsolver(double * RESTRICT m_A, double * RESTRICT RHS);
+	using extsolver = void (*)(double * RESTRICT m_A, double * RESTRICT RHS);
 
 	pstring static_compile_name()
 	{
@@ -68,7 +69,7 @@ private:
 	mat_cr_t<_storage_N> mat;
 	nl_double m_A[_storage_N * _storage_N];
 
-	extsolver *m_proc;
+	extsolver m_proc;
 
 };
 

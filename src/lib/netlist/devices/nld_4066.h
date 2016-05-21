@@ -33,13 +33,12 @@
 NETLIB_NAMESPACE_DEVICES_START()
 
 NETLIB_DEVICE(CD4066_GATE,
-	NETLIB_LOGIC_FAMILY(CD4XXX)
 public:
 
 	analog_input_t m_control;
-	NETLIB_NAME(R) m_R;
+	NETLIB_SUBXX(R) m_R;
 
-	NETLIB_NAME(vdd_vss) m_supply;
+	NETLIB_SUBXX(vdd_vss) m_supply;
 	param_double_t m_base_r;
 );
 

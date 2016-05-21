@@ -71,7 +71,7 @@ WRITE32_MEMBER(taito_f3_state::f3_control_w)
 	switch (offset)
 	{
 		case 0x00: /* Watchdog */
-			machine().watchdog_reset();
+			m_watchdog->watchdog_reset();
 			return;
 
 		case 0x01: /* Coin counters & lockouts */
@@ -446,6 +446,8 @@ static MACHINE_CONFIG_START( f3, taito_f3_state )
 
 	MCFG_EEPROM_SERIAL_93C46_ADD("eeprom")
 
+	MCFG_WATCHDOG_ADD("watchdog")
+
 	/* video hardware */
 	MCFG_SCREEN_ADD("screen", RASTER)
 	MCFG_SCREEN_REFRESH_RATE(58.97)
@@ -538,6 +540,8 @@ static MACHINE_CONFIG_START( bubsympb, taito_f3_state )
 	MCFG_MACHINE_START_OVERRIDE(taito_f3_state,f3)
 
 	MCFG_EEPROM_SERIAL_93C46_ADD("eeprom")
+
+	MCFG_WATCHDOG_ADD("watchdog")
 
 	/* video hardware */
 	MCFG_SCREEN_ADD("screen", RASTER)

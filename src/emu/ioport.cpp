@@ -3391,6 +3391,7 @@ void ioport_manager::playback_end(const char *message)
 	{
 		char timearray[]="100d 00:00:00.00:";
 		double avg;
+		std::string error;
 
 		sprintframetime(timearray);
 		// close the file
@@ -3412,6 +3413,9 @@ void ioport_manager::playback_end(const char *message)
 			m_playback_accumulated_speed /= m_playback_accumulated_frames;
 		osd_printf_info("Total playback frames: %d (%s)\n", (UINT32)m_playback_accumulated_frames,timearray);
 		osd_printf_info("Average recorded speed: %f%%\n", avg / (1 << 20));
+
+		// clear record filename so that INP is not overwritten if returning to the select game menu (aka the __empty driver)
+		machine().options().set_value(OPTION_PLAYBACK,"",OPTION_PRIORITY_HIGH,error);
 
 		// close the program at the end of inp file playback
 		if (machine().options().exit_after_playback()) {

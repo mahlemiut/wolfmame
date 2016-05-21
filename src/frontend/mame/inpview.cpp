@@ -166,7 +166,8 @@ static const struct _input_type_definition
 
 
 input_viewer::input_viewer(running_machine& machine) :
-	m_machine(machine)
+	m_machine(machine),
+	m_player(0)
 {
 }
 
@@ -176,7 +177,7 @@ void input_viewer::render_input()
 	char txt[6];
 	float height = mame_machine_manager::instance()->ui().get_line_height();
 
-	if(m_player < 1 || m_player > 8)
+	if(m_player < 1 || m_player > 10)
 		return;  // invalid player
 
 	if(machine().input().code_pressed(KEYCODE_DEL))

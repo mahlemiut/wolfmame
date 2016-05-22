@@ -191,16 +191,15 @@ void ui_menu_record_inp::start_inp()
 	// if everything looks good, schedule the new driver
 	if (summary == media_auditor::CORRECT || summary == media_auditor::BEST_AVAILABLE || summary == media_auditor::NONE_NEEDED)
 	{
-//		if ((m_driver->flags & MACHINE_TYPE_ARCADE) == 0)
-//		{
-//			software_list_device_iterator iter(enumerator.config().root_device());
-//			for (software_list_device *swlistdev = iter.first(); swlistdev != nullptr; swlistdev = iter.next())
-//				if (swlistdev->first_software_info() != nullptr)
-//				{
-//					ui_menu::stack_push(global_alloc_clear<ui_menu_select_software>(machine(), container, m_driver));
-//					return;
-//				}
-//		}
+		if ((m_driver->flags & MACHINE_TYPE_ARCADE) == 0)
+		{
+			for (software_list_device &swlistdev : software_list_device_iterator(enumerator.config().root_device()))
+				if (!swlistdev.get_info().empty())
+				{
+					ui_menu::stack_push(global_alloc_clear<ui_menu_select_software>(ui(), container, m_driver));
+					return;
+				}
+		}
 
 		s_bios biosname;
 		machine().options().set_value(OPTION_RECORD,m_filename_entry,OPTION_PRIORITY_HIGH,error);
@@ -361,16 +360,15 @@ void ui_menu_playback_inp::start_inp()
 	// if everything looks good, schedule the new driver
 	if (summary == media_auditor::CORRECT || summary == media_auditor::BEST_AVAILABLE || summary == media_auditor::NONE_NEEDED)
 	{
-//		if ((m_driver->flags & MACHINE_TYPE_ARCADE) == 0)
-//		{
-//			software_list_device_iterator iter(enumerator.config().root_device());
-//			for (software_list_device *swlistdev = iter.first(); swlistdev != nullptr; swlistdev = iter.next())
-//				if (swlistdev->first_software_info() != nullptr)
-//				{
-//					ui_menu::stack_push(global_alloc_clear<ui_menu_select_software>(ui(), container, m_driver));
-//					return;
-//				}
-//		}
+		if ((m_driver->flags & MACHINE_TYPE_ARCADE) == 0)
+		{
+			for (software_list_device &swlistdev : software_list_device_iterator(enumerator.config().root_device()))
+				if (!swlistdev.get_info().empty())
+				{
+					ui_menu::stack_push(global_alloc_clear<ui_menu_select_software>(ui(), container, m_driver));
+					return;
+				}
+		}
 
 		s_bios biosname;
 		machine().options().set_value(OPTION_PLAYBACK,m_filename_entry,OPTION_PRIORITY_HIGH,error);

@@ -389,7 +389,7 @@ void shaders::end_avi_recording()
 //  shaders::toggle
 //============================================================
 
-void shaders::toggle(std::vector<ui_menu_item>& sliders)
+void shaders::toggle(std::vector<ui::menu_item>& sliders)
 {
 	if (master_enable)
 	{
@@ -722,6 +722,7 @@ void shaders::init(d3d_base *d3dintf, running_machine *machine, renderer_d3d9 *r
 		options->yiq_q = winoptions.screen_yiq_q();
 		options->yiq_scan_time = winoptions.screen_yiq_scan_time();
 		options->yiq_phase_count = winoptions.screen_yiq_phase_count();
+		options->vector_beam_smooth = winoptions.screen_vector_beam_smooth();
 		options->vector_length_scale = winoptions.screen_vector_length_scale();
 		options->vector_length_ratio = winoptions.screen_vector_length_ratio();
 		options->bloom_blend_mode = winoptions.screen_bloom_blend_mode();
@@ -824,7 +825,7 @@ void shaders::init_fsfx_quad(void *vertbuf)
 //  shaders::create_resources
 //============================================================
 
-int shaders::create_resources(bool reset, std::vector<ui_menu_item>& sliders)
+int shaders::create_resources(bool reset, std::vector<ui::menu_item>& sliders)
 {
 	if (!master_enable || !d3dintf->post_fx_available)
 	{
@@ -1000,7 +1001,7 @@ int shaders::create_resources(bool reset, std::vector<ui_menu_item>& sliders)
 
 	initialized = true;
 
-	std::vector<ui_menu_item> my_sliders = init_slider_list();
+	std::vector<ui::menu_item> my_sliders = init_slider_list();
 	sliders.insert(sliders.end(), my_sliders.begin(), my_sliders.end());
 
 	return 0;
@@ -1524,6 +1525,7 @@ int shaders::vector_pass(d3d_render_target *rt, int source_index, poly_info *pol
 	// curr_effect->set_float("TimeScale", options->vector_time_scale);
 	curr_effect->set_float("LengthRatio", options->vector_length_ratio);
 	curr_effect->set_float("LengthScale", options->vector_length_scale);
+	curr_effect->set_float("BeamSmooth", options->vector_beam_smooth);
 
 	blit(rt->target_surface[next_index], true, poly->get_type(), vertnum, poly->get_count());
 
@@ -2184,7 +2186,7 @@ static void get_vector(const char *data, int count, float *out, bool report_erro
 //  be done in a more ideal way.
 //============================================================
 
-static slider_state *slider_alloc(running_machine &machine, int id, const char *title, INT32 minval, INT32 defval, INT32 maxval, INT32 incval, slider_update update, void *arg)
+slider_state* shaders::slider_alloc(running_machine &machine, int id, const char *title, INT32 minval, INT32 defval, INT32 maxval, INT32 incval, void *arg)
 {
 	int size = sizeof(slider_state) + strlen(title);
 	slider_state *state = reinterpret_cast<slider_state *>(auto_alloc_array_clear(machine, UINT8, size));
@@ -2193,7 +2195,10 @@ static slider_state *slider_alloc(running_machine &machine, int id, const char *
 	state->defval = defval;
 	state->maxval = maxval;
 	state->incval = incval;
-	state->update = update;
+
+	using namespace std::placeholders;
+	state->update = std::bind(&shaders::slider_changed, this, _1, _2, _3, _4, _5);
+
 	state->arg = arg;
 	state->id = id;
 	strcpy(state->description, title);
@@ -2267,7 +2272,7 @@ INT32 slider::update(std::string *str, INT32 newval)
 	return 0;
 }
 
-static INT32 slider_update_trampoline(running_machine &machine, void *arg, int id, std::string *str, INT32 newval)
+INT32 shaders::slider_changed(running_machine& /*machine*/, void *arg, int /*id*/, std::string *str, INT32 newval)
 {
 	if (arg != nullptr)
 	{
@@ -2282,7 +2287,8 @@ hlsl_options shaders::last_options = { false };
 
 enum slider_option
 {
-	SLIDER_VECTOR_ATT_MAX = 0,
+	SLIDER_VECTOR_BEAM_SMOOTH = 0,
+	SLIDER_VECTOR_ATT_MAX,
 	SLIDER_VECTOR_ATT_LEN_MIN,
 	SLIDER_SHADOW_MASK_TILE_MODE,
 	SLIDER_SHADOW_MASK_ALPHA,
@@ -2359,6 +2365,7 @@ enum slider_screen_type
 
 slider_desc shaders::s_sliders[] =
 {
+	{ "Vector Beam Smooth Amount",          0,     0,   100, 1, SLIDER_FLOAT,    SLIDER_SCREEN_TYPE_VECTOR,        SLIDER_VECTOR_BEAM_SMOOTH,      0.01f,    "%1.2f", {} },
 	{ "Vector Attenuation Maximum",         0,    50,   100, 1, SLIDER_FLOAT,    SLIDER_SCREEN_TYPE_VECTOR,        SLIDER_VECTOR_ATT_MAX,          0.01f,    "%1.2f", {} },
 	{ "Vector Attenuation Length Minimum",  1,   500,  1000, 1, SLIDER_FLOAT,    SLIDER_SCREEN_TYPE_VECTOR,        SLIDER_VECTOR_ATT_LEN_MIN,      0.001f,   "%1.3f", {} },
 	{ "Shadow Mask Tile Mode",              0,     0,     1, 1, SLIDER_INT_ENUM, SLIDER_SCREEN_TYPE_ANY,           SLIDER_SHADOW_MASK_TILE_MODE,   0,        "%s",    { "Screen", "Source" } },
@@ -2430,6 +2437,7 @@ void *shaders::get_slider_option(int id, int index)
 {
 	switch (id)
 	{
+		case SLIDER_VECTOR_BEAM_SMOOTH: return &(options->vector_beam_smooth);
 		case SLIDER_VECTOR_ATT_MAX: return &(options->vector_length_scale);
 		case SLIDER_VECTOR_ATT_LEN_MIN: return &(options->vector_length_ratio);
 		case SLIDER_SHADOW_MASK_TILE_MODE: return &(options->shadow_mask_tile_mode);
@@ -2497,9 +2505,9 @@ void *shaders::get_slider_option(int id, int index)
 	return nullptr;
 }
 
-std::vector<ui_menu_item> shaders::init_slider_list()
+std::vector<ui::menu_item> shaders::init_slider_list()
 {
-	std::vector<ui_menu_item> sliders;
+	std::vector<ui::menu_item> sliders;
 
 	for (slider* slider : internal_sliders)
 	{
@@ -2558,14 +2566,14 @@ std::vector<ui_menu_item> shaders::init_slider_list()
 						break;
 				}
 
-				slider_state* core_slider = slider_alloc(*machine, desc->id, name.c_str(), desc->minval, desc->defval, desc->maxval, desc->step, slider_update_trampoline, slider_arg);
+				slider_state* core_slider = slider_alloc(*machine, desc->id, name.c_str(), desc->minval, desc->defval, desc->maxval, desc->step, slider_arg);
 
-				ui_menu_item item;
+				ui::menu_item item;
 				item.text = core_slider->description;
 				item.subtext = "";
 				item.flags = 0;
 				item.ref = core_slider;
-				item.type = ui_menu_item_type::SLIDER;
+				item.type = ui::menu_item_type::SLIDER;
 				sliders.push_back(item);
 			}
 		}

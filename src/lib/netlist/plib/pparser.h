@@ -11,7 +11,10 @@
 #include "pconfig.h"
 #include "pstring.h"
 #include "plists.h"
+#include "putil.h"
 #include "pstream.h"
+
+namespace plib {
 
 class ptokenizer
 {
@@ -120,8 +123,8 @@ protected:
 private:
 	void skipeol();
 
-	pstring::code_t _getc();
-	void _ungetc();
+	pstring::code_t getc();
+	void ungetc();
 
 	bool eof() { return m_strm.eof(); }
 
@@ -174,7 +177,7 @@ protected:
 
 	postream &process_i(pistream &istrm, postream &ostrm);
 
-	double expr(const pstring_vector_t &sexpr, std::size_t &start, int prio);
+	double expr(const plib::pstring_vector_t &sexpr, std::size_t &start, int prio);
 
 	define_t *get_define(const pstring &name);
 
@@ -186,13 +189,15 @@ private:
 
 	pstring process_line(const pstring &line);
 
-	phashmap_t<pstring, define_t> m_defines;
-	pstring_vector_t m_expr_sep;
+	hashmap_t<pstring, define_t> m_defines;
+	plib::pstring_vector_t m_expr_sep;
 
 	//pstringbuffer m_ret;
 	UINT32 m_ifflag; // 31 if levels
 	int m_level;
 	int m_lineno;
 };
+
+}
 
 #endif /* PPARSER_H_ */

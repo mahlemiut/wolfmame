@@ -15,7 +15,9 @@
 
 #define TOTAL_WARNINGS 3
 
-class ui_menu_record_inp : public ui_menu
+namespace ui {
+
+class ui_menu_record_inp : public menu
 {
 public:
 	ui_menu_record_inp(mame_ui_manager &mui, render_container *container, const game_driver *driver = nullptr);
@@ -54,5 +56,6 @@ private:
 	bool browse_done;
 };
 
+} // namespace ui
 
 #endif /* __UI_RECINP_H__ */

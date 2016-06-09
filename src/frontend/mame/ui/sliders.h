@@ -10,21 +10,24 @@
 
 #pragma once
 
-#ifndef __UI_SLIDERS_H__
-#define __UI_SLIDERS_H__
+#ifndef MAME_FRONTEND_UI_SLIDERS_H
+#define MAME_FRONTEND_UI_SLIDERS_H
 
-#include <map>
+#include "ui/menu.h"
 
-class ui_menu_sliders : public ui_menu {
+namespace ui {
+
+class menu_sliders : public menu
+{
 public:
-	ui_menu_sliders(mame_ui_manager &mui, render_container *container, bool menuless_mode = false);
-	virtual ~ui_menu_sliders();
+	menu_sliders(mame_ui_manager &mui, render_container *container, bool menuless_mode = false);
+	virtual ~menu_sliders() override;
 	virtual void populate() override;
 	virtual void handle() override;
 
 	virtual void custom_render(void *selectedref, float top, float bottom, float x, float y, float x2, float y2) override;
 
-	static UINT32 ui_handler(mame_ui_manager &mui, render_container *container, UINT32 state);
+	static UINT32 ui_handler(render_container *container, mame_ui_manager &mui);
 
 private:
 	enum {
@@ -35,5 +38,6 @@ private:
 	bool m_hidden;
 };
 
+} // namespace ui
 
-#endif  /* __UI_SLIDERS_H__ */
+#endif  /* MAME_FRONTEND_UI_SLIDERS_H */

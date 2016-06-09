@@ -938,6 +938,11 @@ WRITE8_MEMBER(wingco_state::magodds_outb860_w)
 //  popmessage("magodds_outb860_w %02x\n", data);
 }
 
+WRITE8_MEMBER(wingco_state::fl7w4_outc802_w)
+{
+	m_fl7w4_id->write((data >> 6) & 0x01);
+}
+
 static ADDRESS_MAP_START( magodds_map, AS_PROGRAM, 8, wingco_state )
 	AM_RANGE(0x0000, 0x7fff) AM_ROM
 	// where does the extra rom data map?? it seems like it should come straight after the existing rom, but it can't if this is a plain z80?
@@ -6936,7 +6941,7 @@ static INPUT_PORTS_START( flaming7 )
 	PORT_BIT( 0x08, IP_ACTIVE_LOW, IPT_UNKNOWN )
 	PORT_BIT( 0x10, IP_ACTIVE_LOW, IPT_UNKNOWN )
 	PORT_BIT( 0x20, IP_ACTIVE_LOW, IPT_UNKNOWN )
-	PORT_BIT( 0x40, IP_ACTIVE_LOW, IPT_UNKNOWN )
+	PORT_BIT( 0x40, IP_ACTIVE_LOW, IPT_SPECIAL ) PORT_READ_LINE_DEVICE_MEMBER( "fl7w4_id", ds2401_device, read )
 	PORT_BIT( 0x80, IP_ACTIVE_LOW, IPT_UNKNOWN )
 
 	PORT_START("IN3")   /* b810 */
@@ -7160,7 +7165,7 @@ static const gfx_layout tilelayout_cb3e =
 	256,    /* 256 tiles */
 	4,      /* 4 bits per pixel */
 	{ 0, 2, 4, 6 },
-	{ 2*8+0, 2*8+1,3*8+0, 3*8+1,  0, 1, 1*8+0, 1*8+1 },
+	{ 2*8+0, 2*8+1,3*8+0, 3*8+1, 0, 1, 1*8+0, 1*8+1 },
 	{ 0*8, 4*8, 8*8, 12*8, 16*8, 20*8, 24*8, 28*8,
 			32*8, 36*8, 40*8, 44*8, 48*8, 52*8, 56*8, 60*8,
 			64*8, 68*8, 72*8, 76*8, 80*8, 84*8, 88*8, 92*8,
@@ -7201,8 +7206,8 @@ static const gfx_layout tiles8x32x4alt_layout =
 	8,32,
 	RGN_FRAC(1,2),
 	4,
-	{ RGN_FRAC(1,2)+0, RGN_FRAC(1,2)+4,0,4 },
-	{ 3,2,1,0,11, 10, 9, 8 },
+	{ RGN_FRAC(1,2)+0, RGN_FRAC(1,2)+4, 0, 4 },
+	{ 3, 2, 1, 0, 11, 10, 9, 8 },
 	{ 0*16, 1*16,  2*16,  3*16,  4*16,  5*16,  6*16,  7*16,
 		8*16, 9*16, 10*16, 11*16, 12*16, 13*16, 14*16, 15*16,
 		16*16,17*16, 18*16, 19*16, 20*16, 21*16, 22*16, 23*16,
@@ -7281,8 +7286,8 @@ static const gfx_layout cb3c_tiles8x8_layout =
 	8,8,
 	RGN_FRAC(1,1),
 	4,
-	{ 0,1,2,3 },
-	{ 4,0,12,8,20,16,28,24 },
+	{ 0, 1, 2, 3 },
+	{ 4, 0, 12, 8, 20, 16, 28, 24 },
 	{ 0*32, 1*32, 2*32, 3*32, 4*32, 5*32, 6*32, 7*32 },
 	8*32
 };
@@ -7293,9 +7298,11 @@ static const gfx_layout cb3c_tiles8x32_layout =
 	8,32,
 	RGN_FRAC(1,1),
 	4,
-	{ 0,1,2,3 },
-	{ 4,0,12,8,20,16,28,24 },
-	{ 0*32, 1*32, 2*32, 3*32, 4*32, 5*32, 6*32, 7*32, 8*32,9*32,10*32,11*32,12*32,13*32,14*32,15*32,16*32,17*32,18*32,19*32,20*32,21*32,22*32,23*32,24*32,25*32,26*32,27*32,28*32,29*32,30*32,31*32 },
+	{ 0, 1, 2, 3 },
+	{ 4, 0, 12, 8, 20, 16, 28, 24 },
+	{ 0*32, 1*32, 2*32, 3*32, 4*32, 5*32, 6*32, 7*32, 8*32, 9*32, 10*32, 11*32, 12*32,
+	  13*32, 14*32, 15*32, 16*32, 17*32, 18*32, 19*32, 20*32, 21*32, 22*32, 23*32,
+	  24*32, 25*32, 26*32, 27*32, 28*32, 29*32, 30*32, 31*32 },
 	32*32
 };
 
@@ -7471,9 +7478,11 @@ static const gfx_layout tiles8x32_4bpp_layout =
 	8,32,
 	RGN_FRAC(1,4),
 	4,
-	{ RGN_FRAC(0,4),RGN_FRAC(1,4),RGN_FRAC(2,4),RGN_FRAC(3,4) },
-	{ 0,1,2,3,4,5,6,7},
-	{ 0*8, 1*8, 2*8, 3*8, 4*8, 5*8, 6*8, 7*8,8*8,9*8,10*8,11*8,12*8,13*8,14*8,15*8,16*8,17*8,18*8,19*8,20*8,21*8,22*8,23*8,24*8,25*8,26*8,27*8,28*8,29*8,30*8,31*8 },
+	{ RGN_FRAC(0,4), RGN_FRAC(1,4), RGN_FRAC(2,4), RGN_FRAC(3,4) },
+	{ 0, 1, 2, 3, 4, 5, 6, 7},
+	{ 0*8, 1*8, 2*8, 3*8, 4*8, 5*8, 6*8, 7*8, 8*8, 9*8, 10*8, 11*8, 12*8,
+	  13*8, 14*8, 15*8, 16*8, 17*8, 18*8, 19*8, 20*8, 21*8, 22*8, 23*8,
+	  24*8, 25*8, 26*8, 27*8, 28*8, 29*8, 30*8, 31*8 },
 	32*8
 };
 
@@ -7482,8 +7491,8 @@ static const gfx_layout tiles8x8_3bpp_layout =
 	8,8,
 	RGN_FRAC(1,3),
 	3,
-	{ RGN_FRAC(0,3),RGN_FRAC(1,3),RGN_FRAC(2,3) },
-	{ 0,1,2,3,4,5,6,7},
+	{ RGN_FRAC(0,3), RGN_FRAC(1,3), RGN_FRAC(2,3) },
+	{ 0, 1, 2, 3, 4, 5, 6, 7},
 	{ 0*8, 1*8, 2*8, 3*8, 4*8, 5*8, 6*8, 7*8 },
 	8*8
 };
@@ -7499,8 +7508,8 @@ static const gfx_layout tiles8x8x3_miss1bpp_layout =
 	8,8,
 	RGN_FRAC(1,1),
 	3,
-	{ 1,2,3 },
-	{  8,12,0,4,24,28,16,20 },
+	{ 1, 2, 3 },
+	{ 8, 12, 0, 4, 24, 28, 16, 20 },
 	{ 0*32, 1*32, 2*32, 3*32, 4*32, 5*32, 6*32, 7*32 },
 	8*32
 };
@@ -7510,8 +7519,8 @@ static const gfx_layout tiles8x8x4alt_layout =
 	8,8,
 	RGN_FRAC(1,1),
 	4,
-	{ 0, 1,2,3 },
-	{  4,0,12,8,20,16,28,24 },
+	{ 0, 1, 2, 3 },
+	{ 4, 0, 12, 8, 20, 16, 28, 24 },
 	{ 0*32, 1*32, 2*32, 3*32, 4*32, 5*32, 6*32, 7*32 },
 	8*32
 };
@@ -7521,8 +7530,8 @@ static const gfx_layout tiles8x32x4alt2_layout =
 	8,32,
 	RGN_FRAC(1,1),
 	4,
-	{ 0, 1,2,3 },
-	{  4,0,12,8,20,16,28,24 },
+	{ 0, 1, 2, 3 },
+	{ 4, 0, 12, 8, 20, 16, 28, 24 },
 	{ STEP32(0,32) },
 	32*32
 };
@@ -7538,8 +7547,8 @@ static const gfx_layout tilescherrys_layout =
 	8,32,
 	RGN_FRAC(1,1),
 	4,
-	{ 3,2,1,0 },
-	{  8,12,0,4,24,28,16,20 },
+	{ 3, 2, 1, 0 },
+	{  8, 12, 0, 4, 24, 28, 16, 20 },
 	{ STEP32(0,32) },
 	32*32
 };
@@ -7575,9 +7584,9 @@ static const gfx_layout cm97_layout =
 	8,8,
 	RGN_FRAC(1,1),
 	4,
-	{ 0,1,2,3 },
-	{ 8,12,0,4,24,28, 16,20 },
-	{ 0*32,1*32,2*32,3*32,4*32,5*32,6*32,7*32 },
+	{ 0, 1, 2, 3 },
+	{ 8, 12, 0, 4, 24, 28, 16, 20 },
+	{ 0*32, 1*32, 2*32, 3*32, 4*32, 5*32, 6*32, 7*32 },
 	8*32
 };
 
@@ -7588,7 +7597,9 @@ static const gfx_layout cm97_layout32 =
 	4,
 	{ 0,1,2,3 },
 	{ 8,12,0,4,24,28, 16,20 },
-	{ 0*32,1*32,2*32,3*32,4*32,5*32,6*32,7*32, 8*32, 9*32, 10*32, 11*32, 12*32, 13*32,14*32,15*32,16*32,17*32,18*32,19*32,20*32,21*32,22*32,23*32,24*32,25*32,26*32,27*32,28*32,29*32,30*32,31*32 },
+	{ 0*32, 1*32, 2*32, 3*32, 4*32, 5*32, 6*32, 7*32, 8*32, 9*32, 10*32, 11*32,
+	  12*32, 13*32, 14*32, 15*32, 16*32, 17*32, 18*32, 19*32, 20*32, 21*32,
+	  22*32, 23*32, 24*32, 25*32, 26*32, 27*32, 28*32, 29*32, 30*32, 31*32 },
 	32*32
 };
 
@@ -7649,7 +7660,7 @@ static MACHINE_CONFIG_START( goldstar, goldstar_state )
 	MCFG_PALETTE_FORMAT(BBGGGRRR)
 	MCFG_NVRAM_ADD_1FILL("nvram")
 
-	MCFG_VIDEO_START_OVERRIDE(goldstar_state,goldstar)
+	MCFG_VIDEO_START_OVERRIDE(goldstar_state, goldstar)
 
 	/* sound hardware */
 	MCFG_SPEAKER_STANDARD_MONO("mono")
@@ -7670,7 +7681,7 @@ static MACHINE_CONFIG_START( goldstbl, goldstar_state )
 	MCFG_CPU_ADD("maincpu", Z80, CPU_CLOCK)
 	MCFG_CPU_PROGRAM_MAP(goldstar_map)
 	MCFG_CPU_IO_MAP(goldstar_readport)
-	MCFG_CPU_VBLANK_INT_DRIVER("screen", goldstar_state,  irq0_line_hold)
+	MCFG_CPU_VBLANK_INT_DRIVER("screen", goldstar_state, irq0_line_hold)
 
 	/* video hardware */
 	MCFG_SCREEN_ADD("screen", RASTER)
@@ -7686,7 +7697,7 @@ static MACHINE_CONFIG_START( goldstbl, goldstar_state )
 	MCFG_PALETTE_FORMAT(BBGGGRRR)
 	MCFG_NVRAM_ADD_1FILL("nvram")
 
-	MCFG_VIDEO_START_OVERRIDE(goldstar_state,goldstar)
+	MCFG_VIDEO_START_OVERRIDE(goldstar_state, goldstar)
 
 	/* sound hardware */
 	MCFG_SPEAKER_STANDARD_MONO("mono")
@@ -7714,7 +7725,7 @@ static MACHINE_CONFIG_START( star100, sanghopm_state )
 	MCFG_CPU_ADD("maincpu", Z80, CPU_CLOCK)
 	MCFG_CPU_PROGRAM_MAP(star100_map)
 	MCFG_CPU_IO_MAP(star100_readport)
-	MCFG_CPU_VBLANK_INT_DRIVER("screen", sanghopm_state,  irq0_line_hold)
+	MCFG_CPU_VBLANK_INT_DRIVER("screen", sanghopm_state, irq0_line_hold)
 
 	/* video hardware */
 	MCFG_SCREEN_ADD("screen", RASTER)
@@ -7755,7 +7766,7 @@ static MACHINE_CONFIG_START( super9, goldstar_state )
 //  MCFG_CPU_PROGRAM_MAP(nfm_map)
 	MCFG_CPU_IO_MAP(goldstar_readport)
 //  MCFG_CPU_IO_MAP(unkch_portmap)
-	MCFG_CPU_VBLANK_INT_DRIVER("screen", goldstar_state,  irq0_line_hold)
+	MCFG_CPU_VBLANK_INT_DRIVER("screen", goldstar_state, irq0_line_hold)
 
 	/* video hardware */
 	MCFG_SCREEN_ADD("screen", RASTER)
@@ -7921,7 +7932,7 @@ static MACHINE_CONFIG_START( wcherry, goldstar_state )
 	MCFG_CPU_ADD("maincpu", Z80, CPU_CLOCK)
 	MCFG_CPU_PROGRAM_MAP(wcherry_map)
 	MCFG_CPU_IO_MAP(wcherry_readwriteport)
-	MCFG_CPU_VBLANK_INT_DRIVER("screen", goldstar_state,  irq0_line_hold)
+	MCFG_CPU_VBLANK_INT_DRIVER("screen", goldstar_state, irq0_line_hold)
 
 	MCFG_DEVICE_ADD("ppi8255_0", I8255A, 0)
 	MCFG_I8255_IN_PORTA_CB(IOPORT("IN0"))
@@ -7970,7 +7981,7 @@ static MACHINE_CONFIG_START( cm, cmaster_state )
 	MCFG_CPU_ADD("maincpu", Z80, CPU_CLOCK)
 	MCFG_CPU_PROGRAM_MAP(cm_map)
 	MCFG_CPU_IO_MAP(cm_portmap)
-	MCFG_CPU_VBLANK_INT_DRIVER("screen", goldstar_state,  irq0_line_hold)
+	MCFG_CPU_VBLANK_INT_DRIVER("screen", goldstar_state, irq0_line_hold)
 
 	MCFG_DEVICE_ADD("ppi8255_0", I8255A, 0)
 	MCFG_I8255_IN_PORTA_CB(IOPORT("IN0"))
@@ -8100,7 +8111,7 @@ static MACHINE_CONFIG_START( lucky8, wingco_state )
 	MCFG_PALETTE_INIT_OWNER(goldstar_state, lucky8)
 	MCFG_NVRAM_ADD_1FILL("nvram")
 
-	MCFG_VIDEO_START_OVERRIDE(goldstar_state,goldstar)
+	MCFG_VIDEO_START_OVERRIDE(goldstar_state, goldstar)
 
 	/* sound hardware */
 	MCFG_SPEAKER_STANDARD_MONO("mono")
@@ -8151,7 +8162,7 @@ static MACHINE_CONFIG_START( bingowng, wingco_state )
 
 	MCFG_GFXDECODE_ADD("gfxdecode", "palette", ncb3)
 	MCFG_PALETTE_ADD("palette", 256)
-	MCFG_PALETTE_INIT_OWNER(goldstar_state,lucky8)
+	MCFG_PALETTE_INIT_OWNER(goldstar_state, lucky8)
 	MCFG_NVRAM_ADD_1FILL("nvram")
 
 	MCFG_VIDEO_START_OVERRIDE(wingco_state, bingowng)
@@ -8180,6 +8191,11 @@ static MACHINE_CONFIG_DERIVED( flaming7, lucky8 )
 	MCFG_CPU_MODIFY("maincpu")
 	MCFG_CPU_PROGRAM_MAP(flaming7_map)
 //  MCFG_CPU_IO_MAP(flaming7_readport)
+
+	MCFG_DEVICE_MODIFY("ppi8255_0")
+	MCFG_I8255_OUT_PORTC_CB(WRITE8(wingco_state, fl7w4_outc802_w))
+
+	MCFG_DS2401_ADD("fl7w4_id")
 MACHINE_CONFIG_END
 
 
@@ -8202,7 +8218,7 @@ static MACHINE_CONFIG_START( magodds, wingco_state )
 	MCFG_CPU_ADD("maincpu", Z80, CPU_CLOCK)
 	MCFG_CPU_PROGRAM_MAP(magodds_map)
 	//MCFG_CPU_IO_MAP(goldstar_readport)
-	MCFG_CPU_VBLANK_INT_DRIVER("screen", wingco_state,  masked_irq)
+	MCFG_CPU_VBLANK_INT_DRIVER("screen", wingco_state, masked_irq)
 
 	MCFG_DEVICE_ADD("ppi8255_0", I8255A, 0)
 	MCFG_I8255_IN_PORTA_CB(IOPORT("IN0"))
@@ -8257,7 +8273,7 @@ static MACHINE_CONFIG_START( kkotnoli, goldstar_state )
 	MCFG_CPU_ADD("maincpu", Z80, CPU_CLOCK)
 	MCFG_CPU_PROGRAM_MAP(kkotnoli_map)
 	//MCFG_CPU_IO_MAP(goldstar_readport)
-	MCFG_CPU_VBLANK_INT_DRIVER("screen", goldstar_state,  nmi_line_pulse)
+	MCFG_CPU_VBLANK_INT_DRIVER("screen", goldstar_state, nmi_line_pulse)
 
 	MCFG_DEVICE_ADD("ppi8255_0", I8255A, 0)
 	MCFG_I8255_IN_PORTA_CB(IOPORT("IN0"))
@@ -8284,7 +8300,7 @@ static MACHINE_CONFIG_START( kkotnoli, goldstar_state )
 	MCFG_PALETTE_ADD("palette", 256)
 	MCFG_PALETTE_INIT_OWNER(goldstar_state, lucky8)
 
-	MCFG_VIDEO_START_OVERRIDE(goldstar_state,goldstar)
+	MCFG_VIDEO_START_OVERRIDE(goldstar_state, goldstar)
 
 	/* sound hardware */
 	MCFG_SPEAKER_STANDARD_MONO("mono")
@@ -8301,7 +8317,7 @@ static MACHINE_CONFIG_START( ladylinr, goldstar_state )
 	MCFG_CPU_ADD("maincpu", Z80, CPU_CLOCK)
 	MCFG_CPU_PROGRAM_MAP(ladylinr_map)
 	//MCFG_CPU_IO_MAP(goldstar_readport)
-	MCFG_CPU_VBLANK_INT_DRIVER("screen", goldstar_state,  nmi_line_pulse)
+	MCFG_CPU_VBLANK_INT_DRIVER("screen", goldstar_state, nmi_line_pulse)
 
 	MCFG_DEVICE_ADD("ppi8255_0", I8255A, 0)
 	MCFG_I8255_IN_PORTA_CB(IOPORT("IN0"))
@@ -8325,7 +8341,7 @@ static MACHINE_CONFIG_START( ladylinr, goldstar_state )
 	MCFG_PALETTE_INIT_OWNER(goldstar_state, lucky8)
 	MCFG_NVRAM_ADD_1FILL("nvram")
 
-	MCFG_VIDEO_START_OVERRIDE(goldstar_state,goldstar)
+	MCFG_VIDEO_START_OVERRIDE(goldstar_state, goldstar)
 
 	/* sound hardware */
 	MCFG_SPEAKER_STANDARD_MONO("mono")
@@ -8344,7 +8360,7 @@ static MACHINE_CONFIG_START( wcat3, wingco_state )
 	MCFG_CPU_ADD("maincpu", Z80, CPU_CLOCK)
 	MCFG_CPU_PROGRAM_MAP(wcat3_map)
 	//MCFG_CPU_IO_MAP(goldstar_readport)
-	MCFG_CPU_VBLANK_INT_DRIVER("screen", goldstar_state,  nmi_line_pulse)
+	MCFG_CPU_VBLANK_INT_DRIVER("screen", goldstar_state, nmi_line_pulse)
 
 	MCFG_DEVICE_ADD("ppi8255_0", I8255A, 0)
 	MCFG_I8255_IN_PORTA_CB(IOPORT("IN0"))
@@ -8376,7 +8392,7 @@ static MACHINE_CONFIG_START( wcat3, wingco_state )
 	MCFG_PALETTE_INIT_OWNER(goldstar_state, lucky8)
 	MCFG_NVRAM_ADD_1FILL("nvram")
 
-	MCFG_VIDEO_START_OVERRIDE(goldstar_state,goldstar)
+	MCFG_VIDEO_START_OVERRIDE(goldstar_state, goldstar)
 
 	/* sound hardware */
 	MCFG_SPEAKER_STANDARD_MONO("mono")
@@ -8401,7 +8417,7 @@ static MACHINE_CONFIG_START( amcoe1, cmaster_state )
 	MCFG_CPU_ADD("maincpu", Z80, CPU_CLOCK)
 	MCFG_CPU_PROGRAM_MAP(cm_map)
 	MCFG_CPU_IO_MAP(amcoe1_portmap)
-	MCFG_CPU_VBLANK_INT_DRIVER("screen", goldstar_state,  irq0_line_hold)
+	MCFG_CPU_VBLANK_INT_DRIVER("screen", goldstar_state, irq0_line_hold)
 
 	MCFG_DEVICE_ADD("ppi8255_0", I8255A, 0)
 	MCFG_I8255_IN_PORTA_CB(IOPORT("IN0"))
@@ -8483,7 +8499,7 @@ static MACHINE_CONFIG_START( amcoe2, cmaster_state )
 	MCFG_PALETTE_INIT_OWNER(goldstar_state,cm)
 	MCFG_NVRAM_ADD_1FILL("nvram")
 
-	MCFG_VIDEO_START_OVERRIDE(goldstar_state,cherrym)
+	MCFG_VIDEO_START_OVERRIDE(goldstar_state, cherrym)
 
 	/* sound hardware */
 	MCFG_SPEAKER_STANDARD_MONO("mono")
@@ -8554,7 +8570,7 @@ static MACHINE_CONFIG_START( pkrmast, goldstar_state )
 	MCFG_CPU_ADD("maincpu", Z80, CPU_CLOCK)
 	MCFG_CPU_PROGRAM_MAP(cm_map)
 	MCFG_CPU_IO_MAP(pkrmast_portmap)
-	MCFG_CPU_VBLANK_INT_DRIVER("screen", goldstar_state,  irq0_line_hold)
+	MCFG_CPU_VBLANK_INT_DRIVER("screen", goldstar_state, irq0_line_hold)
 
 	/* video hardware */
 	MCFG_SCREEN_ADD("screen", RASTER)
@@ -13961,11 +13977,20 @@ ROM_END
   Probably tracing pin connections to the HX881 will confirm it.
 
 
-  You can switch the games pulsing their respective hidden buttons.
-
   Hidden Switch:
 
-  Unknown, yet...
+  You can enter Cherry Master mode in same way like other Tetris versions.
+
+  One wire goes to edge connector 35 + 36 (solder side), putting PPI (u34)
+  pin 14 (PC0) to GND (needed to get the switch working).
+
+  One button adds GND to the edge connector 8 (solder side):
+  PPI pin 18 (PB0), to switch to Tetris game.
+
+  The other button, adds GND to the edge connector 7 (solder side):
+  PPI pin 19 (PB1), to switch to Cherry Master game.
+
+  Need proper implementation.
 
 */
 ROM_START( cmtetrsb )
@@ -14000,7 +14025,6 @@ ROM_END
 
   Flaming 7.
   Cyberdyne Systems, Inc.
-  Looks a W-4 derivative...
 
   Graphics: CGA
   Reels: 3 spinning reels.
@@ -14008,12 +14032,15 @@ ROM_END
   Bonus Games: Yes.
   Harness Type: Standard 36/10 Pin Cherry Master Harness.
 
+  Looks like a Wing W-4 derivative. There are at least 3 different hardwares:
+  Cyberdyne original PCB, Taiwanese custom PCB, and one close to Wing W-4.
+
   Graphics: 4 different types, selectable through DIP switches.
 
   1) Regular Fruits.
-  2) Numbers.
-  3) Custom Set 1
-  4) Custom Set 2
+  2) Numbers.     (Custom Option 1 in W-4 HW) 
+  3) Custom Set 1 (Custom Option 2 in W-4 HW)
+  4) Custom Set 2 (Custom Option 3 in W-4 HW)
 
   Titles / GFX upgrades:
 
@@ -14075,16 +14102,19 @@ ROM_END
 
   Tech Notes:
 
-  PCB has some hacks...
+  W-4 PCB type has some hacks...
 
   1) PPI 8255 pin 10 (PC7) is wired to pin 22 (PB4)...
-     Maybe the boot protection?
 
   2) Pin 39 from solder side (speaker GND) and pin 04 from components side (PPI 8255 pin 11, PC6)
      are wired with a DS2401 (sillicon serial number) device, to pins 1 & 2 (GND & DATA).
+	 
+	 DS2401 has 64bits of internal data: 8 bits for family type + 48 bits for serial + 8 bits for CRC.
+
+	 Maxim/Dallas 1-Wire devices use what is called Dow CRC to check that the data bytes were received correctly.
+     This returns an 8-bit CRC value as the last byte and uses a polynomial of X^8 + X^5 + X^4 + X^0.
 
   3) Z80 /INT line (pin 16) is out of socket and wired to a 74161.
-
 
 */
 
@@ -14096,14 +14126,15 @@ ROM_END
   1) Red, White & Blue 7's
   2) Hollywood Nights.
 
-  Issues: At boot, writes "E6" on screen (5th row, 7th column).
-          Looks like an error code.
+  To boot the first time, press the BET 1 button (key M), and then BOOKS/STATS/SETUP (Key 0) twice.
+  For further boots, just press BET 1 button. (the real hardware boots straight due to electronic
+  serial number protection)
 
-  To boot the first time, press the BET button, and then STATS/SETUP twice.
-  For further boots, just press BET button. (the real hardware boots straight)
+  To enter the Bookkeeping/Setup mode, press BOOKS/STATS/SETUP (key 0). Use RESET key (key R) to
+  navigate between pages. Press BOOKS/STATS/SETUP (key 0) to exit the Bookkeeping mode.
 
 */
-ROM_START( fl7_3121 )  // Red, White & Blue 7's + Hollywood Nights.
+ROM_START( fl7_3121 )  // Red, White & Blue 7's + Hollywood Nights. Serial 7D063B800000.
 	ROM_REGION( 0x8000, "maincpu", 0 )
 	ROM_LOAD( "main.14b",  0x0000, 0x8000, CRC(5756e927) SHA1(5448e1ca4ae060b086145eee10b8dc6eb05acc56) )
 
@@ -14130,6 +14161,10 @@ ROM_START( fl7_3121 )  // Red, White & Blue 7's + Hollywood Nights.
 
 	ROM_REGION( 0x20, "unkprom2", 0 )
 	ROM_LOAD( "82s123.d12", 0x0000, 0x0020, CRC(6df3f972) SHA1(0096a7f7452b70cac6c0752cb62e24b643015b5c) )
+
+	ROM_REGION(0x8, "fl7w4_id", 0)     /* Electronic Serial DS2401 */
+	ROM_LOAD( "ds2401.bin", 0x0000, 0x0008, CRC(b7078792) SHA1(f9eba1587b65ed9bc07ea6c4b2d393fb43f60659) ) // Hand built to match our ROM set
+
 ROM_END
 
 
@@ -14149,7 +14184,7 @@ DRIVER_INIT_MEMBER(goldstar_state,goldstar)
 	}
 }
 
-// this block swapping is the same for chry10, chrygld and cb3
+//  this block swapping is the same for chry10, chrygld and cb3
 //  the underlying bitswaps / xors are different however
 void cb3_state::do_blockswaps(UINT8* ROM)
 {
@@ -14877,7 +14912,7 @@ GAMEL( 1993, bingownga, bingowng, bingownga,bingownga,driver_device,  0,        
 
 
 // --- Flaming 7's hardware (W-4 derivative) ---
-GAME(  199?, fl7_3121,  0,        flaming7, flaming7, driver_device,  0,         ROT0, "Cyberdyne Systems", "Flaming 7 (Red, White & Blue 7's + Hollywood Nights)",     MACHINE_NOT_WORKING )
+GAME(  199?, fl7_3121,  0,        flaming7, flaming7, driver_device,  0,         ROT0, "Cyberdyne Systems", "Flaming 7 (Red, White & Blue 7's + Hollywood Nights)",     0 )
 
 
 // --- Wing W-8 hardware ---

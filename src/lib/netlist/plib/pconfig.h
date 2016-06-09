@@ -9,6 +9,8 @@
 #define PCONFIG_H_
 
 #include <cstdint>
+#include <thread>
+#include <chrono>
 
 #ifndef PSTANDALONE
 	#define PSTANDALONE (0)
@@ -21,10 +23,9 @@
 #endif
 
 #if (PHAS_INT128)
-typedef __uint128_t UINT128;
-typedef __int128_t INT128;
+typedef _uint128_t UINT128;
+typedef _int128_t INT128;
 #endif
-
 
 #if !(PSTANDALONE)
 #include "osdcomm.h"
@@ -47,10 +48,10 @@ typedef __int128_t INT128;
 //============================================================
 
 // prevent implicit copying
-#define P_PREVENT_COPYING(_name)                \
-	private:                                    \
-		_name(const _name &);                   \
-		_name &operator=(const _name &);
+#define P_PREVENT_COPYING(name)               \
+	private:                                  \
+		name(const name &);                   \
+		name &operator=(const name &);
 
 //============================================================
 //  Compiling standalone
@@ -73,7 +74,7 @@ typedef __int128_t INT128;
 	/* does not work in versions over 4.7.x of 32bit MINGW  */
 	#if defined(__MINGW32__) && !defined(__x86_64) && defined(__i386__) && ((__GNUC__ > 4) || ((__GNUC__ == 4) && (__GNUC_MINOR__ >= 7)))
 		#define PHAS_PMF_INTERNAL 1
-		#define MEMBER_ABI __thiscall
+		#define MEMBER_ABI _thiscall
 	#elif defined(EMSCRIPTEN)
 		#define PHAS_PMF_INTERNAL 0
 	#elif defined(__arm__) || defined(__ARMEL__)
@@ -89,13 +90,7 @@ typedef __int128_t INT128;
 	#define MEMBER_ABI
 #endif
 
-/* not supported in GCC prior to 4.4.x */
-#define ATTR_HOT               __attribute__((hot))
-#define ATTR_COLD              __attribute__((cold))
-
 #define RESTRICT                __restrict__
-#define EXPECTED(x)     (x)
-#define UNEXPECTED(x)   (x)
 #define ATTR_PRINTF(x,y)        __attribute__((format(printf, x, y)))
 #define ATTR_UNUSED             __attribute__((__unused__))
 
@@ -108,16 +103,16 @@ typedef unsigned short                      UINT16;
 typedef signed short                        INT16;
 
 /* 32-bit values */
-#ifndef _WINDOWS_H
+#ifndef WINDOWS_H
 typedef unsigned int                        UINT32;
 typedef signed int                          INT32;
 #endif
 
 /* 64-bit values */
-#ifndef _WINDOWS_H
+#ifndef WINDOWS_H
 #ifdef _MSC_VER
-typedef signed __int64                      INT64;
-typedef unsigned __int64                    UINT64;
+typedef signed _int64                      INT64;
+typedef unsigned _int64                    UINT64;
 #else
 typedef uint64_t    UINT64;
 typedef int64_t      INT64;
@@ -135,62 +130,91 @@ typedef int64_t      INT64;
 
 #endif
 
+namespace plib {
+
+using ticks_t = INT64;
+
+static inline ticks_t ticks()
+{
+	return std::chrono::high_resolution_clock::now().time_since_epoch().count();
+}
+static inline ticks_t ticks_per_second()
+{
+	return std::chrono::high_resolution_clock::period::den / std::chrono::high_resolution_clock::period::num;
+}
+
+#if defined(__x86_64__) &&  !defined(_clang__) && !defined(_MSC_VER) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ > 6))
+
+static inline ticks_t profile_ticks()
+{
+    unsigned hi, lo;
+    __asm__ __volatile__ ("rdtsc" : "=a"(lo), "=d"(hi));
+    return ( (unsigned long long)lo)|( ((unsigned long long)hi)<<32 );
+}
+
+#else
+static inline ticks_t profile_ticks() { return ticks(); }
+#endif
+
 /*
  * The following class was derived from the MAME delegate.h code.
  * It derives a pointer to a member function.
  */
 
 #if (PHAS_PMF_INTERNAL)
-class pmfp
-{
-public:
-	// construct from any member function pointer
-	class generic_class;
-	using generic_function = void (*)();
-
-	template<typename _MemberFunctionType>
-	pmfp(_MemberFunctionType mfp)
-	: m_function(0), m_this_delta(0)
+	class mfp
 	{
-		*reinterpret_cast<_MemberFunctionType *>(this) = mfp;
-	}
+	public:
+		// construct from any member function pointer
+		class generic_class;
+		using generic_function = void (*)();
 
-	// binding helper
-	template<typename _FunctionType, typename _ObjectType>
-	_FunctionType update_after_bind(_ObjectType *object)
-	{
-		return reinterpret_cast<_FunctionType>(
-				convert_to_generic(reinterpret_cast<generic_class *>(object)));
-	}
-	template<typename _FunctionType, typename _MemberFunctionType, typename _ObjectType>
-	static _FunctionType get_mfp(_MemberFunctionType mfp, _ObjectType *object)
-	{
-		pmfp mfpo(mfp);
-		return mfpo.update_after_bind<_FunctionType>(object);
-	}
+		template<typename MemberFunctionType>
+		mfp(MemberFunctionType mftp)
+		: m_function(0), m_this_delta(0)
+		{
+			*reinterpret_cast<MemberFunctionType *>(this) = mftp;
+		}
 
-private:
-	// extract the generic function and adjust the object pointer
-	generic_function convert_to_generic(generic_class * object) const
-	{
-		// apply the "this" delta to the object first
-		generic_class * o_p_delta = reinterpret_cast<generic_class *>(reinterpret_cast<std::uint8_t *>(object) + m_this_delta);
+		// binding helper
+		template<typename FunctionType, typename ObjectType>
+		FunctionType update_after_bind(ObjectType *object)
+		{
+			return reinterpret_cast<FunctionType>(
+					convert_to_generic(reinterpret_cast<generic_class *>(object)));
+		}
+		template<typename FunctionType, typename MemberFunctionType, typename ObjectType>
+		static FunctionType get_mfp(MemberFunctionType mftp, ObjectType *object)
+		{
+			mfp mfpo(mftp);
+			return mfpo.update_after_bind<FunctionType>(object);
+		}
 
-		// if the low bit of the vtable index is clear, then it is just a raw function pointer
-		if (!(m_function & 1))
-			return reinterpret_cast<generic_function>(m_function);
+	private:
+		// extract the generic function and adjust the object pointer
+		generic_function convert_to_generic(generic_class * object) const
+		{
+			// apply the "this" delta to the object first
+			generic_class * o_p_delta = reinterpret_cast<generic_class *>(reinterpret_cast<std::uint8_t *>(object) + m_this_delta);
 
-		// otherwise, it is the byte index into the vtable where the actual function lives
-		std::uint8_t *vtable_base = *reinterpret_cast<std::uint8_t **>(o_p_delta);
-		return *reinterpret_cast<generic_function *>(vtable_base + m_function - 1);
-	}
+			// if the low bit of the vtable index is clear, then it is just a raw function pointer
+			if (!(m_function & 1))
+				return reinterpret_cast<generic_function>(m_function);
 
-	// actual state
-	uintptr_t               m_function;         // first item can be one of two things:
-												//    if even, it's a pointer to the function
-												//    if odd, it's the byte offset into the vtable
-	int                     m_this_delta;       // delta to apply to the 'this' pointer
-};
+			// otherwise, it is the byte index into the vtable where the actual function lives
+			std::uint8_t *vtable_base = *reinterpret_cast<std::uint8_t **>(o_p_delta);
+			return *reinterpret_cast<generic_function *>(vtable_base + m_function - 1);
+		}
+
+		// actual state
+		uintptr_t               m_function;         // first item can be one of two things:
+													//    if even, it's a pointer to the function
+													//    if odd, it's the byte offset into the vtable
+		int                     m_this_delta;       // delta to apply to the 'this' pointer
+	};
+
 #endif
+
+}
 
 #endif /* PCONFIG_H_ */

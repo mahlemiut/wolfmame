@@ -16,6 +16,8 @@
 #include "pfmtlog.h"
 #include "palloc.h"
 
+namespace plib {
+
 pfmt::pfmt(const pstring &fmt)
 : m_str(m_str_buf), m_allocated(0), m_arg(0)
 {
@@ -23,7 +25,7 @@ pfmt::pfmt(const pstring &fmt)
 	if (l>sizeof(m_str_buf))
 	{
 		m_allocated = 2 * l;
-		m_str = palloc_array(char, 2 * l);
+		m_str = palloc_array<char>(2 * l);
 	}
 	memcpy(m_str, fmt.cstr(), l);
 }
@@ -35,7 +37,7 @@ pfmt::pfmt(const char *fmt)
 	if (l>sizeof(m_str_buf))
 	{
 		m_allocated = 2 * l;
-		m_str = palloc_array(char, 2 * l);
+		m_str = palloc_array<char>(2 * l);
 	}
 	memcpy(m_str, fmt, l);
 }
@@ -46,30 +48,6 @@ pfmt::~pfmt()
 		pfree_array(m_str);
 }
 
-#if 0
-void pformat::format_element(const char *f, const char *l, const char *fmt_spec,  ...)
-{
-	va_list ap;
-	va_start(ap, fmt_spec);
-	char fmt[30] = "%";
-	char search[10] = "";
-	char buf[1024];
-	strcat(fmt, f);
-	strcat(fmt, l);
-	strcat(fmt, fmt_spec);
-	int nl = vsprintf(buf, fmt, ap);
-	m_arg++;
-	int sl = sprintf(search, "%%%d", m_arg);
-	char *p = strstr(m_str, search);
-	if (p != nullptr)
-	{
-		// Make room
-		memmove(p+nl, p+sl, strlen(p) + 1 - sl);
-		memcpy(p, buf, nl);
-	}
-	va_end(ap);
-}
-#else
 void pfmt::format_element(const char *f, const char *l, const char *fmt_spec,  ...)
 {
 	va_list ap;
@@ -148,7 +126,7 @@ void pfmt::format_element(const char *f, const char *l, const char *fmt_spec,  .
 				m_allocated = old_alloc;
 			while (new_size > m_allocated)
 				m_allocated *= 2;
-			char *np = palloc_array(char, m_allocated);
+			char *np = palloc_array<char>(m_allocated);
 			memcpy(np, m_str, old_alloc);
 			p = np + (p - m_str);
 			if (m_str != m_str_buf)
@@ -161,4 +139,6 @@ void pfmt::format_element(const char *f, const char *l, const char *fmt_spec,  .
 	}
 	va_end(ap);
 }
-#endif
+
+}
+

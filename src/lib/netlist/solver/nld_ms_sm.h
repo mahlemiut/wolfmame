@@ -13,9 +13,9 @@
  * In this specific implementation, u is a unit vector specifying the row which
  * changed. Thus v contains the changed column.
  *
- * Than z = A^-1 u ,  w = transpose(A^-1) v , lambda = v z
+ * Than z = A⁻¹ u ,  w = transpose(A⁻¹) v , lambda = v z
  *
- * A^-1 <- 1.0 / (1.0 + lambda) * (z x w)
+ * A⁻¹ <- 1.0 / (1.0 + lambda) * (z x w)
  *
  * The approach is iterative and applied for each row changed.
  *
@@ -39,13 +39,16 @@
 #include "solver/nld_matrix_solver.h"
 #include "solver/vector_base.h"
 
-NETLIB_NAMESPACE_DEVICES_START()
+namespace netlist
+{
+	namespace devices
+	{
 
-//#define nl_ext_double __float128 // slow, very slow
+//#define nl_ext_double _float128 // slow, very slow
 //#define nl_ext_double long double // slightly slower
 #define nl_ext_double nl_double
 
-template <unsigned m_N, unsigned _storage_N>
+template <unsigned m_N, unsigned storage_N>
 class matrix_solver_sm_t: public matrix_solver_t
 {
 	friend class matrix_solver_t;
@@ -87,19 +90,19 @@ protected:
 	template <typename T1, typename T2>
 	inline nl_ext_double &lAinv(const T1 &r, const T2 &c) { return m_lAinv[r][c]; }
 
-	ATTR_ALIGN nl_double m_last_RHS[_storage_N]; // right hand side - contains currents
+	ATTR_ALIGN nl_double m_last_RHS[storage_N]; // right hand side - contains currents
 
 private:
-	static const std::size_t m_pitch  = (((  _storage_N) + 7) / 8) * 8;
-	ATTR_ALIGN nl_ext_double m_A[_storage_N][m_pitch];
-	ATTR_ALIGN nl_ext_double m_Ainv[_storage_N][m_pitch];
-	ATTR_ALIGN nl_ext_double m_W[_storage_N][m_pitch];
-	ATTR_ALIGN nl_ext_double m_RHS[_storage_N]; // right hand side - contains currents
+	static const std::size_t m_pitch  = (((  storage_N) + 7) / 8) * 8;
+	ATTR_ALIGN nl_ext_double m_A[storage_N][m_pitch];
+	ATTR_ALIGN nl_ext_double m_Ainv[storage_N][m_pitch];
+	ATTR_ALIGN nl_ext_double m_W[storage_N][m_pitch];
+	ATTR_ALIGN nl_ext_double m_RHS[storage_N]; // right hand side - contains currents
 
-	ATTR_ALIGN nl_ext_double m_lA[_storage_N][m_pitch];
-	ATTR_ALIGN nl_ext_double m_lAinv[_storage_N][m_pitch];
+	ATTR_ALIGN nl_ext_double m_lA[storage_N][m_pitch];
+	ATTR_ALIGN nl_ext_double m_lAinv[storage_N][m_pitch];
 
-	//ATTR_ALIGN nl_ext_double m_RHSx[_storage_N];
+	//ATTR_ALIGN nl_ext_double m_RHSx[storage_N];
 
 	const unsigned m_dim;
 
@@ -109,16 +112,16 @@ private:
 // matrix_solver_direct
 // ----------------------------------------------------------------------------------------
 
-template <unsigned m_N, unsigned _storage_N>
-matrix_solver_sm_t<m_N, _storage_N>::~matrix_solver_sm_t()
+template <unsigned m_N, unsigned storage_N>
+matrix_solver_sm_t<m_N, storage_N>::~matrix_solver_sm_t()
 {
 #if (NL_USE_DYNAMIC_ALLOCATION)
 	pfree_array(m_A);
 #endif
 }
 
-template <unsigned m_N, unsigned _storage_N>
-ATTR_COLD void matrix_solver_sm_t<m_N, _storage_N>::vsetup(analog_net_t::list_t &nets)
+template <unsigned m_N, unsigned storage_N>
+void matrix_solver_sm_t<m_N, storage_N>::vsetup(analog_net_t::list_t &nets)
 {
 	if (m_dim < nets.size())
 		log().fatal("Dimension {1} less than {2}", m_dim, nets.size());
@@ -130,7 +133,7 @@ ATTR_COLD void matrix_solver_sm_t<m_N, _storage_N>::vsetup(analog_net_t::list_t 
 
 	for (unsigned k = 0; k < N(); k++)
 	{
-		pstring num = pfmt("{1}")(k);
+		pstring num = plib::pfmt("{1}")(k);
 
 		save(RHS(k), "RHS." + num);
 	}
@@ -138,8 +141,8 @@ ATTR_COLD void matrix_solver_sm_t<m_N, _storage_N>::vsetup(analog_net_t::list_t 
 
 
 
-template <unsigned m_N, unsigned _storage_N>
-void matrix_solver_sm_t<m_N, _storage_N>::LE_invert()
+template <unsigned m_N, unsigned storage_N>
+void matrix_solver_sm_t<m_N, storage_N>::LE_invert()
 {
 	const unsigned kN = N();
 
@@ -201,9 +204,9 @@ void matrix_solver_sm_t<m_N, _storage_N>::LE_invert()
 	}
 }
 
-template <unsigned m_N, unsigned _storage_N>
+template <unsigned m_N, unsigned storage_N>
 template <typename T>
-void matrix_solver_sm_t<m_N, _storage_N>::LE_compute_x(
+void matrix_solver_sm_t<m_N, storage_N>::LE_compute_x(
 		T * RESTRICT x)
 {
 	const unsigned kN = N();
@@ -221,14 +224,14 @@ void matrix_solver_sm_t<m_N, _storage_N>::LE_compute_x(
 }
 
 
-template <unsigned m_N, unsigned _storage_N>
-int matrix_solver_sm_t<m_N, _storage_N>::solve_non_dynamic(ATTR_UNUSED const bool newton_raphson)
+template <unsigned m_N, unsigned storage_N>
+int matrix_solver_sm_t<m_N, storage_N>::solve_non_dynamic(ATTR_UNUSED const bool newton_raphson)
 {
 	static const bool incremental = true;
 	static unsigned cnt = 0;
 	const auto iN = N();
 
-	nl_double new_V[_storage_N]; // = { 0.0 };
+	nl_double new_V[storage_N]; // = { 0.0 };
 
 	if (0 || ((cnt % 200) == 0))
 	{
@@ -311,8 +314,8 @@ int matrix_solver_sm_t<m_N, _storage_N>::solve_non_dynamic(ATTR_UNUSED const boo
 	}
 }
 
-template <unsigned m_N, unsigned _storage_N>
-inline int matrix_solver_sm_t<m_N, _storage_N>::vsolve_non_dynamic(const bool newton_raphson)
+template <unsigned m_N, unsigned storage_N>
+inline int matrix_solver_sm_t<m_N, storage_N>::vsolve_non_dynamic(const bool newton_raphson)
 {
 	build_LE_A<matrix_solver_sm_t>();
 	build_LE_RHS<matrix_solver_sm_t>();
@@ -324,8 +327,8 @@ inline int matrix_solver_sm_t<m_N, _storage_N>::vsolve_non_dynamic(const bool ne
 	return this->solve_non_dynamic(newton_raphson);
 }
 
-template <unsigned m_N, unsigned _storage_N>
-matrix_solver_sm_t<m_N, _storage_N>::matrix_solver_sm_t(netlist_t &anetlist, const pstring &name,
+template <unsigned m_N, unsigned storage_N>
+matrix_solver_sm_t<m_N, storage_N>::matrix_solver_sm_t(netlist_t &anetlist, const pstring &name,
 		const solver_parameters_t *params, const int size)
 : matrix_solver_t(anetlist, name, NOSORT, params)
 , m_dim(size)
@@ -339,6 +342,7 @@ matrix_solver_sm_t<m_N, _storage_N>::matrix_solver_sm_t(netlist_t &anetlist, con
 	}
 }
 
-NETLIB_NAMESPACE_DEVICES_END()
+	} //namespace devices
+} // namespace netlist
 
 #endif /* NLD_MS_DIRECT_H_ */

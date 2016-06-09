@@ -120,7 +120,6 @@ const options_entry emu_options::s_option_entries[] =
 
 	// vector options
 	{ nullptr,                                              nullptr,        OPTION_HEADER,     "CORE VECTOR OPTIONS" },
-	{ OPTION_ANTIALIAS ";aa",                            "1",         OPTION_BOOLEAN,    "use antialiasing when drawing vectors" },
 	{ OPTION_BEAM_WIDTH_MIN,                             "1.0",       OPTION_FLOAT,      "set vector beam width minimum" },
 	{ OPTION_BEAM_WIDTH_MAX,                             "1.0",       OPTION_FLOAT,      "set vector beam width maximum" },
 	{ OPTION_BEAM_INTENSITY_WEIGHT,                      "0",         OPTION_FLOAT,      "set vector beam intensity weight " },
@@ -221,6 +220,7 @@ emu_options::emu_options()
 , m_joystick_contradictory(false)
 , m_sleep(true)
 , m_refresh_speed(false)
+, m_ui(UI_CABINET)
 {
 	add_entries(emu_options::s_option_entries);
 }
@@ -265,4 +265,10 @@ void emu_options::update_cached_options()
 	m_joystick_contradictory = bool_value(OPTION_JOYSTICK_CONTRADICTORY);
 	m_sleep = bool_value(OPTION_SLEEP);
 	m_refresh_speed = bool_value(OPTION_REFRESHSPEED);
+
+	auto ui_option_string = value(OPTION_UI);
+	if (!strcmp(ui_option_string, "simple"))
+		m_ui = UI_SIMPLE;
+	else
+		m_ui = UI_CABINET;
 }

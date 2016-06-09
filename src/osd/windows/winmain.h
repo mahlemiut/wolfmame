@@ -83,9 +83,9 @@
 #define WINOPTION_YIQ_QVALUE                "yiq_q"
 #define WINOPTION_YIQ_SCAN_TIME             "yiq_scan_time"
 #define WINOPTION_YIQ_PHASE_COUNT           "yiq_phase_count"
+#define WINOPTION_VECTOR_BEAM_SMOOTH        "vector_beam_smooth"
 #define WINOPTION_VECTOR_LENGTH_SCALE       "vector_length_scale"
 #define WINOPTION_VECTOR_LENGTH_RATIO       "vector_length_ratio"
-#define WINOPTION_VECTOR_TIME_PERIOD        "vector_time_period"
 #define WINOPTION_BLOOM_BLEND_MODE          "bloom_blend_mode"
 #define WINOPTION_BLOOM_SCALE               "bloom_scale"
 #define WINOPTION_BLOOM_OVERDRIVE           "bloom_overdrive"
@@ -178,9 +178,9 @@ public:
 	float screen_yiq_q() const { return float_value(WINOPTION_YIQ_QVALUE); }
 	float screen_yiq_scan_time() const { return float_value(WINOPTION_YIQ_SCAN_TIME); }
 	int screen_yiq_phase_count() const { return int_value(WINOPTION_YIQ_PHASE_COUNT); }
+	float screen_vector_beam_smooth() const { return float_value(WINOPTION_VECTOR_BEAM_SMOOTH); }
 	float screen_vector_length_scale() const { return float_value(WINOPTION_VECTOR_LENGTH_SCALE); }
 	float screen_vector_length_ratio() const { return float_value(WINOPTION_VECTOR_LENGTH_RATIO); }
-	float screen_vector_time_period() const { return float_value(WINOPTION_VECTOR_TIME_PERIOD); }
 	int screen_bloom_blend_mode() const { return int_value(WINOPTION_BLOOM_BLEND_MODE); }
 	float screen_bloom_scale() const { return float_value(WINOPTION_BLOOM_SCALE); }
 	const char *screen_bloom_overdrive() const { return value(WINOPTION_BLOOM_OVERDRIVE); }
@@ -303,6 +303,7 @@ protected:
 
 private:
 	virtual void osd_exit() override;
+	void output_oslog(const char *buffer);
 
 	windows_options &   m_options;
 

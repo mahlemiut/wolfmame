@@ -1,27 +1,18 @@
 // license:GPL-2.0+
 // copyright-holders:Couriersud
+#include <plib/poptions.h>
 #include <cstdio>
 #include <cstring>
-#include "plib/poptions.h"
 #include "plib/pstring.h"
 #include "plib/plists.h"
 #include "plib/pstream.h"
 #include "nl_setup.h"
 
-class nlwav_options_t : public poptions
+class nlwav_options_t : public plib::options
 {
 public:
 	nlwav_options_t() :
-		poptions(),
-#if 0
-		opt_ttr ("t", "time_to_run", 1.0,     "time to run the emulation (seconds)", this),
-		opt_name("n", "name",        "",      "netlist in file to run; default is first one", this),
-		opt_logs("l", "logs",        "",      "colon separated list of terminals to log", this),
-		opt_file("f", "file",        "-",     "file to process (default is stdin)", this),
-		opt_type("y", "type",        "spice", "spice:eagle", "type of file to be converted: spice,eagle", this),
-		opt_cmd ("c", "cmd",         "run",   "run|convert|listdevices", this),
-		opt_inp( "i", "input",       "",      "input file to process (default is none)", this),
-#endif
+		plib::options(),
 		opt_inp( "i", "input",       "",      "input file", this),
 		opt_out( "o", "output",      "",      "output file", this),
 		opt_amp( "a", "amp",    10000.0,      "amplification after mean correction", this),
@@ -29,29 +20,20 @@ public:
 		opt_quiet("q", "quiet",               "be quiet - no warnings", this),
 		opt_help("h", "help",                 "display help", this)
 	{}
-#if 0
-	poption_double opt_ttr;
-	poption_str    opt_name;
-	poption_str    opt_logs;
-	poption_str    opt_file;
-	poption_str_limit opt_type;
-	poption_str    opt_cmd;
-#endif
-	poption_str    opt_inp;
-	poption_str    opt_out;
-	poption_double opt_amp;
-	poption_bool   opt_verb;
-	poption_bool   opt_quiet;
-	poption_bool   opt_help;
+	plib::option_str    opt_inp;
+	plib::option_str    opt_out;
+	plib::option_double opt_amp;
+	plib::option_bool   opt_verb;
+	plib::option_bool   opt_quiet;
+	plib::option_bool   opt_help;
 };
 
 /* http://de.wikipedia.org/wiki/RIFF_WAVE */
 class wav_t
 {
 public:
-	wav_t(postream &strm, unsigned sr) : m_f(strm)
+	wav_t(plib::postream &strm, unsigned sr) : m_f(strm)
 	{
-//      m_f = strm;
 		initialize(sr);
 		m_f.write(&m_fh, sizeof(m_fh));
 		m_f.write(&m_fmt, sizeof(m_fmt));
@@ -68,7 +50,7 @@ public:
 	void write_sample(int sample)
 	{
 		m_data.len += m_fmt.block_align;
-		short ps = sample; /* 16 bit sample, FIXME: powerpc? */
+		short ps = sample; /* 16 bit sample, FIXME: Endianess? */
 		m_f.write(&ps, sizeof(ps));
 	}
 
@@ -132,20 +114,20 @@ private:
 	riff_format_t m_fmt;
 	riff_data_t m_data;
 
-	postream &m_f;
+	plib::postream &m_f;
 
 };
 
 void convert(nlwav_options_t &opts)
 {
-	pofilestream fo(opts.opt_out());
+	plib::pofilestream fo(opts.opt_out());
 	if (fo.bad())
 	{
 		throw netlist::fatalerror_e("Error opening output file: " + opts.opt_out());
 	}
 	wav_t wo(fo, 48000);
 
-	pifilestream fin(opts.opt_inp());
+	plib::pifilestream fin(opts.opt_inp());
 	if (fin.bad())
 		throw netlist::fatalerror_e("Error opening input file: " + opts.opt_inp());
 

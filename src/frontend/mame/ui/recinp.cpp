@@ -19,10 +19,11 @@
 #include "audit.h"
 #include "softlist.h"
 
+namespace ui {
 
 // INP recording class
 
-ui_menu_record_inp::ui_menu_record_inp(mame_ui_manager &mui, render_container *container, const game_driver *driver) : ui_menu(mui, container)
+ui_menu_record_inp::ui_menu_record_inp(mame_ui_manager &mui, render_container *container, const game_driver *driver) : menu(mui, container)
 {
 	std::string path;
 	m_driver = (driver == nullptr) ? mame_options::system(mui.machine().options()) : driver;
@@ -70,7 +71,7 @@ ui_menu_record_inp::ui_menu_record_inp(mame_ui_manager &mui, render_container *c
 
 ui_menu_record_inp::~ui_menu_record_inp()
 {
-//	ui_menu::menu_stack->reset(UI_MENU_RESET_SELECT_FIRST);
+//	menu::menu_stack->reset(reset_options::SELECT_FIRST);
 //	save_ui_options(machine());
 	ui_globals::switch_image = true;
 }
@@ -84,37 +85,37 @@ void ui_menu_record_inp::handle()
 	bool changed = false;
 
 	// process the menu
-	const ui_menu_event *m_event = process(0);
+	const event *menu_event = process(PROCESS_LR_REPEAT);
 
-	if (m_event != nullptr)
+	if (menu_event != nullptr)
 	{
-		switch (m_event->iptkey)
+		switch (menu_event->iptkey)
 		{
 			case IPT_SPECIAL:
 				int buflen = strlen(m_filename_entry);
 
 				// if it's a backspace and we can handle it, do so
-				if (((m_event->unichar == 8 || m_event->unichar == 0x7f) && buflen > 0))
+				if (((menu_event->unichar == 8 || menu_event->unichar == 0x7f) && buflen > 0))
 				{
 					*(char *)utf8_previous_char(&m_filename_entry[buflen]) = 0;
-					reset(UI_MENU_RESET_SELECT_FIRST);
+					reset(reset_options::SELECT_FIRST);
 				}
 
 				// if it's any other key and we're not maxed out, update
-				else if ((m_event->unichar >= ' ' && m_event->unichar < 0x7f))
+				else if ((menu_event->unichar >= ' ' && menu_event->unichar < 0x7f))
 				{
-					buflen += utf8_from_uchar(&m_filename_entry[buflen], ARRAY_LENGTH(m_filename_entry) - buflen, m_event->unichar);
+					buflen += utf8_from_uchar(&m_filename_entry[buflen], ARRAY_LENGTH(m_filename_entry) - buflen, menu_event->unichar);
 					m_filename_entry[buflen] = 0;
-					reset(UI_MENU_RESET_SELECT_FIRST);
+					reset(reset_options::SELECT_FIRST);
 				}
 				break;
 		}
-		if(m_event->itemref != nullptr)
+		if(menu_event->itemref != nullptr)
 		{
-			switch((FPTR)m_event->itemref)
+			switch((FPTR)menu_event->itemref)
 			{
 			case 1:
-				if(m_event->iptkey == IPT_UI_SELECT)
+				if(menu_event->iptkey == IPT_UI_SELECT)
 				{
 					// if filename doesn't end in ".inp", then add it
 					if(strcmp(&m_filename_entry[strlen(m_filename_entry)-4],".inp"))
@@ -127,7 +128,7 @@ void ui_menu_record_inp::handle()
 	}
 
 	if (changed)
-		reset(UI_MENU_RESET_REMEMBER_REF);
+		reset(reset_options::REMEMBER_REF);
 
 }
 
@@ -196,7 +197,7 @@ void ui_menu_record_inp::start_inp()
 			for (software_list_device &swlistdev : software_list_device_iterator(enumerator.config().root_device()))
 				if (!swlistdev.get_info().empty())
 				{
-					ui_menu::stack_push(global_alloc_clear<ui_menu_select_software>(ui(), container, m_driver));
+					menu::stack_push<menu_select_software>(ui(), container, m_driver);
 					return;
 				}
 		}
@@ -204,7 +205,7 @@ void ui_menu_record_inp::start_inp()
 		s_bios biosname;
 		machine().options().set_value(OPTION_RECORD,m_filename_entry,OPTION_PRIORITY_HIGH,error);
 		if (!mame_machine_manager::instance()->ui().options().skip_bios_menu() && has_multiple_bios(m_driver, biosname))
-			ui_menu::stack_push(global_alloc_clear<ui_bios_selection>(ui(), container, biosname, (void *)m_driver, false, false));
+			menu::stack_push<bios_selection>(ui(), container, biosname, (void *)m_driver, false, false);
 		else
 		{
 			reselect_last::driver = m_driver->name;
@@ -212,7 +213,7 @@ void ui_menu_record_inp::start_inp()
 			reselect_last::swlist.clear();
 			mame_machine_manager::instance()->schedule_new_driver(*m_driver);
 			machine().schedule_hard_reset();
-			ui_menu::stack_reset(machine());
+			menu::stack_reset(machine());
 		}
 	}
 	// otherwise, display an error
@@ -258,11 +259,11 @@ void ui_menu_playback_inp::handle()
 	bool changed = false;
 
 	// process the menu
-	const ui_menu_event *m_event = process(0);
+	const event *menu_event = process(PROCESS_LR_REPEAT);
 
 	if(browse_done)
 	{
-		if(browse_result == ui_menu_file_selector::R_FILE)
+		if(browse_result == menu_file_selector::R_FILE)
 		{
 			int pos = inp_file.find_last_of("/\\");
 			strcpy(m_filename_entry,inp_file.substr(pos+1).c_str());
@@ -270,35 +271,35 @@ void ui_menu_playback_inp::handle()
 		browse_done = false;
 	}
 
-	if (m_event != nullptr)
+	if (menu_event != nullptr)
 	{
-		switch (m_event->iptkey)
+		switch (menu_event->iptkey)
 		{
 			case IPT_SPECIAL:
 				int buflen = strlen(m_filename_entry);
 
 				// if it's a backspace and we can handle it, do so
-				if (((m_event->unichar == 8 || m_event->unichar == 0x7f) && buflen > 0))
+				if (((menu_event->unichar == 8 || menu_event->unichar == 0x7f) && buflen > 0))
 				{
 					*(char *)utf8_previous_char(&m_filename_entry[buflen]) = 0;
-					reset(UI_MENU_RESET_SELECT_FIRST);
+					reset(reset_options::SELECT_FIRST);
 				}
 
 				// if it's any other key and we're not maxed out, update
-				else if ((m_event->unichar >= ' ' && m_event->unichar < 0x7f))
+				else if ((menu_event->unichar >= ' ' && menu_event->unichar < 0x7f))
 				{
-					buflen += utf8_from_uchar(&m_filename_entry[buflen], ARRAY_LENGTH(m_filename_entry) - buflen, m_event->unichar);
+					buflen += utf8_from_uchar(&m_filename_entry[buflen], ARRAY_LENGTH(m_filename_entry) - buflen, menu_event->unichar);
 					m_filename_entry[buflen] = 0;
-					reset(UI_MENU_RESET_SELECT_FIRST);
+					reset(reset_options::SELECT_FIRST);
 				}
 				break;
 		}
-		if(m_event->itemref != nullptr)
+		if(menu_event->itemref != nullptr)
 		{
-			switch((FPTR)m_event->itemref)
+			switch((FPTR)menu_event->itemref)
 			{
 			case 1:
-				if(m_event->iptkey == IPT_UI_SELECT)
+				if(menu_event->iptkey == IPT_UI_SELECT)
 				{
 					// if filename doesn't end in ".inp", then add it
 					if(strcmp(&m_filename_entry[strlen(m_filename_entry)-4],".inp"))
@@ -307,10 +308,10 @@ void ui_menu_playback_inp::handle()
 				}
 				break;
 			case 2:
-				if(m_event->iptkey == IPT_UI_SELECT)
+				if(menu_event->iptkey == IPT_UI_SELECT)
 				{
 					// browse for INP file
-					ui_menu::stack_push(global_alloc_clear<ui_menu_file_selector>(ui(), container, nullptr, inp_dir, inp_file, false, false, false, &browse_result));
+					menu::stack_push<menu_file_selector>(ui(), container, nullptr, inp_dir, inp_file, false, false, false, &browse_result);
 					browse_done = true;
 				}
 				break;
@@ -319,7 +320,7 @@ void ui_menu_playback_inp::handle()
 	}
 
 	if (changed)
-		reset(UI_MENU_RESET_REMEMBER_REF);
+		reset(reset_options::REMEMBER_REF);
 }
 
 
@@ -365,7 +366,7 @@ void ui_menu_playback_inp::start_inp()
 			for (software_list_device &swlistdev : software_list_device_iterator(enumerator.config().root_device()))
 				if (!swlistdev.get_info().empty())
 				{
-					ui_menu::stack_push(global_alloc_clear<ui_menu_select_software>(ui(), container, m_driver));
+					menu::stack_push<menu_select_software>(ui(), container, m_driver);
 					return;
 				}
 		}
@@ -373,7 +374,7 @@ void ui_menu_playback_inp::start_inp()
 		s_bios biosname;
 		machine().options().set_value(OPTION_PLAYBACK,m_filename_entry,OPTION_PRIORITY_HIGH,error);
 		if (!mame_machine_manager::instance()->ui().options().skip_bios_menu() && has_multiple_bios(m_driver, biosname))
-			ui_menu::stack_push(global_alloc_clear<ui_bios_selection>(ui(), container, biosname, (void *)m_driver, false, false));
+			menu::stack_push<bios_selection>(ui(), container, biosname, (void *)m_driver, false, false);
 		else
 		{
 			reselect_last::driver = m_driver->name;
@@ -381,7 +382,7 @@ void ui_menu_playback_inp::start_inp()
 			reselect_last::swlist.clear();
 			mame_machine_manager::instance()->schedule_new_driver(*m_driver);
 			machine().schedule_hard_reset();
-			ui_menu::stack_reset(machine());
+			menu::stack_reset(machine());
 		}
 	}
 	// otherwise, display an error
@@ -391,3 +392,4 @@ void ui_menu_playback_inp::start_inp()
 	}
 }
 
+} // namespace ui

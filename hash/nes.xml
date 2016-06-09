@@ -34387,7 +34387,7 @@
 		</part>
 	</software>
 
-	<software name="anpaman">
+	<software name="anpanman">
 		<description>Soreike! Anpanman - Minna de Hiking Game! (Jpn)</description>
 		<year>1992</year>
 		<publisher>Bandai</publisher>
@@ -37444,7 +37444,7 @@
 		</part>
 	</software>
 
-	<software name="tantjsts">
+	<software name="tjstnsmn">
 		<description>Tantei Jinguuji Saburou - Toki no Sugiyuku Mama ni (Jpn)</description>
 		<year>1990</year>
 		<publisher>Data East</publisher>
@@ -49701,7 +49701,7 @@ preliminary proto for the PAL version, still running on NTSC systems) or the gfx
 		</part>
 	</software>
 
-	<software name="tantjsyr">
+	<software name="tjsyrsj">
 		<description>Tantei Jinguuji Saburou - Yokohamakou Renzoku Satsujin Jiken (Jpn)</description>
 		<year>1988</year>
 		<publisher>Data East</publisher>
@@ -49721,7 +49721,7 @@ preliminary proto for the PAL version, still running on NTSC systems) or the gfx
 	</software>
 
 	<software name="tashimp">
-		<description>Tashiro Masashi no Princess Ga Ippai (Jpn)</description>
+		<description>Tashiro Masashi no Princess ga Ippai (Jpn)</description>
 		<year>1989</year>
 		<publisher>Epic / Sony Records</publisher>
 		<info name="serial" value="ESF-P0/55・6R-4"/>
@@ -50737,6 +50737,24 @@ preliminary proto for the PAL version, still running on NTSC systems) or the gfx
 			<dataarea name="prg" size="32768">
 				<rom name="othello (australia) (unl).prg" size="16384" crc="257736c8" sha1="ff341d3b1e87a8685c05594365858ab747795f0d" offset="00000" status="baddump" />
 				<rom size="16384" offset="0x4000" loadflag="reload" />
+			</dataarea>
+		</part>
+	</software>
+
+	<software name="pipe5">
+		<description>Pipe 5 (Aus)</description>
+		<year>19??</year>
+		<publisher>HES</publisher>
+		<info name="alt_title" value="PipeMania (Box)"/>
+		<part name="cart" interface="nes_cart">
+			<feature name="slot" value="nina006" />
+			<feature name="pcb" value="AVE-NINA-06" />
+			<feature name="mirroring" value="vertical" />
+			<dataarea name="chr" size="16384">
+				<rom name="pipemania (hes).chr" size="16384" crc="eac077bd" sha1="31c9163aeff2f301fedb31537d239e6a7d6852c7" offset="00000" status="baddump" />
+			</dataarea>
+			<dataarea name="prg" size="32768">
+				<rom name="pipemania (hes).prg" size="32768" crc="713d51cc" sha1="7f46340433dc63ec40c11f8ea3560c2917d6ca83" offset="00000" status="baddump" />
 			</dataarea>
 		</part>
 	</software>
@@ -52259,7 +52277,7 @@ preliminary proto for the PAL version, still running on NTSC systems) or the gfx
 		</part>
 	</software>
 
-	<software name="pipe5">
+	<software name="pipe5t" cloneof="pipe5">
 		<description>Pipe 5 (Tw)</description>
 		<year>19??</year>
 		<publisher>Sachen</publisher>
@@ -53289,9 +53307,9 @@ preliminary proto for the PAL version, still running on NTSC systems) or the gfx
 	</software>
 
 	<software name="policemn">
-		<description>Policeman (Tw)</description>
+		<description>Policeman (Spa, Tw)</description>
 		<year>19??</year>
-		<publisher>TXC Corp</publisher>
+		<publisher>Gluk Video / TXC Corp</publisher>
 		<info name="serial" value="MGC-015"/>
 		<part name="cart" interface="nes_cart">
 			<feature name="slot" value="txc_strikew" />
@@ -53303,24 +53321,6 @@ preliminary proto for the PAL version, still running on NTSC systems) or the gfx
 			</dataarea>
 			<dataarea name="prg" size="65536">
 				<rom name="policeman (mgc-015).prg" size="65536" crc="65fe1590" sha1="be06c1c9c76bf270e83e98f6c5a79ff4d5589c59" offset="00000" status="baddump" />
-			</dataarea>
-		</part>
-	</software>
-
-	<software name="policemns" cloneof="policemn">
-		<description>Policeman (Spa)</description>
-		<year>19??</year>
-		<publisher>Gluk Video</publisher>
-		<part name="cart" interface="nes_cart">
-			<feature name="slot" value="txc_strikew" />
-			<feature name="pcb" value="TXC-STRIKEWOLF" />
-			<feature name="mirroring" value="vertical" />
-			<feature name="bus_conflict" value="no" />
-			<dataarea name="chr" size="65536">
-				<rom name="policeman (spain) (gluk video) (unl).chr" size="65536" crc="f73ee39e" sha1="0142d357b7a8e38c720bef9a13250da76dbc0738" offset="00000" status="baddump" />
-			</dataarea>
-			<dataarea name="prg" size="65536">
-				<rom name="policeman (spain) (gluk video) (unl).prg" size="65536" crc="65fe1590" sha1="be06c1c9c76bf270e83e98f6c5a79ff4d5589c59" offset="00000" status="baddump" />
 			</dataarea>
 		</part>
 	</software>

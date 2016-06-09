@@ -576,6 +576,19 @@ end
 
 ---------------------------------------------------
 --
+--@src/devices/bus/electron/exp.h,BUSES["ELECTRON"] = true
+---------------------------------------------------
+
+if (BUSES["ELECTRON"]~=null) then
+	files {
+		MAME_DIR .. "src/devices/bus/electron/exp.cpp",
+		MAME_DIR .. "src/devices/bus/electron/exp.h",
+	}
+end
+
+
+---------------------------------------------------
+--
 --@src/devices/bus/ep64/exp.h,BUSES["EP64"] = true
 ---------------------------------------------------
 
@@ -1047,6 +1060,8 @@ if (BUSES["PET"]~=null) then
 		MAME_DIR .. "src/devices/bus/pet/petuja.h",
 		MAME_DIR .. "src/devices/bus/pet/cb2snd.cpp",
 		MAME_DIR .. "src/devices/bus/pet/cb2snd.h",
+		MAME_DIR .. "src/devices/bus/pet/2joysnd.h",
+		MAME_DIR .. "src/devices/bus/pet/2joysnd.cpp",
 	}
 end
 

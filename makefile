@@ -58,7 +58,6 @@
 # USE_SYSTEM_LIB_JPEG = 1
 # USE_SYSTEM_LIB_FLAC = 1
 # USE_SYSTEM_LIB_LUA = 1
-# USE_SYSTEM_LIB_SQLITE3 = 1
 # USE_SYSTEM_LIB_PORTMIDI = 1
 # USE_SYSTEM_LIB_PORTAUDIO = 1
 # USE_SYSTEM_LIB_UV = 1
@@ -163,19 +162,19 @@ GENIEOS := solaris
 endif
 ifeq ($(firstword $(filter FreeBSD,$(UNAME))),FreeBSD)
 OS := freebsd
-GENIEOS := bsd
+GENIEOS := freebsd
 endif
 ifeq ($(firstword $(filter GNU/kFreeBSD,$(UNAME))),GNU/kFreeBSD)
 OS := freebsd
-GENIEOS := bsd
+GENIEOS := freebsd
 endif
 ifeq ($(firstword $(filter NetBSD,$(UNAME))),NetBSD)
 OS := netbsd
-GENIEOS := bsd
+GENIEOS := freebsd
 endif
 ifeq ($(firstword $(filter OpenBSD,$(UNAME))),OpenBSD)
 OS := openbsd
-GENIEOS := bsd
+GENIEOS := freebsd
 endif
 ifeq ($(firstword $(filter Darwin,$(UNAME))),Darwin)
 OS := macosx
@@ -405,10 +404,6 @@ endif
 
 ifdef USE_SYSTEM_LIB_LUA
 PARAMS += --with-system-lua='$(USE_SYSTEM_LIB_LUA)'
-endif
-
-ifdef USE_SYSTEM_LIB_SQLITE3
-PARAMS += --with-system-sqlite3='$(USE_SYSTEM_LIB_SQLITE3)'
 endif
 
 ifdef USE_SYSTEM_LIB_PORTMIDI
@@ -849,6 +844,22 @@ MSBUILD_PARAMS += /p:Platform=x64
 else
 MSBUILD_PARAMS += /p:Platform=win32
 endif
+ifeq (posix,$(SHELLTYPE))
+MSBUILD_PARAMS := $(subst /,-,$(MSBUILD_PARAMS))
+endif
+endif
+ifdef FASTBUILD
+FASTBUILD_PARAMS := -j$(NUMBER_OF_PROCESSORS)
+ifeq ($(CONFIG),debug)
+FASTBUILD_TARGET := all-Debug
+else
+FASTBUILD_TARGET := all-Release
+endif
+ifeq ($(ARCHITECTURE),_x64)
+FASTBUILD_PARAMS += $(FASTBUILD_TARGET)-x64
+else
+FASTBUILD_PARAMS += $(FASTBUILD_TARGET)-x32
+endif
 endif
 else
 GCC_VERSION      := $(shell $(TOOLCHAIN)$(subst @,,$(CC)) -dumpversion 2> /dev/null)
@@ -976,21 +987,21 @@ windows_x86_clang: generate $(PROJECTDIR)/gmake-mingw-clang/Makefile
 vs2013: generate
 	$(SILENT) $(GENIE) $(PARAMS) $(TARGET_PARAMS) vs2013
 ifdef MSBUILD
-	$(SILENT) msbuild $(PROJECTDIR_WIN)/vs2013/$(PROJECT_NAME).sln $(MSBUILD_PARAMS)
+	$(SILENT) msbuild.exe $(PROJECTDIR_WIN)/vs2013/$(PROJECT_NAME).sln $(MSBUILD_PARAMS)
 endif
 
 .PHONY: vs2013_intel
 vs2013_intel: generate
 	$(SILENT) $(GENIE) $(PARAMS) $(TARGET_PARAMS) --vs=intel-15 vs2013
 ifdef MSBUILD
-	$(SILENT) msbuild $(PROJECTDIR_WIN)/vs2013-intel/$(PROJECT_NAME).sln $(MSBUILD_PARAMS)
+	$(SILENT) msbuild.exe $(PROJECTDIR_WIN)/vs2013-intel/$(PROJECT_NAME).sln $(MSBUILD_PARAMS)
 endif
 
 .PHONY: vs2013_xp
 vs2013_xp: generate
 	$(SILENT) $(GENIE) $(PARAMS) $(TARGET_PARAMS) --vs=vs2013-xp vs2013
 ifdef MSBUILD
-	$(SILENT) msbuild $(PROJECTDIR_WIN)/vs2013-xp/$(PROJECT_NAME).sln $(MSBUILD_PARAMS)
+	$(SILENT) msbuild.exe $(PROJECTDIR_WIN)/vs2013-xp/$(PROJECT_NAME).sln $(MSBUILD_PARAMS)
 endif
 
 #-------------------------------------------------
@@ -1001,51 +1012,62 @@ endif
 vs2015: generate
 	$(SILENT) $(GENIE) $(PARAMS) $(TARGET_PARAMS) vs2015
 ifdef MSBUILD
-	$(SILENT) msbuild $(PROJECTDIR_WIN)/vs2015/$(PROJECT_NAME).sln $(MSBUILD_PARAMS)
+	$(SILENT) msbuild.exe $(PROJECTDIR_WIN)/vs2015/$(PROJECT_NAME).sln $(MSBUILD_PARAMS)
 endif
 
 .PHONY: vs2015_intel
 vs2015_intel: generate
 	$(SILENT) $(GENIE) $(PARAMS) $(TARGET_PARAMS) --vs=intel-15 vs2015
 ifdef MSBUILD
-	$(SILENT) msbuild $(PROJECTDIR_WIN)/vs2015-intel/$(PROJECT_NAME).sln $(MSBUILD_PARAMS)
+	$(SILENT) msbuild.exe $(PROJECTDIR_WIN)/vs2015-intel/$(PROJECT_NAME).sln $(MSBUILD_PARAMS)
 endif
 
 .PHONY: vs2015_xp
 vs2015_xp: generate
 	$(SILENT) $(GENIE) $(PARAMS) $(TARGET_PARAMS) --vs=vs2015-xp vs2015
 ifdef MSBUILD
-	$(SILENT) msbuild $(PROJECTDIR_WIN)/vs2015-xp/$(PROJECT_NAME).sln $(MSBUILD_PARAMS)
+	$(SILENT) msbuild.exe $(PROJECTDIR_WIN)/vs2015-xp/$(PROJECT_NAME).sln $(MSBUILD_PARAMS)
 endif
 
 .PHONY: vs2015_uwp
 vs2015_uwp: generate
 	$(SILENT) $(GENIE) $(PARAMS) $(TARGET_PARAMS) --vs=winstore82 --osd=windows --NO_USE_MIDI=1 --USE_LIBUV=0 --NO_OPENGL=1 --USE_QTDEBUG=0 --MODERN_WIN_API=1 vs2015
 ifdef MSBUILD
-	$(SILENT) msbuild $(PROJECTDIR_WIN)/vs2015-winstore82/$(PROJECT_NAME).sln $(MSBUILD_PARAMS)
+	$(SILENT) msbuild.exe $(PROJECTDIR_WIN)/vs2015-winstore82/$(PROJECT_NAME).sln $(MSBUILD_PARAMS)
+endif
+
+.PHONY: vs2015_fastbuild
+vs2015_fastbuild: generate
+	$(SILENT) $(GENIE) $(PARAMS) $(TARGET_PARAMS) vs2015-fastbuild
+ifdef FASTBUILD
+	$(SILENT) fbuild.exe -config $(PROJECTDIR_WIN)/vs2015-fastbuild/ftbuild.bff $(FASTBUILD_PARAMS)
+endif
+
+#-------------------------------------------------
+# android-ndk
+#-------------------------------------------------
+
+.PHONY: android-ndk
+android-ndk:
+ifndef ANDROID_NDK_LLVM
+	$(error ANDROID_NDK_LLVM is not set)
+endif
+ifndef ANDROID_NDK_ROOT
+	$(error ANDROID_NDK_ROOT is not set)
 endif
 
 #-------------------------------------------------
 # android-arm
 #-------------------------------------------------
 
-$(PROJECTDIR_SDL)/gmake-android-arm/Makefile: makefile $(SCRIPTS) $(GENIE)
+$(PROJECTDIR_SDL)/gmake-android-arm/Makefile: makefile android-ndk $(SCRIPTS) $(GENIE)
 ifndef ANDROID_NDK_ARM
 	$(error ANDROID_NDK_ARM is not set)
-endif
-ifndef ANDROID_NDK_ROOT
-	$(error ANDROID_NDK_ROOT is not set)
 endif
 	$(SILENT) $(GENIE) $(PARAMS) --gcc=android-arm --gcc_version=3.8.0 --osd=sdl --targetos=android --PLATFORM=arm --NO_USE_MIDI=1 --NO_OPENGL=1 --USE_QTDEBUG=0 --NO_X11=1 --DONT_USE_NETWORK=1 --NOASM=1 gmake
 
 .PHONY: android-arm
 android-arm: generate $(PROJECTDIR_SDL)/gmake-android-arm/Makefile
-ifndef ANDROID_NDK_ARM
-	$(error ANDROID_NDK_ARM is not set)
-endif
-ifndef ANDROID_NDK_ROOT
-	$(error ANDROID_NDK_ROOT is not set)
-endif	
 	$(SILENT) $(MAKE) $(MAKEPARAMS) -C $(PROJECTDIR_SDL)/gmake-android-arm config=$(CONFIG) precompile
 	$(SILENT) $(MAKE) $(MAKEPARAMS) -C $(PROJECTDIR_SDL)/gmake-android-arm config=$(CONFIG)
 
@@ -1053,23 +1075,14 @@ endif
 # android-arm64
 #-------------------------------------------------
 
-$(PROJECTDIR_SDL)/gmake-android-arm64/Makefile: makefile $(SCRIPTS) $(GENIE)
+$(PROJECTDIR_SDL)/gmake-android-arm64/Makefile: makefile android-ndk $(SCRIPTS) $(GENIE)
 ifndef ANDROID_NDK_ARM64
 	$(error ANDROID_NDK_ARM64 is not set)
-endif
-ifndef ANDROID_NDK_ROOT
-	$(error ANDROID_NDK_ROOT is not set)
 endif
 	$(SILENT) $(GENIE) $(PARAMS) --gcc=android-arm64 --gcc_version=3.8.0 --osd=sdl --targetos=android --PLATFORM=arm64 --NO_USE_MIDI=1 --NO_OPENGL=1 --USE_QTDEBUG=0 --NO_X11=1 --DONT_USE_NETWORK=1 --NOASM=1 gmake
 
 .PHONY: android-arm64
 android-arm64: generate $(PROJECTDIR_SDL)/gmake-android-arm64/Makefile
-ifndef ANDROID_NDK_ARM64
-	$(error ANDROID_NDK_ARM64 is not set)
-endif
-ifndef ANDROID_NDK_ROOT
-	$(error ANDROID_NDK_ROOT is not set)
-endif	
 	$(SILENT) $(MAKE) $(MAKEPARAMS) -C $(PROJECTDIR_SDL)/gmake-android-arm64 config=$(CONFIG) precompile
 	$(SILENT) $(MAKE) $(MAKEPARAMS) -C $(PROJECTDIR_SDL)/gmake-android-arm64 config=$(CONFIG)
 
@@ -1077,23 +1090,14 @@ endif
 # android-mips
 #-------------------------------------------------
 
-$(PROJECTDIR_SDL)/gmake-android-mips/Makefile: makefile $(SCRIPTS) $(GENIE)
+$(PROJECTDIR_SDL)/gmake-android-mips/Makefile: makefile android-ndk $(SCRIPTS) $(GENIE)
 ifndef ANDROID_NDK_MIPS
 	$(error ANDROID_NDK_MIPS is not set)
-endif
-ifndef ANDROID_NDK_ROOT
-	$(error ANDROID_NDK_ROOT is not set)
 endif
 	$(SILENT) $(GENIE) $(PARAMS) --gcc=android-mips --gcc_version=3.8.0 --osd=sdl --targetos=android --PLATFORM=mips --NO_USE_MIDI=1 --NO_OPENGL=1 --USE_QTDEBUG=0 --NO_X11=1 --DONT_USE_NETWORK=1 --NOASM=1 gmake
 
 .PHONY: android-mips
 android-mips: generate $(PROJECTDIR_SDL)/gmake-android-mips/Makefile
-ifndef ANDROID_NDK_MIPS
-	$(error ANDROID_NDK_MIPS is not set)
-endif
-ifndef ANDROID_NDK_ROOT
-	$(error ANDROID_NDK_ROOT is not set)
-endif
 	$(SILENT) $(MAKE) $(MAKEPARAMS) -C $(PROJECTDIR_SDL)/gmake-android-mips config=$(CONFIG) precompile
 	$(SILENT) $(MAKE) $(MAKEPARAMS) -C $(PROJECTDIR_SDL)/gmake-android-mips config=$(CONFIG)
 
@@ -1101,23 +1105,14 @@ endif
 # android-mips64
 #-------------------------------------------------
 
-$(PROJECTDIR_SDL)/gmake-android-mips64/Makefile: makefile $(SCRIPTS) $(GENIE)
+$(PROJECTDIR_SDL)/gmake-android-mips64/Makefile: makefile android-ndk $(SCRIPTS) $(GENIE)
 ifndef ANDROID_NDK_MIPS64
 	$(error ANDROID_NDK_MIPS64 is not set)
-endif
-ifndef ANDROID_NDK_ROOT
-	$(error ANDROID_NDK_ROOT is not set)
 endif
 	$(SILENT) $(GENIE) $(PARAMS) --gcc=android-mips64 --gcc_version=3.8.0 --osd=sdl --targetos=android --PLATFORM=mips64 --NO_USE_MIDI=1 --NO_OPENGL=1 --USE_QTDEBUG=0 --NO_X11=1 --DONT_USE_NETWORK=1 --NOASM=1 gmake
 
 .PHONY: android-mips64
 android-mips64: generate $(PROJECTDIR_SDL)/gmake-android-mips64/Makefile
-ifndef ANDROID_NDK_MIPS64
-	$(error ANDROID_NDK_MIPS64 is not set)
-endif
-ifndef ANDROID_NDK_ROOT
-	$(error ANDROID_NDK_ROOT is not set)
-endif
 	$(SILENT) $(MAKE) $(MAKEPARAMS) -C $(PROJECTDIR_SDL)/gmake-android-mips64 config=$(CONFIG) precompile
 	$(SILENT) $(MAKE) $(MAKEPARAMS) -C $(PROJECTDIR_SDL)/gmake-android-mips64 config=$(CONFIG)
 
@@ -1125,23 +1120,14 @@ endif
 # android-x86
 #-------------------------------------------------
 
-$(PROJECTDIR_SDL)/gmake-android-x86/Makefile: makefile $(SCRIPTS) $(GENIE)
+$(PROJECTDIR_SDL)/gmake-android-x86/Makefile: makefile android-ndk $(SCRIPTS) $(GENIE)
 ifndef ANDROID_NDK_X86
 	$(error ANDROID_NDK_X86 is not set)
-endif
-ifndef ANDROID_NDK_ROOT
-	$(error ANDROID_NDK_ROOT is not set)
 endif
 	$(SILENT) $(GENIE) $(PARAMS) --gcc=android-x86 --gcc_version=3.8.0 --osd=sdl --targetos=android --PLATFORM=x86 --NO_USE_MIDI=1 --NO_OPENGL=1 --USE_QTDEBUG=0 --NO_X11=1 --DONT_USE_NETWORK=1 gmake
 
 .PHONY: android-x86
 android-x86: generate $(PROJECTDIR_SDL)/gmake-android-x86/Makefile
-ifndef ANDROID_NDK_X86
-	$(error ANDROID_NDK_X86 is not set)
-endif
-ifndef ANDROID_NDK_ROOT
-	$(error ANDROID_NDK_ROOT is not set)
-endif
 	$(SILENT) $(MAKE) $(MAKEPARAMS) -C $(PROJECTDIR_SDL)/gmake-android-x86 config=$(CONFIG) precompile
 	$(SILENT) $(MAKE) $(MAKEPARAMS) -C $(PROJECTDIR_SDL)/gmake-android-x86 config=$(CONFIG)
 
@@ -1149,23 +1135,14 @@ endif
 # android-x64
 #-------------------------------------------------
 
-$(PROJECTDIR_SDL)/gmake-android-x64/Makefile: makefile $(SCRIPTS) $(GENIE)
+$(PROJECTDIR_SDL)/gmake-android-x64/Makefile: makefile android-ndk $(SCRIPTS) $(GENIE)
 ifndef ANDROID_NDK_X64
 	$(error ANDROID_NDK_X64 is not set)
-endif
-ifndef ANDROID_NDK_ROOT
-	$(error ANDROID_NDK_ROOT is not set)
 endif
 	$(SILENT) $(GENIE) $(PARAMS) --gcc=android-x64 --gcc_version=3.8.0 --osd=sdl --targetos=android --PLATFORM=x64 --NO_USE_MIDI=1 --NO_OPENGL=1 --USE_QTDEBUG=0 --NO_X11=1 --DONT_USE_NETWORK=1 gmake
 
 .PHONY: android-x64
 android-x64: generate $(PROJECTDIR_SDL)/gmake-android-x64/Makefile
-ifndef ANDROID_NDK_X64
-	$(error ANDROID_NDK_X64 is not set)
-endif
-ifndef ANDROID_NDK_ROOT
-	$(error ANDROID_NDK_ROOT is not set)
-endif
 	$(SILENT) $(MAKE) $(MAKEPARAMS) -C $(PROJECTDIR_SDL)/gmake-android-x64 config=$(CONFIG) precompile
 	$(SILENT) $(MAKE) $(MAKEPARAMS) -C $(PROJECTDIR_SDL)/gmake-android-x64 config=$(CONFIG)
 

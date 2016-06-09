@@ -24,36 +24,9 @@
 #ifndef NLD_4066_H_
 #define NLD_4066_H_
 
-#include "nl_base.h"
-#include "nld_cmos.h"
+#include "nl_setup.h"
 
-#define CD4066_GATE(_name)                                                     \
-		NET_REGISTER_DEV(CD4066_GATE, _name)
-
-NETLIB_NAMESPACE_DEVICES_START()
-
-NETLIB_OBJECT(CD4066_GATE)
-{
-	NETLIB_CONSTRUCTOR(CD4066_GATE)
-	NETLIB_FAMILY("CD4XXX")
-	, m_supply(*this, "PS")
-	, m_R(*this, "R")
-	{
-		register_param("BASER", m_base_r, 270.0);
-		enregister("CTL", m_control);
-	}
-
-	NETLIB_RESETI() { }
-	NETLIB_UPDATEI();
-
-public:
-	NETLIB_SUB(vdd_vss) m_supply;
-	NETLIB_SUB(R) m_R;
-
-	analog_input_t m_control;
-	param_double_t m_base_r;
-};
-
-NETLIB_NAMESPACE_DEVICES_END()
+#define CD4066_GATE(name)                                                       \
+		NET_REGISTER_DEV(CD4066_GATE, name)
 
 #endif /* NLD_4066_H_ */

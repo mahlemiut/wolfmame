@@ -221,6 +221,9 @@ if (CPUS["ADSP21062"]~=null) then
 		MAME_DIR .. "src/devices/cpu/sharc/sharcmem.hxx",
 		MAME_DIR .. "src/devices/cpu/sharc/sharcops.h",
 		MAME_DIR .. "src/devices/cpu/sharc/sharcops.hxx",
+		MAME_DIR .. "src/devices/cpu/sharc/sharcdrc.cpp",
+		MAME_DIR .. "src/devices/cpu/sharc/sharcfe.cpp",
+		MAME_DIR .. "src/devices/cpu/sharc/sharcfe.h",
 	}
 end
 
@@ -1446,13 +1449,13 @@ end
 
 --------------------------------------------------
 -- PATINHO FEIO - Escola Politecnica - USP (Brazil)
---@src/devices/cpu/patinhofeio/patinho_feio.h,CPUS["PATINHOFEIO"] = true
+--@src/devices/cpu/patinhofeio/patinhofeio_cpu.h,CPUS["PATINHOFEIO"] = true
 --------------------------------------------------
 
 if (CPUS["PATINHOFEIO"]~=null) then
 	files {
 		MAME_DIR .. "src/devices/cpu/patinhofeio/patinho_feio.cpp",
-		MAME_DIR .. "src/devices/cpu/patinhofeio/patinho_feio.h",
+		MAME_DIR .. "src/devices/cpu/patinhofeio/patinhofeio_cpu.h",
 	}
 end
 

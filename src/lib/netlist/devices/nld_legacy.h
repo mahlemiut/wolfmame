@@ -13,75 +13,28 @@
 #ifndef NLD_LEGACY_H_
 #define NLD_LEGACY_H_
 
-#include "nl_base.h"
-
-NETLIB_NAMESPACE_DEVICES_START()
+#include "nl_setup.h"
 
 // ----------------------------------------------------------------------------------------
 // Macros
 // ----------------------------------------------------------------------------------------
 
-#define NETDEV_RSFF(_name)                                                          \
-		NET_REGISTER_DEV(NETDEV_RSFF, _name)
+#define NETDEV_RSFF(name)                                                       \
+		NET_REGISTER_DEV(NETDEV_RSFF, name)
 
-#define NETDEV_DELAY(_name)                                                         \
-		NET_REGISTER_DEV(NETDEV_DELAY, _name)
+#define NETDEV_DELAY(name)                                                      \
+		NET_REGISTER_DEV(NETDEV_DELAY, name)
 
 // ----------------------------------------------------------------------------------------
 // Devices ...
 // ----------------------------------------------------------------------------------------
 
-NETLIB_OBJECT(nicRSFF)
+namespace netlist
 {
-	NETLIB_CONSTRUCTOR(nicRSFF)
+	namespace devices
 	{
-		enregister("S", m_S);
-		enregister("R", m_R);
-		enregister("Q", m_Q);
-		enregister("QQ", m_QQ);
-	}
 
-	NETLIB_RESETI();
-	NETLIB_UPDATEI();
-
-protected:
-	logic_input_t m_S;
-	logic_input_t m_R;
-
-	logic_output_t m_Q;
-	logic_output_t m_QQ;
-};
-
-
-NETLIB_OBJECT(nicDelay)
-{
-	NETLIB_CONSTRUCTOR(nicDelay)
-	, m_last(0)
-	{
-		enregister("1", m_I);
-		enregister("2", m_Q);
-
-		register_param("L_TO_H", m_L_to_H, 10);
-		register_param("H_TO_L", m_H_to_L, 10);
-
-		save(NLNAME(m_last));
-	}
-
-	//NETLIB_UPDATE_PARAMI();
-	NETLIB_RESETI();
-	NETLIB_UPDATEI();
-
-protected:
-	logic_input_t m_I;
-
-	logic_output_t m_Q;
-
-	param_int_t m_L_to_H;
-	param_int_t m_H_to_L;
-
-	UINT8 m_last;
-};
-
-NETLIB_NAMESPACE_DEVICES_END()
+	} //namespace devices
+} // namespace netlist
 
 #endif /* NLD_LEGACY_H_ */

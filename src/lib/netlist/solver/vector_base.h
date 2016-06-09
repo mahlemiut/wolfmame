@@ -14,17 +14,17 @@
 #include "plib/pconfig.h"
 
 #if 0
-template <unsigned _storage_N>
+template <unsigned storage_N>
 struct pvector
 {
 	pvector(unsigned size)
 	: m_N(size) { }
 
 	unsigned size() {
-		if (_storage_N)
+		if (storage_N)
 	}
 
-	double m_V[_storage_N];
+	double m_V[storage_N];
 private:
 	unsigned m_N;
 };
@@ -103,7 +103,7 @@ inline double vec_maxabs(const std::size_t & n, const double * RESTRICT v)
 {
 	double ret = 0.0;
 	for ( std::size_t i = 0; i < n; i++ )
-		ret = nl_math::max(ret, nl_math::abs(v[i]));
+		ret = std::max(ret, std::abs(v[i]));
 
 	return ret;
 }

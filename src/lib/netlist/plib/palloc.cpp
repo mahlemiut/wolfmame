@@ -9,6 +9,9 @@
 
 #include "pconfig.h"
 #include "palloc.h"
+
+namespace plib {
+
 //============================================================
 //  Exceptions
 //============================================================
@@ -19,47 +22,11 @@ pexception::pexception(const pstring &text)
 	fprintf(stderr, "%s\n", m_text.cstr());
 }
 
-#if (PSTANDALONE)
-#include <stdlib.h>
-#include <xmmintrin.h>
-
-class pmemory_pool
-{
-public:
-	pmemory_pool() {}
-};
-
-static pmemory_pool sppool;
-
-pmemory_pool *ppool = &sppool;
-
-void* operator new(std::size_t size, pmemory_pool *pool) throw (std::bad_alloc)
-{
-	return palloc_raw(size);;
-}
-
-void operator delete(void *ptr, pmemory_pool *pool)
-{
-	if (ptr != nullptr)
-		pfree_raw(ptr);
-}
-
-void *palloc_raw(const size_t size)
-{
-	return _mm_malloc(size, 64);
-}
-
-void pfree_raw(void *p)
-{
-	_mm_free(p);
-}
-#endif
-
-pmempool::pmempool(int min_alloc, int min_align)
+mempool::mempool(int min_alloc, int min_align)
 : m_min_alloc(min_alloc), m_min_align(min_align)
 {
 }
-pmempool::~pmempool()
+mempool::~mempool()
 {
 	for (auto & b : m_blocks)
 	{
@@ -70,7 +37,7 @@ pmempool::~pmempool()
 	m_blocks.clear();
 }
 
-int pmempool::new_block()
+int mempool::new_block()
 {
 	block b;
 	b.data = new char[m_min_alloc];
@@ -82,10 +49,10 @@ int pmempool::new_block()
 }
 
 
-void *pmempool::alloc(size_t size)
+void *mempool::alloc(size_t size)
 {
 	size_t rs = (size + sizeof(info) + m_min_align - 1) & ~(m_min_align - 1);
-	for (int bn=0; bn < m_blocks.size(); bn++)
+	for (size_t bn=0; bn < m_blocks.size(); bn++)
 	{
 		auto &b = m_blocks[bn];
 		if (b.m_free > rs)
@@ -112,7 +79,7 @@ void *pmempool::alloc(size_t size)
 	}
 }
 
-void pmempool::free(void *ptr)
+void mempool::free(void *ptr)
 {
 	char *p = (char *) ptr;
 
@@ -126,4 +93,6 @@ void pmempool::free(void *ptr)
 		b->cur_ptr = b->data;
 	}
 	b->m_num_alloc--;
+}
+
 }

@@ -9,17 +9,16 @@
 #define NL_PARSER_H_
 
 #include "nl_setup.h"
-#include "nl_util.h"
 #include "plib/pparser.h"
 
 namespace netlist
 {
-	class parser_t : public ptokenizer
+	class parser_t : public plib::ptokenizer
 	{
 		P_PREVENT_COPYING(parser_t)
 	public:
-		parser_t(pistream &strm, setup_t &setup)
-		: ptokenizer(strm), m_setup(setup), m_buf(nullptr) {}
+		parser_t(plib::pistream &strm, setup_t &setup)
+		: plib::ptokenizer(strm), m_setup(setup), m_buf(nullptr) {}
 
 		bool parse(const pstring nlname = "");
 

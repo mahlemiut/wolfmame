@@ -9,37 +9,14 @@
 #include "nld_fourterm.h"
 #include "nl_setup.h"
 
-NETLIB_NAMESPACE_DEVICES_START()
+namespace netlist
+{
+	namespace devices
+	{
 
 // ----------------------------------------------------------------------------------------
 // nld_VCCS
 // ----------------------------------------------------------------------------------------
-
-void NETLIB_NAME(VCCS)::start_internal(const nl_double def_RI)
-{
-	register_param("G", m_G, 1.0);
-	register_param("RI", m_RI, def_RI);
-
-	enregister("IP", m_IP);
-	enregister("IN", m_IN);
-	enregister("OP", m_OP);
-	enregister("ON", m_ON);
-
-	enregister("_OP1", m_OP1);
-	enregister("_ON1", m_ON1);
-
-	m_IP.m_otherterm = &m_IN; // <= this should be NULL and terminal be filtered out prior to solving...
-	m_IN.m_otherterm = &m_IP; // <= this should be NULL and terminal be filtered out prior to solving...
-
-	m_OP.m_otherterm = &m_IP;
-	m_OP1.m_otherterm = &m_IN;
-
-	m_ON.m_otherterm = &m_IP;
-	m_ON1.m_otherterm = &m_IN;
-
-	connect_late(m_OP, m_OP1);
-	connect_late(m_ON, m_ON1);
-}
 
 NETLIB_RESET(VCCS)
 {
@@ -143,4 +120,5 @@ NETLIB_RESET(VCVS)
 	m_ON2.set(NL_FCONST(1.0) / m_RO.Value());
 }
 
-NETLIB_NAMESPACE_DEVICES_END()
+	} //namespace devices
+} // namespace netlist

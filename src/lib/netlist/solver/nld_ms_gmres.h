@@ -19,15 +19,18 @@
 #include "solver/nld_solver.h"
 #include "solver/vector_base.h"
 
-NETLIB_NAMESPACE_DEVICES_START()
+namespace netlist
+{
+	namespace devices
+	{
 
-template <unsigned m_N, unsigned _storage_N>
-class matrix_solver_GMRES_t: public matrix_solver_direct_t<m_N, _storage_N>
+template <unsigned m_N, unsigned storage_N>
+class matrix_solver_GMRES_t: public matrix_solver_direct_t<m_N, storage_N>
 {
 public:
 
 	matrix_solver_GMRES_t(netlist_t &anetlist, const pstring &name, const solver_parameters_t *params, int size)
-		: matrix_solver_direct_t<m_N, _storage_N>(anetlist, name, matrix_solver_t::ASCENDING, params, size)
+		: matrix_solver_direct_t<m_N, storage_N>(anetlist, name, matrix_solver_t::ASCENDING, params, size)
 		, m_use_iLU_preconditioning(true)
 		, m_use_more_precise_stop_condition(false)
 		, m_accuracy_mult(1.0)
@@ -45,23 +48,23 @@ private:
 
 	int solve_ilu_gmres(nl_double * RESTRICT x, const nl_double * RESTRICT rhs, const unsigned restart_max, const unsigned mr, nl_double accuracy);
 
-	pvector_t<int> m_term_cr[_storage_N];
+	plib::pvector_t<int> m_term_cr[storage_N];
 
 	bool m_use_iLU_preconditioning;
 	bool m_use_more_precise_stop_condition;
 	nl_double m_accuracy_mult; // FXIME: Save state
 
-	mat_cr_t<_storage_N> mat;
+	mat_cr_t<storage_N> mat;
 
-	nl_double m_A[_storage_N * _storage_N];
-	nl_double m_LU[_storage_N * _storage_N];
+	nl_double m_A[storage_N * storage_N];
+	nl_double m_LU[storage_N * storage_N];
 
-	nl_double m_c[_storage_N + 1];  /* mr + 1 */
-	nl_double m_g[_storage_N + 1];  /* mr + 1 */
-	nl_double m_ht[_storage_N + 1][_storage_N];  /* (mr + 1), mr */
-	nl_double m_s[_storage_N + 1];     /* mr + 1 */
-	nl_double m_v[_storage_N + 1][_storage_N];      /*(mr + 1), n */
-	nl_double m_y[_storage_N + 1];       /* mr + 1 */
+	nl_double m_c[storage_N + 1];  /* mr + 1 */
+	nl_double m_g[storage_N + 1];  /* mr + 1 */
+	nl_double m_ht[storage_N + 1][storage_N];  /* (mr + 1), mr */
+	nl_double m_s[storage_N + 1];     /* mr + 1 */
+	nl_double m_v[storage_N + 1][storage_N];      /*(mr + 1), n */
+	nl_double m_y[storage_N + 1];       /* mr + 1 */
 
 };
 
@@ -69,10 +72,10 @@ private:
 // matrix_solver - GMRES
 // ----------------------------------------------------------------------------------------
 
-template <unsigned m_N, unsigned _storage_N>
-void matrix_solver_GMRES_t<m_N, _storage_N>::vsetup(analog_net_t::list_t &nets)
+template <unsigned m_N, unsigned storage_N>
+void matrix_solver_GMRES_t<m_N, storage_N>::vsetup(analog_net_t::list_t &nets)
 {
-	matrix_solver_direct_t<m_N, _storage_N>::vsetup(nets);
+	matrix_solver_direct_t<m_N, storage_N>::vsetup(nets);
 
 	unsigned nz = 0;
 	const unsigned iN = this->N();
@@ -108,8 +111,8 @@ void matrix_solver_GMRES_t<m_N, _storage_N>::vsetup(analog_net_t::list_t &nets)
 	mat.nz_num = nz;
 }
 
-template <unsigned m_N, unsigned _storage_N>
-int matrix_solver_GMRES_t<m_N, _storage_N>::vsolve_non_dynamic(const bool newton_raphson)
+template <unsigned m_N, unsigned storage_N>
+int matrix_solver_GMRES_t<m_N, storage_N>::vsolve_non_dynamic(const bool newton_raphson)
 {
 	const unsigned iN = this->N();
 
@@ -118,12 +121,12 @@ int matrix_solver_GMRES_t<m_N, _storage_N>::vsolve_non_dynamic(const bool newton
 	 *
 	 * and estimate using
 	 *
-	 * omega = 2.0 / (1.0 + nl_math::sqrt(1-rho))
+	 * omega = 2.0 / (1.0 + std::sqrt(1-rho))
 	 */
 
 	//nz_num = 0;
-	ATTR_ALIGN nl_double RHS[_storage_N];
-	ATTR_ALIGN nl_double new_V[_storage_N];
+	ATTR_ALIGN nl_double RHS[storage_N];
+	ATTR_ALIGN nl_double new_V[storage_N];
 
 	for (unsigned i=0, e=mat.nz_num; i<e; i++)
 		m_A[i] = 0.0;
@@ -169,7 +172,7 @@ int matrix_solver_GMRES_t<m_N, _storage_N>::vsolve_non_dynamic(const bool newton
 	int mr = iN;
 	if (iN > 3 )
 		mr = (int) sqrt(iN) * 2;
-	int iter = nl_math::max(1, this->m_params.m_gs_loops);
+	int iter = std::max(1, this->m_params.m_gs_loops);
 	int gsl = solve_ilu_gmres(new_V, RHS, iter, mr, accuracy);
 	int failed = mr * iter;
 
@@ -179,7 +182,7 @@ int matrix_solver_GMRES_t<m_N, _storage_N>::vsolve_non_dynamic(const bool newton
 	if (gsl>=failed)
 	{
 		this->m_iterative_fail++;
-		return matrix_solver_direct_t<m_N, _storage_N>::vsolve_non_dynamic(newton_raphson);
+		return matrix_solver_direct_t<m_N, storage_N>::vsolve_non_dynamic(newton_raphson);
 	}
 
 	if (newton_raphson)
@@ -207,8 +210,8 @@ inline void givens_mult( const T & c, const T & s, T & g0, T & g1 )
 	g1 = tg1;
 }
 
-template <unsigned m_N, unsigned _storage_N>
-int matrix_solver_GMRES_t<m_N, _storage_N>::solve_ilu_gmres (nl_double * RESTRICT x, const nl_double * RESTRICT rhs, const unsigned restart_max, const unsigned mr, nl_double accuracy)
+template <unsigned m_N, unsigned storage_N>
+int matrix_solver_GMRES_t<m_N, storage_N>::solve_ilu_gmres (nl_double * RESTRICT x, const nl_double * RESTRICT rhs, const unsigned restart_max, const unsigned mr, nl_double accuracy)
 {
 	/*-------------------------------------------------------------------------
 	 * The code below was inspired by code published by John Burkardt under
@@ -253,18 +256,18 @@ int matrix_solver_GMRES_t<m_N, _storage_N>::solve_ilu_gmres (nl_double * RESTRIC
 		 * differently: The invest doesn't pay off.
 		 * Therefore we use the approach in the else part.
 		 */
-		nl_double t[_storage_N];
-		nl_double Ax[_storage_N];
+		nl_double t[storage_N];
+		nl_double Ax[storage_N];
 		vec_set(n, accuracy, t);
 		mat.mult_vec(m_A, t, Ax);
 		mat.solveLUx(m_LU, Ax);
 
-		const nl_double rho_to_accuracy = nl_math::sqrt(vecmult2(n, Ax)) / accuracy;
+		const nl_double rho_to_accuracy = std::sqrt(vecmult2(n, Ax)) / accuracy;
 
 		rho_delta = accuracy * rho_to_accuracy;
 	}
 	else
-		rho_delta = accuracy * nl_math::sqrt((double) n) * m_accuracy_mult;
+		rho_delta = accuracy * std::sqrt((double) n) * m_accuracy_mult;
 
 	for (unsigned itr = 0; itr < restart_max; itr++)
 	{
@@ -272,8 +275,8 @@ int matrix_solver_GMRES_t<m_N, _storage_N>::solve_ilu_gmres (nl_double * RESTRIC
 		nl_double mu;
 		nl_double rho;
 
-		nl_double Ax[_storage_N];
-		nl_double residual[_storage_N];
+		nl_double Ax[storage_N];
+		nl_double residual[storage_N];
 
 		mat.mult_vec(m_A, x, Ax);
 
@@ -284,7 +287,7 @@ int matrix_solver_GMRES_t<m_N, _storage_N>::solve_ilu_gmres (nl_double * RESTRIC
 			mat.solveLUx(m_LU, residual);
 		}
 
-		rho = nl_math::sqrt(vecmult2(n, residual));
+		rho = std::sqrt(vecmult2(n, residual));
 
 		vec_mult_scalar(n, residual, NL_FCONST(1.0) / rho, m_v[0]);
 
@@ -308,7 +311,7 @@ int matrix_solver_GMRES_t<m_N, _storage_N>::solve_ilu_gmres (nl_double * RESTRIC
 				m_ht[j][k] = vecmult(n, m_v[k1], m_v[j]);
 				vec_add_mult_scalar(n, m_v[j], -m_ht[j][k], m_v[k1]);
 			}
-			m_ht[k1][k] = nl_math::sqrt(vecmult2(n, m_v[k1]));
+			m_ht[k1][k] = std::sqrt(vecmult2(n, m_v[k1]));
 
 			if (m_ht[k1][k] != 0.0)
 				vec_scale(n, m_v[k1], NL_FCONST(1.0) / m_ht[k1][k]);
@@ -316,7 +319,7 @@ int matrix_solver_GMRES_t<m_N, _storage_N>::solve_ilu_gmres (nl_double * RESTRIC
 			for (unsigned j = 0; j < k; j++)
 				givens_mult(m_c[j], m_s[j], m_ht[j][k], m_ht[j+1][k]);
 
-			mu = nl_math::hypot(m_ht[k][k], m_ht[k1][k]);
+			mu = std::hypot(m_ht[k][k], m_ht[k1][k]);
 
 			m_c[k] = m_ht[k][k] / mu;
 			m_s[k] = -m_ht[k1][k] / mu;
@@ -325,7 +328,7 @@ int matrix_solver_GMRES_t<m_N, _storage_N>::solve_ilu_gmres (nl_double * RESTRIC
 
 			givens_mult(m_c[k], m_s[k], m_g[k], m_g[k1]);
 
-			rho = nl_math::abs(m_g[k1]);
+			rho = std::abs(m_g[k1]);
 
 			itr_used = itr_used + 1;
 
@@ -381,6 +384,7 @@ int matrix_solver_GMRES_t<m_N, _storage_N>::solve_ilu_gmres (nl_double * RESTRIC
 
 
 
-NETLIB_NAMESPACE_DEVICES_END()
+	} //namespace devices
+} // namespace netlist
 
 #endif /* NLD_MS_GMRES_H_ */

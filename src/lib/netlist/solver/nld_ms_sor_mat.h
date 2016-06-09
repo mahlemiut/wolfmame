@@ -18,17 +18,20 @@
 #include "solver/nld_matrix_solver.h"
 #include "solver/nld_solver.h"
 
-NETLIB_NAMESPACE_DEVICES_START()
+namespace netlist
+{
+	namespace devices
+	{
 
-template <unsigned m_N, unsigned _storage_N>
-class matrix_solver_SOR_mat_t: public matrix_solver_direct_t<m_N, _storage_N>
+template <unsigned m_N, unsigned storage_N>
+class matrix_solver_SOR_mat_t: public matrix_solver_direct_t<m_N, storage_N>
 {
 	friend class matrix_solver_t;
 
 public:
 
 	matrix_solver_SOR_mat_t(netlist_t &anetlist, const pstring &name, const solver_parameters_t *params, int size)
-		: matrix_solver_direct_t<m_N, _storage_N>(anetlist, name, matrix_solver_t::DESCENDING, params, size)
+		: matrix_solver_direct_t<m_N, storage_N>(anetlist, name, matrix_solver_t::DESCENDING, params, size)
 		, m_omega(params->m_sor)
 		, m_lp_fact(0)
 		, m_gs_fail(0)
@@ -43,7 +46,7 @@ public:
 	virtual int vsolve_non_dynamic(const bool newton_raphson) override;
 
 private:
-	nl_double m_Vdelta[_storage_N];
+	nl_double m_Vdelta[storage_N];
 
 	nl_double m_omega;
 	nl_double m_lp_fact;
@@ -55,10 +58,10 @@ private:
 // matrix_solver - Gauss - Seidel
 // ----------------------------------------------------------------------------------------
 
-template <unsigned m_N, unsigned _storage_N>
-void matrix_solver_SOR_mat_t<m_N, _storage_N>::vsetup(analog_net_t::list_t &nets)
+template <unsigned m_N, unsigned storage_N>
+void matrix_solver_SOR_mat_t<m_N, storage_N>::vsetup(analog_net_t::list_t &nets)
 {
-	matrix_solver_direct_t<m_N, _storage_N>::vsetup(nets);
+	matrix_solver_direct_t<m_N, storage_N>::vsetup(nets);
 	this->save(NLNAME(m_omega));
 	this->save(NLNAME(m_lp_fact));
 	this->save(NLNAME(m_gs_fail));
@@ -68,8 +71,8 @@ void matrix_solver_SOR_mat_t<m_N, _storage_N>::vsetup(analog_net_t::list_t &nets
 
 #if 0
 //FIXME: move to solve_base
-template <unsigned m_N, unsigned _storage_N>
-nl_double matrix_solver_SOR_mat_t<m_N, _storage_N>::vsolve()
+template <unsigned m_N, unsigned storage_N>
+nl_double matrix_solver_SOR_mat_t<m_N, storage_N>::vsolve()
 {
 	/*
 	 * enable linear prediction on first newton pass
@@ -105,7 +108,7 @@ nl_double matrix_solver_SOR_mat_t<m_N, _storage_N>::vsolve()
 
 		// FIXME: used to be 1e90, but this would not be compatible with float
 		if (sqo > NL_FCONST(1e-20))
-			m_lp_fact = nl_math::min(nl_math::sqrt(sq/sqo), (nl_double) 2.0);
+			m_lp_fact = std::min(std::sqrt(sq/sqo), (nl_double) 2.0);
 		else
 			m_lp_fact = NL_FCONST(0.0);
 	}
@@ -115,8 +118,8 @@ nl_double matrix_solver_SOR_mat_t<m_N, _storage_N>::vsolve()
 }
 #endif
 
-template <unsigned m_N, unsigned _storage_N>
-int matrix_solver_SOR_mat_t<m_N, _storage_N>::vsolve_non_dynamic(const bool newton_raphson)
+template <unsigned m_N, unsigned storage_N>
+int matrix_solver_SOR_mat_t<m_N, storage_N>::vsolve_non_dynamic(const bool newton_raphson)
 {
 	/* The matrix based code looks a lot nicer but actually is 30% slower than
 	 * the optimized code which works directly on the data structures.
@@ -124,7 +127,7 @@ int matrix_solver_SOR_mat_t<m_N, _storage_N>::vsolve_non_dynamic(const bool newt
 	 */
 
 
-	ATTR_ALIGN nl_double new_v[_storage_N] = { 0.0 };
+	ATTR_ALIGN nl_double new_v[storage_N] = { 0.0 };
 	const unsigned iN = this->N();
 
 	matrix_solver_t::build_LE_A<matrix_solver_SOR_mat_t>();
@@ -146,16 +149,16 @@ int matrix_solver_SOR_mat_t<m_N, _storage_N>::vsolve_non_dynamic(const bool newt
 		for (int k = 0; k < iN; k++)
 		{
 	#if 0
-			nl_double akk = nl_math::abs(this->m_A[k][k]);
+			nl_double akk = std::abs(this->m_A[k][k]);
 			if ( akk > lambdaN)
 				lambdaN = akk;
 			if (akk < lambda1)
 				lambda1 = akk;
 	#else
-			nl_double akk = nl_math::abs(this->m_A[k][k]);
+			nl_double akk = std::abs(this->m_A[k][k]);
 			nl_double s = 0.0;
 			for (int i=0; i<iN; i++)
-				s = s + nl_math::abs(this->m_A[k][i]);
+				s = s + std::abs(this->m_A[k][i]);
 			akk = s / akk - 1.0;
 			if ( akk > lambdaN)
 				lambdaN = akk;
@@ -189,7 +192,7 @@ int matrix_solver_SOR_mat_t<m_N, _storage_N>::vsolve_non_dynamic(const bool newt
 				Idrive = Idrive + this->A(k,p[i]) * new_v[p[i]];
 
 			const nl_double delta = m_omega * (this->RHS(k) - Idrive) / this->A(k,k);
-			cerr = nl_math::max(cerr, nl_math::abs(delta));
+			cerr = std::max(cerr, std::abs(delta));
 			new_v[k] += delta;
 		}
 
@@ -208,7 +211,7 @@ int matrix_solver_SOR_mat_t<m_N, _storage_N>::vsolve_non_dynamic(const bool newt
 		//this->netlist().warning("Falling back to direct solver .. Consider increasing RESCHED_LOOPS");
 		this->m_gs_fail++;
 
-		return matrix_solver_direct_t<m_N, _storage_N>::solve_non_dynamic(newton_raphson);
+		return matrix_solver_direct_t<m_N, storage_N>::solve_non_dynamic(newton_raphson);
 	}
 	else {
 		this->store(new_v);
@@ -217,6 +220,7 @@ int matrix_solver_SOR_mat_t<m_N, _storage_N>::vsolve_non_dynamic(const bool newt
 
 }
 
-NETLIB_NAMESPACE_DEVICES_END()
+	} //namespace devices
+} // namespace netlist
 
 #endif /* NLD_MS_GAUSS_SEIDEL_H_ */

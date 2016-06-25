@@ -159,6 +159,8 @@ osd_options::osd_options()
 	add_entries(osd_options::s_option_entries);
 }
 
+// Window list
+std::list<std::shared_ptr<osd_window>> osd_common_t::s_window_list;
 
 //-------------------------------------------------
 //  osd_interface - constructor
@@ -699,7 +701,6 @@ void osd_common_t::input_resume()
 void osd_common_t::exit_subsystems()
 {
 	video_exit();
-	input_exit();
 }
 
 void osd_common_t::video_exit()
@@ -708,18 +709,6 @@ void osd_common_t::video_exit()
 
 void osd_common_t::window_exit()
 {
-}
-
-void osd_common_t::input_exit()
-{
-	if (m_keyboard_input)
-		m_keyboard_input->exit();
-	if (m_mouse_input)
-		m_mouse_input->exit();
-	if (m_lightgun_input)
-		m_lightgun_input->exit();
-	if (m_joystick_input)
-		m_joystick_input->exit();
 }
 
 void osd_common_t::osd_exit()

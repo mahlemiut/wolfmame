@@ -915,6 +915,9 @@ ADDRESS_MAP_END
   W 9A00-B7FF FF
  RW B000-B7FF 00
 
+ Flaming7 custom hardware writes the bonus
+ graphics at 9A80-9A89, and the "reel scroll"
+ at B0C0-B0FF...
 */
 
 WRITE8_MEMBER(wingco_state::magodds_outb850_w)
@@ -6913,7 +6916,7 @@ static INPUT_PORTS_START( cmtetris )
 INPUT_PORTS_END
 
 
-static INPUT_PORTS_START( flaming7 )
+static INPUT_PORTS_START( flam7_w4 )
 	PORT_START("IN0")   /* b800 */
 	PORT_BIT( 0x01, IP_ACTIVE_LOW, IPT_OTHER ) PORT_CODE(KEYCODE_L) PORT_NAME("Button Lockout")
 	PORT_BIT( 0x02, IP_ACTIVE_LOW, IPT_POKER_HOLD1 ) PORT_NAME("Hold 1 - Big")
@@ -7062,6 +7065,157 @@ static INPUT_PORTS_START( flaming7 )
 
 INPUT_PORTS_END
 
+
+static INPUT_PORTS_START( flaming7 )
+	PORT_START("IN0")   /* b800 */
+	PORT_BIT( 0x01, IP_ACTIVE_LOW, IPT_OTHER ) PORT_CODE(KEYCODE_L) PORT_NAME("Button Lockout")
+	PORT_BIT( 0x02, IP_ACTIVE_LOW, IPT_POKER_HOLD1 ) PORT_NAME("Hold 1 - Big")
+	PORT_BIT( 0x04, IP_ACTIVE_LOW, IPT_POKER_HOLD5 ) PORT_NAME("Hold 5")
+	PORT_BIT( 0x08, IP_ACTIVE_LOW, IPT_POKER_HOLD3 ) PORT_NAME("Hold 3 - Double-Up")
+	PORT_BIT( 0x10, IP_ACTIVE_LOW, IPT_POKER_HOLD4 ) PORT_NAME("Hold 4 - Take Score")
+	PORT_BIT( 0x20, IP_ACTIVE_LOW, IPT_GAMBLE_BET )  PORT_NAME("Bet 1")
+	PORT_BIT( 0x40, IP_ACTIVE_LOW, IPT_POKER_HOLD2 ) PORT_NAME("Hold 2 - Low")
+	PORT_BIT( 0x80, IP_ACTIVE_LOW, IPT_START1 )      PORT_NAME("Start")
+
+	PORT_START("IN1")   /* b801 */
+	PORT_BIT( 0x01, IP_ACTIVE_LOW, IPT_UNKNOWN )
+	PORT_BIT( 0x02, IP_ACTIVE_LOW, IPT_UNKNOWN )
+	PORT_BIT( 0x04, IP_ACTIVE_LOW, IPT_UNKNOWN )
+	PORT_BIT( 0x08, IP_ACTIVE_LOW, IPT_UNKNOWN )
+	PORT_BIT( 0x10, IP_ACTIVE_LOW, IPT_UNKNOWN )
+	PORT_BIT( 0x20, IP_ACTIVE_LOW, IPT_UNKNOWN )
+	PORT_BIT( 0x40, IP_ACTIVE_LOW, IPT_UNKNOWN )
+	PORT_BIT( 0x80, IP_ACTIVE_LOW, IPT_UNKNOWN )
+
+	PORT_START("IN2")   /* b802 */
+	PORT_BIT( 0x01, IP_ACTIVE_LOW, IPT_UNKNOWN )
+	PORT_BIT( 0x02, IP_ACTIVE_LOW, IPT_UNKNOWN )
+	PORT_BIT( 0x04, IP_ACTIVE_LOW, IPT_UNKNOWN )
+	PORT_BIT( 0x08, IP_ACTIVE_LOW, IPT_UNKNOWN )
+	PORT_BIT( 0x10, IP_ACTIVE_LOW, IPT_UNKNOWN )
+	PORT_BIT( 0x20, IP_ACTIVE_LOW, IPT_UNKNOWN )
+	PORT_BIT( 0x40, IP_ACTIVE_LOW, IPT_SPECIAL ) PORT_READ_LINE_DEVICE_MEMBER( "fl7w4_id", ds2401_device, read )  // Same input, different device.
+	PORT_BIT( 0x80, IP_ACTIVE_LOW, IPT_UNKNOWN )
+
+	PORT_START("IN3")   /* b810 */
+	PORT_BIT( 0x01, IP_ACTIVE_LOW, IPT_OTHER ) PORT_CODE(KEYCODE_D) PORT_NAME("Main Door SW")
+	PORT_BIT( 0x02, IP_ACTIVE_LOW, IPT_OTHER ) PORT_CODE(KEYCODE_H) PORT_NAME("Change")
+	PORT_BIT( 0x04, IP_ACTIVE_LOW, IPT_OTHER ) PORT_CODE(KEYCODE_F) PORT_NAME("Logic Door SW")
+	PORT_BIT( 0x08, IP_ACTIVE_LOW, IPT_OTHER ) PORT_CODE(KEYCODE_G) PORT_NAME("Cash Door SW")
+	PORT_BIT( 0x10, IP_ACTIVE_LOW, IPT_OTHER ) PORT_CODE(KEYCODE_T) PORT_NAME("IN3-5")
+	PORT_BIT( 0x20, IP_ACTIVE_LOW, IPT_COIN2 ) PORT_NAME("Coin B")  // confirmed.
+	PORT_BIT( 0x40, IP_ACTIVE_LOW, IPT_COIN1 ) PORT_NAME("Coin A")  // confirmed.
+	PORT_BIT( 0x80, IP_ACTIVE_LOW, IPT_GAMBLE_KEYIN ) PORT_NAME("Coin C or Mars")  // confirmed.
+
+	PORT_START("IN4")   /* b811 */
+	PORT_BIT( 0x01, IP_ACTIVE_LOW, IPT_OTHER ) PORT_CODE(KEYCODE_A)   PORT_NAME("WT RXD")
+	PORT_BIT( 0x02, IP_ACTIVE_LOW, IPT_OTHER ) PORT_CODE(KEYCODE_S)   PORT_NAME("COUT RTS")  // related to hopper...
+	PORT_BIT( 0x04, IP_ACTIVE_LOW, IPT_OTHER ) PORT_CODE(KEYCODE_Y)   PORT_NAME("IN4-3")
+	PORT_BIT( 0x08, IP_ACTIVE_LOW, IPT_OTHER ) PORT_CODE(KEYCODE_U)   PORT_NAME("IN4-4 Active")  // This one is active in real PCB.
+	PORT_BIT( 0x10, IP_ACTIVE_LOW, IPT_OTHER ) PORT_CODE(KEYCODE_I)   PORT_NAME("IN4-5")
+	PORT_BIT( 0x20, IP_ACTIVE_LOW, IPT_GAMBLE_KEYOUT )                PORT_NAME("Collect")
+	PORT_BIT( 0x40, IP_ACTIVE_LOW, IPT_SERVICE ) PORT_CODE(KEYCODE_R) PORT_NAME("Reset")
+	PORT_BIT( 0x80, IP_ACTIVE_LOW, IPT_SERVICE ) PORT_CODE(KEYCODE_0) PORT_NAME("Books / Stats / Setup") PORT_TOGGLE
+
+	PORT_START("DSW1")
+	PORT_DIPNAME( 0x03, 0x03, "Credits Out" )          PORT_DIPLOCATION("DSW1:1,2")
+	PORT_DIPSETTING(    0x03, "Amusement (no credits out)" )
+	PORT_DIPSETTING(    0x02, "Ticket Printer" )
+	PORT_DIPSETTING(    0x01, "Hopper Payout" )
+	PORT_DIPSETTING(    0x00, "Remote Clear" )
+	PORT_DIPNAME( 0x04, 0x04, "Game Speed" )           PORT_DIPLOCATION("DSW1:3")
+	PORT_DIPSETTING(    0x04, "Fast Game" )
+	PORT_DIPSETTING(    0x00, "Slow Game" )
+	PORT_DIPNAME( 0x08, 0x08, "Lock-Up on 7 or 8 of a kind" )  PORT_DIPLOCATION("DSW1:4")
+	PORT_DIPSETTING(    0x08, DEF_STR( No ) )
+	PORT_DIPSETTING(    0x00, DEF_STR( Yes ) )
+	PORT_DIPNAME( 0x30, 0x30, "Graphics Type" )        PORT_DIPLOCATION("DSW1:5,6")
+	PORT_DIPSETTING(    0x30, "Regular Fruit" )
+	PORT_DIPSETTING(    0x20, "Numbers" )
+	PORT_DIPSETTING(    0x10, "Graphics Option 1" )
+	PORT_DIPSETTING(    0x00, "Graphics Option 2" )
+	PORT_DIPNAME( 0xc0, 0xc0, "Paytable" )             PORT_DIPLOCATION("DSW1:7,8")
+	PORT_DIPSETTING(    0xc0, "9322" )
+	PORT_DIPSETTING(    0x80, "9323" )
+	PORT_DIPSETTING(    0x40, "9324" )
+	PORT_DIPSETTING(    0x00, "9321" )
+
+	PORT_START("DSW2")
+	PORT_DIPNAME( 0x07, 0x07, "Bonus Pay" )   PORT_DIPLOCATION("DSW2:1,2,3")  // percentage of how quickly the internal progressive advances.
+	PORT_DIPSETTING(    0x07, "1.00%" )
+	PORT_DIPSETTING(    0x06, "2.00%" )
+	PORT_DIPSETTING(    0x05, "3.30%" )
+	PORT_DIPSETTING(    0x04, "4.00%" )
+	PORT_DIPSETTING(    0x03, "5.00%" )
+	PORT_DIPSETTING(    0x02, "6.20%" )
+	PORT_DIPSETTING(    0x01, "8.30%" )
+	PORT_DIPSETTING(    0x00, "10%" )
+	PORT_DIPNAME( 0x08, 0x00, "Internal Progressive" )   PORT_DIPLOCATION("DSW2:4")
+	PORT_DIPSETTING(    0x08, DEF_STR( Off ) )
+	PORT_DIPSETTING(    0x00, DEF_STR( On ) )
+	PORT_DIPNAME( 0x10, 0x10, "Not Used (Leave OFF)" )   PORT_DIPLOCATION("DSW2:5")
+	PORT_DIPSETTING(    0x10, DEF_STR( Off ) )
+	PORT_DIPSETTING(    0x00, DEF_STR( On ) )
+	PORT_DIPNAME( 0x20, 0x20, "Not Used (Leave OFF)" )   PORT_DIPLOCATION("DSW2:6")
+	PORT_DIPSETTING(    0x20, DEF_STR( Off ) )
+	PORT_DIPSETTING(    0x00, DEF_STR( On ) )
+	PORT_DIPNAME( 0x40, 0x40, "Not Used (Leave OFF)" )   PORT_DIPLOCATION("DSW2:7")
+	PORT_DIPSETTING(    0x40, DEF_STR( Off ) )
+	PORT_DIPSETTING(    0x00, DEF_STR( On ) )
+	PORT_DIPNAME( 0x80, 0x80, "Not Used (Leave OFF)" )   PORT_DIPLOCATION("DSW2:8")
+	PORT_DIPSETTING(    0x80, DEF_STR( Off ) )
+	PORT_DIPSETTING(    0x00, DEF_STR( On ) )
+
+	PORT_START("DSW3")
+	PORT_DIPNAME( 0x03, 0x03, "Maximum Bet" )          PORT_DIPLOCATION("DSW3:1,2")
+	PORT_DIPSETTING(    0x03, "8" )
+	PORT_DIPSETTING(    0x02, "16" )
+	PORT_DIPSETTING(    0x01, "32" )
+	PORT_DIPSETTING(    0x00, "64" )
+	PORT_DIPNAME( 0x04, 0x04, "Coin-In Timeout" )      PORT_DIPLOCATION("DSW3:3")
+	PORT_DIPSETTING(    0x04, DEF_STR( Off ) )
+	PORT_DIPSETTING(    0x00, DEF_STR( On ) )
+	PORT_DIPNAME( 0x38, 0x38, "Denomination" )         PORT_DIPLOCATION("DSW3:4,5,6")
+	PORT_DIPSETTING(    0x38, "$1.00" )
+	PORT_DIPSETTING(    0x30, "50 Cents" )
+	PORT_DIPSETTING(    0x28, "25 Cents" )
+	PORT_DIPSETTING(    0x20, "10 Cents" )
+	PORT_DIPSETTING(    0x18, "5 Cents" )
+	PORT_DIPSETTING(    0x10, "5 Cents" )
+	PORT_DIPSETTING(    0x08, "5 Cents" )
+	PORT_DIPSETTING(    0x00, "5 Cents" )
+	PORT_DIPNAME( 0xc0, 0xc0, "Progressive Sign" )     PORT_DIPLOCATION("DSW3:7,8")
+	PORT_DIPSETTING(    0xc0, DEF_STR( Off ) )
+	PORT_DIPSETTING(    0x80, "Single Level" )
+	PORT_DIPSETTING(    0x40, "Multi Level" )   // use this setting *only* if using external sign.
+	PORT_DIPSETTING(    0x00, "Test Mode" )
+
+	PORT_START("DSW4")
+	PORT_DIPNAME( 0x01, 0x01, "Button Lockout" )       PORT_DIPLOCATION("DSW4:1")  // this is used to lockout the button panel switches...
+	PORT_DIPSETTING(    0x01, DEF_STR( Off ) )
+	PORT_DIPSETTING(    0x00, DEF_STR( On ) )
+	PORT_DIPNAME( 0x02, 0x02, "Lockout Polarity" )     PORT_DIPLOCATION("DSW4:2")
+	PORT_DIPSETTING(    0x02, "Active High" )
+	PORT_DIPSETTING(    0x00, "Active Low" )
+	PORT_DIPNAME( 0x0c, 0x0c, "Printer Type" )         PORT_DIPLOCATION("DSW4:3,4")
+	PORT_DIPSETTING(    0x0c, "Epson 267A" )
+	PORT_DIPSETTING(    0x08, "Star 300" )
+	PORT_DIPSETTING(    0x04, "Ithaca 76" )
+	PORT_DIPSETTING(    0x00, "Citizen 3541" )
+	PORT_DIPNAME( 0x10, 0x10, "Paper Low Sensor" )      PORT_DIPLOCATION("DSW4:5")
+	PORT_DIPSETTING(    0x10, DEF_STR( Off ) )
+	PORT_DIPSETTING(    0x00, DEF_STR( On ) )
+	PORT_DIPNAME( 0x20, 0x20, "Not Used (Leave OFF)" )  PORT_DIPLOCATION("DSW4:6")
+	PORT_DIPSETTING(    0x20, DEF_STR( Off ) )
+	PORT_DIPSETTING(    0x00, DEF_STR( On ) )
+	PORT_DIPNAME( 0x40, 0x40, "Not Used (Leave OFF)" )  PORT_DIPLOCATION("DSW4:7")
+	PORT_DIPSETTING(    0x40, DEF_STR( Off ) )
+	PORT_DIPSETTING(    0x00, DEF_STR( On ) )
+	PORT_DIPNAME( 0x80, 0x80, "Not Used (Leave OFF)" )  PORT_DIPLOCATION("DSW4:8")
+	PORT_DIPSETTING(    0x80, DEF_STR( Off ) )
+	PORT_DIPSETTING(    0x00, DEF_STR( On ) )
+
+INPUT_PORTS_END
 
 
 /*****************************************************
@@ -7368,6 +7522,56 @@ static const gfx_layout super9_tilelayout =  // Green is OK. Red needs normal go
 };
 
 
+static const gfx_layout flaming7_charlayout =
+{
+	8,8,    /* 8*8 characters */
+	4096,    /* 4096 characters */
+	3,      /* 3 bits per pixel */
+	{ 2, 4, 6 }, /* the bitplanes are packed in one byte */
+	{ 2*8+0, 2*8+1, 3*8+0, 3*8+1, 0*8+0, 0*8+1, 1*8+0, 1*8+1 },
+	{ 0*32, 1*32, 2*32, 3*32, 4*32, 5*32, 6*32, 7*32 },
+	32*8   /* every char takes 32 consecutive bytes */
+};
+
+static const gfx_layout flaming7_tilelayout =
+{
+	8,32,    /* 8*32 characters */
+	256,    /* 256 tiles */
+	4,      /* 4 bits per pixel */
+	{ 0, 2, 4, 6 },
+	{ 2*8+0, 2*8+1, 3*8+0, 3*8+1, 0, 1, 1*8+0, 1*8+1 },
+	{ 0*8, 4*8, 8*8, 12*8, 16*8, 20*8, 24*8, 28*8,
+	  32*8, 36*8, 40*8, 44*8, 48*8, 52*8, 56*8, 60*8,
+	  64*8, 68*8, 72*8, 76*8, 80*8, 84*8, 88*8, 92*8,
+	  96*8, 100*8, 104*8, 108*8, 112*8, 116*8, 120*8, 124*8 },
+	128*8   /* every char takes 128 consecutive bytes */
+};
+
+static const gfx_layout flam7_tw_charlayout =
+{
+	8,8,    /* 8*8 characters */
+	4096,    /* 4096 characters */
+	3,      /* 3 bits per pixel */
+	{ 2, 4, 6 }, /* the bitplanes are packed in one byte */
+	{ 3*8+0, 3*8+1, 2*8+0, 2*8+1, 1*8+0, 1*8+1, 0*8+0, 0*8+1 },
+	{ 0*32, 1*32, 2*32, 3*32, 4*32, 5*32, 6*32, 7*32 },
+	32*8   /* every char takes 32 consecutive bytes */
+};
+
+static const gfx_layout flam7_tw_tilelayout =  // FIXME
+{
+	8,32,    /* 8*32 characters */
+	256,    /* 256 tiles */
+	4,      /* 4 bits per pixel */
+	{ 0, 2, 4, 6 },
+	{ 3*8+0, 3*8+1, 2*8+0, 1*8+0, 1*8+1, 2*8+1, 0, 1 },
+	{ 0*8, 4*8, 8*8, 12*8, 16*8, 20*8, 24*8, 28*8,
+	  32*8, 36*8, 40*8, 44*8, 48*8, 52*8, 56*8, 60*8,
+	  64*8, 68*8, 72*8, 76*8, 80*8, 84*8, 88*8, 92*8,
+	  96*8, 100*8, 104*8, 108*8, 112*8, 116*8, 120*8, 124*8 },
+	128*8   /* every char takes 128 consecutive bytes */
+};
+
 
 static GFXDECODE_START( goldstar )
 	GFXDECODE_ENTRY( "gfx1", 0, charlayout,   0, 16 )
@@ -7470,6 +7674,16 @@ GFXDECODE_END
 static GFXDECODE_START( super9 )
 	GFXDECODE_ENTRY( "gfx1", 0, super9_charlayout,   0, 16 )
 	GFXDECODE_ENTRY( "gfx2", 0, super9_tilelayout, 128,  8 )
+GFXDECODE_END
+
+static GFXDECODE_START( flaming7 )  // gfx 2 still wrong...
+	GFXDECODE_ENTRY( "gfx1", 0, flaming7_charlayout,   0, 16 )
+	GFXDECODE_ENTRY( "gfx2", 0, flaming7_tilelayout, 104,  8 )
+GFXDECODE_END
+
+static GFXDECODE_START( flam7_tw )  // gfx 2 still wrong...
+	GFXDECODE_ENTRY( "gfx1", 0, flam7_tw_charlayout,   0, 16 )
+	GFXDECODE_ENTRY( "gfx2", 0, flam7_tw_tilelayout, 104,  8 )
 GFXDECODE_END
 
 
@@ -7638,6 +7852,7 @@ WRITE8_MEMBER(goldstar_state::ay8910_outputb_w)
 	//popmessage("ay8910_outputb_w %02x",data);
 }
 
+
 static MACHINE_CONFIG_START( goldstar, goldstar_state )
 
 	/* basic machine hardware */
@@ -7796,7 +8011,7 @@ static MACHINE_CONFIG_START( super9, goldstar_state )
 MACHINE_CONFIG_END
 
 
-PALETTE_INIT_MEMBER(goldstar_state,cm)
+PALETTE_INIT_MEMBER(goldstar_state, cm)
 {
 	/* BBGGGRRR */
 
@@ -7813,7 +8028,7 @@ PALETTE_INIT_MEMBER(goldstar_state,cm)
 	}
 }
 
-PALETTE_INIT_MEMBER(goldstar_state,cmast91)
+PALETTE_INIT_MEMBER(goldstar_state, cmast91)
 {
 	int i;
 	for (i = 0; i < 0x100; i++)
@@ -8186,17 +8401,45 @@ static MACHINE_CONFIG_DERIVED( bingownga, bingowng )
 MACHINE_CONFIG_END
 
 
-static MACHINE_CONFIG_DERIVED( flaming7, lucky8 )
+static MACHINE_CONFIG_DERIVED( flam7_w4, lucky8 )
 	/* basic machine hardware */
 	MCFG_CPU_MODIFY("maincpu")
 	MCFG_CPU_PROGRAM_MAP(flaming7_map)
-//  MCFG_CPU_IO_MAP(flaming7_readport)
 
 	MCFG_DEVICE_MODIFY("ppi8255_0")
 	MCFG_I8255_OUT_PORTC_CB(WRITE8(wingco_state, fl7w4_outc802_w))
 
 	MCFG_DS2401_ADD("fl7w4_id")
 MACHINE_CONFIG_END
+
+static MACHINE_CONFIG_DERIVED( flaming7, lucky8 )
+	/* basic machine hardware */
+	MCFG_CPU_MODIFY("maincpu")
+	MCFG_CPU_PROGRAM_MAP(flaming7_map)
+
+	MCFG_GFXDECODE_MODIFY("gfxdecode", flaming7)
+
+    // to do serial protection.
+	MCFG_DEVICE_MODIFY("ppi8255_0")
+	MCFG_I8255_OUT_PORTC_CB(WRITE8(wingco_state, fl7w4_outc802_w))
+
+	MCFG_DS2401_ADD("fl7w4_id")
+MACHINE_CONFIG_END
+
+static MACHINE_CONFIG_DERIVED( flam7_tw, lucky8 )
+	/* basic machine hardware */
+	MCFG_CPU_MODIFY("maincpu")
+	MCFG_CPU_PROGRAM_MAP(flaming7_map)
+
+	MCFG_GFXDECODE_MODIFY("gfxdecode", flam7_tw)
+
+    // to do serial protection.
+	MCFG_DEVICE_MODIFY("ppi8255_0")
+	MCFG_I8255_OUT_PORTC_CB(WRITE8(wingco_state, fl7w4_outc802_w))
+
+	MCFG_DS2401_ADD("fl7w4_id")
+MACHINE_CONFIG_END
+
 
 
 PALETTE_INIT_MEMBER(wingco_state, magodds)
@@ -13770,7 +14013,34 @@ ROM_END
 
 */
 ROM_START( cmpacman )
-	ROM_REGION( 0x10000, "maincpu", 0 )
+	ROM_REGION( 0x10000, "maincpu", 0 )  // Seems to have the pulse/bookkeeping bug fixed.
+	ROM_LOAD( "corsica_v8.31_pacman_old_board_new.bin",  0x0000,  0x10000, CRC(4f1ea727) SHA1(e127f3da9e7cc81b93dc3eec66ca56452e78375e) )
+
+	ROM_REGION( 0x18000, "gfx1", 0 )
+	ROM_LOAD( "c_m_pacman_rom7.u16", 0x00000,  0x8000, CRC(c53273a4) SHA1(d359e65c31ef5253f1e9a3b67db8851a8d1262d1) )
+	ROM_LOAD( "c_m_pacman_rom6.u11", 0x08000,  0x8000, CRC(013bff64) SHA1(65f2808480970a756b642ddd1a64c10b89ea3b3e) )
+	ROM_LOAD( "c_m_pacman_rom5.u4",  0x10000,  0x8000, CRC(03298f22) SHA1(32c99da82afff6d38333a9998802c497d6f49fab) )
+
+	ROM_REGION( 0x8000, "gfx2", 0 )
+	ROM_LOAD( "4.u15",  0x0000,  0x2000, CRC(8607ffd9) SHA1(9bc94715554aa2473ae2ed249a47f29c7886b3dc) )
+	ROM_LOAD( "3.u10",  0x2000,  0x2000, CRC(c32367be) SHA1(ff217021b9c58e23b2226f8b0a7f5da966225715) )
+	ROM_LOAD( "2.u14",  0x4000,  0x2000, CRC(6dfcb188) SHA1(22430429c798954d9d979e62699b58feae7fdbf4) )
+	ROM_LOAD( "1.u9",   0x6000,  0x2000, CRC(9678ead2) SHA1(e80aefa98b2363fe9e6b2415762695ace272e4d3) )
+
+	ROM_REGION( 0x10000, "user1", 0 )
+	ROM_LOAD( "8.u53",  0x0000, 0x10000, CRC(e92443d3) SHA1(4b6ca4521841610054165f085ae05510e77af191) )
+
+	/* proms taken from cmv4, probably wrong  */
+	ROM_REGION( 0x200, "proms", 0 )
+	ROM_LOAD( "82s129.u84", 0x0000, 0x0100, CRC(0489b760) SHA1(78f8632b17a76335183c5c204cdec856988368b0) )
+	ROM_LOAD( "82s129.u79", 0x0100, 0x0100, CRC(21eb5b19) SHA1(9b8425bdb97f11f4855c998c7792c3291fd07470) )
+
+	ROM_REGION( 0x100, "proms2", 0 )
+	ROM_LOAD( "82s129.u46", 0x0000, 0x0100, CRC(50ec383b) SHA1(ae95b92bd3946b40134bcdc22708d5c6b0f4c23e) )
+ROM_END
+
+ROM_START( cmpacmana )
+	ROM_REGION( 0x10000, "maincpu", 0 )  // Seems to have a pulse/bookkeeping bug.
 	ROM_LOAD( "corsica_v8.31_pacman_old_board.bin",  0x0000,  0x10000, CRC(f69cbe75) SHA1(08446eb005b6c7ed24489fd664df14b20a41e3eb) )
 
 	ROM_REGION( 0x18000, "gfx1", 0 )
@@ -14051,12 +14321,12 @@ ROM_END
   | 02 | Buffalo Bills.               | NO      | NO       |
   | 03 | Cash Cabaret.                | NO      | NO       |
   | 04 | Cash Cow.                    | NO      | NO       |
-  | 05 | Cherry 50 Bonus.             | NO      | NO       |
-  | 06 | Cherry 500 Bonus.            | NO      | NO       |
-  | 07 | Cherry 1000 Bonus.           | NO      | NO       |
+  | 05 | Cherry 50 Bonus.             | YES     | YES      |  Custom main 50, 500 & 2000.
+  | 06 | Cherry 500 Bonus.            | YES     | YES      |  Custom main 50, 500 & 2000.
+  | 07 | Cherry 1000 Bonus.           | YES     | YES      |  Custom main 50, 500 & 2000.
   | 08 | Christmas.                   | NO      | NO       |
   | 09 | Deuces Wild.                 | NO      | NO       |
-  | 10 | Diamond Delight.             | NO      | NO       |
+  | 10 | Diamond Delight.             | YES     | YES      |  Different set. Custom main 50, 500 & 2000.
   | 11 | Diamond Doubles.             | NO      | NO       |
   | 12 | Diamond Treasure.            | NO      | NO       |
   | 13 | Dream Catcher.               | NO      | NO       |
@@ -14067,7 +14337,7 @@ ROM_END
   | 18 | Golden Treasure.             | NO      | NO       |
   | 19 | Greenbacks.                  | NO      | NO       |
   | 20 | Harley Davidson.             | NO      | NO       |
-  | 21 | Hollywood Nights.            | YES     | YES      |
+  | 21 | Hollywood Nights.            | YES (W4)| YES (W4) |  Flaming 7's W4 version.
   | 22 | Independence Day.            | NO      | NO       |
   | 23 | Jokers Wild.                 | NO      | NO       |
   | 24 | Midnight Sevens.             | NO      | NO       |
@@ -14077,7 +14347,7 @@ ROM_END
   | 28 | New Year's.                  | NO      | NO       |
   | 29 | Prospector's Gold.           | NO      | NO       |
   | 30 | Red Hot Ice.                 | NO      | NO       |
-  | 31 | Red, White & Blue 7's.       | YES     | YES      |
+  | 31 | Red, White & Blue 7's.       | YES (W4)| YES (W4) |  Flaming 7's W4 version.
   | 32 | Rising Star.                 | NO      | NO       |
   | 33 | Rockin' Reels.               | NO      | NO       |
   | 34 | Rolling Thunder.             | NO      | NO       |
@@ -14100,6 +14370,269 @@ ROM_END
 
   -------------------------------------------------------------------
 
+  Original Cyberdyne Systems hardware DIP switches:
+
+  +-----------------------------------+-----+-----+-----+-----+-----+-----+-----+-----+
+  | DIP SWITCHES BANK #1              |  1  |  2  |  3  |  4  |  5  |  6  |  7  |  8  |
+  +----------------+------------------+-----+-----+-----+-----+-----+-----+-----+-----+
+  | CREDITS OUT    | NO CREDITS OUT   | OFF | OFF |     |     |     |     |     |     |
+  |                | TICKET PRINTER   | ON  | OFF |     |     |     |     |     |     |
+  |                | HOPPER PAYOUT    | OFF | ON  |     |     |     |     |     |     |
+  |                | REMOTE CLEAR     | ON  | ON  |     |     |     |     |     |     |
+  +----------------+------------------+-----+-----+-----+-----+-----+-----+-----+-----+
+  | GAME SPEED     | FAST GAME        |     |     | OFF |     |     |     |     |     |
+  |                | SLOW GAME        |     |     | ON  |     |     |     |     |     |
+  +----------------+------------------+-----+-----+-----+-----+-----+-----+-----+-----+
+  | LOCK UP ON 7-8 | NO               |     |     |     | OFF |     |     |     |     |
+  |  OF ANY KIND   | YES              |     |     |     | ON  |     |     |     |     |
+  +----------------+------------------+-----+-----+-----+-----+-----+-----+-----+-----+
+  | GRAPHICS TYPE  | REGULAR FRUIT    |     |     |     |     | OFF | OFF |     |     |
+  |                | NUMBERS          |     |     |     |     | ON  | OFF |     |     |
+  |                | CUSTOM OPTION 1  |     |     |     |     | OFF | ON  |     |     |
+  |                | CUSTOM OPTION 2  |     |     |     |     | ON  | ON  |     |     |
+  +----------------+------------------+-----+-----+-----+-----+-----+-----+-----+-----+
+  | PAY TABLE      | 9322             |     |     |     |     |     |     | OFF | OFF |
+  |                | 9323             |     |     |     |     |     |     | ON  | OFF |
+  |                | 9324             |     |     |     |     |     |     | OFF | ON  |
+  |                | 9321             |     |     |     |     |     |     | ON  | ON  |
+  +----------------+------------------+-----+-----+-----+-----+-----+-----+-----+-----+
+
+  +-----------------------------------+-----+-----+-----+-----+-----+-----+-----+-----+
+  | DIP SWITCHES BANK #2              |  1  |  2  |  3  |  4  |  5  |  6  |  7  |  8  |
+  +----------------+------------------+-----+-----+-----+-----+-----+-----+-----+-----+
+  | BONUS PAY %    | 1.0 %            | OFF | OFF | OFF |     |     |     |     |     |
+  |                | 1.2 %            | ON  | OFF | OFF |     |     |     |     |     |
+  |                | 3.3 %            | OFF | ON  | OFF |     |     |     |     |     |
+  |                | 4.0 %            | ON  | ON  | OFF |     |     |     |     |     |
+  |                | 5.0 %            | OFF | OFF | ON  |     |     |     |     |     |
+  |                | 6.2 %            | ON  | OFF | ON  |     |     |     |     |     |
+  |                | 8.0 %            | OFF | ON  | ON  |     |     |     |     |     |
+  |                | 10.0 %           | ON  | ON  | ON  |     |     |     |     |     |
+  +----------------+-----+------------+-----+-----+-----+-----+-----+-----+-----+-----+
+  | INTERNAL PROGRESSIVE | ON         |     |     |     | OFF |     |     |     |     |
+  |                      | OFF        |     |     |     | ON  |     |     |     |     |
+  +----------------+-----+------------+-----+-----+-----+-----+-----+-----+-----+-----+
+  | NOT USED       |                  |     |     |     |     | OFF | OFF | OFF | OFF |
+  +----------------+------------------+-----+-----+-----+-----+-----+-----+-----+-----+
+
+  +-----------------------------------+-----+-----+-----+-----+-----+-----+-----+-----+
+  | DIP SWITCHES BANK #3              |  1  |  2  |  3  |  4  |  5  |  6  |  7  |  8  |
+  +------------------+----------------+-----+-----+-----+-----+-----+-----+-----+-----+
+  | MAXIMUM BET      | 8              | OFF | OFF |     |     |     |     |     |     |
+  |                  | 16             | ON  | OFF |     |     |     |     |     |     |
+  |                  | 32             | OFF | ON  |     |     |     |     |     |     |
+  |                  | 64             | ON  | ON  |     |     |     |     |     |     |
+  +------------------+----------------+-----+-----+-----+-----+-----+-----+-----+-----+
+  | COIN IN-TIME OUT | OFF            |     |     | OFF |     |     |     |     |     |
+  |                  | ON             |     |     | ON  |     |     |     |     |     |
+  +------------------+----------------+-----+-----+-----+-----+-----+-----+-----+-----+
+  | DEMONATION       | $1.00          |     |     |     | OFF | OFF | OFF |     |     |
+  |                  | 50 CENTS       |     |     |     | ON  | OFF | OFF |     |     |
+  |                  | 25 CENTS       |     |     |     | OFF | ON  | OFF |     |     |
+  |                  | 10 CENTS       |     |     |     | ON  | ON  | OFF |     |     |
+  |                  | 5 CENTS        |     |     |     | OFF | OFF | ON  |     |     |
+  +------------------+----------------+-----+-----+-----+-----+-----+-----+-----+-----+
+  | PROGRESSIVE SIGN | OFF            |     |     |     |     |     |     | OFF | OFF |
+  |                  | SINGLE LEVEL   |     |     |     |     |     |     | ON  | OFF |
+  |                  | MULTI-LEVEL    |     |     |     |     |     |     | OFF | ON  |
+  |                  | TEST MODE      |     |     |     |     |     |     | ON  | ON  |
+  +------------------+----------------+-----+-----+-----+-----+-----+-----+-----+-----+
+
+  +-----------------------------------+-----+-----+-----+-----+-----+-----+-----+-----+
+  | DIP SWITCHES BANK #4              |  1  |  2  |  3  |  4  |  5  |  6  |  7  |  8  |
+  +------------------+----------------+-----+-----+-----+-----+-----+-----+-----+-----+
+  | BUTTON LOCKOUT   | OFF            | OFF |     |     |     |     |     |     |     |
+  |                  | ON             | ON  |     |     |     |     |     |     |     |
+  +------------------+----------------+-----+-----+-----+-----+-----+-----+-----+-----+
+  | LOCKOUT POLARITY | ACTIVE HIGH    |     | OFF |     |     |     |     |     |     |
+  |                  | ACTIVE LOW     |     | ON  |     |     |     |     |     |     |
+  +------------------+----------------+-----+-----+-----+-----+-----+-----+-----+-----+
+  | PRINTER TYPE     | EPSON 276A     |     |     | OFF | OFF |     |     |     |     |
+  |                  | STAR 300       |     |     | ON  | OFF |     |     |     |     |
+  |                  | ITHACA 75      |     |     | OFF | ON  |     |     |     |     |
+  |                  | CITIZEN 3541   |     |     | ON  | ON  |     |     |     |     |
+  +------------------+----------------+-----+-----+-----+-----+-----+-----+-----+-----+
+  | PAPER LOW SENSOR | OFF            |     |     |     |     | OFF | OFF | OFF | OFF |
+  |                  | ON             |     |     |     |     | ON  | OFF | OFF | OFF |
+  +------------------+----------------+-----+-----+-----+-----+-----+-----+-----+-----+
+ 
+
+  NOTE: Set bill validator DIP switches for 1 pulse per dollar. When you choose the
+        demonation with the DIP switch on the board, the software will know how many
+        credits to give per dollar.
+
+
+  Pay Table Diagram: (Set With DIP Switches Bank #1, numbers 7 & 8)
+
+
+  --- 9323 ---
+
+  3 Flaming Sevens    75 for 1
+  3 Sevens            40 for 1
+  9 Bars              15 for 1
+  6 Bars              12 for 1
+  3 Bars              10 for 1
+  3 Cherries          08 for 1
+  2 Cherries          05 for 1
+  1 Cherries          02 for 1
+
+  With 8 or more Bet:
+
+  9 of any one = 1000 for 1
+  8 of any one =  500 for 1
+  7 of any one =  100 for 1
+
+  If Cherry Bonus is on 5 or more Cherries, Pays Bonus.
+
+
+  --- 9324 ---
+
+  3 Flaming Sevens    75 for 1
+  3 Sevens            40 for 1
+  9 Bars              15 for 1
+  6 Bars              12 for 1
+  3 Bars              10 for 1
+  3 Cherries          08 for 1
+  2 Cherries          04 for 1
+  1 Cherries          01 for 1
+
+  With 8 or more Bet:
+
+  9 of any one = 5000 for 1
+  8 of any one = 2500 for 1
+  7 of any one =  500 for 1
+
+  If Cherry Bonus is on 5 or more Cherries, Pays Bonus.
+
+
+  --- 9321 ---
+
+  3 Flaming Sevens    75 for 1
+  3 Sevens            40 for 1
+  9 Bars              15 for 1
+  6 Bars              12 for 1
+  3 Bars              10 for 1
+  3 Cherries          08 for 1
+  2 Cherries          05 for 1
+  1 Cherries          02 for 1
+
+  With 8 or more Bet:
+
+  9 of any one = 3000 for 1
+  8 of any one = 1500 for 1
+  7 of any one =  300 for 1
+
+  If Cherry Bonus is on 5 or more Cherries, Pays Bonus.
+
+
+  --- 9322 ---
+
+  3 Flaming Sevens   100 for 1
+  3 Sevens            50 for 1
+  9 Bars              18 for 1
+  6 Bars              14 for 1
+  3 Bars              10 for 1
+  3 Cherries          10 for 1
+  2 Cherries          05 for 1
+  1 Cherries          02 for 1
+
+  With 8 or more Bet:
+
+  9 of any one = 1000 for 1
+  8 of any one =  500 for 1
+  7 of any one =  100 for 1
+
+  If Cherry Bonus is on 5 or more Cherries, Pays Bonus.
+
+  -------------------------------------------------------------------------
+
+        CYBERDYNE 72 PIN GAME LOGIC CONNECTOR
+
+            Parts Side |  |  | Solder Side
+        ---------------+--+--+---------------
+             Red Video |01|37| Green Video
+            Blue Video |02|38| Video Sync
+            Speaker (+)|03|39| Speaker Ground
+                       |04|40|
+                       |05|41|
+                       |06|42|
+          Drop Door SW |07|43| Change SW
+         Logic Door SW |08|44| Main Door SW
+          Start Switch |09|45|
+            Low Switch |10|46|
+    Play Credit Switch |11|47|
+     Take Score Switch |12|48|
+      Double Up Switch |13|49|
+           High Switch |14|50|
+           Button Lock |15|51|
+                       |16|52|
+                       |17|53|
+         (DBA) Inuput0 |18|54| Coin Switch “A”
+       Coin Switch “B” |19|55|
+   Book Keeping Switch |20|56| Stats / Setup SW
+            Collect SW |21|57|
+    Hopper Full Switch |22|58|
+       Counter Out “A” |23|59|
+                  Bell |24|60| Lockout mars (DBA)
+            Tower Lamp |25|61|
+       Counter Out “D” |26|62|
+          Played Meter |27|63| Lack of Hopper Counter
+  Count down Meter Out |28|64|
+            Start Lamp |29|65|
+              Low Lamp |30|66| Collect Lamp
+      Play Credit Lamp |31|67| Progressive Link
+       Take Score Lamp |32|68|
+        Double Up Lamp |33|69| TXD
+             High Lamp |34|70|
+                       |35|71|
+        Switch Grounds |36|72| Switch Grounds
+                       +--+--+
+
+
+           20 Pin Game PCB Power Connector
+
+            Parts Side |  |  | Solder Side
+        ---------------+--+--+---------------
+          Logic Ground |01|11| Logic Ground
+          Logic Ground |02|12| Logic Ground
+                +5 VDC |03|13|
+                +5 VDC |04|14| +5 VDC
+               +12 VDC |05|15| +12 VDC
+                       |06|16|
+                       |07|17|
+                       |08|18|
+          Logic Ground |09|19| Logic Ground
+          Logic Ground |10|20| Logic Ground
+                       +--+--+
+
+  -------------------------------------------------------------------------
+
+  Cyberdyne Printer Harness (Flaming 7)
+  -------------------------------------
+
+                         +12V.----+----+
+                                  |    |
+                                  Z    Z
+                                  Z    Z  470 ohm 1/4 watt resistors
+                                  Z    Z
+                                  |    |
+  PCB Pin 69 Solder Side (TXD) ---+----|---- DB25 pin 3 (received data)
+                                       |
+                                       +---- DB25 pin 6
+
+  PCB Pin 22 Parts Side -------------------- DB25 pins 1 & 7 (Single & Safety)
+
+  PCB Pin 35 Parts Side -------------------- DB25 pin 20 (Printer Busy Signal)
+
+
+  DIP Switches settings for Citizen Printer:
+
+  Model # 3551
+  DIP SW #1 = 5, 7, 9, 10 OFF.
+  DIP SW #2 = 5, 7, 8, OFF.
+
+  -------------------------------------------------------------------------
+
   Tech Notes:
 
   W-4 PCB type has some hacks...
@@ -14116,11 +14649,34 @@ ROM_END
 
   3) Z80 /INT line (pin 16) is out of socket and wired to a 74161.
 
-*/
+
+  Custom Hardware Notes:
+
+  GFX Bank 1 (chars and BG graphics) is colors-accurate.
+  GFX Bank 2 needs some work...
+
+  Seems that there is an extra layer for the bonus graphics.
+  This graphic is taken from Bank 2, and is the "representative"
+  for the chosen gfx set.
+  
+  Code writes the bonus graphics at 9A80-9A89, and the "reel scroll"
+  at B0C0-B0FF... 
+
+  Tileset:
+  Reels GFX 1: 00-00-01-02-03-04-05-06-07-00
+  Reels GFX 2: 00-5A-5B-5C-5D-5E-5F-60-61-00
+  Reels GFX 3: 9F-A0-A1-A2-A3-A4-A5-A6-A7-A8
+  Reels GFX 4: E7-E8-E9-EA-EB-EC-ED-EE-EF-F0
+
+  ...and written 0x10 at B0C0-B0FF.
+
+*******************************************************************************************/
 
 /*
   Flaming 7
   Cyberdyne Systems, Inc.
+
+  W4 hardware.
 
   GFX sets:
   1) Red, White & Blue 7's
@@ -14164,6 +14720,164 @@ ROM_START( fl7_3121 )  // Red, White & Blue 7's + Hollywood Nights. Serial 7D063
 
 	ROM_REGION(0x8, "fl7w4_id", 0)     /* Electronic Serial DS2401 */
 	ROM_LOAD( "ds2401.bin", 0x0000, 0x0008, CRC(b7078792) SHA1(f9eba1587b65ed9bc07ea6c4b2d393fb43f60659) ) // Hand built to match our ROM set
+
+ROM_END
+
+/*
+  Flaming 7's
+  Cyberdyne Systems.
+
+  Main - 50.
+  Custom Hardware.
+
+*/  
+ROM_START( fl7_50 )  // Serial 00000069A1C9.
+	ROM_REGION( 0x8000, "maincpu", 0 )
+	ROM_LOAD( "50-main.u22",  0x0000, 0x8000, CRC(e097e317) SHA1(a903144cc2290b7e22045490784b592adbf9ba97) )
+
+	ROM_REGION( 0x20000, "gfx1", 0 )
+	ROM_LOAD( "27c1001.u6",  0x00000, 0x20000, CRC(00eac3c1) SHA1(1a955f8bc044e17f0885b4b126a66d7ad191e410) )
+
+	ROM_REGION( 0x8000, "gfx2", 0 )
+	ROM_LOAD( "27c256.u3",   0x0000, 0x8000, CRC(cfc8f3e2) SHA1(7dd72e3ffb0904776f3c07635b953e72f4c63068) )
+
+	/* Proper bipolar PROM dump */
+	ROM_REGION( 0x200, "proms", 0 )
+	ROM_LOAD( "am27s29.u1", 0x0000, 0x0100, CRC(3fe7e369) SHA1(cf4ae287cb58581a4bf9e9ff1994426461fb38cc) )
+	ROM_CONTINUE(           0x0000, 0x0100)  // palette data is stored in the second half.
+
+	ROM_REGION( 0x20, "proms2", 0 )
+	ROM_LOAD( "dummy", 0x0000, 0x0020, NO_DUMP )
+
+	ROM_REGION(0x8, "fl7w4_id", 0)     /* Electronic Serial */
+	ROM_LOAD( "eserial.bin", 0x0000, 0x0008, NO_DUMP ) // Hand built to match our ROM set
+
+ROM_END
+
+
+/*
+  Flaming 7's
+  Cyberdyne Systems.
+
+  Main - 500.
+  Custom Hardware.
+
+*/  
+ROM_START( fl7_500 )  // Serial 000000125873.
+	ROM_REGION( 0x8000, "maincpu", 0 )
+	ROM_LOAD( "500-main.u22",  0x0000, 0x8000, CRC(e2c82c67) SHA1(951b0044de9b6104f51aa5a3176d0ea475415f7c) )
+
+	ROM_REGION( 0x20000, "gfx1", 0 )
+	ROM_LOAD( "27c1001.u6",  0x00000, 0x20000, CRC(00eac3c1) SHA1(1a955f8bc044e17f0885b4b126a66d7ad191e410) )
+
+	ROM_REGION( 0x8000, "gfx2", 0 )
+	ROM_LOAD( "27c256.u3",   0x0000, 0x8000, CRC(4e3bd980) SHA1(202d3135da7ab435f487943079d88b170dc10955) )
+
+	/* Proper bipolar PROM dump */
+	ROM_REGION( 0x200, "proms", 0 )
+	ROM_LOAD( "am27s29.u1", 0x0000, 0x0100, CRC(3fe7e369) SHA1(cf4ae287cb58581a4bf9e9ff1994426461fb38cc) )
+	ROM_CONTINUE(           0x0000, 0x0100)  // palette data is stored in the second half.
+
+	ROM_REGION( 0x20, "proms2", 0 )
+	ROM_LOAD( "dummy", 0x0000, 0x0020, NO_DUMP )
+
+	ROM_REGION(0x8, "fl7w4_id", 0)     /* Electronic Serial */
+	ROM_LOAD( "eserial.bin",  0x0000, 0x0008, NO_DUMP ) // Hand built to match our ROM set
+
+ROM_END
+
+
+/*
+  Flaming 7's
+  Cyberdyne Systems.
+
+  Main - 2000.
+  Custom Hardware.
+
+*/  
+ROM_START( fl7_2000 )  // Serial 00000063A47F.
+	ROM_REGION( 0x8000, "maincpu", 0 )
+	ROM_LOAD( "2000_main_27c256.u22",  0x0000, 0x8000, CRC(9659b045) SHA1(801b6733b70b35de65cd8faba6814fa013c05ad0) )
+
+	ROM_REGION( 0x20000, "gfx1", 0 )
+	ROM_LOAD( "m27c1001.u6",  0x00000, 0x20000, CRC(5a2157bb) SHA1(2b170102caf1224df7a6d33bb84d19114f453d89) )
+
+	ROM_REGION( 0x8000, "gfx2", 0 )
+	ROM_LOAD( "27c256.u3",   0x0000, 0x8000, CRC(cfc8f3e2) SHA1(7dd72e3ffb0904776f3c07635b953e72f4c63068) )
+
+	/* Proper bipolar PROM dump */
+	ROM_REGION( 0x200, "proms", 0 )
+	ROM_LOAD( "am27s29.u1", 0x0000, 0x0100, CRC(3fe7e369) SHA1(cf4ae287cb58581a4bf9e9ff1994426461fb38cc) )
+	ROM_CONTINUE(           0x0000, 0x0100)  // palette data is stored in the second half.
+
+	ROM_REGION( 0x20, "proms2", 0 )
+	ROM_LOAD( "dummy", 0x0000, 0x0020, NO_DUMP )
+
+	ROM_REGION(0x8, "fl7w4_id", 0)     /* Electronic Serial */
+	ROM_LOAD( "eserial.bin", 0x0000, 0x0008, NO_DUMP ) // Hand built to match our ROM set
+
+ROM_END
+
+
+/*
+  Flaming 7's
+  Cyberdyne Systems.
+
+  2000 Bonus. Egyptian Gold.
+  Custom Hardware.
+
+*/  
+ROM_START( fl7_2k16 )  // Serial 000000743111.
+	ROM_REGION( 0x8000, "maincpu", 0 )
+	ROM_LOAD( "2000_bonus_27c256.u22",  0x0000, 0x8000, CRC(290c37b0) SHA1(a90093d2139fd5ca261870298c2d84648f14e6bc) )
+
+	ROM_REGION( 0x20000, "gfx1", 0 )
+	ROM_LOAD( "egyptian_gold_m27c1001.u6", 0x00000, 0x20000, CRC(5a2157bb) SHA1(2b170102caf1224df7a6d33bb84d19114f453d89) )
+
+	ROM_REGION( 0x8000, "gfx2", 0 )
+	ROM_LOAD( "egyptian_gold_27c256.u3",   0x0000, 0x8000, CRC(11241dae) SHA1(7197813304623c022dc37aa603c0cb067c8bf1fd) )
+
+	/* Bipolar PROM dump borrowed from main sets */
+	ROM_REGION( 0x200, "proms", 0 )
+	ROM_LOAD( "am27s29.u1", 0x0000, 0x0100, CRC(3fe7e369) SHA1(cf4ae287cb58581a4bf9e9ff1994426461fb38cc) )
+	ROM_CONTINUE(           0x0000, 0x0100)  // palette data is stored in the second half.
+
+	ROM_REGION( 0x20, "proms2", 0 )
+	ROM_LOAD( "dummy", 0x0000, 0x0020, NO_DUMP )
+
+	ROM_REGION(0x8, "fl7w4_id", 0)     /* Electronic Serial */
+	ROM_LOAD( "eserial.bin", 0x0000, 0x0008, NO_DUMP ) // Hand built to match our ROM set
+
+ROM_END
+
+
+/*
+  Flaming 7's (unknown version)
+  Taiwanese Hardware.
+
+  Needs proper graphics ROM decryption and gfxdecode...
+
+*/  
+ROM_START( fl7_tw )  // Serial 00000050E9B7.
+	ROM_REGION( 0x10000, "maincpu", 0 )
+	ROM_LOAD( "27c512_tw.u20",  0x0000, 0x10000, CRC(50927a1b) SHA1(2557069f497b23f13978294f3ac108229d9db544) )  // identical halves.
+
+	ROM_REGION( 0x20000, "gfx1", 0 )
+	ROM_LOAD( "m27c1001_tw.u1", 0x00000, 0x20000, CRC(e6099723) SHA1(31e73a81166dd0d50d51ead38d348e36018d0698) )
+
+	ROM_REGION( 0x8000, "gfx2", 0 )
+	ROM_LOAD( "27c256_tw.u3",   0x0000, 0x8000, CRC(7f163639) SHA1(607aa1e7d15423409bb2cd49895502dc2e4b3e46) )
+
+	/* Bipolar PROM dump borrowed from main sets */
+	ROM_REGION( 0x200, "proms", 0 )
+	ROM_LOAD( "am27s29.u1", 0x0000, 0x0100, CRC(3fe7e369) SHA1(cf4ae287cb58581a4bf9e9ff1994426461fb38cc) )
+	ROM_CONTINUE(           0x0000, 0x0100)  // palette data is stored in the second half.
+
+	ROM_REGION( 0x20, "proms2", 0 )
+	ROM_LOAD( "dummy", 0x0000, 0x0020, NO_DUMP )
+
+	ROM_REGION(0x8, "fl7w4_id", 0)     /* Electronic Serial */
+	ROM_LOAD( "eserial.bin", 0x0000, 0x0008, NO_DUMP ) // Hand built to match our ROM set
 
 ROM_END
 
@@ -14312,7 +15026,7 @@ DRIVER_INIT_MEMBER(cb3_state, chrygld)
 	dump_to_file(ROM);
 }
 
-DRIVER_INIT_MEMBER(cmaster_state,cm)
+DRIVER_INIT_MEMBER(cmaster_state, cm)
 {
 	UINT8 *ROM = memregion("maincpu")->base();
 
@@ -14334,7 +15048,7 @@ DRIVER_INIT_MEMBER(cmaster_state, cmv4)
 	ROM[0x020d] = 0x9b;
 }
 
-DRIVER_INIT_MEMBER(goldstar_state,cmast91)
+DRIVER_INIT_MEMBER(goldstar_state, cmast91)
 {
 	UINT8 *ROM = memregion("maincpu")->base();
 
@@ -14815,6 +15529,31 @@ DRIVER_INIT_MEMBER(goldstar_state, wcherry)
 	}
 }
 
+/*
+  Flaming 7's
+  Cyberdyne Systems.
+  
+  Original custom hardware graphics decryption.
+
+*/
+DRIVER_INIT_MEMBER(wingco_state, flaming7)
+{
+/*  bank 1 graphics */
+	int i;
+	UINT8 *src = memregion("gfx1")->base();
+	for (i = 0; i < 0x20000; i++)
+	{
+		src[i] = BITSWAP8(src[i], 4, 3, 2, 5, 1, 6, 0, 7);      // OK
+	}
+
+/*  bank 2 graphics */
+	UINT8 *src2 = memregion("gfx2")->base();
+	for (i = 0; i < 0x8000; i++)
+	{
+		src2[i] = BITSWAP8(src2[i], 3, 4, 2, 5, 1, 6, 0, 7);    // OK
+	}
+}
+
 
 /*********************************************
 *                Game Drivers                *
@@ -14912,7 +15651,12 @@ GAMEL( 1993, bingownga, bingowng, bingownga,bingownga,driver_device,  0,        
 
 
 // --- Flaming 7's hardware (W-4 derivative) ---
-GAME(  199?, fl7_3121,  0,        flaming7, flaming7, driver_device,  0,         ROT0, "Cyberdyne Systems", "Flaming 7 (Red, White & Blue 7's + Hollywood Nights)",     0 )
+GAME(  199?, fl7_3121,  0,        flam7_w4, flam7_w4, driver_device,  0,         ROT0, "Cyberdyne Systems", "Flaming 7 (W4 Hardware, Red, White & Blue 7's + Hollywood Nights)",          0 )
+GAME(  199?, fl7_50,    0,        flaming7, flaming7, wingco_state,   flaming7,  ROT0, "Cyberdyne Systems", "Flaming 7 (Custom Hardware, Main, 50 Bonus)",              MACHINE_NOT_WORKING )
+GAME(  199?, fl7_500,   fl7_50,   flaming7, flaming7, wingco_state,   flaming7,  ROT0, "Cyberdyne Systems", "Flaming 7 (Custom Hardware, Main, 500 Bonus)",             MACHINE_NOT_WORKING )
+GAME(  199?, fl7_2000,  fl7_50,   flaming7, flaming7, wingco_state,   flaming7,  ROT0, "Cyberdyne Systems", "Flaming 7 (Custom Hardware, Main, 2000 Bonus)",            MACHINE_NOT_WORKING )
+GAME(  199?, fl7_2k16,  fl7_50,   flaming7, flaming7, wingco_state,   flaming7,  ROT0, "Cyberdyne Systems", "Flaming 7 (Custom Hardware, Egyptian Gold, 2000 Bonus)",   MACHINE_NOT_WORKING )
+GAME(  199?, fl7_tw,    fl7_50,   flam7_tw, flaming7, driver_device,  0,         ROT0, "Cyberdyne Systems", "Flaming 7 (Taiwanese Hardware, unknown version)",          MACHINE_NOT_WORKING )  // needs proper gfx roms decryption.
 
 
 // --- Wing W-8 hardware ---
@@ -14989,12 +15733,13 @@ GAME( 1996, cherry96, scmaster,  unkch,    unkch4,    unkch_state,    unkch4,   
 /* Stealth sets.
    These have hidden games inside that can be switched to avoid inspections, police or whatever purposes)... */
 
-/*    YEAR  NAME       PARENT    MACHINE   INPUT     STATE           INIT     ROT    COMPANY                FULLNAME                                                 FLAGS                  LAYOUT    */
-GAMEL( 198?, cmpacman, 0,        cm,       cmpacman, cmaster_state,  cm,      ROT0, "<unknown>",           "Super Pacman (v1.2) + Cherry Master (Corsica, v8.31)",   0,                     layout_cmpacman ) // need to press K to switch between games...
-GAMEL( 198?, cmtetris, 0,        cm,       cmtetris, cmaster_state,  cm,      ROT0, "<unknown>",           "Tetris + Cherry Master (Corsica, v8.01, set 1)",         0,                     layout_cmpacman ) // need to press K/L to switch between games...
-GAMEL( 198?, cmtetrsa, 0,        cm,       cmtetris, cmaster_state,  cm,      ROT0, "<unknown>",           "Tetris + Cherry Master (Corsica, v8.01, set 2)",         MACHINE_NOT_WORKING,      layout_cmpacman ) // seems banked...
-GAMEL( 198?, cmtetrsb, 0,        cm,       cmtetris, cmaster_state,  cm,      ROT0, "<unknown>",           "Tetris + Cherry Master (+K, Canada Version, encrypted)", MACHINE_NOT_WORKING,      layout_cmpacman ) // different Tetris game. press insert to throttle and see the attract running.
-GAMEL( 1997, crazybon, 0,        pkrmast,  crazybon, driver_device,  0,       ROT0, "bootleg (Crazy Co.)", "Crazy Bonus 2002",                                       MACHINE_IMPERFECT_COLORS, layout_crazybon ) // Windows ME desktop... but not found the way to switch it.
+/*    YEAR  NAME        PARENT    MACHINE   INPUT     STATE           INIT     ROT    COMPANY                FULLNAME                                                      FLAGS                     LAYOUT    */
+GAMEL( 198?, cmpacman,  0,        cm,       cmpacman, cmaster_state,  cm,      ROT0, "<unknown>",           "Super Pacman (v1.2) + Cherry Master (Corsica, v8.31, set 1)", 0,                        layout_cmpacman ) // need to press K to switch between games...
+GAMEL( 198?, cmpacmana, cmpacman, cm,       cmpacman, cmaster_state,  cm,      ROT0, "<unknown>",           "Super Pacman (v1.2) + Cherry Master (Corsica, v8.31, set 2)", 0,                        layout_cmpacman ) // need to press K to switch between games...
+GAMEL( 198?, cmtetris,  0,        cm,       cmtetris, cmaster_state,  cm,      ROT0, "<unknown>",           "Tetris + Cherry Master (Corsica, v8.01, set 1)",              0,                        layout_cmpacman ) // need to press K/L to switch between games...
+GAMEL( 198?, cmtetrsa,  0,        cm,       cmtetris, cmaster_state,  cm,      ROT0, "<unknown>",           "Tetris + Cherry Master (Corsica, v8.01, set 2)",              MACHINE_NOT_WORKING,      layout_cmpacman ) // seems banked...
+GAMEL( 198?, cmtetrsb,  0,        cm,       cmtetris, cmaster_state,  cm,      ROT0, "<unknown>",           "Tetris + Cherry Master (+K, Canada Version, encrypted)",      MACHINE_NOT_WORKING,      layout_cmpacman ) // different Tetris game. press insert to throttle and see the attract running.
+GAMEL( 1997, crazybon,  0,        pkrmast,  crazybon, driver_device,  0,       ROT0, "bootleg (Crazy Co.)", "Crazy Bonus 2002",                                            MACHINE_IMPERFECT_COLORS, layout_crazybon ) // Windows ME desktop... but not found the way to switch it.
 
 /* other possible stealth sets:
  - cmv4a    ---> see the 1fxx zone. put a bp in 1f9f to see the loop.

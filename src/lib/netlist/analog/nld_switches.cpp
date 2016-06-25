@@ -15,7 +15,6 @@ namespace netlist
 {
 	namespace devices
 	{
-
 // ----------------------------------------------------------------------------------------
 // SWITCH
 // ----------------------------------------------------------------------------------------
@@ -27,7 +26,7 @@ NETLIB_RESET(switch1)
 
 NETLIB_UPDATE(switch1)
 {
-	if (m_POS.Value() == 0)
+	if (!m_POS.Value())
 	{
 		m_R.set_R(R_OFF);
 	}
@@ -57,7 +56,7 @@ NETLIB_RESET(switch2)
 
 NETLIB_UPDATE(switch2)
 {
-	if (m_POS.Value() == 0)
+	if (!m_POS.Value())
 	{
 		m_R1.set_R(R_ON);
 		m_R2.set_R(R_OFF);

@@ -13,7 +13,6 @@ namespace netlist
 {
 	namespace devices
 	{
-
 	NETLIB_OBJECT(9316_subABCD)
 	{
 		NETLIB_CONSTRUCTOR(9316_subABCD)
@@ -33,7 +32,7 @@ namespace netlist
 		logic_input_t m_C;
 		logic_input_t m_D;
 
-		inline UINT8 read_ABCD() const
+		uint_fast8_t read_ABCD() const
 		{
 			//return (INPLOGIC_PASSIVE(m_D) << 3) | (INPLOGIC_PASSIVE(m_C) << 2) | (INPLOGIC_PASSIVE(m_B) << 1) | (INPLOGIC_PASSIVE(m_A) << 0);
 			return (INPLOGIC(m_D) << 3) | (INPLOGIC(m_C) << 2) | (INPLOGIC(m_B) << 1) | (INPLOGIC(m_A) << 0);
@@ -44,30 +43,35 @@ namespace netlist
 	{
 		NETLIB_CONSTRUCTOR(9316_sub)
 		, m_CLK(*this, "CLK")
+		, m_cnt(*this, "m_cnt", 0)
+		, m_loadq(*this, "m_loadq", 0)
+		, m_ent(*this, "m_ent", 0)
 		, m_QA(*this, "QA")
 		, m_QB(*this, "QB")
 		, m_QC(*this, "QC")
 		, m_QD(*this, "QD")
 		, m_RC(*this, "RC")
-		, m_cnt(0)
 		, m_ABCD(nullptr)
-		, m_loadq(0)
-		, m_ent(0)
 		{
-
-			save(NLNAME(m_cnt));
-			save(NLNAME(m_loadq));
-			save(NLNAME(m_ent));
 		}
 
 		NETLIB_RESETI();
 		NETLIB_UPDATEI();
 
 	public:
-		inline void update_outputs_all(const UINT8 cnt, const netlist_time out_delay);
-		inline void update_outputs(const UINT8 cnt);
+		void update_outputs_all(const uint_fast8_t cnt, const netlist_time out_delay)
+		{
+			OUTLOGIC(m_QA, (cnt >> 0) & 1, out_delay);
+			OUTLOGIC(m_QB, (cnt >> 1) & 1, out_delay);
+			OUTLOGIC(m_QC, (cnt >> 2) & 1, out_delay);
+			OUTLOGIC(m_QD, (cnt >> 3) & 1, out_delay);
+		}
 
 		logic_input_t m_CLK;
+
+		state_var_u8 m_cnt;
+		state_var_u8 m_loadq;
+		state_var_u8 m_ent;
 
 		logic_output_t m_QA;
 		logic_output_t m_QB;
@@ -75,10 +79,7 @@ namespace netlist
 		logic_output_t m_QD;
 		logic_output_t m_RC;
 
-		UINT8 m_cnt;
 		NETLIB_NAME(9316_subABCD) *m_ABCD;
-		netlist_sig_t m_loadq;
-		netlist_sig_t m_ent;
 	};
 
 	NETLIB_OBJECT(9316)
@@ -175,7 +176,7 @@ namespace netlist
 					break;
 				default:
 					m_cnt++;
-					update_outputs(m_cnt);
+					update_outputs_all(m_cnt, NLTIME_FROM_NS(20));
 					break;
 			}
 		}
@@ -211,58 +212,6 @@ namespace netlist
 		}
 	}
 
-	inline NETLIB_FUNC_VOID(9316_sub, update_outputs_all, (const UINT8 cnt, const netlist_time out_delay))
-	{
-		OUTLOGIC(m_QA, (cnt >> 0) & 1, out_delay);
-		OUTLOGIC(m_QB, (cnt >> 1) & 1, out_delay);
-		OUTLOGIC(m_QC, (cnt >> 2) & 1, out_delay);
-		OUTLOGIC(m_QD, (cnt >> 3) & 1, out_delay);
-	}
-
-	inline NETLIB_FUNC_VOID(9316_sub, update_outputs, (const UINT8 cnt))
-	{
-		/* static */ const netlist_time out_delay = NLTIME_FROM_NS(20);
-	#if 0
-	//    for (int i=0; i<4; i++)
-	//        OUTLOGIC(m_Q[i], (cnt >> i) & 1, delay[i]);
-		OUTLOGIC(m_QA, (cnt >> 0) & 1, out_delay);
-		OUTLOGIC(m_QB, (cnt >> 1) & 1, out_delay);
-		OUTLOGIC(m_QC, (cnt >> 2) & 1, out_delay);
-		OUTLOGIC(m_QD, (cnt >> 3) & 1, out_delay);
-	#else
-		if ((cnt & 1) == 1)
-			OUTLOGIC(m_QA, 1, out_delay);
-		else
-		{
-			OUTLOGIC(m_QA, 0, out_delay);
-			switch (cnt)
-			{
-			case 0x00:
-				OUTLOGIC(m_QB, 0, out_delay);
-				OUTLOGIC(m_QC, 0, out_delay);
-				OUTLOGIC(m_QD, 0, out_delay);
-				break;
-			case 0x02:
-			case 0x06:
-			case 0x0A:
-			case 0x0E:
-				OUTLOGIC(m_QB, 1, out_delay);
-				break;
-			case 0x04:
-			case 0x0C:
-				OUTLOGIC(m_QB, 0, out_delay);
-				OUTLOGIC(m_QC, 1, out_delay);
-				break;
-			case 0x08:
-				OUTLOGIC(m_QB, 0, out_delay);
-				OUTLOGIC(m_QC, 0, out_delay);
-				OUTLOGIC(m_QD, 1, out_delay);
-				break;
-			}
-
-		}
-	#endif
-	}
 
 	NETLIB_DEVICE_IMPL(9316)
 	NETLIB_DEVICE_IMPL(9316_dip)

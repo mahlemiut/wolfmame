@@ -197,9 +197,9 @@ image_error_t device_image_interface::set_image_filename(const char *filename)
 
 const image_device_format *device_image_interface::device_get_named_creatable_format(const char *format_name)
 {
-	for (const image_device_format &format : m_formatlist)
-		if (strcmp(format.name(), format_name) == 0)
-			return &format;
+	for (auto &format : m_formatlist)
+		if (strcmp(format->name(), format_name) == 0)
+			return format.get();
 	return nullptr;
 }
 
@@ -295,24 +295,23 @@ void device_image_interface::message(const char *format, ...)
 -------------------------------------------------*/
 bool device_image_interface::try_change_working_directory(const char *subdir)
 {
-	osd_directory *directory;
-	const osd_directory_entry *entry;
-	bool success = FALSE;
-	bool done = FALSE;
+	const osd::directory::entry *entry;
+	bool success = false;
+	bool done = false;
 
-	directory = osd_opendir(m_working_directory.c_str());
-	if (directory != nullptr)
+	auto directory = osd::directory::open(m_working_directory.c_str());
+	if (directory)
 	{
-		while(!done && (entry = osd_readdir(directory)) != nullptr)
+		while (!done && (entry = directory->read()) != nullptr)
 		{
 			if (!core_stricmp(subdir, entry->name))
 			{
-				done = TRUE;
-				success = entry->type == ENTTYPE_DIR;
+				done = true;
+				success = entry->type == osd::directory::entry::entry_type::DIR;
 			}
 		}
 
-		osd_closedir(directory);
+		directory.reset();
 	}
 
 	/* did we successfully identify the directory? */
@@ -1096,7 +1095,16 @@ bool device_image_interface::finish_load()
 
 bool device_image_interface::create(const char *path, const image_device_format *create_format, option_resolution *create_args)
 {
-	int format_index = (create_format != nullptr) ? m_formatlist.indexof(*create_format) : 0;
+	int format_index = 0;
+	int cnt = 0;
+	for (auto &format : m_formatlist)
+	{
+		if (create_format == format.get()) {
+			format_index = cnt;
+			break;
+		}
+		cnt++;
+	}
 	return load_internal(path, TRUE, format_index, create_args, FALSE);
 }
 

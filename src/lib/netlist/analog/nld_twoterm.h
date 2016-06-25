@@ -98,7 +98,6 @@ namespace netlist
 {
 	namespace devices
 	{
-
 // -----------------------------------------------------------------------------
 // nld_twoterm
 // -----------------------------------------------------------------------------
@@ -311,7 +310,7 @@ private:
 class generic_diode
 {
 public:
-	generic_diode();
+	generic_diode(device_t &dev, pstring name);
 
 	inline void update_diode(const nl_double nVd)
 	{
@@ -360,12 +359,10 @@ public:
 
 	/* owning object must save those ... */
 
-	void save(pstring name, object_t &parent);
-
 private:
-	nl_double m_Vd;
-	nl_double m_Id;
-	nl_double m_G;
+	state_var<nl_double> m_Vd;
+	state_var<nl_double> m_Id;
+	state_var<nl_double> m_G;
 
 	nl_double m_Vt;
 	nl_double m_Is;
@@ -385,11 +382,10 @@ NETLIB_OBJECT_DERIVED(D, twoterm)
 public:
 	NETLIB_CONSTRUCTOR_DERIVED(D, twoterm)
 	, m_model(*this, "MODEL", "")
+	, m_D(*this, "m_D")
 	{
 		register_subalias("A", m_P);
 		register_subalias("K", m_N);
-
-		m_D.save("m_D", *this);
 	}
 
 	NETLIB_DYNAMIC()
@@ -420,7 +416,6 @@ public:
 	, m_R(*this, "R", 0.1)
 	, m_V(*this, "V", 0.0)
 	{
-
 		register_subalias("P", m_P);
 		register_subalias("N", m_N);
 	}

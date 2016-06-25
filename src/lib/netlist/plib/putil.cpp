@@ -41,7 +41,7 @@ namespace plib
 	}
 
 	pstring_vector_t::pstring_vector_t(const pstring &str, const pstring &onstr, bool ignore_empty)
-	: pvector_t<pstring>()
+	: std::vector<pstring>()
 	{
 		int p = 0;
 		int pn;
@@ -64,7 +64,7 @@ namespace plib
 	}
 
 	pstring_vector_t::pstring_vector_t(const pstring &str, const pstring_vector_t &onstrl)
-	: pvector_t<pstring>()
+	: std::vector<pstring>()
 	{
 		pstring col = "";
 
@@ -156,6 +156,3 @@ namespace plib
 		return pstring(buf);
 	}
 } // namespace plib
-
-
-

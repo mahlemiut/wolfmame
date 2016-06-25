@@ -14,14 +14,13 @@
 #include "palloc.h"
 
 namespace plib {
-
 // -----------------------------------------------------------------------------
 // pistream: input stream
 // -----------------------------------------------------------------------------
 
 bool pistream::readline(pstring &line)
 {
-	UINT8 c = 0;
+	char c = 0;
 	pstringbuffer buf;
 	if (!this->read(c))
 	{

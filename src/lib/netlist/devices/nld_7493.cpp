@@ -12,17 +12,14 @@ namespace netlist
 {
 	namespace devices
 	{
-
-
 	NETLIB_OBJECT(7493ff)
 	{
 		NETLIB_CONSTRUCTOR(7493ff)
 		, m_I(*this, "CLK")
 		, m_Q(*this, "Q")
+		, m_reset(*this, "m_reset", 0)
+		, m_state(*this, "m_state", 0)
 		{
-
-			save(NLNAME(m_reset));
-			save(NLNAME(m_state));
 		}
 
 		NETLIB_RESETI();
@@ -32,8 +29,8 @@ namespace netlist
 		logic_input_t m_I;
 		logic_output_t m_Q;
 
-		UINT8 m_reset;
-		UINT8 m_state;
+		state_var_u8 m_reset;
+		state_var_u8 m_state;
 	};
 
 	NETLIB_OBJECT(7493)
@@ -102,8 +99,8 @@ namespace netlist
 
 	NETLIB_UPDATE(7493ff)
 	{
-		const netlist_time out_delay = NLTIME_FROM_NS(18);
-		if (m_reset != 0)
+		constexpr netlist_time out_delay = NLTIME_FROM_NS(18);
+		if (m_reset)
 		{
 			m_state ^= 1;
 			OUTLOGIC(m_Q, m_state, out_delay);

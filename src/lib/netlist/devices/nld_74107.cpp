@@ -11,21 +11,16 @@ namespace netlist
 {
 	namespace devices
 	{
-
 	NETLIB_OBJECT(74107Asub)
 	{
 		NETLIB_CONSTRUCTOR(74107Asub)
 		, m_clk(*this, "CLK")
 		, m_Q(*this, "Q")
 		, m_QQ(*this, "QQ")
-		, m_Q1(0)
-		, m_Q2(0)
-		, m_F(0)
-
+		, m_Q1(*this, "m_Q1", 0)
+		, m_Q2(*this, "m_Q2", 0)
+		, m_F(*this, "m_F", 0)
 		{
-			save(NLNAME(m_Q1));
-			save(NLNAME(m_Q2));
-			save(NLNAME(m_F));
 		}
 
 		NETLIB_RESETI();
@@ -37,9 +32,9 @@ namespace netlist
 		logic_output_t m_Q;
 		logic_output_t m_QQ;
 
-		netlist_sig_t m_Q1;
-		netlist_sig_t m_Q2;
-		netlist_sig_t m_F;
+		state_var<netlist_sig_t> m_Q1;
+		state_var<netlist_sig_t> m_Q2;
+		state_var<netlist_sig_t> m_F;
 
 		void newstate(const netlist_sig_t state);
 
@@ -82,7 +77,6 @@ namespace netlist
 		, m_1(*this, "1")
 		, m_2(*this, "2")
 		{
-
 			register_subalias("1", m_1.m_J);
 			register_subalias("2", m_1.m_sub.m_QQ);
 			register_subalias("3", m_1.m_sub.m_Q);
@@ -141,7 +135,7 @@ namespace netlist
 
 	NETLIB_UPDATE(74107A)
 	{
-		const UINT8 JK = (INPLOGIC(m_J) << 1) | INPLOGIC(m_K);
+		const auto JK = (INPLOGIC(m_J) << 1) | INPLOGIC(m_K);
 
 		switch (JK)
 		{

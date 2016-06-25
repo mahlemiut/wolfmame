@@ -181,6 +181,7 @@ fanucs15.cpp
 fanucspmg.cpp
 fb01.cpp
 fc100.cpp
+fccpu30.cpp
 fidel6502.cpp
 fidel68k.cpp
 fidelz80.cpp
@@ -449,6 +450,7 @@ plus4.cpp
 pm68k.cpp
 pmd85.cpp
 pmi80.cpp
+pockchal.cpp
 pocketc.cpp
 pockstat.cpp
 poisk1.cpp

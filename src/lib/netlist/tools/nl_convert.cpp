@@ -11,26 +11,6 @@
 #include "nl_convert.h"
 
 
-template<typename Class>
-static plib::pvector_t<int> bubble(const plib::pvector_t<Class> &sl)
-{
-	plib::pvector_t<int> ret;
-	for (unsigned i=0; i<sl.size(); i++)
-		ret.push_back(i);
-
-	for(unsigned i=0; i < sl.size(); i++)
-	{
-		for(unsigned j=i+1; j < sl.size(); j++)
-		{
-			if(sl[ret[i]]->name() > sl[ret[j]]->name())
-			{
-				std::swap(ret[i], ret[j]);
-			}
-		}
-	}
-	return ret;
-}
-
 /*-------------------------------------------------
     convert - convert a spice netlist
 -------------------------------------------------*/
@@ -38,7 +18,7 @@ static plib::pvector_t<int> bubble(const plib::pvector_t<Class> &sl)
 void nl_convert_base_t::add_pin_alias(const pstring &devname, const pstring &name, const pstring &alias)
 {
 	pstring pname = devname + "." + name;
-	m_pins.add(pname, plib::make_unique<pin_alias_t>(pname, devname + "." + alias));
+	m_pins.emplace(pname, plib::make_unique<pin_alias_t>(pname, devname + "." + alias));
 }
 
 void nl_convert_base_t::add_ext_alias(const pstring &alias)
@@ -46,7 +26,7 @@ void nl_convert_base_t::add_ext_alias(const pstring &alias)
 	m_ext_alias.push_back(alias);
 }
 
-void nl_convert_base_t::add_device(std::shared_ptr<dev_t> dev)
+void nl_convert_base_t::add_device(std::unique_ptr<dev_t> dev)
 {
 	for (auto & d : m_devs)
 		if (d->name() == dev->name())
@@ -54,32 +34,33 @@ void nl_convert_base_t::add_device(std::shared_ptr<dev_t> dev)
 			out("ERROR: Duplicate device {1} ignored.", dev->name());
 			return;
 		}
-	m_devs.push_back(dev);
+	m_devs.push_back(std::move(dev));
 }
 
 void nl_convert_base_t::add_device(const pstring &atype, const pstring &aname, const pstring &amodel)
 {
-	add_device(std::make_shared<dev_t>(atype, aname, amodel));
+	add_device(plib::make_unique<dev_t>(atype, aname, amodel));
 }
 void nl_convert_base_t::add_device(const pstring &atype, const pstring &aname, double aval)
 {
-	add_device(std::make_shared<dev_t>(atype, aname, aval));
+	add_device(plib::make_unique<dev_t>(atype, aname, aval));
 }
 void nl_convert_base_t::add_device(const pstring &atype, const pstring &aname)
 {
-	add_device(std::make_shared<dev_t>(atype, aname));
+	add_device(plib::make_unique<dev_t>(atype, aname));
 }
 
 void nl_convert_base_t::add_term(pstring netname, pstring termname)
 {
 	net_t * net = nullptr;
-	if (m_nets.contains(netname))
+	auto idx = m_nets.find(netname);
+	if (idx != m_nets.end())
 		net = m_nets[netname].get();
 	else
 	{
-		auto nets = std::make_shared<net_t>(netname);
+		auto nets = plib::make_unique<net_t>(netname);
 		net = nets.get();
-		m_nets.add(netname, nets);
+		m_nets.emplace(netname, std::move(nets));
 	}
 
 	/* if there is a pin alias, translate ... */
@@ -102,7 +83,13 @@ void nl_convert_base_t::dump_nl()
 		if (net->terminals().size() == 1)
 			net->set_no_export();
 	}
-	plib::pvector_t<int> sorted = bubble(m_devs);
+
+	std::vector<size_t> sorted;
+	for (size_t i=0; i < m_devs.size(); i++)
+		sorted.push_back(i);
+	std::sort(sorted.begin(), sorted.end(),
+			[&](size_t i1, size_t i2) { return m_devs[i1]->name() < m_devs[i2]->name(); });
+
 	for (std::size_t i=0; i<m_devs.size(); i++)
 	{
 		std::size_t j = sorted[i];
@@ -118,9 +105,9 @@ void nl_convert_base_t::dump_nl()
 					m_devs[j]->name().cstr());
 	}
 	// print nets
-	for (std::size_t i=0; i<m_nets.size(); i++)
+	for (auto & i : m_nets)
 	{
-		net_t * net = m_nets.value_at(i).get();
+		net_t * net = i.second.get();
 		if (!net->is_no_export())
 		{
 			//printf("Net {}\n", net->name().cstr());

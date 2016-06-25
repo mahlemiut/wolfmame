@@ -776,25 +776,6 @@ WRITE16_MEMBER(toaplan2_state::fixeightbl_oki_bankswitch_w)
 	}
 }
 
-
-READ8_MEMBER(toaplan2_state::v25_dswa_r)
-{
-	return ioport("DSWA")->read() ^ 0xff;
-}
-
-
-READ8_MEMBER(toaplan2_state::v25_dswb_r)
-{
-	return ioport("DSWB")->read() ^ 0xff;
-}
-
-
-READ8_MEMBER(toaplan2_state::v25_jmpr_r)
-{
-	return ioport("JMPR")->read() ^ 0xff;
-}
-
-
 READ8_MEMBER(toaplan2_state::fixeight_region_r)
 {
 	// this must match the eeprom region!
@@ -850,7 +831,7 @@ WRITE16_MEMBER(toaplan2_state::bgaregga_soundlatch_w)
 {
 	if (ACCESSING_BITS_0_7)
 	{
-		soundlatch_byte_w(space, offset, data & 0xff);
+		m_soundlatch->write(space, offset, data & 0xff);
 		m_audiocpu->set_input_line(0, HOLD_LINE);
 	}
 }
@@ -906,7 +887,7 @@ WRITE16_MEMBER(toaplan2_state::batrider_soundlatch_w)
 {
 	if (ACCESSING_BITS_0_7)
 	{
-		soundlatch_byte_w(space, offset, data & 0xff);
+		m_soundlatch->write(space, offset, data & 0xff);
 		m_audiocpu->set_input_line(INPUT_LINE_NMI, ASSERT_LINE);
 	}
 }
@@ -916,7 +897,7 @@ WRITE16_MEMBER(toaplan2_state::batrider_soundlatch2_w)
 {
 	if (ACCESSING_BITS_0_7)
 	{
-		soundlatch2_byte_w(space, offset, data & 0xff);
+		m_soundlatch2->write(space, offset, data & 0xff);
 		m_audiocpu->set_input_line(INPUT_LINE_NMI, ASSERT_LINE);
 	}
 }
@@ -1343,8 +1324,8 @@ static ADDRESS_MAP_START( batrider_68k_mem, AS_PROGRAM, 16, toaplan2_state )
 	AM_RANGE(0x500002, 0x500003) AM_READ_PORT("SYS-DSW")
 	AM_RANGE(0x500004, 0x500005) AM_READ_PORT("DSW")
 	AM_RANGE(0x500006, 0x500007) AM_READ(video_count_r)
-	AM_RANGE(0x500008, 0x500009) AM_READ(soundlatch3_word_r)
-	AM_RANGE(0x50000a, 0x50000b) AM_READ(soundlatch4_word_r)
+	AM_RANGE(0x500008, 0x500009) AM_DEVREAD8("soundlatch3", generic_latch_8_device, read, 0x00ff)
+	AM_RANGE(0x50000a, 0x50000b) AM_DEVREAD8("soundlatch4", generic_latch_8_device, read, 0x00ff)
 	AM_RANGE(0x50000c, 0x50000d) AM_READ(batrider_z80_busack_r)
 	AM_RANGE(0x500010, 0x500011) AM_WRITE(toaplan2_coin_word_w)
 	AM_RANGE(0x500020, 0x500021) AM_WRITE(batrider_soundlatch_w)
@@ -1374,8 +1355,8 @@ static ADDRESS_MAP_START( bbakraid_68k_mem, AS_PROGRAM, 16, toaplan2_state )
 	AM_RANGE(0x500004, 0x500005) AM_READ_PORT("DSW")
 	AM_RANGE(0x500006, 0x500007) AM_READ(video_count_r)
 	AM_RANGE(0x500008, 0x500009) AM_WRITE(toaplan2_coin_word_w)
-	AM_RANGE(0x500010, 0x500011) AM_READ(soundlatch3_word_r)
-	AM_RANGE(0x500012, 0x500013) AM_READ(soundlatch4_word_r)
+	AM_RANGE(0x500010, 0x500011) AM_DEVREAD8("soundlatch3", generic_latch_8_device, read, 0x00ff)
+	AM_RANGE(0x500012, 0x500013) AM_DEVREAD8("soundlatch4", generic_latch_8_device, read, 0x00ff)
 	AM_RANGE(0x500014, 0x500015) AM_WRITE(batrider_soundlatch_w)
 	AM_RANGE(0x500016, 0x500017) AM_WRITE(batrider_soundlatch2_w)
 	AM_RANGE(0x500018, 0x500019) AM_READ(bbakraid_eeprom_r)
@@ -1414,7 +1395,7 @@ static ADDRESS_MAP_START( bgaregga_sound_z80_mem, AS_PROGRAM, 8, toaplan2_state 
 	AM_RANGE(0xe006, 0xe008) AM_WRITE(raizing_oki_bankswitch_w)
 	AM_RANGE(0xe00a, 0xe00a) AM_WRITE(raizing_z80_bankswitch_w)
 	AM_RANGE(0xe00c, 0xe00c) AM_WRITE(bgaregga_E00C_w)
-	AM_RANGE(0xe01c, 0xe01c) AM_READ(soundlatch_byte_r)
+	AM_RANGE(0xe01c, 0xe01c) AM_DEVREAD("soundlatch", generic_latch_8_device, read)
 	AM_RANGE(0xe01d, 0xe01d) AM_READ(bgaregga_E01D_r)
 ADDRESS_MAP_END
 
@@ -1428,12 +1409,12 @@ ADDRESS_MAP_END
 
 static ADDRESS_MAP_START( batrider_sound_z80_port, AS_IO, 8, toaplan2_state )
 	ADDRESS_MAP_GLOBAL_MASK(0xff)
-	AM_RANGE(0x40, 0x40) AM_WRITE(soundlatch3_byte_w)
-	AM_RANGE(0x42, 0x42) AM_WRITE(soundlatch4_byte_w)
+	AM_RANGE(0x40, 0x40) AM_DEVWRITE("soundlatch3", generic_latch_8_device, write)
+	AM_RANGE(0x42, 0x42) AM_DEVWRITE("soundlatch4", generic_latch_8_device, write)
 	AM_RANGE(0x44, 0x44) AM_WRITE(batrider_sndirq_w)
 	AM_RANGE(0x46, 0x46) AM_WRITE(batrider_clear_nmi_w)
-	AM_RANGE(0x48, 0x48) AM_READ(soundlatch_byte_r)
-	AM_RANGE(0x4a, 0x4a) AM_READ(soundlatch2_byte_r)
+	AM_RANGE(0x48, 0x48) AM_DEVREAD("soundlatch", generic_latch_8_device, read)
+	AM_RANGE(0x4a, 0x4a) AM_DEVREAD("soundlatch2", generic_latch_8_device, read)
 	AM_RANGE(0x80, 0x81) AM_DEVREADWRITE("ymsnd", ym2151_device, read, write)
 	AM_RANGE(0x82, 0x82) AM_DEVREADWRITE("oki1", okim6295_device, read, write)
 	AM_RANGE(0x84, 0x84) AM_DEVREADWRITE("oki2", okim6295_device, read, write)
@@ -1450,12 +1431,12 @@ ADDRESS_MAP_END
 
 static ADDRESS_MAP_START( bbakraid_sound_z80_port, AS_IO, 8, toaplan2_state )
 	ADDRESS_MAP_GLOBAL_MASK(0xff)
-	AM_RANGE(0x40, 0x40) AM_WRITE(soundlatch3_byte_w)
-	AM_RANGE(0x42, 0x42) AM_WRITE(soundlatch4_byte_w)
+	AM_RANGE(0x40, 0x40) AM_DEVWRITE("soundlatch3", generic_latch_8_device, write)
+	AM_RANGE(0x42, 0x42) AM_DEVWRITE("soundlatch4", generic_latch_8_device, write)
 	AM_RANGE(0x44, 0x44) AM_WRITE(batrider_sndirq_w)
 	AM_RANGE(0x46, 0x46) AM_WRITE(batrider_clear_nmi_w)
-	AM_RANGE(0x48, 0x48) AM_READ(soundlatch_byte_r)
-	AM_RANGE(0x4a, 0x4a) AM_READ(soundlatch2_byte_r)
+	AM_RANGE(0x48, 0x48) AM_DEVREAD("soundlatch", generic_latch_8_device, read)
+	AM_RANGE(0x4a, 0x4a) AM_DEVREAD("soundlatch2", generic_latch_8_device, read)
 	AM_RANGE(0x80, 0x81) AM_DEVREADWRITE("ymz", ymz280b_device, read, write)
 ADDRESS_MAP_END
 
@@ -1494,27 +1475,6 @@ ADDRESS_MAP_END
 static ADDRESS_MAP_START( vfive_v25_mem, AS_PROGRAM, 8, toaplan2_state )
 	AM_RANGE(0x00000, 0x00001) AM_DEVREADWRITE("ymsnd", ym2151_device, read, write)
 	AM_RANGE(0x80000, 0x87fff) AM_MIRROR(0x78000) AM_RAM AM_SHARE("shared_ram")
-ADDRESS_MAP_END
-
-
-static ADDRESS_MAP_START( v25_port, AS_IO, 8, toaplan2_state )
-	AM_RANGE(V25_PORT_PT, V25_PORT_PT) AM_READ(v25_dswa_r)
-	AM_RANGE(V25_PORT_P0, V25_PORT_P0) AM_READ(v25_dswb_r)
-	AM_RANGE(V25_PORT_P1, V25_PORT_P1) AM_READ(v25_jmpr_r)
-	AM_RANGE(V25_PORT_P2, V25_PORT_P2) AM_WRITENOP  // bit 0 is FAULT according to kbash schematic
-ADDRESS_MAP_END
-
-
-static ADDRESS_MAP_START( dogyuun_v25_port, AS_IO, 8, toaplan2_state )
-	AM_RANGE(V25_PORT_PT, V25_PORT_PT) AM_READ(v25_dswb_r)
-	AM_RANGE(V25_PORT_P0, V25_PORT_P0) AM_READ(v25_dswa_r)
-	AM_RANGE(V25_PORT_P1, V25_PORT_P1) AM_READ(v25_jmpr_r)
-	AM_RANGE(V25_PORT_P2, V25_PORT_P2) AM_WRITENOP  // bit 0 is FAULT according to kbash schematic
-ADDRESS_MAP_END
-
-
-static ADDRESS_MAP_START( fixeight_v25_port, AS_IO, 8, toaplan2_state )
-	AM_RANGE(V25_PORT_P0, V25_PORT_P0) AM_READWRITE_PORT("EEPROM")
 ADDRESS_MAP_END
 
 
@@ -3219,8 +3179,11 @@ static MACHINE_CONFIG_START( dogyuun, toaplan2_state )
 
 	MCFG_CPU_ADD("audiocpu", V25, XTAL_25MHz/2)         /* NEC V25 type Toaplan marked CPU ??? */
 	MCFG_CPU_PROGRAM_MAP(v25_mem)
-	MCFG_CPU_IO_MAP(dogyuun_v25_port)
 	MCFG_V25_CONFIG(nitro_decryption_table)
+	MCFG_V25_PORT_PT_READ_CB(IOPORT("DSWB")) MCFG_DEVCB_XOR(0xff) 
+	MCFG_V25_PORT_P0_READ_CB(IOPORT("DSWA")) MCFG_DEVCB_XOR(0xff) 
+	MCFG_V25_PORT_P1_READ_CB(IOPORT("JMPR")) MCFG_DEVCB_XOR(0xff) 
+	MCFG_V25_PORT_P2_WRITE_CB(NOOP)  // bit 0 is FAULT according to kbash schematic
 
 	MCFG_MACHINE_START_OVERRIDE(toaplan2_state,toaplan2)
 
@@ -3264,8 +3227,11 @@ static MACHINE_CONFIG_START( kbash, toaplan2_state )
 	/* ROM based v25 */
 	MCFG_CPU_ADD("audiocpu", V25, XTAL_16MHz)           /* NEC V25 type Toaplan marked CPU ??? */
 	MCFG_CPU_PROGRAM_MAP(kbash_v25_mem)
-	MCFG_CPU_IO_MAP(v25_port)
 	MCFG_V25_CONFIG(nitro_decryption_table)
+	MCFG_V25_PORT_PT_READ_CB(IOPORT("DSWA")) MCFG_DEVCB_XOR(0xff) 
+	MCFG_V25_PORT_P0_READ_CB(IOPORT("DSWB")) MCFG_DEVCB_XOR(0xff) 
+	MCFG_V25_PORT_P1_READ_CB(IOPORT("JMPR")) MCFG_DEVCB_XOR(0xff) 
+	MCFG_V25_PORT_P2_WRITE_CB(NOOP)  // bit 0 is FAULT according to kbash schematic
 
 	MCFG_MACHINE_START_OVERRIDE(toaplan2_state,toaplan2)
 
@@ -3519,8 +3485,9 @@ static MACHINE_CONFIG_START( fixeight, toaplan2_state )
 
 	MCFG_CPU_ADD("audiocpu", V25, XTAL_16MHz)           /* NEC V25 type Toaplan marked CPU ??? */
 	MCFG_CPU_PROGRAM_MAP(fixeight_v25_mem)
-	MCFG_CPU_IO_MAP(fixeight_v25_port)
 	MCFG_V25_CONFIG(ts001turbo_decryption_table)
+	MCFG_V25_PORT_P0_READ_CB(IOPORT("EEPROM"))
+	MCFG_V25_PORT_P0_WRITE_CB(IOPORT("EEPROM"))
 
 	MCFG_MACHINE_START_OVERRIDE(toaplan2_state,toaplan2)
 
@@ -3601,8 +3568,11 @@ static MACHINE_CONFIG_START( vfive, toaplan2_state )
 
 	MCFG_CPU_ADD("audiocpu", V25, XTAL_20MHz/2) /* Verified on pcb, NEC V25 type Toaplan mark scratched out */
 	MCFG_CPU_PROGRAM_MAP(vfive_v25_mem)
-	MCFG_CPU_IO_MAP(v25_port)
 	MCFG_V25_CONFIG(nitro_decryption_table)
+	MCFG_V25_PORT_PT_READ_CB(IOPORT("DSWA")) MCFG_DEVCB_XOR(0xff) 
+	MCFG_V25_PORT_P0_READ_CB(IOPORT("DSWB")) MCFG_DEVCB_XOR(0xff) 
+	MCFG_V25_PORT_P1_READ_CB(IOPORT("JMPR")) MCFG_DEVCB_XOR(0xff) 
+	MCFG_V25_PORT_P2_WRITE_CB(NOOP)  // bit 0 is FAULT according to kbash schematic
 
 	MCFG_MACHINE_START_OVERRIDE(toaplan2_state,toaplan2)
 
@@ -3639,7 +3609,10 @@ static MACHINE_CONFIG_START( batsugun, toaplan2_state )
 
 	MCFG_CPU_ADD("audiocpu", V25, XTAL_32MHz/2)         /* NEC V25 type Toaplan marked CPU ??? */
 	MCFG_CPU_PROGRAM_MAP(v25_mem)
-	MCFG_CPU_IO_MAP(v25_port)
+	MCFG_V25_PORT_PT_READ_CB(IOPORT("DSWA")) MCFG_DEVCB_XOR(0xff) 
+	MCFG_V25_PORT_P0_READ_CB(IOPORT("DSWB")) MCFG_DEVCB_XOR(0xff) 
+	MCFG_V25_PORT_P1_READ_CB(IOPORT("JMPR")) MCFG_DEVCB_XOR(0xff) 
+	MCFG_V25_PORT_P2_WRITE_CB(NOOP)  // bit 0 is FAULT according to kbash schematic
 
 	MCFG_MACHINE_START_OVERRIDE(toaplan2_state,toaplan2)
 
@@ -3908,6 +3881,8 @@ static MACHINE_CONFIG_START( bgaregga, toaplan2_state )
 	/* sound hardware */
 	MCFG_SPEAKER_STANDARD_MONO("mono")
 
+	MCFG_GENERIC_LATCH_8_ADD("soundlatch")
+
 	MCFG_YM2151_ADD("ymsnd", XTAL_32MHz/8)
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 1.0)
 
@@ -3964,6 +3939,11 @@ static MACHINE_CONFIG_START( batrider, toaplan2_state )
 	/* sound hardware */
 	MCFG_SPEAKER_STANDARD_MONO("mono")
 
+	MCFG_GENERIC_LATCH_8_ADD("soundlatch")
+	MCFG_GENERIC_LATCH_8_ADD("soundlatch2")
+	MCFG_GENERIC_LATCH_8_ADD("soundlatch3")
+	MCFG_GENERIC_LATCH_8_ADD("soundlatch4")
+
 	MCFG_YM2151_ADD("ymsnd", XTAL_32MHz/8)
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 1.0)
 
@@ -4019,6 +3999,11 @@ static MACHINE_CONFIG_START( bbakraid, toaplan2_state )
 
 	/* sound hardware */
 	MCFG_SPEAKER_STANDARD_MONO("mono")
+
+	MCFG_GENERIC_LATCH_8_ADD("soundlatch")
+	MCFG_GENERIC_LATCH_8_ADD("soundlatch2")
+	MCFG_GENERIC_LATCH_8_ADD("soundlatch3")
+	MCFG_GENERIC_LATCH_8_ADD("soundlatch4")
 
 	MCFG_SOUND_ADD("ymz", YMZ280B, XTAL_16_9344MHz)
 	// IRQ not used ???  Connected to a test pin (TP082)
@@ -4342,85 +4327,85 @@ ROM_END
 
 ROM_START( fixeightkt )
 	ROMS_FIXEIGHT
-	ROM_REGION( 0x80, "eeprom", 0 )
+	ROM_REGION16_BE( 0x80, "eeprom", 0 )
 	ROM_LOAD( "fixeightkt.nv", 0x00, 0x80, CRC(08fa73ba) SHA1(b7761d3dd3f4485e55c8ef2cf1a840ca771ee2fc) )
 ROM_END
 
 ROM_START( fixeightk )
 	ROMS_FIXEIGHT
-	ROM_REGION( 0x80, "eeprom", 0 )
+	ROM_REGION16_BE( 0x80, "eeprom", 0 )
 	ROM_LOAD( "fixeightk.nv", 0x00, 0x80, CRC(cac91c6f) SHA1(55b284f081753d60abff63493094322756b7f0c5) )
 ROM_END
 
 ROM_START( fixeightht )
 	ROMS_FIXEIGHT
-	ROM_REGION( 0x80, "eeprom", 0 )
+	ROM_REGION16_BE( 0x80, "eeprom", 0 )
 	ROM_LOAD( "fixeightht.nv", 0x00, 0x80, CRC(57edaa51) SHA1(b8d50e82590b8cbbbcafec5f9cfbc91e4c286db5) )
 ROM_END
 
 ROM_START( fixeighth )
 	ROMS_FIXEIGHT
-	ROM_REGION( 0x80, "eeprom", 0 )
+	ROM_REGION16_BE( 0x80, "eeprom", 0 )
 	ROM_LOAD( "fixeighth.nv", 0x00, 0x80, CRC(95dec584) SHA1(1c309074b51da5a5263dee00403296946e41067b) )
 ROM_END
 
 ROM_START( fixeighttwt )
 	ROMS_FIXEIGHT
-	ROM_REGION( 0x80, "eeprom", 0 )
+	ROM_REGION16_BE( 0x80, "eeprom", 0 )
 	ROM_LOAD( "fixeighttwt.nv", 0x00, 0x80, CRC(b6d5c06c) SHA1(7fda380ac6835a983c57d093ccad7bd76893c9ba))
 ROM_END
 
 ROM_START( fixeighttw )
 	ROMS_FIXEIGHT
-	ROM_REGION( 0x80, "eeprom", 0 )
+	ROM_REGION16_BE( 0x80, "eeprom", 0 )
 	ROM_LOAD( "fixeighttw.nv", 0x00, 0x80, CRC(74e6afb9) SHA1(87bdc95eb0d2d54375de2c622557d503e14154be))
 ROM_END
 
 ROM_START( fixeightat )
 	ROMS_FIXEIGHT
-	ROM_REGION( 0x80, "eeprom", 0 )
+	ROM_REGION16_BE( 0x80, "eeprom", 0 )
 	ROM_LOAD( "fixeightat.nv", 0x00, 0x80,CRC(e9c21987) SHA1(7f699e38deb84902ed62b857a3d2b4e3ea1475bb) )
 ROM_END
 
 ROM_START( fixeighta )
 	ROMS_FIXEIGHT
-	ROM_REGION( 0x80, "eeprom", 0 )
+	ROM_REGION16_BE( 0x80, "eeprom", 0 )
 	ROM_LOAD( "fixeighta.nv", 0x00, 0x80, CRC(2bf17652) SHA1(4ec6f188e63610d258cd6b2432d2200d61d80bed))
 ROM_END
 
 ROM_START( fixeightt )
 	ROMS_FIXEIGHT
-	ROM_REGION( 0x80, "eeprom", 0 )
+	ROM_REGION16_BE( 0x80, "eeprom", 0 )
 	ROM_LOAD( "fixeightt.nv", 0x00, 0x80, CRC(c0da4a05) SHA1(3686161244e3e8be0e2fdb5fc5c24e39a7aeba85) )
 ROM_END
 
 ROM_START( fixeight )
 	ROMS_FIXEIGHT
-	ROM_REGION( 0x80, "eeprom", 0 )
+	ROM_REGION16_BE( 0x80, "eeprom", 0 )
 	ROM_LOAD( "fixeight.nv", 0x00, 0x80, CRC(02e925d0) SHA1(5839d10aceff84916ea99e9c6afcdc90eef7468b) )
 ROM_END
 
 ROM_START( fixeightut )
 	ROMS_FIXEIGHT
-	ROM_REGION( 0x80, "eeprom", 0 )
+	ROM_REGION16_BE( 0x80, "eeprom", 0 )
 	ROM_LOAD( "fixeightut.nv", 0x00, 0x80, CRC(9fcd93ee) SHA1(4f2750f09d9b8ff358a2fd6c7a4a8ba6de67017a) )
 ROM_END
 
 ROM_START( fixeightu )
 	ROMS_FIXEIGHT
-	ROM_REGION( 0x80, "eeprom", 0 )
+	ROM_REGION16_BE( 0x80, "eeprom", 0 )
 	ROM_LOAD( "fixeightu.nv", 0x00, 0x80, CRC(5dfefc3b) SHA1(5203525c58e2ae10575af2e277a5696bd64c5b60) )
 ROM_END
 
 ROM_START( fixeightj )
 	ROMS_FIXEIGHT
-	ROM_REGION( 0x80, "eeprom", 0 )
+	ROM_REGION16_BE( 0x80, "eeprom", 0 )
 	ROM_LOAD( "fixeightj.nv", 0x00, 0x80, CRC(21e22038) SHA1(29fb10061e62799bb5e4171e144daac49f0cdf06) )
 ROM_END
 
 ROM_START( fixeightjt )
 	ROMS_FIXEIGHT
-	ROM_REGION( 0x80, "eeprom", 0 )
+	ROM_REGION16_BE( 0x80, "eeprom", 0 )
 	ROM_LOAD( "fixeightjt.nv", 0x00, 0x80, CRC(e3d14fed) SHA1(ee4982ef195240c5eaa5005ca1d591901fb01b47) )
 ROM_END
 

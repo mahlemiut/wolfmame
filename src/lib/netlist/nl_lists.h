@@ -10,10 +10,11 @@
 #ifndef NLLISTS_H_
 #define NLLISTS_H_
 
+#include <atomic>
+
 #include "nl_config.h"
 #include "plib/plists.h"
-
-#include <atomic>
+#include "plib/pchrono.h"
 
 
 // ----------------------------------------------------------------------------------------
@@ -36,10 +37,6 @@ namespace netlist
 
 		timed_queue(unsigned list_size)
 		: m_list(list_size)
-#if (NL_KEEP_STATISTICS)
-		, m_prof_sortmove(0)
-		, m_prof_call(0)
-#endif
 		{
 	#if HAS_OPENMP && USE_OPENMP
 			m_lock = 0;
@@ -47,8 +44,8 @@ namespace netlist
 			clear();
 		}
 
-		 std::size_t capacity() const { return m_list.size(); }
-		 bool empty() const { return (m_end == &m_list[1]); }
+			std::size_t capacity() const { return m_list.size(); }
+			bool empty() const { return (m_end == &m_list[1]); }
 
 		void push(const Time t, Element o) NOEXCEPT
 		{
@@ -60,21 +57,20 @@ namespace netlist
 			for (; t > (i - 1)->m_exec_time; --i)
 			{
 				*(i) = *(i-1);
-				inc_stat(m_prof_sortmove);
+				m_prof_sortmove.inc();
 			}
 			*i = { t, o };
 			++m_end;
-			inc_stat(m_prof_call);
+			m_prof_call.inc();
 	#if HAS_OPENMP && USE_OPENMP
 			m_lock = 0;
 	#endif
-			//nl_assert(m_end - m_list < Size);
 		}
 
-		 entry_t pop() NOEXCEPT       { return *(--m_end); }
-		 entry_t top() const NOEXCEPT { return *(m_end-1); }
+		entry_t pop() NOEXCEPT       { return *(--m_end); }
+		const entry_t &top() const NOEXCEPT { return *(m_end-1); }
 
-		 void remove(const Element &elem) NOEXCEPT
+		void remove(const Element &elem) NOEXCEPT
 		{
 			/* Lock */
 	#if HAS_OPENMP && USE_OPENMP
@@ -101,6 +97,12 @@ namespace netlist
 	#endif
 		}
 
+		void retime(const Time t, const Element &elem) NOEXCEPT
+		{
+			remove(elem);
+			push(t, elem);
+		}
+
 		void clear()
 		{
 			m_end = &m_list[0];
@@ -114,9 +116,9 @@ namespace netlist
 
 		// save state support & mame disasm
 
-		 const entry_t *listptr() const { return &m_list[1]; }
-		 std::size_t size() const { return m_end - &m_list[1]; }
-		 const entry_t & operator[](const std::size_t index) const { return m_list[ 1 + index]; }
+			const entry_t *listptr() const { return &m_list[1]; }
+			std::size_t size() const { return m_end - &m_list[1]; }
+			const entry_t & operator[](const std::size_t index) const { return m_list[ 1 + index]; }
 
 	private:
 
@@ -127,12 +129,9 @@ namespace netlist
 		std::vector<entry_t> m_list;
 
 	public:
-	#if (NL_KEEP_STATISTICS)
 		// profiling
-		std::size_t   m_prof_sortmove;
-		std::size_t   m_prof_call;
-	#endif
-
+		nperfcount_t m_prof_sortmove;
+		nperfcount_t m_prof_call;
 };
 
 }

@@ -74,7 +74,16 @@ device_t::~device_t()
 memory_region *device_t::memregion(const char *_tag) const
 {
 	// build a fully-qualified name and look it up
-	return machine().memory().regions().find(subtag(_tag).c_str());
+	if (_tag)
+	{
+		auto search = machine().memory().regions().find(subtag(_tag).c_str());
+		if (search != machine().memory().regions().end()) 
+			return search->second.get(); 
+		else 
+			return nullptr;
+	} 
+	else
+		return nullptr; 	
 }
 
 
@@ -86,7 +95,16 @@ memory_region *device_t::memregion(const char *_tag) const
 memory_share *device_t::memshare(const char *_tag) const
 {
 	// build a fully-qualified name and look it up
-	return machine().memory().shares().find(subtag(_tag).c_str());
+	if (_tag)
+	{
+		auto search = machine().memory().shares().find(subtag(_tag).c_str());
+		if (search != machine().memory().shares().end())
+			return search->second.get();
+		else
+			return nullptr;
+	}
+	else
+		return nullptr; 
 }
 
 
@@ -97,8 +115,16 @@ memory_share *device_t::memshare(const char *_tag) const
 
 memory_bank *device_t::membank(const char *_tag) const
 {
-	// build a fully-qualified name and look it up
-	return machine().memory().banks().find(subtag(_tag).c_str());
+	if (_tag)
+	{
+		auto search = machine().memory().banks().find(subtag(_tag).c_str());
+		if (search != machine().memory().banks().end())
+			return search->second.get();
+		else
+			return nullptr;
+	}
+	else
+		return nullptr;
 }
 
 
@@ -334,6 +360,10 @@ bool device_t::findit(bool isvalidation) const
 
 void device_t::start()
 {
+	// prepare the logerror buffer
+	if (m_machine->allow_logging())
+		m_string_buffer.reserve(1024);
+
 	// find all the registered devices
 	if (!findit(false))
 		throw emu_fatalerror("Missing some required objects, unable to proceed");
@@ -354,7 +384,7 @@ void device_t::start()
 	device_sound_interface *sound;
 	if (state_registrations == 0 && (interface(exec) || interface(sound)) && type() != SPEAKER)
 	{
-		logerror("Device '%s' did not register any state to save!\n", tag());
+		logerror("Device did not register any state to save!\n");
 		if ((machine().system().flags & MACHINE_SUPPORTS_SAVE) != 0)
 			fatalerror("Device '%s' did not register any state to save!\n", tag());
 	}

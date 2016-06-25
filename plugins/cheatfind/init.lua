@@ -40,6 +40,15 @@ function cheatfind.startplugin()
 		return ram
 	end
 
+	-- return table of share regions
+	function cheat.getshares()
+		local shares = {}
+		for tag, share in pairs(manager:machine():memory().shares) do
+			shares[tag] = share
+		end
+		return shares
+	end
+
 	-- save data block
 	function cheat.save(space, start, size)
 		local data = { block = "", start = start, size = size, space = space }
@@ -273,6 +282,10 @@ function cheatfind.startplugin()
 		space_table = cheat.getram()
 		for tag, ram in pairs(space_table) do
 			devtable[#devtable + 1] = { tag = tag, space = ram.dev, ram = {{ offset = 0, size = ram.size }} }
+		end
+		space_table = cheat.getshares()
+		for tag, share in pairs(space_table) do
+			devtable[#devtable + 1] = { tag = tag, space = share, ram = {{ offset = 0, size = share.size }} }
 		end
 	end
 
@@ -588,7 +601,7 @@ function cheatfind.startplugin()
 
 								if dev.space.shortname then
 									cheat.ram = { ram = dev.tag }
-									cheat.script.on = "ram:write(" .. match.addr .. "," .. match.newval .. ")"
+									cheat.script.run = "ram:write(" .. match.addr .. "," .. match.newval .. ")"
 								else
 									cheat.space = { cpu = { tag = dev.tag, type = "program" } }
 									cheat.script.run = "cpu:write_" .. wid .. "(" .. match.addr .. "," .. match.newval .. ")"

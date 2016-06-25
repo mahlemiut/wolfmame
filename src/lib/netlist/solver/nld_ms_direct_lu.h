@@ -19,7 +19,6 @@ namespace netlist
 {
 	namespace devices
 	{
-
 //#define nl_ext_double _float128 // slow, very slow
 //#define nl_ext_double long double // slightly slower
 #define nl_ext_double double
@@ -142,15 +141,15 @@ protected:
 	template <typename T1, typename T2>
 	inline nl_ext_double &A(const T1 r, const T2 c) { return m_A[r][c]; }
 
-	//ATTR_ALIGN nl_double m_A[storage_N][((storage_N + 7) / 8) * 8];
-	ATTR_ALIGN nl_double m_RHS[storage_N];
-	ATTR_ALIGN nl_double m_last_RHS[storage_N]; // right hand side - contains currents
-	ATTR_ALIGN nl_double m_last_V[storage_N];
+	//nl_double m_A[storage_N][((storage_N + 7) / 8) * 8];
+	nl_double m_RHS[storage_N];
+	nl_double m_last_RHS[storage_N]; // right hand side - contains currents
+	nl_double m_last_V[storage_N];
 
 	terms_t *m_rails_temp;
 
 private:
-	ATTR_ALIGN nl_ext_double m_A[storage_N][((storage_N + 7) / 8) * 8];
+	nl_ext_double m_A[storage_N][((storage_N + 7) / 8) * 8];
 
 	const unsigned m_dim;
 	nl_double m_lp_fact;
@@ -334,10 +333,11 @@ void matrix_solver_direct_t<m_N, storage_N>::vsetup(analog_net_t::list_t &nets)
 					t->m_nz.add(other[i]);
 			}
 		}
-		psort_list(t->m_nzrd);
+		std::sort(t->m_nzrd.begin(), t->m_nzrd.end());
 
 		t->m_nz.add(k);     // add diagonal
-		psort_list(t->m_nz);
+
+		std::sort(t->m_nz.begin(), t->m_nz.end());
 	}
 
 	if(0)

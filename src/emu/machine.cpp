@@ -377,9 +377,9 @@ int running_machine::run(bool quiet)
 		osd_printf_error("Error performing a late bind of type %s to %s\n", btex.m_actual_type.name(), btex.m_target_type.name());
 		error = EMU_ERR_FATALERROR;
 	}
-	catch (add_exception &aex)
+	catch (tag_add_exception &aex)
 	{
-		osd_printf_error("Tag '%s' already exists in tagged_list\n", aex.tag());
+		osd_printf_error("Tag '%s' already exists in tagged map\n", aex.tag());
 		error = EMU_ERR_FATALERROR;
 	}
 	catch (std::exception &ex)
@@ -568,7 +568,7 @@ void running_machine::set_saveload_filename(const char *filename)
 		// take into account the statename option
 		const char *stateopt = options().state_name();
 		std::string statename = get_statename(stateopt);
-		m_saveload_pending_file.assign(statename.c_str()).append(PATH_SEPARATOR).append(filename).append(".sta");
+		m_saveload_pending_file = string_format("%s%s%s.sta", statename, PATH_SEPARATOR, filename);
 	}
 }
 
@@ -728,6 +728,19 @@ void running_machine::add_logerror_callback(logerror_callback callback)
 
 
 //-------------------------------------------------
+//  strlog - send an error logging string to the
+//  debugger and any OSD-defined output streams
+//-------------------------------------------------
+
+void running_machine::strlog(const char *str) const
+{
+	// log to all callbacks
+	for (auto &cb : m_logerror_list)
+		cb->m_func(str);
+}
+
+
+//-------------------------------------------------
 //  debug_break - breaks into the debugger, if
 //  enabled
 //-------------------------------------------------
@@ -831,7 +844,7 @@ void running_machine::handle_saveload()
 					break;
 
 				case STATERR_INVALID_HEADER:
-					popmessage("Error: Unable to %s state due to an invalid header. Make sure the save state is correct for this game.", opname);
+					popmessage("Error: Unable to %s state due to an invalid header. Make sure the save state is correct for this machine.", opname);
 					break;
 
 				case STATERR_READ_ERROR:
@@ -844,7 +857,7 @@ void running_machine::handle_saveload()
 
 				case STATERR_NONE:
 					if (!(m_system.flags & MACHINE_SUPPORTS_SAVE))
-						popmessage("State successfully %s.\nWarning: Save states are not officially supported for this game.", opnamed);
+						popmessage("State successfully %s.\nWarning: Save states are not officially supported for this machine.", opnamed);
 					else
 						popmessage("State successfully %s.", opnamed);
 					break;

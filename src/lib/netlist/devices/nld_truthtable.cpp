@@ -7,13 +7,13 @@
 
 #include "nld_truthtable.h"
 #include "plib/plists.h"
+#include "nl_setup.h"
 
 namespace netlist
 {
 	namespace devices
 	{
-
-	template<unsigned m_NI, unsigned m_NO, int has_state>
+	template<unsigned m_NI, unsigned m_NO>
 	class netlist_factory_truthtable_t : public netlist_base_factory_truthtable_t
 	{
 		P_PREVENT_COPYING(netlist_factory_truthtable_t)
@@ -25,18 +25,18 @@ namespace netlist
 
 		plib::owned_ptr<device_t> Create(netlist_t &anetlist, const pstring &name) override
 		{
-			typedef nld_truthtable_t<m_NI, m_NO, has_state> tt_type;
+			typedef nld_truthtable_t<m_NI, m_NO> tt_type;
 			return plib::owned_ptr<device_t>::Create<tt_type>(anetlist, name, m_family, &m_ttbl, m_desc);
 		}
 	private:
-		typename nld_truthtable_t<m_NI, m_NO, has_state>::truthtable_t m_ttbl;
+		typename nld_truthtable_t<m_NI, m_NO>::truthtable_t m_ttbl;
 	};
 
-	static const uint64_t all_set = ~((uint64_t) 0);
+	static const uint_least64_t all_set = ~((uint_least64_t) 0);
 
-unsigned truthtable_desc_t::count_bits(uint64_t v)
+unsigned truthtable_desc_t::count_bits(uint_least64_t v)
 {
-	uint64_t ret = 0;
+	uint_least64_t ret = 0;
 	for (; v != 0; v = v >> 1)
 	{
 		ret += (v & 1);
@@ -44,9 +44,9 @@ unsigned truthtable_desc_t::count_bits(uint64_t v)
 	return ret;
 }
 
-uint64_t truthtable_desc_t::set_bits(uint64_t v, uint64_t b)
+uint_least64_t truthtable_desc_t::set_bits(uint_least64_t v, uint_least64_t b)
 {
-	uint64_t ret = 0;
+	uint_least64_t ret = 0;
 	for (size_t i = 0; v != 0; v = v >> 1, ++i)
 	{
 		if (v & 1)
@@ -58,9 +58,9 @@ uint64_t truthtable_desc_t::set_bits(uint64_t v, uint64_t b)
 	return ret;
 }
 
-uint64_t truthtable_desc_t::get_ignored_simple(uint64_t i)
+uint_least64_t truthtable_desc_t::get_ignored_simple(uint_least64_t i)
 {
-	uint64_t m_enable = 0;
+	uint_least64_t m_enable = 0;
 	for (size_t j=0; j<m_size; j++)
 	{
 		if (m_outs[j] != m_outs[i])
@@ -71,10 +71,10 @@ uint64_t truthtable_desc_t::get_ignored_simple(uint64_t i)
 	return m_enable ^ (m_size - 1);
 }
 
-uint64_t truthtable_desc_t::get_ignored_extended(uint64_t state)
+uint_least64_t truthtable_desc_t::get_ignored_extended(uint_least64_t state)
 {
 	// Determine all inputs which may be ignored ...
-	uint64_t ignore = 0;
+	uint_least64_t ignore = 0;
 	for (unsigned j=0; j<m_NI; j++)
 	{
 		if (m_outs[state] == m_outs[state ^ (1 << j)])
@@ -84,17 +84,17 @@ uint64_t truthtable_desc_t::get_ignored_extended(uint64_t state)
 	 * We have to remove those where the ignored inputs
 	 * may change the output
 	 */
-	uint64_t bits = (1<<count_bits(ignore));
+	uint_least64_t bits = (1<<count_bits(ignore));
 	std::vector<bool> t(bits);
 
 	for (size_t j=1; j<bits; j++)
 	{
-		uint64_t tign = set_bits(ignore, j);
+		uint_least64_t tign = set_bits(ignore, j);
 		t[j] = 0;
-		uint64_t bitsk=(1<<count_bits(tign));
+		uint_least64_t bitsk=(1<<count_bits(tign));
 		for (size_t k=0; k<bitsk; k++)
 		{
-			uint64_t b=set_bits(tign, k);
+			uint_least64_t b=set_bits(tign, k);
 			if (m_outs[state] != m_outs[(state & ~tign) | b])
 			{
 				t[j] = 1;
@@ -104,7 +104,7 @@ uint64_t truthtable_desc_t::get_ignored_extended(uint64_t state)
 	}
 	size_t jb=0;
 	size_t jm=0;
-	for (UINT32 j=1; j<bits; j++)
+	for (size_t j=1; j<bits; j++)
 	{
 		size_t nb = count_bits(j);
 		if ((t[j] == 0) && (nb>jb))
@@ -121,7 +121,7 @@ uint64_t truthtable_desc_t::get_ignored_extended(uint64_t state)
 // ----------------------------------------------------------------------------------------
 
 void truthtable_desc_t::help(unsigned cur, plib::pstring_vector_t list,
-		uint64_t state, uint64_t val, std::vector<uint8_t> &timing_index)
+		uint_least64_t state, uint_least64_t val, std::vector<uint_least8_t> &timing_index)
 {
 	pstring elem = list[cur].trim();
 	int start = 0;
@@ -146,7 +146,7 @@ void truthtable_desc_t::help(unsigned cur, plib::pstring_vector_t list,
 		nl_assert_always(false, "unknown input value (not 0, 1, or X)");
 	for (int i = start; i <= end; i++)
 	{
-		const UINT64 nstate = state | (i << cur);
+		const uint_least64_t nstate = state | (i << cur);
 
 		if (cur < m_num_bits - 1)
 		{
@@ -165,7 +165,7 @@ void truthtable_desc_t::help(unsigned cur, plib::pstring_vector_t list,
 	}
 }
 
-void truthtable_desc_t::setup(const plib::pstring_vector_t &truthtable, UINT32 disabled_ignore)
+void truthtable_desc_t::setup(const plib::pstring_vector_t &truthtable, uint_least64_t disabled_ignore)
 {
 	unsigned line = 0;
 
@@ -195,8 +195,8 @@ void truthtable_desc_t::setup(const plib::pstring_vector_t &truthtable, UINT32 d
 		plib::pstring_vector_t times(io[2], ",");
 		nl_assert_always(times.size() == m_NO, "timing count not matching");
 
-		UINT16 val = 0;
-		std::vector<UINT8> tindex;
+		uint_least64_t val = 0;
+		std::vector<uint_least8_t> tindex;
 
 		for (unsigned j=0; j<m_NO; j++)
 		{
@@ -222,7 +222,7 @@ void truthtable_desc_t::setup(const plib::pstring_vector_t &truthtable, UINT32 d
 	}
 
 	// determine ignore
-	std::vector<uint64_t> ign(m_size, all_set);
+	std::vector<uint_least64_t> ign(m_size, all_set);
 
 	for (size_t i=0; i<m_size; i++)
 	{
@@ -240,10 +240,10 @@ void truthtable_desc_t::setup(const plib::pstring_vector_t &truthtable, UINT32 d
 
 				ign[i] = tign;
 				/* don't need to recalculate similar ones */
-				uint64_t bitsk=(1<<count_bits(tign));
-				for (uint64_t k=0; k<bitsk; k++)
+				uint_least64_t bitsk=(1<<count_bits(tign));
+				for (uint_least64_t k=0; k<bitsk; k++)
 				{
-					uint64_t b=set_bits(tign, k);
+					uint_least64_t b=set_bits(tign, k);
 					ign[(i & ~tign) | b] = tign;
 				}
 			}
@@ -259,20 +259,17 @@ void truthtable_desc_t::setup(const plib::pstring_vector_t &truthtable, UINT32 d
 
 }
 
-#define ENTRYX(n, m, h)    case (n * 1000 + m * 10 + h): \
-	{ using xtype = netlist_factory_truthtable_t<n, m, h>; \
-		return plib::owned_ptr<netlist_base_factory_truthtable_t>::Create<xtype>(name,classname,def_param); } break
-
-#define ENTRYY(n, m)   ENTRYX(n, m, 0); ENTRYX(n, m, 1)
+#define ENTRYY(n, m)    case (n * 100 + m): \
+	{ using xtype = netlist_factory_truthtable_t<n, m>; \
+		ret = new xtype(desc.name, desc.classname, desc.def_param); } break
 
 #define ENTRY(n) ENTRYY(n, 1); ENTRYY(n, 2); ENTRYY(n, 3); ENTRYY(n, 4); ENTRYY(n, 5); ENTRYY(n, 6)
 
-plib::owned_ptr<netlist_base_factory_truthtable_t> nl_tt_factory_create(const unsigned ni, const unsigned no,
-		const unsigned has_state,
-		const pstring &name, const pstring &classname,
-		const pstring &def_param)
+void tt_factory_create(setup_t &setup, tt_desc &desc)
 {
-	switch (ni * 1000 + no * 10 + has_state)
+	netlist_base_factory_truthtable_t *ret;
+
+	switch (desc.ni * 100 + desc.no)
 	{
 		ENTRY(1);
 		ENTRY(2);
@@ -285,10 +282,13 @@ plib::owned_ptr<netlist_base_factory_truthtable_t> nl_tt_factory_create(const un
 		ENTRY(9);
 		ENTRY(10);
 		default:
-			pstring msg = plib::pfmt("unable to create truthtable<{1},{2},{3}>")(ni)(no)(has_state);
+			pstring msg = plib::pfmt("unable to create truthtable<{1},{2}>")(desc.ni)(desc.no);
 			nl_assert_always(false, msg);
 	}
-	//return nullptr;
+	ret->m_desc = desc.desc;
+	if (desc.family != "")
+		ret->m_family = setup.family_from_model(desc.family);
+	setup.factory().register_device(std::unique_ptr<netlist_base_factory_truthtable_t>(ret));
 }
 
 	} //namespace devices

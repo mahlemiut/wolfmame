@@ -455,11 +455,11 @@ void ti68k_state::machine_start()
 
 		if (m_initial_pc > 0x400000)
 		{
-			m_maincpu->space(AS_PROGRAM).install_readwrite_handler(0x400000, 0x5fffff, 0, 0, read16_delegate(FUNC(ti68k_state::flash_r), this),write16_delegate(FUNC(ti68k_state::flash_w), this));
+			m_maincpu->space(AS_PROGRAM).install_readwrite_handler(0x400000, 0x5fffff, read16_delegate(FUNC(ti68k_state::flash_r), this),write16_delegate(FUNC(ti68k_state::flash_w), this));
 		}
 		else
 		{
-			m_maincpu->space(AS_PROGRAM).install_readwrite_handler(0x200000, 0x3fffff, 0, 0, read16_delegate(FUNC(ti68k_state::flash_r), this), write16_delegate(FUNC(ti68k_state::flash_w), this));
+			m_maincpu->space(AS_PROGRAM).install_readwrite_handler(0x200000, 0x3fffff, read16_delegate(FUNC(ti68k_state::flash_r), this), write16_delegate(FUNC(ti68k_state::flash_w), this));
 		}
 	}
 
@@ -569,7 +569,7 @@ MACHINE_CONFIG_END
 
 /* ROM definition */
 ROM_START( ti89 )
-	ROM_REGION( 0x200000, "flash", ROMREGION_ERASEFF )
+	ROM_REGION16_BE( 0x200000, "flash", ROMREGION_ERASEFF )
 	ROM_SYSTEM_BIOS( 0, "v100", "V 1.00 - HW1" )
 	ROMX_LOAD( "ti89v100.rom",   0x000000, 0x200000, CRC(264b34ad) SHA1(c87586a7e9b6d49fbe908fbb6f3c0038f3498573), ROM_BIOS(1))
 	ROM_SYSTEM_BIOS( 1, "v100a", "V 1.00 [a] - HW1" )
@@ -605,7 +605,7 @@ ROM_START( ti89 )
 ROM_END
 
 ROM_START( ti92 )
-	ROM_REGION( 0x200000, "flash", ROMREGION_ERASEFF )
+	ROM_REGION16_BE( 0x200000, "flash", ROMREGION_ERASEFF )
 	ROM_SYSTEM_BIOS( 0, "v111", "V 1.11" )
 	ROMX_LOAD( "ti92v111.rom",  0x000000, 0x100000, CRC(67878d52) SHA1(c0fdf162961922a76f286c93fd9b861ce20f23a3), ROM_BIOS(1))
 	ROM_SYSTEM_BIOS( 1, "v13e", "V 1.3 [e]" )
@@ -624,7 +624,7 @@ ROM_START( ti92 )
 ROM_END
 
 ROM_START( ti92p )
-	ROM_REGION( 0x200000, "flash", ROMREGION_ERASEFF )
+	ROM_REGION16_BE( 0x200000, "flash", ROMREGION_ERASEFF )
 	ROM_SYSTEM_BIOS( 0, "v100", "V 1.00 - HW1" )
 	ROMX_LOAD( "ti92pv100.rom", 0x0000, 0x200000, CRC(c651a586) SHA1(fbbf7e053e70eefe517f9aae40c072036bc614ea), ROM_BIOS(1))
 	ROM_SYSTEM_BIOS( 1, "v101", "V 1.01 - HW1" )
@@ -650,7 +650,7 @@ ROM_START( ti92p )
 ROM_END
 
 ROM_START( v200 )
-	ROM_REGION( 0x400000, "flash", ROMREGION_ERASEFF )
+	ROM_REGION16_BE( 0x400000, "flash", ROMREGION_ERASEFF )
 	ROM_SYSTEM_BIOS( 0, "v209", "V 2.09" )
 	ROMX_LOAD( "voyage200v209.rom", 0x0000, 0x400000, CRC(f805c7a6) SHA1(818b919058ba3bd7d15604f11fff6740010d07fc), ROM_BIOS(1))
 	ROM_SYSTEM_BIOS( 1, "v310", "V 3.10" )
@@ -658,7 +658,7 @@ ROM_START( v200 )
 ROM_END
 
 ROM_START( ti89t )
-	ROM_REGION( 0x400000, "flash", ROMREGION_ERASEFF )
+	ROM_REGION16_BE( 0x400000, "flash", ROMREGION_ERASEFF )
 	ROM_SYSTEM_BIOS( 0, "v300", "V 3.00" )
 	ROMX_LOAD( "ti89tv300.rom", 0x0000, 0x400000, CRC(55eb4f5a) SHA1(4f919d7752caf2559a79883ec8711a9701d19513), ROM_BIOS(1))
 	ROM_SYSTEM_BIOS( 1, "v310", "V 3.10" )

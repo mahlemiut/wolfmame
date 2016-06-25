@@ -126,14 +126,14 @@ private:
 
 private:
 
-	void add_device(std::shared_ptr<dev_t> dev);
+	void add_device(std::unique_ptr<dev_t> dev);
 
 	plib::postringstream m_buf;
 
-	plib::pvector_t<std::shared_ptr<dev_t>> m_devs;
-	plib::hashmap_t<pstring, std::shared_ptr<net_t> > m_nets;
-	plib::pvector_t<pstring> m_ext_alias;
-	plib::hashmap_t<pstring, std::shared_ptr<pin_alias_t>> m_pins;
+	std::vector<std::unique_ptr<dev_t>> m_devs;
+	std::unordered_map<pstring, std::unique_ptr<net_t> > m_nets;
+	std::vector<pstring> m_ext_alias;
+	std::unordered_map<pstring, std::unique_ptr<pin_alias_t>> m_pins;
 
 	static unit_t m_units[];
 

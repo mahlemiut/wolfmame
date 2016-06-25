@@ -12,9 +12,22 @@
 #include <thread>
 #include <chrono>
 
-#ifndef PSTANDALONE
-	#define PSTANDALONE (0)
-#endif
+/*
+ * Define this for more accurate measurements if you processor supports
+ * RDTSCP.
+ */
+#define PHAS_RDTSCP (1)
+
+/*
+ * Define this to use accurate timing measurements. Only works
+ * if PHAS_RDTSCP == 1
+ */
+#define PUSE_ACCURATE_STATS (1)
+
+/*
+ * Set this to one if you want to use 128 bit int for ptime.
+ * This is for tests only.
+ */
 
 #define PHAS_INT128 (0)
 
@@ -23,25 +36,17 @@
 #endif
 
 #if (PHAS_INT128)
-typedef _uint128_t UINT128;
-typedef _int128_t INT128;
+typedef __uint128_t UINT128;
+typedef __int128_t INT128;
 #endif
 
-#if !(PSTANDALONE)
-#include "osdcomm.h"
-//#include "eminline.h"
-
-#ifndef assert
-#define assert(x) do {} while (0)
-#endif
-
-#include "delegate.h"
-
+#if defined(__GNUC__)
+#define RESTRICT                __restrict__
+#define ATTR_UNUSED             __attribute__((__unused__))
 #else
-#include <stdint.h>
+#define RESTRICT
+#define ATTR_UNUSED
 #endif
-#include <cstddef>
-
 
 //============================================================
 //  Standard defines
@@ -54,27 +59,18 @@ typedef _int128_t INT128;
 		name &operator=(const name &);
 
 //============================================================
-//  Compiling standalone
+//  cut down delegate implementation
 //============================================================
-
-#if !(PSTANDALONE)
-
-/* use MAME */
-#if (USE_DELEGATE_TYPE == DELEGATE_TYPE_INTERNAL)
-#define PHAS_PMF_INTERNAL 1
-#else
-#define PHAS_PMF_INTERNAL 0
-#endif
-
-#else
-
-/* determine PMF approach */
 
 #if defined(__GNUC__)
 	/* does not work in versions over 4.7.x of 32bit MINGW  */
 	#if defined(__MINGW32__) && !defined(__x86_64) && defined(__i386__) && ((__GNUC__ > 4) || ((__GNUC__ == 4) && (__GNUC_MINOR__ >= 7)))
+		#define PHAS_PMF_INTERNAL 0
+	#elif defined(__MINGW32__) && !defined(__x86_64) && defined(__i386__)
 		#define PHAS_PMF_INTERNAL 1
 		#define MEMBER_ABI _thiscall
+	#elif defined(__clang__) && defined(__i386__) && defined(_WIN32)
+		#define PHAS_PMF_INTERNAL 0
 	#elif defined(EMSCRIPTEN)
 		#define PHAS_PMF_INTERNAL 0
 	#elif defined(__arm__) || defined(__ARMEL__)
@@ -83,79 +79,14 @@ typedef _int128_t INT128;
 		#define PHAS_PMF_INTERNAL 1
 	#endif
 #else
-#define PHAS_PMF_INTERNAL 0
+	#define PHAS_PMF_INTERNAL 0
 #endif
 
 #ifndef MEMBER_ABI
 	#define MEMBER_ABI
 #endif
 
-#define RESTRICT                __restrict__
-#define ATTR_PRINTF(x,y)        __attribute__((format(printf, x, y)))
-#define ATTR_UNUSED             __attribute__((__unused__))
-
-/* 8-bit values */
-typedef unsigned char                       UINT8;
-typedef signed char                         INT8;
-
-/* 16-bit values */
-typedef unsigned short                      UINT16;
-typedef signed short                        INT16;
-
-/* 32-bit values */
-#ifndef WINDOWS_H
-typedef unsigned int                        UINT32;
-typedef signed int                          INT32;
-#endif
-
-/* 64-bit values */
-#ifndef WINDOWS_H
-#ifdef _MSC_VER
-typedef signed _int64                      INT64;
-typedef unsigned _int64                    UINT64;
-#else
-typedef uint64_t    UINT64;
-typedef int64_t      INT64;
-#endif
-#endif
-
-/* U64 and S64 are used to wrap long integer constants. */
-#if defined(__GNUC__) || defined(_MSC_VER)
-#define U64(val) val##ULL
-#define S64(val) val##LL
-#else
-#define U64(val) val
-#define S64(val) val
-#endif
-
-#endif
-
 namespace plib {
-
-using ticks_t = INT64;
-
-static inline ticks_t ticks()
-{
-	return std::chrono::high_resolution_clock::now().time_since_epoch().count();
-}
-static inline ticks_t ticks_per_second()
-{
-	return std::chrono::high_resolution_clock::period::den / std::chrono::high_resolution_clock::period::num;
-}
-
-#if defined(__x86_64__) &&  !defined(_clang__) && !defined(_MSC_VER) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ > 6))
-
-static inline ticks_t profile_ticks()
-{
-    unsigned hi, lo;
-    __asm__ __volatile__ ("rdtsc" : "=a"(lo), "=d"(hi));
-    return ( (unsigned long long)lo)|( ((unsigned long long)hi)<<32 );
-}
-
-#else
-static inline ticks_t profile_ticks() { return ticks(); }
-#endif
-
 /*
  * The following class was derived from the MAME delegate.h code.
  * It derives a pointer to a member function.

@@ -172,12 +172,8 @@ public:
 	symbol_table &symtable() { return m_symtable; }
 
 	// commonly-used pass-throughs
-	offs_t pc() const { return (m_state != nullptr) ? m_state->pc() : 0; }
-	int logaddrchars(address_spacenum spacenum = AS_0) const { return (m_memory != nullptr && m_memory->has_space(spacenum)) ? m_memory->space(spacenum).logaddrchars() : 8; }
-	int min_opcode_bytes() const { return (m_disasm != nullptr) ? m_disasm->max_opcode_bytes() : 1; }
-	int max_opcode_bytes() const { return (m_disasm != nullptr) ? m_disasm->max_opcode_bytes() : 1; }
+	int logaddrchars() const { return (m_memory != nullptr && m_memory->has_space(AS_PROGRAM)) ? m_memory->space(AS_PROGRAM).logaddrchars() : 8; }
 	device_t& device() const { return m_device; }
-
 
 	// hooks used by the rest of the system
 	void start_hook(const attotime &endtime);
@@ -322,7 +318,6 @@ private:
 
 	// disassembly
 	dasm_override_func      m_dasm_override;            // pointer to provided override function
-	UINT8                   m_opwidth;                  // width of an opcode
 
 	// stepping information
 	offs_t                  m_stepaddr;                 // step target address for DEBUG_FLAG_STEPPING_OVER
@@ -606,7 +601,6 @@ private:
 	UINT64 get_frame(symbol_table &table, void *ref);
 
 	/* internal helpers */
-	void exit();
 	void on_vblank(screen_device &device, bool vblank_state);
 
 	running_machine&	m_machine;
@@ -617,7 +611,7 @@ private:
 
 	FILE *		m_source_file;			// script source file
 
-	symbol_table *	m_symtable;			// global symbol table
+	std::unique_ptr<symbol_table> m_symtable;			// global symbol table
 
 	bool	m_within_instruction_hook;
 	bool	m_vblank_occurred;

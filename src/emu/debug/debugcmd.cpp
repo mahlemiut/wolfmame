@@ -2332,13 +2332,20 @@ void debugger_commands::execute_dasm(int ref, int params, const char *param[])
 		return;
 	if (!validate_cpu_space_parameter((params > 4) ? param[4] : nullptr, AS_PROGRAM, space))
 		return;
-	if (!validate_cpu_space_parameter((params > 4) ? param[4] : nullptr, AS_DECRYPTED_OPCODES, decrypted_space))
+	if (space->device().memory().has_space(AS_DECRYPTED_OPCODES))
+		decrypted_space = &space->device().memory().space(AS_DECRYPTED_OPCODES);
+	else
 		decrypted_space = space;
 
 	/* determine the width of the bytes */
-	cpu_device *cpudevice = downcast<cpu_device *>(&space->device());
-	minbytes = cpudevice->min_opcode_bytes();
-	maxbytes = cpudevice->max_opcode_bytes();
+	device_disasm_interface *dasmintf;
+	if (!space->device().interface(dasmintf))
+	{
+		m_console.printf("No disassembler available for %s\n", space->device().name());
+		return;
+	}
+	minbytes = dasmintf->min_opcode_bytes();
+	maxbytes = dasmintf->max_opcode_bytes();
 	byteswidth = 0;
 	if (bytes)
 	{
@@ -2520,7 +2527,9 @@ void debugger_commands::execute_history(int ref, int params, const char *param[]
 	address_space *space, *decrypted_space;
 	if (!validate_cpu_space_parameter((params > 0) ? param[0] : nullptr, AS_PROGRAM, space))
 		return;
-	if (!validate_cpu_space_parameter((params > 0) ? param[0] : nullptr, AS_DECRYPTED_OPCODES, decrypted_space))
+	if (space->device().memory().has_space(AS_DECRYPTED_OPCODES))
+		decrypted_space = &space->device().memory().space(AS_DECRYPTED_OPCODES);
+	else
 		decrypted_space = space;
 
 	UINT64 count = device_debug::HISTORY_SIZE;
@@ -2534,7 +2543,8 @@ void debugger_commands::execute_history(int ref, int params, const char *param[]
 	device_debug *debug = space->device().debug();
 
 	/* loop over lines */
-	int maxbytes = debug->max_opcode_bytes();
+	device_disasm_interface *dasmintf;
+	int maxbytes = space->device().interface(dasmintf) ? dasmintf->max_opcode_bytes() : 1;
 	for (int index = 0; index < (int) count; index++)
 	{
 		offs_t pc = debug->history_pc(-index);
@@ -2583,7 +2593,7 @@ void debugger_commands::execute_trackpc(int ref, int params, const char *param[]
 		// Insert current pc
 		if (m_cpu.get_visible_cpu() == cpu)
 		{
-			const offs_t pc = cpu->debug()->pc();
+			const offs_t pc = cpu->safe_pc();
 			cpu->debug()->set_track_pc_visited(pc);
 		}
 		m_console.printf("PC tracking enabled\n");
@@ -2823,12 +2833,12 @@ void debugger_commands::execute_symlist(int ref, int params, const char **param)
 	}
 
 	/* gather names for all symbols */
-	for (symbol_entry &entry : symtable->entries())
+	for (auto &entry : symtable->entries())
 	{
 		/* only display "register" type symbols */
-		if (!entry.is_function())
+		if (!entry.second->is_function())
 		{
-			namelist[count++] = entry.name();
+			namelist[count++] = entry.second->name();
 			if (count >= ARRAY_LENGTH(namelist))
 				break;
 		}

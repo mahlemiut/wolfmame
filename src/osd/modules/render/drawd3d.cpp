@@ -2,17 +2,9 @@
 // copyright-holders:Aaron Giles
 //============================================================
 //
-//  drawd3d.c - Win32 Direct3D implementation
+//  drawd3d.cpp - Win32 Direct3D implementation
 //
 //============================================================
-
-// Useful info:
-//  Windows XP/2003 shipped with DirectX 8.1
-//  Windows 2000 shipped with DirectX 7a
-//  Windows 98SE shipped with DirectX 6.1a
-//  Windows 98 shipped with DirectX 5
-//  Windows NT shipped with DirectX 3.0a
-//  Windows 95 shipped with DirectX 2
 
 // MAME headers
 #include "emu.h"
@@ -27,6 +19,13 @@
 #include "window.h"
 #include "drawd3d.h"
 #include "modules/render/d3d/d3dhlsl.h"
+
+
+//============================================================
+//  TYPE DEFINITIONS
+//============================================================
+
+typedef IDirect3D9* (WINAPI *d3d9_create_fn)(UINT);
 
 
 //============================================================
@@ -122,10 +121,6 @@ static d3d_base *               d3dintf; // FIX ME
 
 
 //============================================================
-//  PROTOTYPES
-//============================================================
-
-//============================================================
 //  drawd3d_window_init
 //============================================================
 
@@ -133,7 +128,7 @@ int renderer_d3d9::create()
 {
 	if (!initialize())
 	{
-		osd_printf_error("Unable to initialize Direct3D.\n");
+		osd_printf_error("Unable to initialize Direct3D 9\n");
 		return 1;
 	}
 
@@ -142,7 +137,7 @@ int renderer_d3d9::create()
 
 void renderer_d3d9::toggle_fsfx()
 {
-	set_restarting(true);
+	set_toggle(true);
 }
 
 void renderer_d3d9::record()
@@ -183,20 +178,30 @@ render_primitive_list *renderer_d3d9::get_primitives()
 
 
 //============================================================
-//  drawnone_create
+//  renderer_d3d9::init
 //============================================================
 
 bool renderer_d3d9::init(running_machine &machine)
 {
-	// Use Direct3D9
-	d3dintf = drawd3d9_init();
+	d3dintf = global_alloc(d3d_base);
 
-	// if we failed, note the error
-	if (d3dintf == nullptr)
+	d3dintf->d3d9_dll = osd::dynamic_module::open({ "d3d9.dll" });
+
+	d3d9_create_fn d3d9_create_ptr = d3dintf->d3d9_dll->bind<d3d9_create_fn>("Direct3DCreate9");
+	if (d3d9_create_ptr == nullptr)
 	{
-		osd_printf_error("Unable to initialize Direct3D.\n");
+		osd_printf_verbose("Direct3D: Unable to find Direct3D 9 runtime library\n");
 		return true;
 	}
+
+	d3dintf->d3dobj = (*d3d9_create_ptr)(D3D_SDK_VERSION);
+	if (d3dintf->d3dobj == nullptr)
+	{
+		osd_printf_verbose("Direct3D: Unable to initialize Direct3D 9\n");
+		return true;
+	}
+
+	osd_printf_verbose("Direct3D: Using Direct3D 9\n");
 
 	return false;
 }
@@ -225,9 +230,10 @@ void renderer_d3d9::set_texture(texture_info *texture)
 	{
 		m_last_texture = texture;
 		m_last_texture_flags = (texture == nullptr ? 0 : texture->get_flags());
-		HRESULT result = (*d3dintf->device.set_texture)(m_device, 0, (texture == nullptr) ? get_default_texture()->get_finaltex() : texture->get_finaltex());
+		HRESULT result = m_device->SetTexture(0, (texture == nullptr) ? get_default_texture()->get_finaltex() : texture->get_finaltex());
 		m_shaders->set_texture(texture);
-		if (result != D3D_OK) osd_printf_verbose("Direct3D: Error %08X during device set_texture call\n", (int)result);
+		if (FAILED(result))
+			osd_printf_verbose("Direct3D: Error %08lX during device set_texture call\n", result);
 	}
 }
 
@@ -236,14 +242,18 @@ void renderer_d3d9::set_filter(int filter)
 	if (filter != m_last_filter)
 	{
 		m_last_filter = filter;
-		HRESULT result = (*d3dintf->device.set_texture_stage_state)(m_device, 0, (D3DTEXTURESTAGESTATETYPE)D3DTSS_MINFILTER, filter ? D3DTEXF_LINEAR : D3DTEXF_POINT);
-		if (result != D3D_OK) osd_printf_verbose("Direct3D: Error %08X during device set_texture_stage_state call\n", (int)result);
-		result = (*d3dintf->device.set_texture_stage_state)(m_device, 0, (D3DTEXTURESTAGESTATETYPE)D3DTSS_MAGFILTER, filter ? D3DTEXF_LINEAR : D3DTEXF_POINT);
-		if (result != D3D_OK) osd_printf_verbose("Direct3D: Error %08X during device set_texture_stage_state call\n", (int)result);
-		result = (*d3dintf->device.set_texture_stage_state)(m_device, 1, (D3DTEXTURESTAGESTATETYPE)D3DTSS_MINFILTER, filter ? D3DTEXF_LINEAR : D3DTEXF_POINT);
-		if (result != D3D_OK) osd_printf_verbose("Direct3D: Error %08X during device set_texture_stage_state call\n", (int)result);
-		result = (*d3dintf->device.set_texture_stage_state)(m_device, 1, (D3DTEXTURESTAGESTATETYPE)D3DTSS_MAGFILTER, filter ? D3DTEXF_LINEAR : D3DTEXF_POINT);
-		if (result != D3D_OK) osd_printf_verbose("Direct3D: Error %08X during device set_texture_stage_state call\n", (int)result);
+		HRESULT result = m_device->SetSamplerState(0, D3DSAMP_MINFILTER, filter ? D3DTEXF_LINEAR : D3DTEXF_POINT);
+		if (FAILED(result))
+			osd_printf_verbose("Direct3D: Error %08lX during device SetSamplerState call\n", result);
+		result = m_device->SetSamplerState(0, D3DSAMP_MAGFILTER, filter ? D3DTEXF_LINEAR : D3DTEXF_POINT);
+		if (FAILED(result))
+			osd_printf_verbose("Direct3D: Error %08lX during device SetSamplerState call\n", result);
+		result = m_device->SetSamplerState(1, D3DSAMP_MINFILTER, filter ? D3DTEXF_LINEAR : D3DTEXF_POINT);
+		if (FAILED(result))
+			osd_printf_verbose("Direct3D: Error %08lX during device SetSamplerState call\n", result);
+		result = m_device->SetSamplerState(1, D3DSAMP_MAGFILTER, filter ? D3DTEXF_LINEAR : D3DTEXF_POINT);
+		if (FAILED(result))
+			osd_printf_verbose("Direct3D: Error %08lX during device SetSamplerState call\n", result);
 	}
 }
 
@@ -252,14 +262,18 @@ void renderer_d3d9::set_wrap(unsigned int wrap)
 	if (wrap != m_last_wrap)
 	{
 		m_last_wrap = wrap;
-		HRESULT result = (*d3dintf->device.set_texture_stage_state)(m_device, 0, (D3DTEXTURESTAGESTATETYPE)D3DTSS_ADDRESSU, wrap);
-		if (result != D3D_OK) osd_printf_verbose("Direct3D: Error %08X during device set_texture_stage_state call\n", (int)result);
-		result = (*d3dintf->device.set_texture_stage_state)(m_device, 0, (D3DTEXTURESTAGESTATETYPE)D3DTSS_ADDRESSV, wrap);
-		if (result != D3D_OK) osd_printf_verbose("Direct3D: Error %08X during device set_texture_stage_state call\n", (int)result);
-		result = (*d3dintf->device.set_texture_stage_state)(m_device, 1, (D3DTEXTURESTAGESTATETYPE)D3DTSS_ADDRESSU, wrap);
-		if (result != D3D_OK) osd_printf_verbose("Direct3D: Error %08X during device set_texture_stage_state call\n", (int)result);
-		result = (*d3dintf->device.set_texture_stage_state)(m_device, 1, (D3DTEXTURESTAGESTATETYPE)D3DTSS_ADDRESSV, wrap);
-		if (result != D3D_OK) osd_printf_verbose("Direct3D: Error %08X during device set_texture_stage_state call\n", (int)result);
+		HRESULT result = m_device->SetSamplerState(0, D3DSAMP_ADDRESSU, wrap);
+		if (FAILED(result))
+			osd_printf_verbose("Direct3D: Error %08lX during device SetSamplerState call\n", result);
+		result = m_device->SetSamplerState(0, D3DSAMP_ADDRESSV, wrap);
+		if (FAILED(result))
+			osd_printf_verbose("Direct3D: Error %08lX during device SetSamplerState call\n", result);
+		result = m_device->SetSamplerState(1, D3DSAMP_ADDRESSU, wrap);
+		if (FAILED(result))
+			osd_printf_verbose("Direct3D: Error %08lX during device SetSamplerState call\n", result);
+		result = m_device->SetSamplerState(1, D3DSAMP_ADDRESSV, wrap);
+		if (FAILED(result))
+			osd_printf_verbose("Direct3D: Error %08lX during device SetSamplerState call\n", result);
 	}
 }
 
@@ -268,10 +282,12 @@ void renderer_d3d9::set_modmode(int modmode)
 	if (modmode != m_last_modmode)
 	{
 		m_last_modmode = modmode;
-		HRESULT result = (*d3dintf->device.set_texture_stage_state)(m_device, 0, D3DTSS_COLOROP, modmode);
-		if (result != D3D_OK) osd_printf_verbose("Direct3D: Error %08X during device set_texture_stage_state call\n", (int)result);
-		result = (*d3dintf->device.set_texture_stage_state)(m_device, 1, D3DTSS_COLOROP, modmode);
-		if (result != D3D_OK) osd_printf_verbose("Direct3D: Error %08X during device set_texture_stage_state call\n", (int)result);
+		HRESULT result = m_device->SetTextureStageState(0, D3DTSS_COLOROP, modmode);
+		if (FAILED(result))
+			osd_printf_verbose("Direct3D: Error %08lX during device SetTextureStageState call\n", result);
+		result = m_device->SetTextureStageState(1, D3DTSS_COLOROP, modmode);
+		if (FAILED(result))
+			osd_printf_verbose("Direct3D: Error %08lX during device SetTextureStageState call\n", result);
 	}
 }
 
@@ -296,29 +312,33 @@ void renderer_d3d9::set_blendmode(int blendmode)
 	if (blendenable != m_last_blendenable)
 	{
 		m_last_blendenable = blendenable;
-		HRESULT result = (*d3dintf->device.set_render_state)(m_device, D3DRS_ALPHABLENDENABLE, blendenable);
-		if (result != D3D_OK) osd_printf_verbose("Direct3D: Error %08X during device set_render_state call\n", (int)result);
+		HRESULT result = m_device->SetRenderState(D3DRS_ALPHABLENDENABLE, blendenable);
+		if (FAILED(result))
+			osd_printf_verbose("Direct3D: Error %08lX during device SetRenderState call\n", result);
 	}
 
 	if (blendop != m_last_blendop)
 	{
 		m_last_blendop = blendop;
-		HRESULT result = (*d3dintf->device.set_render_state)(m_device, D3DRS_BLENDOP, blendop);
-		if (result != D3D_OK) osd_printf_verbose("Direct3D: Error %08X during device set_render_state call\n", (int)result);
+		HRESULT result = m_device->SetRenderState(D3DRS_BLENDOP, blendop);
+		if (FAILED(result))
+			osd_printf_verbose("Direct3D: Error %08lX during device SetRenderState call\n", result);
 	}
 
 	if (blendsrc != m_last_blendsrc)
 	{
 		m_last_blendsrc = blendsrc;
-		HRESULT result = (*d3dintf->device.set_render_state)(m_device, D3DRS_SRCBLEND, blendsrc);
-		if (result != D3D_OK) osd_printf_verbose("Direct3D: Error %08X during device set_render_state call\n", (int)result);
+		HRESULT result = m_device->SetRenderState(D3DRS_SRCBLEND, blendsrc);
+		if (FAILED(result))
+			osd_printf_verbose("Direct3D: Error %08lX during device SetRenderState call\n", result);
 	}
 
 	if (blenddst != m_last_blenddst)
 	{
 		m_last_blenddst = blenddst;
-		HRESULT result = (*d3dintf->device.set_render_state)(m_device, D3DRS_DESTBLEND, blenddst);
-		if (result != D3D_OK) osd_printf_verbose("Direct3D: Error %08X during device set_render_state call\n", (int)result);
+		HRESULT result = m_device->SetRenderState(D3DRS_DESTBLEND, blenddst);
+		if (FAILED(result))
+			osd_printf_verbose("Direct3D: Error %08lX during device SetRenderState call\n", result);
 	}
 }
 
@@ -341,37 +361,35 @@ d3d_texture_manager::d3d_texture_manager(renderer_d3d9 *d3d)
 	m_texlist = nullptr;
 	m_default_texture = nullptr;
 
+	D3DCAPS9 caps;
+	HRESULT result = d3dintf->d3dobj->GetDeviceCaps(d3d->get_adapter(), D3DDEVTYPE_HAL, &caps);
+	if (FAILED(result))
+		osd_printf_verbose("Direct3D: Error %08lX during GetDeviceCaps call\n", result);
+
 	// check for dynamic texture support
-	DWORD tempcaps;
-	HRESULT result = (*d3dintf->d3d.get_caps_dword)(d3dintf, d3d->get_adapter(), D3DDEVTYPE_HAL, CAPS_CAPS2, &tempcaps);
-	if (result != D3D_OK) osd_printf_verbose("Direct3D: Error %08X during get_caps_dword call\n", (int)result);
-	m_dynamic_supported = ((tempcaps & D3DCAPS2_DYNAMICTEXTURES) != 0);
-	if (m_dynamic_supported) osd_printf_verbose("Direct3D: Using dynamic textures\n");
+	m_dynamic_supported = ((caps.Caps2 & D3DCAPS2_DYNAMICTEXTURES) != 0);
+	if (m_dynamic_supported)
+		osd_printf_verbose("Direct3D: Using dynamic textures\n");
 
 	// check for stretchrect support
-	result = (*d3dintf->d3d.get_caps_dword)(d3dintf, d3d->get_adapter(), D3DDEVTYPE_HAL, CAPS_STRETCH_RECT_FILTER, &tempcaps);
-	if (result != D3D_OK) osd_printf_verbose("Direct3D: Error %08X during get_caps_dword call\n", (int)result);
-	m_stretch_supported = ((tempcaps & D3DPTFILTERCAPS_MAGFPOINT) != 0);
-	if (m_stretch_supported && video_config.prescale > 1) osd_printf_verbose("Direct3D: Using StretchRect for prescaling\n");
+	m_stretch_supported = ((caps.StretchRectFilterCaps & D3DPTFILTERCAPS_MAGFPOINT) != 0);
+	if (m_stretch_supported && video_config.prescale > 1)
+		osd_printf_verbose("Direct3D: Using StretchRect for prescaling\n");
 
 	// get texture caps
-	result = (*d3dintf->d3d.get_caps_dword)(d3dintf, d3d->get_adapter(), D3DDEVTYPE_HAL, CAPS_TEXTURE_CAPS, &m_texture_caps);
-	if (result != D3D_OK) osd_printf_verbose("Direct3D: Error %08X during get_caps_dword call\n", (int)result);
-	result = (*d3dintf->d3d.get_caps_dword)(d3dintf, d3d->get_adapter(), D3DDEVTYPE_HAL, CAPS_MAX_TEXTURE_ASPECT, &m_texture_max_aspect);
-	if (result != D3D_OK) osd_printf_verbose("Direct3D: Error %08X during get_caps_dword call\n", (int)result);
-	result = (*d3dintf->d3d.get_caps_dword)(d3dintf, d3d->get_adapter(), D3DDEVTYPE_HAL, CAPS_MAX_TEXTURE_WIDTH, &m_texture_max_width);
-	if (result != D3D_OK) osd_printf_verbose("Direct3D: Error %08X during get_caps_dword call\n", (int)result);
-	result = (*d3dintf->d3d.get_caps_dword)(d3dintf, d3d->get_adapter(), D3DDEVTYPE_HAL, CAPS_MAX_TEXTURE_HEIGHT, &m_texture_max_height);
-	if (result != D3D_OK) osd_printf_verbose("Direct3D: Error %08X during get_caps_dword call\n", (int)result);
+	m_texture_caps = caps.TextureCaps;
+	m_texture_max_aspect = caps.MaxTextureAspectRatio;
+	m_texture_max_width = caps.MaxTextureWidth;
+	m_texture_max_height = caps.MaxTextureHeight;
 
 	// pick a YUV texture format
 	m_yuv_format = D3DFMT_UYVY;
-	result = (*d3dintf->d3d.check_device_format)(d3dintf, d3d->get_adapter(), D3DDEVTYPE_HAL, d3d->get_pixel_format(), 0, D3DRTYPE_TEXTURE, D3DFMT_UYVY);
-	if (result != D3D_OK)
+	result = d3dintf->d3dobj->CheckDeviceFormat(d3d->get_adapter(), D3DDEVTYPE_HAL, d3d->get_pixel_format(), 0, D3DRTYPE_TEXTURE, D3DFMT_UYVY);
+	if (FAILED(result))
 	{
 		m_yuv_format = D3DFMT_YUY2;
-		result = (*d3dintf->d3d.check_device_format)(d3dintf, d3d->get_adapter(), D3DDEVTYPE_HAL, d3d->get_pixel_format(), 0, D3DRTYPE_TEXTURE, D3DFMT_YUY2);
-		if (result != D3D_OK)
+		result = d3dintf->d3dobj->CheckDeviceFormat(d3d->get_adapter(), D3DDEVTYPE_HAL, d3d->get_pixel_format(), 0, D3DRTYPE_TEXTURE, D3DFMT_YUY2);
+		if (FAILED(result))
 			m_yuv_format = D3DFMT_A8R8G8B8;
 	}
 	osd_printf_verbose("Direct3D: YUV format = %s\n", (m_yuv_format == D3DFMT_YUY2) ? "YUY2" : (m_yuv_format == D3DFMT_UYVY) ? "UYVY" : "RGB");
@@ -381,10 +399,6 @@ d3d_texture_manager::d3d_texture_manager(renderer_d3d9 *d3d)
 	// set the max texture size
 	win->target()->set_max_texture_size(m_texture_max_width, m_texture_max_height);
 	osd_printf_verbose("Direct3D: Max texture size = %dx%d\n", (int)m_texture_max_width, (int)m_texture_max_height);
-}
-
-d3d_texture_manager::~d3d_texture_manager()
-{
 }
 
 void d3d_texture_manager::create_resources()
@@ -506,21 +520,23 @@ texture_info *d3d_texture_manager::find_texinfo(const render_texinfo *texinfo, U
 
 renderer_d3d9::renderer_d3d9(std::shared_ptr<osd_window> window)
 	: osd_renderer(window, FLAG_NONE), m_adapter(0), m_width(0), m_height(0), m_refresh(0), m_create_error_count(0), m_device(nullptr), m_gamma_supported(0), m_pixformat(),
-	m_vertexbuf(nullptr), m_lockedbuf(nullptr), m_numverts(0), m_vectorbatch(nullptr), m_batchindex(0), m_numpolys(0), m_restarting(false), m_mod2x_supported(0), m_mod4x_supported(0),
+	m_vertexbuf(nullptr), m_lockedbuf(nullptr), m_numverts(0), m_vectorbatch(nullptr), m_batchindex(0), m_numpolys(0), m_toggle(false),
 	m_screen_format(), m_last_texture(nullptr), m_last_texture_flags(0), m_last_blendenable(0), m_last_blendop(0), m_last_blendsrc(0), m_last_blenddst(0), m_last_filter(0),
-	m_last_wrap(), m_last_modmode(0), m_hlsl_buf(nullptr), m_shaders(nullptr), m_shaders_options(nullptr), m_texture_manager(nullptr)
+	m_last_wrap(), m_last_modmode(0), m_hlsl_buf(nullptr), m_shaders(nullptr), m_texture_manager(nullptr)
 {
 }
 
 int renderer_d3d9::initialize()
 {
+	osd_printf_verbose("Direct3D: Initialize\n");
+
 	// configure the adapter for the mode we want
 	if (config_adapter_mode())
 	{
 		return false;
 	}
 
-	// create the device immediately for the full screen case (defer for window mode)
+	// create the device immediately for the full screen case (defer for window mode in update_window_size())
 	auto win = assert_window();
 	if (win->fullscreen() && device_create(win->main_window()->platform_window<HWND>()))
 	{
@@ -538,13 +554,24 @@ int renderer_d3d9::pre_window_draw_check()
 	if (win->m_resize_state == RESIZE_STATE_RESIZING)
 		return 0;
 
-	// if we're restarting the renderer, leave things alone
-	if (m_restarting)
+	// check if shaders should be toggled
+	if (m_toggle)
 	{
-		m_sliders.clear();
-		m_shaders->toggle(m_sliders);
+		m_toggle = false;
 
-		m_restarting = false;
+		// free resources
+		device_delete_resources();
+
+		m_shaders->toggle();
+		m_sliders_dirty = true;
+
+		// re-create resources 
+		if (device_create_resources())
+		{
+			osd_printf_verbose("Direct3D: failed to recreate resources for device; failing permanently\n");
+			device_delete();
+			return 1;
+		}
 	}
 
 	// if we have a device, check the cooperative level
@@ -616,11 +643,14 @@ void d3d_texture_manager::update_textures()
 		}
 		else if(PRIMFLAG_GET_VECTORBUF(prim.flags))
 		{
-			if (m_renderer->get_shaders()->vector_enabled())
+			if (m_renderer->get_shaders()->enabled())
 			{
 				if (!m_renderer->get_shaders()->get_vector_target(&prim))
 				{
-					m_renderer->get_shaders()->create_vector_target(&prim);
+					if (!m_renderer->get_shaders()->create_vector_target(&prim))
+					{
+						d3dintf->post_fx_available = false;
+					}
 				}
 			}
 		}
@@ -631,8 +661,9 @@ void renderer_d3d9::begin_frame()
 {
 	auto win = assert_window();
 
-	HRESULT result = (*d3dintf->device.clear)(m_device, 0, nullptr, D3DCLEAR_TARGET, D3DCOLOR_ARGB(0,0,0,0), 0, 0);
-	if (result != D3D_OK) osd_printf_verbose("Direct3D: Error %08X during device clear call\n", (int)result);
+	HRESULT result = m_device->Clear(0, nullptr, D3DCLEAR_TARGET, D3DCOLOR_ARGB(0,0,0,0), 0, 0);
+	if (FAILED(result))
+		osd_printf_verbose("Direct3D: Error %08lX during device clear call\n", result);
 
 	m_shaders->begin_frame();
 
@@ -642,8 +673,9 @@ void renderer_d3d9::begin_frame()
 	m_texture_manager->update_textures();
 
 	// begin the scene
-	result = (*d3dintf->device.begin_scene)(m_device);
-	if (result != D3D_OK) osd_printf_verbose("Direct3D: Error %08X during device begin_scene call\n", (int)result);
+	result = m_device->BeginScene();
+	if (FAILED(result))
+		osd_printf_verbose("Direct3D: Error %08lX during device BeginScene call\n", result);
 
 	m_lockedbuf = nullptr;
 
@@ -710,13 +742,74 @@ void renderer_d3d9::end_frame()
 	m_shaders->end_frame();
 
 	// finish the scene
-	HRESULT result = (*d3dintf->device.end_scene)(m_device);
-	if (result != D3D_OK) osd_printf_verbose("Direct3D: Error %08X during device end_scene call\n", (int)result);
+	HRESULT result = m_device->EndScene();
+	if (FAILED(result))
+		osd_printf_verbose("Direct3D: Error %08lX during device end_scene call\n", result);
 
 	// present the current buffers
-	result = (*d3dintf->device.present)(m_device, nullptr, nullptr, nullptr, nullptr, 0);
-	if (result != D3D_OK) osd_printf_verbose("Direct3D: Error %08X during device present call\n", (int)result);
+	result = m_device->Present(nullptr, nullptr, nullptr, nullptr);
+	if (FAILED(result))
+		osd_printf_verbose("Direct3D: Error %08lX during device present call\n", result);
 }
+
+void renderer_d3d9::update_presentation_parameters()
+{
+	auto win = assert_window();
+
+	memset(&m_presentation, 0, sizeof(m_presentation));
+	m_presentation.BackBufferWidth = m_width;
+	m_presentation.BackBufferHeight = m_height;
+	m_presentation.BackBufferFormat = m_pixformat;
+	m_presentation.BackBufferCount = video_config.triplebuf ? 2 : 1;
+	m_presentation.MultiSampleType = D3DMULTISAMPLE_NONE;
+	m_presentation.SwapEffect = D3DSWAPEFFECT_DISCARD;
+	m_presentation.hDeviceWindow = win->platform_window<HWND>();
+	m_presentation.Windowed = !win->fullscreen() || win->win_has_menu();
+	m_presentation.EnableAutoDepthStencil = FALSE;
+	m_presentation.AutoDepthStencilFormat = D3DFMT_D16;
+	m_presentation.Flags = 0;
+	m_presentation.FullScreen_RefreshRateInHz = m_refresh;
+	m_presentation.PresentationInterval = (
+		(video_config.triplebuf && win->fullscreen())
+		|| video_config.waitvsync
+		|| video_config.syncrefresh)
+			? D3DPRESENT_INTERVAL_ONE
+			: D3DPRESENT_INTERVAL_IMMEDIATE;
+}
+
+
+void renderer_d3d9::update_gamma_ramp()
+{
+	if (m_gamma_supported)
+	{
+		return;
+	}
+
+	auto win = assert_window();
+
+	// create a standard ramp
+	D3DGAMMARAMP ramp;
+
+	// set the gamma if we need to
+	if (win->fullscreen())
+	{
+		// only set the gamma if it's not 1.0
+		windows_options &options = downcast<windows_options &>(win->machine().options());
+		float brightness = options.full_screen_brightness();
+		float contrast = options.full_screen_contrast();
+		float gamma = options.full_screen_gamma();
+		if (brightness != 1.0f || contrast != 1.0f || gamma != 1.0f)
+		{
+			for (int i = 0; i < 256; i++)
+			{
+				ramp.red[i] = ramp.green[i] = ramp.blue[i] = apply_brightness_contrast_gamma(i, brightness, contrast, gamma) << 8;
+			}
+		}
+	}
+
+	m_device->SetGammaRamp(0, 0, &ramp);
+}
+
 
 //============================================================
 //  device_create
@@ -731,22 +824,8 @@ int renderer_d3d9::device_create(HWND device_hwnd)
 	}
 
 	// verify the caps
-	int verify = device_verify_caps();
-	if (verify == 2)
+	if (device_verify_caps())
 	{
-		osd_printf_error("Error: Device does not meet minimum requirements for Direct3D rendering\n");
-		return 1;
-	}
-	if (verify == 1)
-	{
-		osd_printf_warning("Warning: Device may not perform well for Direct3D rendering\n");
-	}
-
-	// verify texture formats
-	HRESULT result = (*d3dintf->d3d.check_device_format)(d3dintf, m_adapter, D3DDEVTYPE_HAL, m_pixformat, 0, D3DRTYPE_TEXTURE, D3DFMT_A8R8G8B8);
-	if (result != D3D_OK)
-	{
-		osd_printf_error("Error: A8R8G8B8 format textures not supported\n");
 		return 1;
 	}
 
@@ -755,48 +834,39 @@ int renderer_d3d9::device_create(HWND device_hwnd)
 try_again:
 	// try for XRGB first
 	m_screen_format = D3DFMT_X8R8G8B8;
-	result = (*d3dintf->d3d.check_device_format)(d3dintf, m_adapter, D3DDEVTYPE_HAL, m_pixformat, m_texture_manager->is_dynamic_supported() ? D3DUSAGE_DYNAMIC : 0, D3DRTYPE_TEXTURE, m_screen_format);
-	if (result != D3D_OK)
+	HRESULT result = d3dintf->d3dobj->CheckDeviceFormat(m_adapter, D3DDEVTYPE_HAL, m_pixformat, 
+		m_texture_manager->is_dynamic_supported() 
+			? D3DUSAGE_DYNAMIC
+			: 0,
+		D3DRTYPE_TEXTURE, m_screen_format);
+	if (FAILED(result))
 	{
 		// if not, try for ARGB
 		m_screen_format = D3DFMT_A8R8G8B8;
-		result = (*d3dintf->d3d.check_device_format)(d3dintf, m_adapter, D3DDEVTYPE_HAL, m_pixformat, m_texture_manager->is_dynamic_supported() ? D3DUSAGE_DYNAMIC : 0, D3DRTYPE_TEXTURE, m_screen_format);
-		if (result != D3D_OK && m_texture_manager->is_dynamic_supported())
+		result = d3dintf->d3dobj->CheckDeviceFormat(m_adapter, D3DDEVTYPE_HAL, m_pixformat,
+			m_texture_manager->is_dynamic_supported()
+				? D3DUSAGE_DYNAMIC
+				: 0,
+			D3DRTYPE_TEXTURE, m_screen_format);
+		if (FAILED(result) && m_texture_manager->is_dynamic_supported())
 		{
 			m_texture_manager->set_dynamic_supported(FALSE);
 			goto try_again;
 		}
-		if (result != D3D_OK)
+		if (FAILED(result))
 		{
 			osd_printf_error("Error: unable to configure a screen texture format\n");
 			return 1;
 		}
 	}
 
-	auto win = assert_window();
-
 	// initialize the D3D presentation parameters
-	memset(&m_presentation, 0, sizeof(m_presentation));
-	m_presentation.BackBufferWidth               = m_width;
-	m_presentation.BackBufferHeight              = m_height;
-	m_presentation.BackBufferFormat              = m_pixformat;
-	m_presentation.BackBufferCount               = video_config.triplebuf ? 2 : 1;
-	m_presentation.MultiSampleType               = D3DMULTISAMPLE_NONE;
-	m_presentation.SwapEffect                    = D3DSWAPEFFECT_DISCARD;
-	m_presentation.hDeviceWindow                 = win->platform_window<HWND>();
-	m_presentation.Windowed                      = !win->fullscreen() || win->win_has_menu();
-	m_presentation.EnableAutoDepthStencil        = FALSE;
-	m_presentation.AutoDepthStencilFormat        = D3DFMT_D16;
-	m_presentation.Flags                         = 0;
-	m_presentation.FullScreen_RefreshRateInHz    = m_refresh;
-	m_presentation.PresentationInterval          = ((video_config.triplebuf && win->fullscreen()) ||
-													video_config.waitvsync || video_config.syncrefresh) ?
-													D3DPRESENT_INTERVAL_ONE : D3DPRESENT_INTERVAL_IMMEDIATE;
+	update_presentation_parameters();
 
 	// create the D3D device
-	result = (*d3dintf->d3d.create_device)(d3dintf, m_adapter, D3DDEVTYPE_HAL, device_hwnd,
-					D3DCREATE_SOFTWARE_VERTEXPROCESSING | D3DCREATE_FPU_PRESERVE, &m_presentation, &m_device);
-	if (result != D3D_OK)
+	result = d3dintf->d3dobj->CreateDevice(
+		m_adapter, D3DDEVTYPE_HAL, device_hwnd,	D3DCREATE_SOFTWARE_VERTEXPROCESSING | D3DCREATE_FPU_PRESERVE, &m_presentation, &m_device);
+	if (FAILED(result))
 	{
 		// if we got a "DEVICELOST" error, it may be transitory; count it and only fail if
 		// we exceed a threshold
@@ -816,52 +886,7 @@ try_again:
 	m_create_error_count = 0;
 	osd_printf_verbose("Direct3D: Device created at %dx%d\n", m_width, m_height);
 
-	// set the gamma if we need to
-	if (win->fullscreen())
-	{
-		// only set the gamma if it's not 1.0f
-		windows_options &options = downcast<windows_options &>(win->machine().options());
-		float brightness = options.full_screen_brightness();
-		float contrast = options.full_screen_contrast();
-		float gamma = options.full_screen_gamma();
-		if (brightness != 1.0f || contrast != 1.0f || gamma != 1.0f)
-		{
-			// warn if we can't do it
-			if (!m_gamma_supported)
-			{
-				osd_printf_warning("Direct3D: Warning - device does not support full screen gamma correction.\n");
-			}
-			else
-			{
-				// create a standard ramp and set it
-				D3DGAMMARAMP ramp;
-				for (int i = 0; i < 256; i++)
-				{
-					ramp.red[i] = ramp.green[i] = ramp.blue[i] = apply_brightness_contrast_gamma(i, brightness, contrast, gamma) << 8;
-				}
-				(*d3dintf->device.set_gamma_ramp)(m_device, 0, &ramp);
-			}
-		}
-	}
-
-	// create shader options only once
-	if (m_shaders_options == nullptr)
-	{
-		m_shaders_options = (hlsl_options*)global_alloc_clear<hlsl_options>();
-		m_shaders_options->params_init = false;
-	}
-
-	m_shaders = (shaders*)global_alloc_clear<shaders>();
-	m_shaders->init(d3dintf, &win->machine(), this);
-
-	m_sliders.clear();
-	int failed = m_shaders->create_resources(false, m_sliders);
-	if (failed)
-	{
-		return failed;
-	}
-
-	m_sliders_dirty = true;
+	update_gamma_ramp();
 
 	return device_create_resources();
 }
@@ -873,58 +898,83 @@ try_again:
 
 int renderer_d3d9::device_create_resources()
 {
+	auto win = assert_window();
+
+	// create shaders only once
+	if (m_shaders == nullptr)
+	{
+		m_shaders = (shaders*)global_alloc_clear<shaders>();
+	}
+
+	if (m_shaders->init(d3dintf, &win->machine(), this))
+	{
+		m_shaders->init_slider_list();
+		m_sliders_dirty = true;
+	}
+
+	// create resources
+	if (m_shaders->create_resources())
+	{
+		osd_printf_verbose("Direct3D: failed to create HLSL resources for device\n");
+		return 1;
+	}
+
 	// allocate a vertex buffer to use
-	HRESULT result = (*d3dintf->device.create_vertex_buffer)(m_device,
-				sizeof(vertex) * VERTEX_BUFFER_SIZE,
-				D3DUSAGE_DYNAMIC | D3DUSAGE_SOFTWAREPROCESSING | D3DUSAGE_WRITEONLY,
-				VERTEX_BASE_FORMAT | ((m_shaders->enabled() && d3dintf->post_fx_available) ? D3DFVF_XYZW : D3DFVF_XYZRHW),
-				D3DPOOL_DEFAULT, &m_vertexbuf);
-	if (result != D3D_OK)
+	HRESULT result = m_device->CreateVertexBuffer(
+		sizeof(vertex) * VERTEX_BUFFER_SIZE,
+		D3DUSAGE_DYNAMIC | D3DUSAGE_SOFTWAREPROCESSING | D3DUSAGE_WRITEONLY,
+		VERTEX_BASE_FORMAT | ((m_shaders->enabled() && d3dintf->post_fx_available) 
+			? D3DFVF_XYZW
+			: D3DFVF_XYZRHW),
+		D3DPOOL_DEFAULT, &m_vertexbuf, nullptr);
+	if (FAILED(result))
 	{
 		osd_printf_error("Error creating vertex buffer (%08X)\n", (UINT32)result);
 		return 1;
 	}
 
 	// set the vertex format
-	result = (*d3dintf->device.set_vertex_format)(m_device, (D3DFORMAT)(VERTEX_BASE_FORMAT | ((m_shaders->enabled() &&
-		d3dintf->post_fx_available) ? D3DFVF_XYZW : D3DFVF_XYZRHW)));
-	if (result != D3D_OK)
+	result = m_device->SetFVF(
+		(D3DFORMAT)(VERTEX_BASE_FORMAT | ((m_shaders->enabled() && d3dintf->post_fx_available) 
+			? D3DFVF_XYZW 
+			: D3DFVF_XYZRHW)));
+	if (FAILED(result))
 	{
 		osd_printf_error("Error setting vertex format (%08X)\n", (UINT32)result);
 		return 1;
 	}
 
 	// set the fixed render state
-	result = (*d3dintf->device.set_render_state)(m_device, D3DRS_ZENABLE, D3DZB_FALSE);
-	result = (*d3dintf->device.set_render_state)(m_device, D3DRS_FILLMODE, D3DFILL_SOLID);
-	result = (*d3dintf->device.set_render_state)(m_device, D3DRS_SHADEMODE, D3DSHADE_FLAT);
-	result = (*d3dintf->device.set_render_state)(m_device, D3DRS_ZWRITEENABLE, FALSE);
-	result = (*d3dintf->device.set_render_state)(m_device, D3DRS_ALPHATESTENABLE, TRUE);
-	result = (*d3dintf->device.set_render_state)(m_device, D3DRS_LASTPIXEL, TRUE);
-	result = (*d3dintf->device.set_render_state)(m_device, D3DRS_CULLMODE, D3DCULL_NONE);
-	result = (*d3dintf->device.set_render_state)(m_device, D3DRS_ZFUNC, D3DCMP_LESS);
-	result = (*d3dintf->device.set_render_state)(m_device, D3DRS_ALPHAREF, 0);
-	result = (*d3dintf->device.set_render_state)(m_device, D3DRS_ALPHAFUNC, D3DCMP_GREATER);
-	result = (*d3dintf->device.set_render_state)(m_device, D3DRS_DITHERENABLE, FALSE);
-	result = (*d3dintf->device.set_render_state)(m_device, D3DRS_FOGENABLE, FALSE);
-	result = (*d3dintf->device.set_render_state)(m_device, D3DRS_SPECULARENABLE, FALSE);
-	result = (*d3dintf->device.set_render_state)(m_device, D3DRS_STENCILENABLE, FALSE);
-	result = (*d3dintf->device.set_render_state)(m_device, D3DRS_WRAP0, FALSE);
-	result = (*d3dintf->device.set_render_state)(m_device, D3DRS_CLIPPING, TRUE);
-	result = (*d3dintf->device.set_render_state)(m_device, D3DRS_LIGHTING, FALSE);
-	result = (*d3dintf->device.set_render_state)(m_device, D3DRS_COLORVERTEX, TRUE);
+	result = m_device->SetRenderState(D3DRS_ZENABLE, D3DZB_FALSE);
+	result = m_device->SetRenderState(D3DRS_FILLMODE, D3DFILL_SOLID);
+	result = m_device->SetRenderState(D3DRS_SHADEMODE, D3DSHADE_FLAT);
+	result = m_device->SetRenderState(D3DRS_ZWRITEENABLE, FALSE);
+	result = m_device->SetRenderState(D3DRS_ALPHATESTENABLE, TRUE);
+	result = m_device->SetRenderState(D3DRS_LASTPIXEL, TRUE);
+	result = m_device->SetRenderState(D3DRS_CULLMODE, D3DCULL_NONE);
+	result = m_device->SetRenderState(D3DRS_ZFUNC, D3DCMP_LESS);
+	result = m_device->SetRenderState(D3DRS_ALPHAREF, 0);
+	result = m_device->SetRenderState(D3DRS_ALPHAFUNC, D3DCMP_GREATER);
+	result = m_device->SetRenderState(D3DRS_DITHERENABLE, FALSE);
+	result = m_device->SetRenderState(D3DRS_FOGENABLE, FALSE);
+	result = m_device->SetRenderState(D3DRS_SPECULARENABLE, FALSE);
+	result = m_device->SetRenderState(D3DRS_STENCILENABLE, FALSE);
+	result = m_device->SetRenderState(D3DRS_WRAP0, FALSE);
+	result = m_device->SetRenderState(D3DRS_CLIPPING, TRUE);
+	result = m_device->SetRenderState(D3DRS_LIGHTING, FALSE);
+	result = m_device->SetRenderState(D3DRS_COLORVERTEX, TRUE);
 
-	result = (*d3dintf->device.set_texture_stage_state)(m_device, 0, D3DTSS_COLOROP, D3DTOP_MODULATE);
-	result = (*d3dintf->device.set_texture_stage_state)(m_device, 0, D3DTSS_ALPHAOP, D3DTOP_MODULATE);
-	result = (*d3dintf->device.set_texture_stage_state)(m_device, 1, D3DTSS_COLOROP, D3DTOP_MODULATE);
-	result = (*d3dintf->device.set_texture_stage_state)(m_device, 1, D3DTSS_ALPHAOP, D3DTOP_MODULATE);
+	result = m_device->SetTextureStageState(0, D3DTSS_COLOROP, D3DTOP_MODULATE);
+	result = m_device->SetTextureStageState(0, D3DTSS_ALPHAOP, D3DTOP_MODULATE);
+	result = m_device->SetTextureStageState(1, D3DTSS_COLOROP, D3DTOP_MODULATE);
+	result = m_device->SetTextureStageState(1, D3DTSS_ALPHAOP, D3DTOP_MODULATE);
 
 	// reset the local states to force updates
 	reset_render_states();
 
 	// clear the buffer
-	result = (*d3dintf->device.clear)(m_device, 0, nullptr, D3DCLEAR_TARGET, D3DCOLOR_ARGB(0,0,0,0), 0, 0);
-	result = (*d3dintf->device.present)(m_device, nullptr, nullptr, nullptr, nullptr, 0);
+	result = m_device->Clear(0, nullptr, D3DCLEAR_TARGET, D3DCOLOR_ARGB(0,0,0,0), 0, 0);
+	result = m_device->Present(nullptr, nullptr, nullptr, nullptr);
 
 	m_texture_manager->create_resources();
 
@@ -938,38 +988,32 @@ int renderer_d3d9::device_create_resources()
 
 renderer_d3d9::~renderer_d3d9()
 {
-	if (get_shaders() != nullptr && get_shaders()->recording())
-		get_shaders()->window_record();
-
 	device_delete();
 
-	if (m_shaders_options != nullptr)
-	{
-		global_free(m_shaders_options);
-		m_shaders_options = nullptr;
-	}
+	// todo: throws error when switching from full screen to window mode
+	//if (m_shaders != nullptr)
+	//{
+	//	// delete the HLSL interface
+	//	global_free(m_shaders);
+	//	m_shaders = nullptr;
+	//}
 }
 
 void renderer_d3d9::exit()
 {
 	if (d3dintf != nullptr)
-		(*d3dintf->d3d.release)(d3dintf);
+	{
+		d3dintf->d3dobj->Release();
+		global_free(d3dintf);
+	}
 }
 
 void renderer_d3d9::device_delete()
 {
-	if (m_shaders != nullptr)
-	{
-		// free our effects
-		m_sliders.clear();
-		m_shaders->delete_resources(false);
-
-		// delete the HLSL interface
-		global_free(m_shaders);
-	}
-
 	// free our base resources
 	device_delete_resources();
+
+	// we do not delete the HLSL interface here
 
 	if (m_texture_manager != nullptr)
 	{
@@ -980,7 +1024,7 @@ void renderer_d3d9::device_delete()
 	// free the device itself
 	if (m_device != nullptr)
 	{
-		(*d3dintf->device.release)(m_device);
+		m_device->Release();
 		m_device = nullptr;
 	}
 }
@@ -992,6 +1036,11 @@ void renderer_d3d9::device_delete()
 
 void renderer_d3d9::device_delete_resources()
 {
+	if (m_shaders != nullptr)
+	{
+		m_shaders->delete_resources();
+	}
+
 	if (m_texture_manager != nullptr)
 	{
 		m_texture_manager->delete_resources();
@@ -1000,7 +1049,7 @@ void renderer_d3d9::device_delete_resources()
 	// free the vertex buffer
 	if (m_vertexbuf != nullptr)
 	{
-		(*d3dintf->vertexbuf.release)(m_vertexbuf);
+		m_vertexbuf->Release();
 		m_vertexbuf = nullptr;
 	}
 }
@@ -1012,63 +1061,78 @@ void renderer_d3d9::device_delete_resources()
 
 int renderer_d3d9::device_verify_caps()
 {
-	int retval = 0;
+	int verify = 0;
 
-	DWORD tempcaps;
-	HRESULT result = (*d3dintf->d3d.get_caps_dword)(d3dintf, m_adapter, D3DDEVTYPE_HAL, CAPS_MAX_PS30_INSN_SLOTS, &tempcaps);
-	if (result != D3D_OK) osd_printf_verbose("Direct3D Error %08X during get_caps_dword call\n", (int)result);
-	if (tempcaps < 512)
+	D3DCAPS9 caps;
+	HRESULT result = d3dintf->d3dobj->GetDeviceCaps(m_adapter, D3DDEVTYPE_HAL, &caps);
+	if (FAILED(result))
+	{
+		osd_printf_verbose("Direct3D: Error %08lX during GetDeviceCaps call\n", result);
+	}
+
+	if (caps.MaxPixelShader30InstructionSlots < 512)
 	{
 		osd_printf_verbose("Direct3D: Warning - Device does not support Pixel Shader 3.0, falling back to non-PS rendering\n");
 		d3dintf->post_fx_available = false;
 	}
 
 	// verify presentation capabilities
-	result = (*d3dintf->d3d.get_caps_dword)(d3dintf, m_adapter, D3DDEVTYPE_HAL, CAPS_PRESENTATION_INTERVALS, &tempcaps);
-	if (result != D3D_OK) osd_printf_verbose("Direct3D: Error %08X during get_caps_dword call\n", (int)result);
-	if (!(tempcaps & D3DPRESENT_INTERVAL_IMMEDIATE))
+	if (!(caps.PresentationIntervals & D3DPRESENT_INTERVAL_IMMEDIATE))
 	{
 		osd_printf_verbose("Direct3D: Error - Device does not support immediate presentations\n");
-		retval = 2;
+		verify = 2;
 	}
-	if (!(tempcaps & D3DPRESENT_INTERVAL_ONE))
+	if (!(caps.PresentationIntervals & D3DPRESENT_INTERVAL_ONE))
 	{
 		osd_printf_verbose("Direct3D: Error - Device does not support per-refresh presentations\n");
-		retval = 2;
+		verify = 2;
 	}
 
 	// verify device capabilities
-	result = (*d3dintf->d3d.get_caps_dword)(d3dintf, m_adapter, D3DDEVTYPE_HAL, CAPS_DEV_CAPS, &tempcaps);
-	if (result != D3D_OK) osd_printf_verbose("Direct3D: Error %08X during get_caps_dword call\n", (int)result);
-	if (!(tempcaps & D3DDEVCAPS_CANRENDERAFTERFLIP))
+	if (!(caps.DevCaps & D3DDEVCAPS_CANRENDERAFTERFLIP))
 	{
 		osd_printf_verbose("Direct3D: Warning - Device does not support queued rendering after a page flip\n");
-		retval = 1;
+		verify = 1;
 	}
-	if (!(tempcaps & D3DDEVCAPS_HWRASTERIZATION))
+	if (!(caps.DevCaps & D3DDEVCAPS_HWRASTERIZATION))
 	{
 		osd_printf_verbose("Direct3D: Warning - Device does not support hardware rasterization\n");
-		retval = 1;
+		verify = 1;
 	}
 
 	// verify texture operation capabilities
-	result = (*d3dintf->d3d.get_caps_dword)(d3dintf, m_adapter, D3DDEVTYPE_HAL, CAPS_TEXTURE_OP_CAPS, &tempcaps);
-	if (result != D3D_OK) osd_printf_verbose("Direct3D: Error %08X during get_caps_dword call\n", (int)result);
-	if (!(tempcaps & D3DTEXOPCAPS_MODULATE))
+	if (!(caps.TextureOpCaps & D3DTEXOPCAPS_MODULATE))
 	{
 		osd_printf_verbose("Direct3D: Warning - Device does not support texture modulation\n");
-		retval = 1;
+		verify = 1;
 	}
 
-	// set a simpler flag to indicate mod2x and mod4x texture modes
-	m_mod2x_supported = ((tempcaps & D3DTEXOPCAPS_MODULATE2X) != 0);
-	m_mod4x_supported = ((tempcaps & D3DTEXOPCAPS_MODULATE4X) != 0);
+	m_gamma_supported = ((caps.Caps2 & D3DCAPS2_FULLSCREENGAMMA) != 0);
+	if (!m_gamma_supported)
+	{
+		osd_printf_warning("Direct3D: Warning - device does not support full screen gamma correction.\n");
+	}
 
-	result = (*d3dintf->d3d.get_caps_dword)(d3dintf, m_adapter, D3DDEVTYPE_HAL, CAPS_CAPS2, &tempcaps);
-	if (result != D3D_OK) osd_printf_verbose("Direct3D: Error %08X during get_caps_dword call\n", (int)result);
-	m_gamma_supported = ((tempcaps & D3DCAPS2_FULLSCREENGAMMA) != 0);
+	// verify texture formats
+	result = d3dintf->d3dobj->CheckDeviceFormat(m_adapter, D3DDEVTYPE_HAL, m_pixformat, 0, D3DRTYPE_TEXTURE, D3DFMT_A8R8G8B8);
+	if (FAILED(result))
+	{
+		osd_printf_error("Error: A8R8G8B8 format textures not supported\n");
+		verify = 2;
+	}
 
-	return retval;
+	if (verify == 2)
+	{
+		osd_printf_error("Error: Device does not meet minimum requirements for Direct3D rendering\n");
+		return 1;
+	}
+	if (verify == 1)
+	{
+		osd_printf_warning("Warning: Device may not perform well for Direct3D rendering\n");
+		return 1;
+	}
+
+	return 0;
 }
 
 
@@ -1079,7 +1143,7 @@ int renderer_d3d9::device_verify_caps()
 int renderer_d3d9::device_test_cooperative()
 {
 	// check our current status; if we lost the device, punt to GDI
-	HRESULT result = (*d3dintf->device.test_cooperative_level)(m_device);
+	HRESULT result = m_device->TestCooperativeLevel();
 	if (result == D3DERR_DEVICELOST)
 		return 1;
 
@@ -1089,15 +1153,13 @@ int renderer_d3d9::device_test_cooperative()
 		osd_printf_verbose("Direct3D: resetting device\n");
 
 		// free all existing resources and call reset on the device
-		m_sliders.clear();
-		m_shaders->delete_resources(true);
 		device_delete_resources();
-		result = (*d3dintf->device.reset)(m_device, &m_presentation);
+		result = m_device->Reset(&m_presentation);
 
 		// if it didn't work, punt to GDI
-		if (result != D3D_OK)
+		if (FAILED(result))
 		{
-			osd_printf_error("Unable to reset, result %08x\n", (UINT32)result);
+			osd_printf_error("Unable to reset, result %08lX\n", result);
 			return 1;
 		}
 
@@ -1108,15 +1170,8 @@ int renderer_d3d9::device_test_cooperative()
 			device_delete();
 			return 1;
 		}
-
-		m_sliders.clear();
-		if (m_shaders->create_resources(true, m_sliders))
-		{
-			osd_printf_verbose("Direct3D: failed to recreate HLSL resources for device; failing permanently\n");
-			device_delete();
-			return 1;
-		}
 	}
+
 	return 0;
 }
 
@@ -1127,23 +1182,23 @@ int renderer_d3d9::device_test_cooperative()
 
 int renderer_d3d9::config_adapter_mode()
 {
-	adapter_identifier identifier;
-
 	// choose the monitor number
 	m_adapter = get_adapter_for_monitor();
 
 	// get the identifier
-	HRESULT result = (*d3dintf->d3d.get_adapter_identifier)(d3dintf, m_adapter, 0, &identifier);
-	if (result != D3D_OK)
+	D3DADAPTER_IDENTIFIER9 id;
+	HRESULT result = d3dintf->d3dobj->GetAdapterIdentifier(m_adapter, 0, &id);
+	if (FAILED(result))
 	{
 		osd_printf_error("Error getting identifier for adapter #%d\n", m_adapter);
 		return 1;
 	}
-	osd_printf_verbose("Direct3D: Configuring adapter #%d = %s\n", m_adapter, identifier.Description);
+
+	osd_printf_verbose("Direct3D: Configuring adapter #%d = %s\n", m_adapter, id.Description);
 
 	// get the current display mode
-	result = (*d3dintf->d3d.get_adapter_display_mode)(d3dintf, m_adapter, &m_origmode);
-	if (result != D3D_OK)
+	result = d3dintf->d3dobj->GetAdapterDisplayMode(m_adapter, &m_origmode);
+	if (FAILED(result))
 	{
 		osd_printf_error("Error getting mode for adapter #%d\n", m_adapter);
 		return 1;
@@ -1188,8 +1243,8 @@ int renderer_d3d9::config_adapter_mode()
 	}
 
 	// see if we can handle the device type
-	result = (*d3dintf->d3d.check_device_type)(d3dintf, m_adapter, D3DDEVTYPE_HAL, m_pixformat, m_pixformat, !win->fullscreen());
-	if (result != D3D_OK)
+	result = d3dintf->d3dobj->CheckDeviceType(m_adapter, D3DDEVTYPE_HAL, m_pixformat, m_pixformat, !win->fullscreen());
+	if (FAILED(result))
 	{
 		osd_printf_error("Proposed video mode not supported on device %s\n", win->monitor()->devicename());
 		return 1;
@@ -1204,7 +1259,7 @@ int renderer_d3d9::config_adapter_mode()
 
 int renderer_d3d9::get_adapter_for_monitor()
 {
-	int maxadapter = (*d3dintf->d3d.get_adapter_count)(d3dintf);
+	int maxadapter = d3dintf->d3dobj->GetAdapterCount();
 
 	auto win = assert_window();
 
@@ -1212,7 +1267,7 @@ int renderer_d3d9::get_adapter_for_monitor()
 	for (int adapternum = 0; adapternum < maxadapter; adapternum++)
 	{
 		// get the monitor for this adapter
-		HMONITOR curmonitor = (*d3dintf->d3d.get_adapter_monitor)(d3dintf, adapternum);
+		HMONITOR curmonitor = d3dintf->d3dobj->GetAdapterMonitor(adapternum);
 
 		// if we match the proposed monitor, this is it
 		if (curmonitor == *((HMONITOR *)win->monitor()->oshandle()))
@@ -1256,7 +1311,7 @@ void renderer_d3d9::pick_best_mode()
 	INT32 target_height = minheight;
 
 	// determine the maximum number of modes
-	int maxmodes = (*d3dintf->d3d.get_adapter_mode_count)(d3dintf, m_adapter, D3DFMT_X8R8G8B8);
+	int maxmodes = d3dintf->d3dobj->GetAdapterModeCount(m_adapter, D3DFMT_X8R8G8B8);
 
 	// enumerate all the video modes and find the best match
 	osd_printf_verbose("Direct3D: Selecting video mode...\n");
@@ -1264,8 +1319,8 @@ void renderer_d3d9::pick_best_mode()
 	{
 		// check this mode
 		D3DDISPLAYMODE mode;
-		HRESULT result = (*d3dintf->d3d.enum_adapter_modes)(d3dintf, m_adapter, D3DFMT_X8R8G8B8, modenum, &mode);
-		if (result != D3D_OK)
+		HRESULT result = d3dintf->d3dobj->EnumAdapterModes(m_adapter, D3DFMT_X8R8G8B8, modenum, &mode);
+		if (FAILED(result))
 			break;
 
 		// skip non-32 bit modes
@@ -1753,8 +1808,8 @@ vertex *renderer_d3d9::mesh_alloc(int numverts)
 	// if we don't have a lock, grab it now
 	if (m_lockedbuf == nullptr)
 	{
-		result = (*d3dintf->vertexbuf.lock)(m_vertexbuf, 0, 0, (VOID **)&m_lockedbuf, D3DLOCK_DISCARD);
-		if (result != D3D_OK)
+		result = m_vertexbuf->Lock(0, 0, (VOID **)&m_lockedbuf, D3DLOCK_DISCARD);
+		if (FAILED(result))
 			return nullptr;
 	}
 
@@ -1777,18 +1832,19 @@ void renderer_d3d9::primitive_flush_pending()
 {
 	// ignore if we're not locked
 	if (m_lockedbuf == nullptr)
-	{
 		return;
-	}
 
 	// unlock the buffer
-	HRESULT result = (*d3dintf->vertexbuf.unlock)(m_vertexbuf);
-	if (result != D3D_OK) osd_printf_verbose("Direct3D: Error %08X during vertex buffer unlock call\n", (int)result);
+	HRESULT result = m_vertexbuf->Unlock();
+	if (FAILED(result))
+		osd_printf_verbose("Direct3D: Error %08lX during vertex buffer unlock call\n", result);
+
 	m_lockedbuf = nullptr;
 
 	// set the stream
-	result = (*d3dintf->device.set_stream_source)(m_device, 0, m_vertexbuf, sizeof(vertex));
-	if (result != D3D_OK) osd_printf_verbose("Direct3D: Error %08X during device set_stream_source call\n", (int)result);
+	result = m_device->SetStreamSource(0, m_vertexbuf, 0, sizeof(vertex));
+	if (FAILED(result))
+		osd_printf_verbose("Direct3D: Error %08lX during device SetStreamSource call\n", result);
 
 	m_shaders->begin_draw();
 
@@ -1839,9 +1895,9 @@ void renderer_d3d9::primitive_flush_pending()
 		else
 		{
 			// add the primitives
-			result = (*d3dintf->device.draw_primitive)(m_device, m_poly[polynum].get_type(), vertnum,
-														m_poly[polynum].get_count());
-			if (result != D3D_OK) osd_printf_verbose("Direct3D: Error %08X during device draw_primitive call\n", (int)result);
+			result = m_device->DrawPrimitive(m_poly[polynum].get_type(), vertnum, m_poly[polynum].get_count());
+			if (FAILED(result))
+				osd_printf_verbose("Direct3D: Error %08lX during device draw_primitive call\n", result);
 		}
 
 		vertnum += m_poly[polynum].get_vertcount();
@@ -1855,6 +1911,28 @@ void renderer_d3d9::primitive_flush_pending()
 }
 
 
+std::vector<ui::menu_item> renderer_d3d9::get_slider_list()
+{
+	m_sliders_dirty = false;
+
+	std::vector<ui::menu_item> sliders;
+	sliders.insert(sliders.end(), m_sliders.begin(), m_sliders.end());
+
+	if (m_shaders != nullptr && m_shaders->enabled())
+	{
+		std::vector<ui::menu_item> s_slider = m_shaders->get_slider_list();
+		sliders.insert(sliders.end(), s_slider.begin(), s_slider.end());
+	}
+
+	return sliders;
+}
+
+void renderer_d3d9::set_sliders_dirty()
+{
+	m_sliders_dirty = true;
+}
+
+
 //============================================================
 //  texture_info destructor
 //============================================================
@@ -1864,22 +1942,16 @@ texture_info::~texture_info()
 	if (m_d3dfinaltex != nullptr)
 	{
 		if (m_d3dtex == m_d3dfinaltex)
-		{
 			m_d3dtex = nullptr;
-		}
-		(*d3dintf->texture.release)(m_d3dfinaltex);
-		m_d3dfinaltex = nullptr;
+
+		m_d3dfinaltex->Release();
 	}
+
 	if (m_d3dtex != nullptr)
-	{
-		(*d3dintf->texture.release)(m_d3dtex);
-		m_d3dtex = nullptr;
-	}
+		m_d3dtex->Release();
+
 	if (m_d3dsurface != nullptr)
-	{
-		(*d3dintf->surface.release)(m_d3dsurface);
-		m_d3dsurface = nullptr;
-	}
+		m_d3dsurface->Release();
 }
 
 
@@ -1935,8 +2007,8 @@ texture_info::texture_info(d3d_texture_manager *manager, const render_texinfo* t
 	if (!PRIMFLAG_GET_SCREENTEX(flags))
 	{
 		assert(PRIMFLAG_TEXFORMAT(flags) != TEXFORMAT_YUY16);
-		result = (*d3dintf->device.create_texture)(m_renderer->get_device(), m_rawdims.c.x, m_rawdims.c.y, 1, 0, D3DFMT_A8R8G8B8, D3DPOOL_MANAGED, &m_d3dtex);
-		if (result != D3D_OK)
+		result = m_renderer->get_device()->CreateTexture(m_rawdims.c.x, m_rawdims.c.y, 1, 0, D3DFMT_A8R8G8B8, D3DPOOL_MANAGED, &m_d3dtex, nullptr);
+		if (FAILED(result))
 			goto error;
 		m_d3dfinaltex = m_d3dtex;
 	}
@@ -2001,7 +2073,7 @@ texture_info::texture_info(d3d_texture_manager *manager, const render_texinfo* t
 			// screen textures with no prescaling are pretty easy
 			if (m_xprescale == 1 && m_yprescale == 1)
 			{
-				result = (*d3dintf->device.create_texture)(m_renderer->get_device(), m_rawdims.c.x, m_rawdims.c.y, 1, usage, format, pool, &m_d3dtex);
+				result = m_renderer->get_device()->CreateTexture(m_rawdims.c.x, m_rawdims.c.y, 1, usage, format, pool, &m_d3dtex, nullptr);
 				if (result == D3D_OK)
 				{
 					m_d3dfinaltex = m_d3dtex;
@@ -2015,8 +2087,8 @@ texture_info::texture_info(d3d_texture_manager *manager, const render_texinfo* t
 				// (won't work for YUY textures)
 				if (m_texture_manager->is_stretch_supported() && PRIMFLAG_GET_TEXFORMAT(flags) != TEXFORMAT_YUY16)
 				{
-					result = (*d3dintf->device.create_offscreen_plain_surface)(m_renderer->get_device(), m_rawdims.c.x, m_rawdims.c.y, format, D3DPOOL_DEFAULT, &m_d3dsurface);
-					if (result != D3D_OK)
+					result = m_renderer->get_device()->CreateOffscreenPlainSurface(m_rawdims.c.x, m_rawdims.c.y, format, D3DPOOL_DEFAULT, &m_d3dsurface, nullptr);
+					if (FAILED(result))
 					{
 						continue;
 					}
@@ -2024,8 +2096,8 @@ texture_info::texture_info(d3d_texture_manager *manager, const render_texinfo* t
 				// otherwise, we allocate a dynamic texture for the source
 				else
 				{
-					result = (*d3dintf->device.create_texture)(m_renderer->get_device(), m_rawdims.c.x, m_rawdims.c.y, 1, usage, format, pool, &m_d3dtex);
-					if (result != D3D_OK)
+					result = m_renderer->get_device()->CreateTexture(m_rawdims.c.x, m_rawdims.c.y, 1, usage, format, pool, &m_d3dtex, nullptr);
+					if (FAILED(result))
 					{
 						continue;
 					}
@@ -2038,13 +2110,13 @@ texture_info::texture_info(d3d_texture_manager *manager, const render_texinfo* t
 				// target surfaces typically cannot be YCbCr, so we always pick RGB in that case
 				D3DFORMAT finalfmt = (format != m_texture_manager->get_yuv_format()) ? format : D3DFMT_A8R8G8B8;
 
-				result = (*d3dintf->device.create_texture)(m_renderer->get_device(), scwidth, scheight, 1, D3DUSAGE_RENDERTARGET, finalfmt, D3DPOOL_DEFAULT, &m_d3dfinaltex);
+				result = m_renderer->get_device()->CreateTexture(scwidth, scheight, 1, D3DUSAGE_RENDERTARGET, finalfmt, D3DPOOL_DEFAULT, &m_d3dfinaltex, nullptr);
 				if (result == D3D_OK)
 				{
 					break;
 				}
 
-				(*d3dintf->texture.release)(m_d3dtex);
+				m_d3dtex->Release();
 				m_d3dtex = nullptr;
 			}
 		}
@@ -2065,9 +2137,9 @@ error:
 	d3dintf->post_fx_available = false;
 	osd_printf_error("Direct3D: Critical warning: A texture failed to allocate. Expect things to get bad quickly.\n");
 	if (m_d3dsurface != nullptr)
-		(*d3dintf->surface.release)(m_d3dsurface);
+		m_d3dsurface->Release();
 	if (m_d3dtex != nullptr)
-		(*d3dintf->texture.release)(m_d3dtex);
+		m_d3dtex->Release();
 }
 
 
@@ -2536,11 +2608,11 @@ void texture_info::set_data(const render_texinfo *texsource, UINT32 flags)
 	switch (m_type)
 	{
 		default:
-		case TEXTURE_TYPE_PLAIN:    result = (*d3dintf->texture.lock_rect)(m_d3dtex, 0, &rect, nullptr, 0);                 break;
-		case TEXTURE_TYPE_DYNAMIC:  result = (*d3dintf->texture.lock_rect)(m_d3dtex, 0, &rect, nullptr, D3DLOCK_DISCARD);   break;
-		case TEXTURE_TYPE_SURFACE:  result = (*d3dintf->surface.lock_rect)(m_d3dsurface, &rect, nullptr, D3DLOCK_DISCARD);  break;
+		case TEXTURE_TYPE_PLAIN:    result = m_d3dtex->LockRect(0, &rect, nullptr, 0);                 break;
+		case TEXTURE_TYPE_DYNAMIC:  result = m_d3dtex->LockRect(0, &rect, nullptr, D3DLOCK_DISCARD);   break;
+		case TEXTURE_TYPE_SURFACE:  result = m_d3dsurface->LockRect(&rect, nullptr, D3DLOCK_DISCARD);  break;
 	}
-	if (result != D3D_OK)
+	if (FAILED(result))
 	{
 		return;
 	}
@@ -2591,14 +2663,12 @@ void texture_info::set_data(const render_texinfo *texsource, UINT32 flags)
 	switch (m_type)
 	{
 		default:
-		case TEXTURE_TYPE_PLAIN:    result = (*d3dintf->texture.unlock_rect)(m_d3dtex, 0);   break;
-		case TEXTURE_TYPE_DYNAMIC:  result = (*d3dintf->texture.unlock_rect)(m_d3dtex, 0);   break;
-		case TEXTURE_TYPE_SURFACE:  result = (*d3dintf->surface.unlock_rect)(m_d3dsurface);  break;
+		case TEXTURE_TYPE_PLAIN:    result = m_d3dtex->UnlockRect(0);   break;
+		case TEXTURE_TYPE_DYNAMIC:  result = m_d3dtex->UnlockRect(0);   break;
+		case TEXTURE_TYPE_SURFACE:  result = m_d3dsurface->UnlockRect();  break;
 	}
-	if (result != D3D_OK)
-	{
-		osd_printf_verbose("Direct3D: Error %08X during texture unlock_rect call\n", (int)result);
-	}
+	if (FAILED(result))
+		osd_printf_verbose("Direct3D: Error %08lX during texture UnlockRect call\n", result);
 
 	// prescale
 	prescale();
@@ -2611,7 +2681,7 @@ void texture_info::set_data(const render_texinfo *texsource, UINT32 flags)
 
 void texture_info::prescale()
 {
-	surface *scale_surface;
+	IDirect3DSurface9 *scale_surface;
 	HRESULT result;
 	int i;
 
@@ -2620,8 +2690,9 @@ void texture_info::prescale()
 		return;
 
 	// for all cases, we need to get the surface of the render target
-	result = (*d3dintf->texture.get_surface_level)(m_d3dfinaltex, 0, &scale_surface);
-	if (result != D3D_OK) osd_printf_verbose("Direct3D: Error %08X during texture get_surface_level call\n", (int)result);
+	result = m_d3dfinaltex->GetSurfaceLevel(0, &scale_surface);
+	if (FAILED(result))
+		osd_printf_verbose("Direct3D: Error %08lX during texture GetSurfaceLevel call\n", result);
 
 	// if we have an offscreen plain surface, we can just StretchRect to it
 	if (m_type == TEXTURE_TYPE_SURFACE)
@@ -2641,37 +2712,43 @@ void texture_info::prescale()
 		dest.bottom *= m_yprescale;
 
 		// do the stretchrect
-		result = (*d3dintf->device.stretch_rect)(m_renderer->get_device(), m_d3dsurface, &source, scale_surface, &dest, D3DTEXF_POINT);
-		if (result != D3D_OK) osd_printf_verbose("Direct3D: Error %08X during device stretct_rect call\n", (int)result);
+		result = m_renderer->get_device()->StretchRect(m_d3dsurface, &source, scale_surface, &dest, D3DTEXF_POINT);
+		if (FAILED(result))
+			osd_printf_verbose("Direct3D: Error %08lX during device stretct_rect call\n", result);
 	}
 
 	// if we are using a texture render target, we need to do more preparations
 	else
 	{
-		surface *backbuffer;
+		IDirect3DSurface9 *backbuffer;
 
 		assert(m_d3dtex != nullptr);
 
 		// first remember the original render target and set the new one
-		result = (*d3dintf->device.get_render_target)(m_renderer->get_device(), 0, &backbuffer);
-		if (result != D3D_OK) osd_printf_verbose("Direct3D: Error %08X during device get_render_target call\n", (int)result);
-		result = (*d3dintf->device.set_render_target)(m_renderer->get_device(), 0, scale_surface);
-		if (result != D3D_OK) osd_printf_verbose("Direct3D: Error %08X during device set_render_target call 1\n", (int)result);
+		result = m_renderer->get_device()->GetRenderTarget(0, &backbuffer);
+		if (FAILED(result))
+			osd_printf_verbose("Direct3D: Error %08lX during device GetRenderTarget call\n", result);
+		result = m_renderer->get_device()->SetRenderTarget(0, scale_surface);
+		if (FAILED(result))
+			osd_printf_verbose("Direct3D: Error %08lX during device SetRenderTarget call 1\n", result);
 		m_renderer->reset_render_states();
 
 		// start the scene
-		result = (*d3dintf->device.begin_scene)(m_renderer->get_device());
-		if (result != D3D_OK) osd_printf_verbose("Direct3D: Error %08X during device begin_scene call\n", (int)result);
+		result = m_renderer->get_device()->BeginScene();
+		if (FAILED(result))
+			osd_printf_verbose("Direct3D: Error %08lX during device BeginScene call\n", result);
 
 		// configure the rendering pipeline
 		m_renderer->set_filter(FALSE);
 		m_renderer->set_blendmode(BLENDMODE_NONE);
-		result = (*d3dintf->device.set_texture)(m_renderer->get_device(), 0, m_d3dtex);
-		if (result != D3D_OK) osd_printf_verbose("Direct3D: Error %08X during device set_texture call\n", (int)result);
+		result = m_renderer->get_device()->SetTexture(0, m_d3dtex);
+		if (FAILED(result))
+			osd_printf_verbose("Direct3D: Error %08lX during device SetTexture call\n", result);
 
 		// lock the vertex buffer
-		result = (*d3dintf->vertexbuf.lock)(m_renderer->get_vertex_buffer(), 0, 0, m_renderer->get_locked_buffer_ptr(), D3DLOCK_DISCARD);
-		if (result != D3D_OK) osd_printf_verbose("Direct3D: Error %08X during vertex buffer lock call\n", (int)result);
+		result = m_renderer->get_vertex_buffer()->Lock(0, 0, m_renderer->get_locked_buffer_ptr(), D3DLOCK_DISCARD);
+		if (FAILED(result))
+			osd_printf_verbose("Direct3D: Error %08lX during vertex buffer lock call\n", result);
 
 		// configure the X/Y coordinates on the target surface
 		vertex *lockedbuf = m_renderer->get_locked_buffer();
@@ -2703,29 +2780,34 @@ void texture_info::prescale()
 		}
 
 		// unlock the vertex buffer
-		result = (*d3dintf->vertexbuf.unlock)(m_renderer->get_vertex_buffer());
-		if (result != D3D_OK) osd_printf_verbose("Direct3D: Error %08X during vertex buffer unlock call\n", (int)result);
+		result = m_renderer->get_vertex_buffer()->Unlock();
+		if (FAILED(result))
+			osd_printf_verbose("Direct3D: Error %08lX during vertex buffer unlock call\n", result);
 		m_renderer->set_locked_buffer(nullptr);
 
 		// set the stream and draw the triangle strip
-		result = (*d3dintf->device.set_stream_source)(m_renderer->get_device(), 0, m_renderer->get_vertex_buffer(), sizeof(vertex));
-		if (result != D3D_OK) osd_printf_verbose("Direct3D: Error %08X during device set_stream_source call\n", (int)result);
-		result = (*d3dintf->device.draw_primitive)(m_renderer->get_device(), D3DPT_TRIANGLESTRIP, 0, 2);
-		if (result != D3D_OK) osd_printf_verbose("Direct3D: Error %08X during device draw_primitive call\n", (int)result);
+		result = m_renderer->get_device()->SetStreamSource(0, m_renderer->get_vertex_buffer(), 0, sizeof(vertex));
+		if (FAILED(result))
+			osd_printf_verbose("Direct3D: Error %08lX during device SetStreamSource call\n", result);
+		result = m_renderer->get_device()->DrawPrimitive(D3DPT_TRIANGLESTRIP, 0, 2);
+		if (FAILED(result))
+			osd_printf_verbose("Direct3D: Error %08lX during device DrawPrimitive call\n", result);
 
 		// end the scene
-		result = (*d3dintf->device.end_scene)(m_renderer->get_device());
-		if (result != D3D_OK) osd_printf_verbose("Direct3D: Error %08X during device end_scene call\n", (int)result);
+		result = m_renderer->get_device()->EndScene();
+		if (FAILED(result))
+			osd_printf_verbose("Direct3D: Error %08lX during device end_scene call\n", result);
 
 		// reset the render target and release our reference to the backbuffer
-		result = (*d3dintf->device.set_render_target)(m_renderer->get_device(), 0, backbuffer);
-		if (result != D3D_OK) osd_printf_verbose("Direct3D: Error %08X during device set_render_target call 2\n", (int)result);
-		(*d3dintf->surface.release)(backbuffer);
+		result = m_renderer->get_device()->SetRenderTarget(0, backbuffer);
+		if (FAILED(result))
+			osd_printf_verbose("Direct3D: Error %08lX during device SetRenderTarget call 2\n", result);
+		backbuffer->Release();
 		m_renderer->reset_render_states();
 	}
 
 	// release our reference to the target surface
-	(*d3dintf->surface.release)(scale_surface);
+	scale_surface->Release();
 }
 
 
@@ -2736,15 +2818,10 @@ void texture_info::prescale()
 cache_target::~cache_target()
 {
 	if (last_texture != nullptr)
-	{
-		(*d3dintf->texture.release)(last_texture);
-		last_texture = nullptr;
-	}
+		last_texture->Release();
+
 	if (last_target != nullptr)
-	{
-		(*d3dintf->surface.release)(last_target);
-		last_target = nullptr;
-	}
+		last_target->Release();
 }
 
 
@@ -2759,12 +2836,11 @@ bool cache_target::init(renderer_d3d9 *d3d, d3d_base *d3dintf, int source_width,
 	this->target_width = target_width;
 	this->target_height = target_height;
 
-	HRESULT result = (*d3dintf->device.create_texture)(d3d->get_device(), target_width, target_height, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &last_texture);
-	if (result != D3D_OK)
-	{
+	HRESULT result = d3d->get_device()->CreateTexture(target_width, target_height, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &last_texture, nullptr);
+	if (FAILED(result))
 		return false;
-	}
-	(*d3dintf->texture.get_surface_level)(last_texture, 0, &last_target);
+
+	last_texture->GetSurfaceLevel(0, &last_target);
 
 	return true;
 }
@@ -2779,39 +2855,25 @@ d3d_render_target::~d3d_render_target()
 	for (int index = 0; index < MAX_BLOOM_COUNT; index++)
 	{
 		if (bloom_texture[index] != nullptr)
-		{
-			(*d3dintf->texture.release)(bloom_texture[index]);
-			bloom_texture[index] = nullptr;
-		}
+			bloom_texture[index]->Release();
+
 		if (bloom_surface[index] != nullptr)
-		{
-			(*d3dintf->surface.release)(bloom_surface[index]);
-			bloom_surface[index] = nullptr;
-		}
+			bloom_surface[index]->Release();
 	}
 
 	for (int index = 0; index < 2; index++)
 	{
 		if (source_texture[index] != nullptr)
-		{
-			(*d3dintf->texture.release)(source_texture[index]);
-			source_texture[index] = nullptr;
-		}
+			source_texture[index]->Release();
+
 		if (source_surface[index] != nullptr)
-		{
-			(*d3dintf->surface.release)(source_surface[index]);
-			source_surface[index] = nullptr;
-		}
+			source_surface[index]->Release();
+
 		if (target_texture[index] != nullptr)
-		{
-			(*d3dintf->texture.release)(target_texture[index]);
-			target_texture[index] = nullptr;
-		}
+			target_texture[index]->Release();
+
 		if (target_surface[index] != nullptr)
-		{
-			(*d3dintf->surface.release)(target_surface[index]);
-			target_surface[index] = nullptr;
-		}
+			target_surface[index]->Release();
 	}
 }
 
@@ -2832,19 +2894,17 @@ bool d3d_render_target::init(renderer_d3d9 *d3d, d3d_base *d3dintf, int source_w
 
 	for (int index = 0; index < 2; index++)
 	{
-		result = (*d3dintf->device.create_texture)(d3d->get_device(), source_width, source_height, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &source_texture[index]);
-		if (result != D3D_OK)
-		{
+		result = d3d->get_device()->CreateTexture(source_width, source_height, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &source_texture[index], nullptr);
+		if (FAILED(result))
 			return false;
-		}
-		(*d3dintf->texture.get_surface_level)(source_texture[index], 0, &source_surface[index]);
 
-		result = (*d3dintf->device.create_texture)(d3d->get_device(), target_width, target_height, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &target_texture[index]);
-		if (result != D3D_OK)
-		{
+		source_texture[index]->GetSurfaceLevel(0, &source_surface[index]);
+
+		result = d3d->get_device()->CreateTexture(target_width, target_height, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &target_texture[index], nullptr);
+		if (FAILED(result))
 			return false;
-		}
-		(*d3dintf->texture.get_surface_level)(target_texture[index], 0, &target_surface[index]);
+
+		target_texture[index]->GetSurfaceLevel(0, &target_surface[index]);
 	}
 
 	auto win = d3d->assert_window();
@@ -2865,12 +2925,11 @@ bool d3d_render_target::init(renderer_d3d9 *d3d, d3d_base *d3dintf, int source_w
 		this->bloom_dims[bloom_index][0] = (int)bloom_width;
 		this->bloom_dims[bloom_index][1] = (int)bloom_height;
 
-		result = (*d3dintf->device.create_texture)(d3d->get_device(), (int)bloom_width, (int)bloom_height, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &bloom_texture[bloom_index]);
-		if (result != D3D_OK)
-		{
+		result = d3d->get_device()->CreateTexture((int)bloom_width, (int)bloom_height, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &bloom_texture[bloom_index], nullptr);
+		if (FAILED(result))
 			return false;
-		}
-		(*d3dintf->texture.get_surface_level)(bloom_texture[bloom_index], 0, &bloom_surface[bloom_index]);
+
+		bloom_texture[bloom_index]->GetSurfaceLevel(0, &bloom_surface[bloom_index]);
 
 		bloom_width *= scale_factor;
 		bloom_height *= scale_factor;

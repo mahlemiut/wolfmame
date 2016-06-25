@@ -313,9 +313,9 @@ int cli_frontend::execute(int argc, char **argv)
 		osd_printf_error("Caught unhandled emulator exception\n");
 		m_result = EMU_ERR_FATALERROR;
 	}
-	catch (add_exception &aex)
+	catch (tag_add_exception &aex)
 	{
-		osd_printf_error("Tag '%s' already exists in tagged_list\n", aex.tag());
+		osd_printf_error("Tag '%s' already exists in tagged map\n", aex.tag());
 		m_result = EMU_ERR_FATALERROR;
 	}
 	catch (std::exception &ex)
@@ -721,16 +721,16 @@ void cli_frontend::listslots(const char *gamename)
 			bool first_option = true;
 
 			// get the options and print them
-			for (const device_slot_option &option : slot.option_list())
+			for (auto &option : slot.option_list())
 			{
-				if (option.selectable())
+				if (option.second->selectable())
 				{
-					device_t *dev = (*option.devtype())(drivlist.config(), "dummy", &drivlist.config().root_device(), 0);
+					device_t *dev = (*option.second->devtype())(drivlist.config(), "dummy", &drivlist.config().root_device(), 0);
 					dev->config_complete();
 					if (first_option) {
-						printf("%-15s %s\n", option.name(),dev->name());
+						printf("%-15s %s\n", option.second->name(),dev->name());
 					} else {
-						printf("%-23s   %-15s %s\n", "",option.name(),dev->name());
+						printf("%-23s   %-15s %s\n", "", option.second->name(),dev->name());
 					}
 					global_free(dev);
 
@@ -929,11 +929,11 @@ void cli_frontend::verifyroms(const char *gamename)
 
 			for (const device_slot_interface &slot : slot_interface_iterator(config.root_device()))
 			{
-				for (const device_slot_option &option : slot.option_list())
+				for (auto &option : slot.option_list())
 				{
 					std::string temptag("_");
-					temptag.append(option.name());
-					device_t *dev = const_cast<machine_config &>(config).device_add(&config.root_device(), temptag.c_str(), option.devtype(), 0);
+					temptag.append(option.second->name());
+					device_t *dev = const_cast<machine_config &>(config).device_add(&config.root_device(), temptag.c_str(), option.second->devtype(), 0);
 
 					// notify this device and all its subdevices that they are now configured
 					for (device_t &device : device_iterator(*dev))
@@ -1810,19 +1810,19 @@ media_identifier::media_identifier(emu_options &options)
 void media_identifier::identify(const char *filename)
 {
 	// first try to open as a directory
-	osd_directory *directory = osd_opendir(filename);
-	if (directory != nullptr)
+	osd::directory::ptr directory = osd::directory::open(filename);
+	if (directory)
 	{
 		// iterate over all files in the directory
-		for (const osd_directory_entry *entry = osd_readdir(directory); entry != nullptr; entry = osd_readdir(directory))
-			if (entry->type == ENTTYPE_FILE)
+		for (const osd::directory::entry *entry = directory->read(); entry != nullptr; entry = directory->read())
+			if (entry->type == osd::directory::entry::entry_type::FILE)
 			{
 				std::string curfile = std::string(filename).append(PATH_SEPARATOR).append(entry->name);
 				identify(curfile.c_str());
 			}
 
 		// close the directory and be done
-		osd_closedir(directory);
+		directory.reset();
 	}
 
 	// if that failed, and the filename ends with .zip, identify as a ZIP file

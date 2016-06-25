@@ -8,6 +8,9 @@
 #ifndef PPARSER_H_
 #define PPARSER_H_
 
+#include <unordered_map>
+#include <cstdint>
+
 #include "pconfig.h"
 #include "pstring.h"
 #include "plists.h"
@@ -15,14 +18,13 @@
 #include "pstream.h"
 
 namespace plib {
-
 class ptokenizer
 {
 	P_PREVENT_COPYING(ptokenizer)
 public:
 	virtual ~ptokenizer() {}
 
-	ptokenizer(pistream &strm)
+	explicit ptokenizer(pistream &strm)
 	: m_strm(strm), m_lineno(1), m_px(0), m_string('"')
 	{}
 
@@ -139,7 +141,7 @@ private:
 	pstring m_identifier_chars;
 	pstring m_number_chars;
 	pstring m_number_chars_start;
-	pvector_t<pstring> m_tokens;
+	std::vector<pstring> m_tokens;
 	pstring m_whitespace;
 	pstring::code_t  m_string;
 
@@ -189,11 +191,10 @@ private:
 
 	pstring process_line(const pstring &line);
 
-	hashmap_t<pstring, define_t> m_defines;
+	std::unordered_map<pstring, define_t> m_defines;
 	plib::pstring_vector_t m_expr_sep;
 
-	//pstringbuffer m_ret;
-	UINT32 m_ifflag; // 31 if levels
+	std::uint_least32_t m_ifflag; // 31 if levels
 	int m_level;
 	int m_lineno;
 };

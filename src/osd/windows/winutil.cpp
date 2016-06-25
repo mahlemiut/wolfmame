@@ -23,14 +23,26 @@
 //  win_attributes_to_entry_type
 //============================================================
 
-osd_dir_entry_type win_attributes_to_entry_type(DWORD attributes)
+osd::directory::entry::entry_type win_attributes_to_entry_type(DWORD attributes)
 {
 	if (attributes == 0xFFFFFFFF)
-		return ENTTYPE_NONE;
+		return osd::directory::entry::entry_type::NONE;
 	else if (attributes & FILE_ATTRIBUTE_DIRECTORY)
-		return ENTTYPE_DIR;
+		return osd::directory::entry::entry_type::DIR;
 	else
-		return ENTTYPE_FILE;
+		return osd::directory::entry::entry_type::FILE;
+}
+
+
+
+//============================================================
+//  win_time_point_from_filetime
+//============================================================
+
+std::chrono::system_clock::time_point win_time_point_from_filetime(LPFILETIME file_time)
+{
+	return std::chrono::system_clock::time_point(std::chrono::system_clock::duration(
+		(static_cast<__int64>(file_time->dwHighDateTime) << 32) | file_time->dwLowDateTime));
 }
 
 
@@ -110,68 +122,4 @@ HMODULE WINAPI GetModuleHandleUni()
 	MEMORY_BASIC_INFORMATION mbi;
 	VirtualQuery((LPCVOID)GetModuleHandleUni, &mbi, sizeof(mbi));
 	return (HMODULE)mbi.AllocationBase;
-}
-
-//-----------------------------------------------------------
-//  Lazy loaded function using LoadLibrary / GetProcAddress
-//-----------------------------------------------------------
-
-lazy_loaded_function::lazy_loaded_function(const char * name, const wchar_t* dll_name)
-	: lazy_loaded_function(name, &dll_name, 1)
-{
-}
-
-lazy_loaded_function::lazy_loaded_function(const char * name, const wchar_t** dll_names, int dll_count)
-	: m_name(name), m_module(nullptr), m_initialized(false), m_pfn(nullptr)
-{
-	for (int i = 0; i < dll_count; i++)
-		m_dll_names.push_back(std::wstring(dll_names[i]));
-}
-
-lazy_loaded_function::~lazy_loaded_function()
-{
-	if (m_module != nullptr)
-	{
-		FreeLibrary(m_module);
-		m_module = nullptr;
-	}
-}
-
-int lazy_loaded_function::initialize()
-{
-	if (m_module == nullptr)
-	{
-		for (int i = 0; i < m_dll_names.size(); i++)
-		{
-			m_module = LoadLibraryW(m_dll_names[i].c_str());
-			if (m_module != nullptr)
-				break;
-		}
-
-		if (m_module == nullptr)
-		{
-			osd_printf_verbose("Could not find DLL to dynamically link function %s.\n", m_name.c_str());
-			return ERROR_DLL_NOT_FOUND;
-		}
-	}
-
-	if (m_pfn == nullptr)
-	{
-		m_pfn = GetProcAddress(m_module, m_name.c_str());
-		if (m_pfn == nullptr)
-		{
-			osd_printf_verbose("Could not find function address to dynamically link function %s.\n", m_name.c_str());
-			return ERROR_NOT_FOUND;
-		}
-	}
-
-	m_initialized = true;
-
-	return 0;
-}
-
-void lazy_loaded_function::check_init() const
-{
-	if (!m_initialized)
-		fatalerror("Attempt to use function pointer for function %s prior to init!", name());
 }

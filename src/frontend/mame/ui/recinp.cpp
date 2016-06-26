@@ -160,8 +160,8 @@ void ui_menu_record_inp::custom_render(void *selectedref, float top, float botto
 	str += "_";
 
 	mui.draw_outlined_box(container, 0.1f,origy1 - (height*2),0.9f,origy1, UI_BACKGROUND_COLOR);
-	mui.draw_text_full(container,_("Please enter a filename for the INP..."),0.1f,origy1 - (height*2),0.8f, JUSTIFY_CENTER, WRAP_TRUNCATE, DRAW_NORMAL, UI_TEXT_COLOR, UI_TEXT_BG_COLOR, nullptr, nullptr);
-	mui.draw_text_full(container,str.c_str(),0.1f,origy1 - height,0.8f, JUSTIFY_CENTER, WRAP_TRUNCATE, DRAW_NORMAL, UI_TEXT_COLOR, UI_TEXT_BG_COLOR, nullptr, nullptr);
+	mui.draw_text_full(container,_("Please enter a filename for the INP..."),0.1f,origy1 - (height*2),0.8f, ui::text_layout::CENTER, ui::text_layout::TRUNCATE, mame_ui_manager::NORMAL, UI_TEXT_COLOR, UI_TEXT_BG_COLOR, nullptr, nullptr);
+	mui.draw_text_full(container,str.c_str(),0.1f,origy1 - height,0.8f, ui::text_layout::CENTER, ui::text_layout::TRUNCATE, mame_ui_manager::NORMAL, UI_TEXT_COLOR, UI_TEXT_BG_COLOR, nullptr, nullptr);
 	
 	// warning display
 	if(m_warning_count > 0)
@@ -173,7 +173,7 @@ void ui_menu_record_inp::custom_render(void *selectedref, float top, float botto
 		{
 			if(m_warning[x])
 			{
-				mui.draw_text_full(container,m_warning_text[x].c_str(),0.1f,1.0f - (height*line),0.8f, JUSTIFY_LEFT, WRAP_WORD, DRAW_NORMAL, UI_TEXT_COLOR, UI_TEXT_BG_COLOR, nullptr, nullptr);
+				mui.draw_text_full(container,m_warning_text[x].c_str(),0.1f,1.0f - (height*line),0.8f, ui::text_layout::LEFT, ui::text_layout::WORD, mame_ui_manager::NORMAL, UI_TEXT_COLOR, UI_TEXT_BG_COLOR, nullptr, nullptr);
 				line += 2;
 			}
 		}

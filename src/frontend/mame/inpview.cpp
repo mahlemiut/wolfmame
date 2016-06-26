@@ -199,7 +199,7 @@ void input_viewer::render_input()
 			if(input_port_used(inptype[m_layout].inp[port].port,0) != 0)
 			{
 				int col = inptype[m_layout].inp[port].colour;
-				mame_machine_manager::instance()->ui().draw_text_full(ui,txt,(float)(inptype[m_layout].inp[port].x * CHARACTER_WIDTH),1.0f - (float)(height * inptype[m_layout].inp[port].line),1.0f,JUSTIFY_LEFT,WRAP_NEVER,DRAW_OPAQUE,col,0,NULL,NULL);
+				mame_machine_manager::instance()->ui().draw_text_full(ui,txt,(float)(inptype[m_layout].inp[port].x * CHARACTER_WIDTH),1.0f - (float)(height * inptype[m_layout].inp[port].line),1.0f,ui::text_layout::LEFT,ui::text_layout::NEVER,mame_ui_manager::OPAQUE_,col,0,NULL,NULL);
 			}
 		}
 		else
@@ -207,7 +207,7 @@ void input_viewer::render_input()
 			if(input_port_used(inptype[m_layout].inp[port].port,m_player-1) != 0)
 			{
 				int col = inptype[m_layout].inp[port].colour;
-				mame_machine_manager::instance()->ui().draw_text_full(ui,txt,(float)(inptype[m_layout].inp[port].x * CHARACTER_WIDTH),1.0f - (float)(height * inptype[m_layout].inp[port].line),1.0f,JUSTIFY_LEFT,WRAP_NEVER,DRAW_OPAQUE,col,0,NULL,NULL);
+				mame_machine_manager::instance()->ui().draw_text_full(ui,txt,(float)(inptype[m_layout].inp[port].x * CHARACTER_WIDTH),1.0f - (float)(height * inptype[m_layout].inp[port].line),1.0f,ui::text_layout::LEFT,ui::text_layout::NEVER,mame_ui_manager::OPAQUE_,col,0,NULL,NULL);
 			}
 		}
 		port++;
@@ -223,9 +223,9 @@ void input_viewer::render_dips()
 
 	// determine number of DIP switches to display
 	/* loop over all input ports */
-	for (ioport_port &port : machine().ioport().ports())
+	for (auto &port : machine().ioport().ports())
 	{
-		for (ioport_field &field : port.fields())
+		for (ioport_field &field : port.second->fields())
 		{
 			if (field.type() == IPT_DIPSWITCH)
 				dip_num++;
@@ -236,10 +236,10 @@ void input_viewer::render_dips()
 	x = dip_num;
 
 	/* loop over all input ports */
-	for (ioport_port &port : machine().ioport().ports())
+	for (auto &port : machine().ioport().ports())
 	{
 		/* loop over all bitfields for this port */
-		for (ioport_field &field : port.fields())
+		for (ioport_field &field : port.second->fields())
 		{
 			if (field.type() == IPT_DIPSWITCH)
 			{
@@ -250,7 +250,7 @@ void input_viewer::render_dips()
 				ioport_value portdata;
 				/* get current settings */
 				dip = field.name();
-				portdata = port.live().defvalue;
+				portdata = port.second->live().defvalue;
 				for (ioport_setting &ptr : field.settings())
 				{
 					if(field.enabled())
@@ -262,7 +262,7 @@ void input_viewer::render_dips()
 					}
 				}
 				sprintf(txt,"%s : %s [%s]",dip,value,def);
-				mame_machine_manager::instance()->ui().draw_text_full(ui,txt,0.0f,1.0f - (float)(height * x),1.0f,JUSTIFY_LEFT,WRAP_NEVER,DRAW_OPAQUE,COL_WHITE,0,NULL,NULL);
+				mame_machine_manager::instance()->ui().draw_text_full(ui,txt,0.0f,1.0f - (float)(height * x),1.0f,ui::text_layout::LEFT,ui::text_layout::NEVER,mame_ui_manager::OPAQUE_,COL_WHITE,0,NULL,NULL);
 				x--;
 			}
 		}
@@ -295,20 +295,20 @@ int input_viewer::get_player()
 int input_viewer::input_port_used(int type,int player)
 {
 	/* loop over all input ports */
-	for (ioport_port &port : machine().ioport().ports())
+	for (auto &port : machine().ioport().ports())
 	{
 		UINT32 portvalue;
 
 		/* loop over all bitfields for this port */
-		for (ioport_field &field : port.fields())
+		for (ioport_field &field : port.second->fields())
 		{
 			if((field.defvalue() & field.mask()) != 0)  // default value for the bit should be 0 if active high.
-				portvalue = ~port.live().digital;
+				portvalue = ~port.second->live().digital;
 			else
-				portvalue = port.live().digital;
+				portvalue = port.second->live().digital;
 			if(field.type() == type && field.player() == player)
 			{
-				if((field.type() == type) && (portvalue & field.mask()) != (field.defvalue() & field.mask()))
+				if((field.type() == type) && (portvalue & field.mask()) != (port.second->live().defvalue & field.mask()))
 					return 1;
 				else
 					return 0;

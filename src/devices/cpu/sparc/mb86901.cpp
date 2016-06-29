@@ -10,8 +10,8 @@
 //
 //  To-Do:
 //      - Ops: FBFcc, LDF, STF
-//		- Test: SPARCv8 ops are untested
-//		- Test: Traps are untested
+//      - Test: SPARCv8 ops are untested
+//      - Test: Traps are untested
 //      - FPU support
 //      - Coprocessor support
 //
@@ -33,7 +33,7 @@ const int mb86901_device::NWINDOWS = 7;
 mb86901_device::mb86901_device(const machine_config &mconfig, const char *tag, device_t *owner, UINT32 clock)
 	: cpu_device(mconfig, MB86901, "Fujitsu MB86901", tag, owner, clock, "mb86901", __FILE__)
 	, m_program_config("program", ENDIANNESS_BIG, 32, 32)
-	, m_dasm(7)
+	, m_dasm(this, 7)
 {
 }
 
@@ -155,16 +155,17 @@ void mb86901_device::device_start()
 #endif
 
 	// register our state for the debugger
-	state_add(STATE_GENPC,		"GENPC",	m_pc).noshow();
-	state_add(STATE_GENFLAGS,	"GENFLAGS",	m_psr).callimport().callexport().formatstr("%6s").noshow();
-	state_add(SPARC_PC,			"PC",		m_pc).formatstr("%08X");
-	state_add(SPARC_NPC,		"nPC",		m_npc).formatstr("%08X");
-	state_add(SPARC_PSR,		"PSR",		m_psr).formatstr("%08X");
-	state_add(SPARC_WIM,		"WIM",		m_wim).formatstr("%08X");
-	state_add(SPARC_TBR,		"TBR",		m_tbr).formatstr("%08X");
-	state_add(SPARC_Y,			"Y",		m_y).formatstr("%08X");
-	state_add(SPARC_ICC,		"icc",		m_icc).formatstr("%4s");
-	state_add(SPARC_CWP,		"CWP",		m_cwp).formatstr("%2d");
+	state_add(STATE_GENPC,      "GENPC",    m_pc).noshow();
+	state_add(STATE_GENFLAGS,   "GENFLAGS", m_psr).callimport().callexport().formatstr("%6s").noshow();
+	state_add(SPARC_PC,         "PC",       m_pc).formatstr("%08X");
+	state_add(SPARC_NPC,        "nPC",      m_npc).formatstr("%08X");
+	state_add(SPARC_PSR,        "PSR",      m_psr).formatstr("%08X");
+	state_add(SPARC_WIM,        "WIM",      m_wim).formatstr("%08X");
+	state_add(SPARC_TBR,        "TBR",      m_tbr).formatstr("%08X");
+	state_add(SPARC_Y,          "Y",        m_y).formatstr("%08X");
+	state_add(SPARC_ANNUL,      "ANNUL",    m_annul).formatstr("%01d");
+	state_add(SPARC_ICC,        "icc",      m_icc).formatstr("%4s");
+	state_add(SPARC_CWP,        "CWP",      m_cwp).formatstr("%2d");
 	char regname[3] = "g0";
 	for (int i = 0; i < 8; i++)
 	{
@@ -191,12 +192,12 @@ void mb86901_device::device_start()
 		state_add(SPARC_I0 + i, regname, m_dbgregs[16+i]).formatstr("%08X");
 	}
 
-	state_add(SPARC_EC,		"EC",		m_ec).formatstr("%1d");
-	state_add(SPARC_EF,		"EF",		m_ef).formatstr("%1d");
-	state_add(SPARC_ET,		"ET",		m_et).formatstr("%1d");
-	state_add(SPARC_PIL,	"PIL",		m_pil).formatstr("%2d");
-	state_add(SPARC_S,		"S",		m_s).formatstr("%1d");
-	state_add(SPARC_PS,		"PS",		m_ps).formatstr("%1d");
+	state_add(SPARC_EC,     "EC",       m_ec).formatstr("%1d");
+	state_add(SPARC_EF,     "EF",       m_ef).formatstr("%1d");
+	state_add(SPARC_ET,     "ET",       m_et).formatstr("%1d");
+	state_add(SPARC_PIL,    "PIL",      m_pil).formatstr("%2d");
+	state_add(SPARC_S,      "S",        m_s).formatstr("%1d");
+	state_add(SPARC_PS,     "PS",       m_ps).formatstr("%1d");
 
 	char rname[5];
 	for (int i = 0; i < 120; i++)
@@ -365,7 +366,7 @@ UINT32 mb86901_device::read_sized_word(UINT8 asi, UINT32 address, int size)
 	}
 	else if (size == 2)
 	{
-		return m_program->read_word(address) << ((1 - (address & 1)) * 16);
+		return m_program->read_word(address) << ((2 - (address & 2)) * 8);
 	}
 	else
 	{
@@ -392,7 +393,7 @@ void mb86901_device::write_sized_word(UINT8 asi, UINT32 address, UINT32 data, in
 	}
 	else if (size == 2)
 	{
-		m_program->write_word(address, data >> ((1 - (address & 1)) * 16));
+		m_program->write_word(address, data >> ((2 - (address & 2)) * 8));
 	}
 	else
 	{
@@ -414,13 +415,13 @@ void mb86901_device::state_string_export(const device_state_entry &entry, std::s
 		case SPARC_ICC:
 			str = string_format("%c%c%c%c", ICC_N_SET ? 'n' : ' ', ICC_Z_SET ? 'z' : ' ', ICC_V_SET ? 'v' : ' ', ICC_C_SET ? 'c' : ' ');
 			break;
-		case SPARC_O0:	case SPARC_O1:	case SPARC_O2:	case SPARC_O3:	case SPARC_O4:	case SPARC_O5:	case SPARC_O6:	case SPARC_O7:
+		case SPARC_O0:  case SPARC_O1:  case SPARC_O2:  case SPARC_O3:  case SPARC_O4:  case SPARC_O5:  case SPARC_O6:  case SPARC_O7:
 			str = string_format("%08X", m_dbgregs[entry.index() - SPARC_O0]);
 			break;
-		case SPARC_L0:	case SPARC_L1:	case SPARC_L2:	case SPARC_L3:	case SPARC_L4:	case SPARC_L5:	case SPARC_L6:	case SPARC_L7:
+		case SPARC_L0:  case SPARC_L1:  case SPARC_L2:  case SPARC_L3:  case SPARC_L4:  case SPARC_L5:  case SPARC_L6:  case SPARC_L7:
 			str = string_format("%08X", m_dbgregs[8 + (entry.index() - SPARC_L0)]);
 			break;
-		case SPARC_I0:	case SPARC_I1:	case SPARC_I2:	case SPARC_I3:	case SPARC_I4:	case SPARC_I5:	case SPARC_I6:	case SPARC_I7:
+		case SPARC_I0:  case SPARC_I1:  case SPARC_I2:  case SPARC_I3:  case SPARC_I4:  case SPARC_I5:  case SPARC_I6:  case SPARC_I7:
 			str = string_format("%08X", m_dbgregs[16 + (entry.index() - SPARC_I0)]);
 			break;
 	}
@@ -523,21 +524,21 @@ void mb86901_device::execute_add(UINT32 op)
 	operand2 := if (i = 0) then r[rs2] else sign_extend(simm13);
 
 	if (ADD or ADDcc) then
-		result <- r[rs1] + operand2;
+	    result <- r[rs1] + operand2;
 	else if (ADDX or ADDXcc) then
-		result <= r[rs1] + operand2 + C;
+	    result <= r[rs1] + operand2 + C;
 	next;
 
 	if (rd != 0) then
-		r[rd] <- result;
+	    r[rd] <- result;
 
 	if (ADDcc or ADDXcc) then (
-		N <- result<31>;
-		Z <- if (result = 0) then 1 else 0;
-		V <- (r[rs1]<31> and operand2<31> and (not result<31>)) or
-			((not r[rs1]<31>) and (not operand2<31>) and result<31>);
-		C <- (r[rs1]<31> and operand2<31>) or
-			((not result<31>) and (r[rs1]<31> or operand2<31>))
+	    N <- result<31>;
+	    Z <- if (result = 0) then 1 else 0;
+	    V <- (r[rs1]<31> and operand2<31> and (not result<31>)) or
+	        ((not r[rs1]<31>) and (not operand2<31>) and result<31>);
+	    C <- (r[rs1]<31> and operand2<31>) or
+	        ((not result<31>) and (r[rs1]<31> or operand2<31>))
 	);
 	*/
 	UINT32 operand2 = USEIMM ? SIMM13 : RS2REG;
@@ -558,9 +559,9 @@ void mb86901_device::execute_add(UINT32 op)
 		PSR |= (BIT31(result)) ? PSR_N_MASK : 0;
 		PSR |= (result == 0) ? PSR_Z_MASK : 0;
 		PSR |= ((BIT31(RS1REG) && BIT31(operand2) && !BIT31(result)) ||
-		       (!BIT31(RS1REG) && !BIT31(operand2) && BIT31(result))) ? PSR_V_MASK : 0;
+				(!BIT31(RS1REG) && !BIT31(operand2) && BIT31(result))) ? PSR_V_MASK : 0;
 		PSR |= ((BIT31(RS1REG) && BIT31(operand2)) ||
-		       (!BIT31(result) && (BIT31(RS1REG) || BIT31(operand2)))) ? PSR_C_MASK : 0;
+				(!BIT31(result) && (BIT31(RS1REG) || BIT31(operand2)))) ? PSR_C_MASK : 0;
 	}
 }
 
@@ -585,16 +586,16 @@ void mb86901_device::execute_taddcc(UINT32 op)
 	next;
 
 	if (TADDccTV and (temp_V = 1)) then (
-		trap <- 1;
-		tag_overflow <- 1
+	    trap <- 1;
+	    tag_overflow <- 1
 	) else (
-		N <- result<31>;
-		Z <- if (result = 0) then 1 else 0;
-		V <- temp_V;
-		C <- (r[rs1]<31> and operand2<31>) or
-		     ((not result<31>) and (r[rs1]<31> or operand2<31>));
-		if (rd != 0) then
-			r[rd] <- result;
+	    N <- result<31>;
+	    Z <- if (result = 0) then 1 else 0;
+	    V <- temp_V;
+	    C <- (r[rs1]<31> and operand2<31>) or
+	         ((not result<31>) and (r[rs1]<31> or operand2<31>));
+	    if (rd != 0) then
+	        r[rd] <- result;
 	);
 	*/
 	UINT32 operand2 = USEIMM ? SIMM13 : RS2REG;
@@ -602,8 +603,8 @@ void mb86901_device::execute_taddcc(UINT32 op)
 	UINT32 result = RS1REG + operand2;
 
 	bool temp_v = (BIT31(RS1REG) && BIT31(operand2) && !BIT31(result)) ||
-	              (!BIT31(RS1REG) && !BIT31(operand2) && BIT31(result)) ||
-	              ((RS1REG & 3) != 0 || (RS1REG & 3) != 0) ? true : false;
+					(!BIT31(RS1REG) && !BIT31(operand2) && BIT31(result)) ||
+					((RS1REG & 3) != 0 || (RS1REG & 3) != 0) ? true : false;
 
 	if (TADDCCTV && temp_v)
 	{
@@ -617,7 +618,7 @@ void mb86901_device::execute_taddcc(UINT32 op)
 		PSR |= (result == 0) ? PSR_Z_MASK : 0;
 		PSR |= temp_v ? PSR_V_MASK : 0;
 		PSR |= ((BIT31(RS1REG) && BIT31(operand2)) ||
-		       (!BIT31(result) && (BIT31(RS1REG) || BIT31(operand2)))) ? PSR_C_MASK : 0;
+				(!BIT31(result) && (BIT31(RS1REG) || BIT31(operand2)))) ? PSR_C_MASK : 0;
 
 		if (RD != 0)
 			RDREG = result;
@@ -637,21 +638,21 @@ void mb86901_device::execute_sub(UINT32 op)
 	operand2 := if (i = 0) then r[rs2] else sign_extend(simm13);
 
 	if (SUB or SUBcc) then
-		result <- r[rs1] - operand2;
+	    result <- r[rs1] - operand2;
 	else if (SUBX or SUBXcc) then
-		result <= r[rs1] - operand2 - C;
+	    result <= r[rs1] - operand2 - C;
 	next;
 
 	if (rd != 0) then
-		r[rd] <- result;
+	    r[rd] <- result;
 
 	if (SUBcc or SUBXcc) then (
-		N <- result<31>;
-		Z <- if (result = 0) then 1 else 0;
-		V <- (r[rs1]<31> and (not operand2<31>) and (not result<31>)) or
-		     ((not r[rs1]<31>) and operand2<31> and result<31>);
-		C <- ((not r[rs1]<31>) and operand2<31>) or
-		     (result<31> and ((not r[rs1]<31>) or operand2<31>))
+	    N <- result<31>;
+	    Z <- if (result = 0) then 1 else 0;
+	    V <- (r[rs1]<31> and (not operand2<31>) and (not result<31>)) or
+	         ((not r[rs1]<31>) and operand2<31> and result<31>);
+	    C <- ((not r[rs1]<31>) and operand2<31>) or
+	         (result<31> and ((not r[rs1]<31>) or operand2<31>))
 	);
 	*/
 	UINT32 operand2 = USEIMM ? SIMM13 : RS2REG;
@@ -671,9 +672,9 @@ void mb86901_device::execute_sub(UINT32 op)
 		PSR |= (BIT31(result)) ? PSR_N_MASK : 0;
 		PSR |= (result == 0) ? PSR_Z_MASK : 0;
 		PSR |= ((BIT31(RS1REG) && !BIT31(operand2) && !BIT31(result)) ||
-		       (!BIT31(RS1REG) && BIT31(operand2) && BIT31(result))) ? PSR_V_MASK : 0;
+				(!BIT31(RS1REG) && BIT31(operand2) && BIT31(result))) ? PSR_V_MASK : 0;
 		PSR |= ((!BIT31(RS1REG) && BIT31(operand2)) ||
-		       (BIT31(result) && (!BIT31(RS1REG) || BIT31(operand2)))) ? PSR_C_MASK : 0;
+				(BIT31(result) && (!BIT31(RS1REG) || BIT31(operand2)))) ? PSR_C_MASK : 0;
 	}
 }
 
@@ -698,16 +699,16 @@ void mb86901_device::execute_tsubcc(UINT32 op)
 	next;
 
 	if (TSUBccTV and (temp_V = 1)) then (
-		trap <- 1;
-		tag_overflow <- 1
+	    trap <- 1;
+	    tag_overflow <- 1
 	) else (
-		N <- result<31>;
-		Z <- if (result = 0) then 1 else 0;
-		V <- temp_V;
-		C <- ((not r[rs1]<31>) and operand2<31>) or
-		     (result<31> and ((not r[rs1]<31>) or operand2<31>));
-		if (rd != 0) then
-			r[rd] <- result;
+	    N <- result<31>;
+	    Z <- if (result = 0) then 1 else 0;
+	    V <- temp_V;
+	    C <- ((not r[rs1]<31>) and operand2<31>) or
+	         (result<31> and ((not r[rs1]<31>) or operand2<31>));
+	    if (rd != 0) then
+	        r[rd] <- result;
 	);
 	*/
 
@@ -716,8 +717,8 @@ void mb86901_device::execute_tsubcc(UINT32 op)
 	UINT32 result = RS1REG - operand2;
 
 	bool temp_v = (BIT31(RS1REG) && !BIT31(operand2) && !BIT31(result)) ||
-	              (!BIT31(RS1REG) && BIT31(operand2) && BIT31(result)) ||
-	              ((RS1REG & 3) != 0 || (RS1REG & 3) != 0) ? true : false;
+					(!BIT31(RS1REG) && BIT31(operand2) && BIT31(result)) ||
+					((RS1REG & 3) != 0 || (RS1REG & 3) != 0) ? true : false;
 
 	if (TSUBCCTV && temp_v)
 	{
@@ -731,7 +732,7 @@ void mb86901_device::execute_tsubcc(UINT32 op)
 		PSR |= (result == 0) ? PSR_Z_MASK : 0;
 		PSR |= temp_v ? PSR_V_MASK : 0;
 		PSR |= ((!BIT31(RS1REG) && BIT31(operand2)) ||
-		       (BIT31(result) && (!BIT31(RS1REG) || BIT31(operand2)))) ? PSR_C_MASK : 0;
+				(BIT31(result) && (!BIT31(RS1REG) || BIT31(operand2)))) ? PSR_C_MASK : 0;
 
 		if (RD != 0)
 			RDREG = result;
@@ -761,10 +762,10 @@ void mb86901_device::execute_logical(UINT32 op)
 	if (rd != 0) then r[rd] <- result;
 
 	if (ANDcccc or ANDNcc or ORcc or ORNcc or XORcc or XNORcc) then (
-		N <- result<31>;
-		Z <- if (result = 0) then 1 else 0;
-		V <- 0
-		C <- 0
+	    N <- result<31>;
+	    Z <- if (result = 0) then 1 else 0;
+	    V <- 0
+	    C <- 0
 	);
 	*/
 
@@ -823,11 +824,11 @@ void mb86901_device::execute_shift(UINT32 op)
 	shift_count := if (i = 0) then r[rs2]<4:0> else shcnt;
 
 	if (SLL and (rd != 0) ) then
-		r[rd] <- shift_left_logical(r[rs1], shift_count)
+	    r[rd] <- shift_left_logical(r[rs1], shift_count)
 	else if (SRL and (rd != 0) ) then
-		r[rd] <- shift_right_logical(r[rs1], shift_count)
+	    r[rd] <- shift_right_logical(r[rs1], shift_count)
 	else if (SRA and (rd != 0) ) then
-		r[rd] <- shift_right_arithmetic(r[rs1], shift_count)
+	    r[rd] <- shift_right_arithmetic(r[rs1], shift_count)
 	*/
 	UINT32 shift_count = USEIMM ? (SIMM13 & 31) : (RS2REG & 31);
 
@@ -851,8 +852,8 @@ void mb86901_device::execute_mulscc(UINT32 op)
 	operand1 := (N xor V) [] (r[rs1]<31:1>);
 
 	operand2 := (
-		if (Y<0> = 0) then 0
-		else if (i = 0) then r[rs2] else sign_extend(simm13)
+	    if (Y<0> = 0) then 0
+	    else if (i = 0) then r[rs2] else sign_extend(simm13)
 	);
 
 	result <- operand1 + operand2;
@@ -860,7 +861,7 @@ void mb86901_device::execute_mulscc(UINT32 op)
 	next;
 
 	if (rd != 0) then (
-		r[rd] <- result;
+	    r[rd] <- result;
 	)
 	N <- result<31>;
 	Z <- if (result = 0) then 1 else 0;
@@ -883,9 +884,9 @@ void mb86901_device::execute_mulscc(UINT32 op)
 	PSR |= (BIT31(result)) ? PSR_N_MASK : 0;
 	PSR |= (result == 0) ? PSR_Z_MASK : 0;
 	PSR |= ((BIT31(operand1) && BIT31(operand2) && !BIT31(result)) ||
-		   (!BIT31(operand1) && !BIT31(operand2) && BIT31(result))) ? PSR_V_MASK : 0;
+			(!BIT31(operand1) && !BIT31(operand2) && BIT31(result))) ? PSR_V_MASK : 0;
 	PSR |= ((BIT31(operand1) && BIT31(operand2)) ||
-	       (!BIT31(result) && (BIT31(operand1) || BIT31(operand2)))) ? PSR_C_MASK : 0;
+			(!BIT31(result) && (BIT31(operand1) || BIT31(operand2)))) ? PSR_C_MASK : 0;
 }
 
 
@@ -900,17 +901,17 @@ void mb86901_device::execute_rdsr(UINT32 op)
 
 	if ((RDPSR or RDWIM or RDBTR
 	    or (RDASR and (privileged_ASR(rs1) = 1))) and (S = 0)) then (
-		trap <- 1;
-		privileged_instruction <- 1;
+	    trap <- 1;
+	    privileged_instruction <- 1;
 	else if (illegal_instruction_ASR(rs1) = 1) then (
-		trap <- 1;
-		illegal_instruction <- 1
+	    trap <- 1;
+	    illegal_instruction <- 1
 	else if (rd != 0) then (
-		if        (RDY) then r[rd] <- Y
-		else if (RDASR) then r[rd] <- ASR[rs1]
-		else if (RDPSR) then r[rd] <- PSR
-		else if (RDWIM) then r[rd] <- WIM
-		else if (RDTBR) then r[rd] <- TBR;
+	    if        (RDY) then r[rd] <- Y
+	    else if (RDASR) then r[rd] <- ASR[rs1]
+	    else if (RDPSR) then r[rd] <- PSR
+	    else if (RDWIM) then r[rd] <- WIM
+	    else if (RDTBR) then r[rd] <- TBR;
 	);
 	*/
 
@@ -956,41 +957,41 @@ void mb86901_device::execute_wrsr(UINT32 op)
 	result := r[rs1] xor operand2;
 
 	if (WRY) then (
-		Y'''' <- result
+	    Y'''' <- result
 	) else if (WRASR) then (
-		if ( (privileged_ASR(rd) = 1) and (S = 0) ) then (
-			trap <- 1;
-			privileged_instruction <- 1
-		) else if (illegal_instruction_ASR(rd) = 1) then (
-			trap <- 1;
-			illegal_instruction <- 1
-		) else (
-			ASR[rd]'''' <- result
-		)
+	    if ( (privileged_ASR(rd) = 1) and (S = 0) ) then (
+	        trap <- 1;
+	        privileged_instruction <- 1
+	    ) else if (illegal_instruction_ASR(rd) = 1) then (
+	        trap <- 1;
+	        illegal_instruction <- 1
+	    ) else (
+	        ASR[rd]'''' <- result
+	    )
 	) else if (WRPSR) then (
-		if (S = 0) then (
-			trap <- 1;
-			privileged_instruction <- 1
-		) else if (result<4:0> >= NWINDOWS) then (
-			trap <- 1;
-			illegal_instruction <- 1
-		) else (
-			PSR'''' <- result
-		)
+	    if (S = 0) then (
+	        trap <- 1;
+	        privileged_instruction <- 1
+	    ) else if (result<4:0> >= NWINDOWS) then (
+	        trap <- 1;
+	        illegal_instruction <- 1
+	    ) else (
+	        PSR'''' <- result
+	    )
 	) else if (WRWIM) then (
-		if (S = 0) then (
-			trap <- 1;
-			privileged_instruction <- 1
-		) else (
-			WIM'''' <- result
-		)
+	    if (S = 0) then (
+	        trap <- 1;
+	        privileged_instruction <- 1
+	    ) else (
+	        WIM'''' <- result
+	    )
 	) else if (WRBTR) then (
-		if (S = 0) then (
-			trap <- 1;
-			privileged_instruction <- 1
-		) else (
-			WIM'''' <- result
-		)
+	    if (S = 0) then (
+	        trap <- 1;
+	        privileged_instruction <- 1
+	    ) else (
+	        WIM'''' <- result
+	    )
 	);
 	*/
 	UINT32 operand2 = USEIMM ? SIMM13 : RS2REG;
@@ -1008,8 +1009,8 @@ void mb86901_device::execute_wrsr(UINT32 op)
 			m_trap = 1;
 			m_privileged_instruction = 1;
 		}
-	    else if (m_illegal_instruction_asr[RD])
-	    {
+		else if (m_illegal_instruction_asr[RD])
+		{
 			m_trap = 1;
 			m_illegal_instruction = 1;
 		}
@@ -1042,8 +1043,8 @@ void mb86901_device::execute_wrsr(UINT32 op)
 			m_trap = 1;
 			m_privileged_instruction = 1;
 		}
-	    else
-	    {
+		else
+		{
 			WIM = result & 0x7f;
 		}
 	}
@@ -1054,8 +1055,8 @@ void mb86901_device::execute_wrsr(UINT32 op)
 			m_trap = 1;
 			m_privileged_instruction = 1;
 		}
-	    else
-	    {
+		else
+		{
 			TBR = result & 0xfffff000;
 		}
 	}
@@ -1075,33 +1076,33 @@ void mb86901_device::execute_rett(UINT32 op)
 	address <- r[rs1] + (if (i = 0) then r[rs2] else sign_extend(simm13));
 	next;
 	if (ET = 1) then (
-		trap <- 1;
-		if (S = 0) then privileged_instruction <- 1
-		else if (S != 0) then illegal_instruction <- 1
+	    trap <- 1;
+	    if (S = 0) then privileged_instruction <- 1
+	    else if (S != 0) then illegal_instruction <- 1
 	) else if (S = 0) then (
-		trap <- 1;
-		privileged_instruction <- 1
-		tt <- 00000011; { trap type for privileged_instruction }
-		execute_mode <- 0;
-		error_mode = 1
+	    trap <- 1;
+	    privileged_instruction <- 1
+	    tt <- 00000011; { trap type for privileged_instruction }
+	    execute_mode <- 0;
+	    error_mode = 1
 	) else if ((WIM and (1 << new_cwp)) != 0) then (
-		trap <- 1;
-		window_underflow <- 1;
-		tt <- 00000110; { trap type for window_underflow }
-		execute_mode = 0;
-		error_mode = 1
+	    trap <- 1;
+	    window_underflow <- 1;
+	    tt <- 00000110; { trap type for window_underflow }
+	    execute_mode = 0;
+	    error_mode = 1
 	) else if (address<1:0> != 0) then (
-		trap = 1;
-		mem_address_not_aligned = 1;
-		tt = 7; { trap type for mem_address_not_aligned }
-		execute_mode = 0;
-		error_mode = 1
+	    trap = 1;
+	    mem_address_not_aligned = 1;
+	    tt = 7; { trap type for mem_address_not_aligned }
+	    execute_mode = 0;
+	    error_mode = 1
 	) else (
-		ET <- 1;
-		PC <- nPC;
-		nPC <- address;
-		CWP <- new_cwp;
-		S <- PS
+	    ET <- 1;
+	    PC <- nPC;
+	    nPC <- address;
+	    CWP <- new_cwp;
+	    S <- PS
 	)
 	*/
 
@@ -1165,29 +1166,29 @@ void mb86901_device::execute_saverestore(UINT32 op)
 	operand2 := if (i = 0) then r[rs2] else sign_extend(simm13);
 
 	if (SAVE) then (
-		new_cwp <- (CWP - 1) modulo NWINDOWS;
-		next;
-		if ((WIM and (1 << new_cwp)) != 0) then (
-			trap <- 1;
-			window_overflow <- 1
-		) else (
-			result <- r[rs1] + operand2; { operands from old window }
-			CWP <- new_cwp
-		)
+	    new_cwp <- (CWP - 1) modulo NWINDOWS;
+	    next;
+	    if ((WIM and (1 << new_cwp)) != 0) then (
+	        trap <- 1;
+	        window_overflow <- 1
+	    ) else (
+	        result <- r[rs1] + operand2; { operands from old window }
+	        CWP <- new_cwp
+	    )
 	) else if (RESTORE) then (
-		new_cwp <- (CWP + 1) modulo NWINDOWS;
-		next;
-		if ((WIM and (1 << new_cwp)) != 0) then (
-			trap <- 1;
-			window_overflow <- 1
-		) else (
-			result <- r[rs1] + operand2; { operands from old window }
-			CWP <- new_cwp
-		)
+	    new_cwp <- (CWP + 1) modulo NWINDOWS;
+	    next;
+	    if ((WIM and (1 << new_cwp)) != 0) then (
+	        trap <- 1;
+	        window_overflow <- 1
+	    ) else (
+	        result <- r[rs1] + operand2; { operands from old window }
+	        CWP <- new_cwp
+	    )
 	);
 	next;
 	if ((trap = 0) and (rd != 0)) then
-		r[rd] <- result { destination in new window }
+	    r[rd] <- result { destination in new window }
 	*/
 
 	UINT32 rs1 = RS1REG;
@@ -1242,12 +1243,12 @@ void mb86901_device::execute_jmpl(UINT32 op)
 	jump_address <- r[rs1] + (if (i = 0) then r[rs2] else sign_extend(simm13));
 	next;
 	if (jump_address<1:0> != 0) then (
-		trap <- 1;
-		mem_address_not_aligned <- 1
+	    trap <- 1;
+	    mem_address_not_aligned <- 1
 	) else (
-		if (rd != 0) then r[rd] <- PC;
-		PC <- nPC;
-		nPC <- jump_address
+	    if (rd != 0) then r[rd] <- PC;
+	    PC <- nPC;
+	    nPC <- jump_address
 	)
 	*/
 
@@ -1416,119 +1417,119 @@ void mb86901_device::execute_store(UINT32 op)
 	/* The SPARC Instruction Manual: Version 8, page 165, "Appendix C - ISP Descriptions - Store Instructions" (SPARCv8.pdf, pg. 162)
 
 	if ( (S = 0) and (STDA or STA or STHA or STBA or STDFQ or STDCQ) ) then (
-		trap <- 1;
-		privileged_instruction <- 1
+	    trap <- 1;
+	    privileged_instruction <- 1
 	) else if ((i = 1) and (STDA or STA or STHA or STBA)) then (
-		trap <- 1;
-		illegal_instruction <- 1
+	    trap <- 1;
+	    illegal_instruction <- 1
 	);
 	next;
 	if (trap = 0) then (
-		if (STD or ST or STH or STB or STF or STDF or STFSR or STDFQ or STCSR or STC or STDC or STDCQ) then (
-			address <- r[rs1] + (if (i = 0) then r[rs2] else sign_extend(simm13));
-			addr_space <- (if (S = 0) then 10 else 11)
-		) else if (STDA or STA or STHA or STBA) then (
-			address <- r[rs1] + r[rs2];
-			addr_space <- asi
-		);
-		if ((STF or STDF or STFSR or STDFQ) and
-		   ((EF = 0) or (bp_FPU_present = 0)) ) then (
-			trap <- 1;
-			fp_disabled <- 1;
-		);
-		if ((STC or STDC or STCSR or STDCQ) and
-		   ((EC = 0) or (bp_CP_present = 0)) ) then (
-			trap <- 1;
-			cp_disabled <- 1;
-		)
+	    if (STD or ST or STH or STB or STF or STDF or STFSR or STDFQ or STCSR or STC or STDC or STDCQ) then (
+	        address <- r[rs1] + (if (i = 0) then r[rs2] else sign_extend(simm13));
+	        addr_space <- (if (S = 0) then 10 else 11)
+	    ) else if (STDA or STA or STHA or STBA) then (
+	        address <- r[rs1] + r[rs2];
+	        addr_space <- asi
+	    );
+	    if ((STF or STDF or STFSR or STDFQ) and
+	       ((EF = 0) or (bp_FPU_present = 0)) ) then (
+	        trap <- 1;
+	        fp_disabled <- 1;
+	    );
+	    if ((STC or STDC or STCSR or STDCQ) and
+	       ((EC = 0) or (bp_CP_present = 0)) ) then (
+	        trap <- 1;
+	        cp_disabled <- 1;
+	    )
 	);
 	next;
 	if (trap = 0) then (
-		if ((STH or STHA) and (address<0> != 0)) then (
-			trap <- 1;
-			mem_address_not_aligned <- 1
-		) else if ((ST or STA or STF or STFSR or STC or STCSR) and (address<1:0> != 0)) then (
-			trap <- 1;
-			mem_address_not_aligned <- 1
-		) else if ((STD or STDA or STDF or STDFQ or STDC or STDCQ) and (address<2:0> != 0)) then (
-			trap <- 1;
-			mem_address_not_aligned <- 1
-		) else (
-			if (STDFQ and ((implementation has no floating-point queue) or (FSR.qne = 0))) then (
-				trap <- 1;
-				fp_exception <- 1;
-				ftt <- sequence_error;
-			);
-			if (STDCQ and ((implementation has no coprocessor queue)) then (
-				trap <- 1;
-				cp_exception <- 1;
-				{ possibly additional implementation-dependent actions }
-			);
-			if (STDF and (rd<0> != 0)) then (
-				trap <- 1;
-				fp_exception <- 1;
-				ftt <- invalid_fp_register;
-			)
-		)
+	    if ((STH or STHA) and (address<0> != 0)) then (
+	        trap <- 1;
+	        mem_address_not_aligned <- 1
+	    ) else if ((ST or STA or STF or STFSR or STC or STCSR) and (address<1:0> != 0)) then (
+	        trap <- 1;
+	        mem_address_not_aligned <- 1
+	    ) else if ((STD or STDA or STDF or STDFQ or STDC or STDCQ) and (address<2:0> != 0)) then (
+	        trap <- 1;
+	        mem_address_not_aligned <- 1
+	    ) else (
+	        if (STDFQ and ((implementation has no floating-point queue) or (FSR.qne = 0))) then (
+	            trap <- 1;
+	            fp_exception <- 1;
+	            ftt <- sequence_error;
+	        );
+	        if (STDCQ and ((implementation has no coprocessor queue)) then (
+	            trap <- 1;
+	            cp_exception <- 1;
+	            { possibly additional implementation-dependent actions }
+	        );
+	        if (STDF and (rd<0> != 0)) then (
+	            trap <- 1;
+	            fp_exception <- 1;
+	            ftt <- invalid_fp_register;
+	        )
+	    )
 	);
 	next;
 	if (trap = 0) then (
-		if (STF) then ( byte_mask <- 1111; data0 <- f[rd] )
-		else if (STC) then ( byte_mask <- 1111; data0 <- implementation_dependent_value )
-		else if (STDF) then ( byte_mask <- 1111; data0 <- f[rd & 0x1e] )
-		else if (STDC) then ( byte_mask <- 1111; data0 <- implementation_dependent_value )
-		else if (STD or STDA) then ( byte_mask <- 1111; data0 <- r[rd & 0x1e] )
-		else if (STDFQ) then ( byte_mask <- 1111; data0 <- implementation_dependent_value )
-		else if (STDCQ) then ( byte_mask <- 1111; data0 <- implementation_dependent_value )
-		else if (STFSR) then (
-			while ((FSR.qne = 1) and (trap = 0)) (
-				// wait for pending floating-point instructions to complete
-			)
-			next;
-			byte_mask <- 1111; data0 <- FSR
-		) else if (STCSR) then (
-			{ implementation-dependent actions }
-			byte_mask <- 1111; data0 <- CSR
-		) else if (ST or STA) then ( byte_mask <- 1111; data0 = r[rd] )
-		else if (STH or STHA) then (
-			if (address<1:0> = 0) then (
-				byte_mask <- 1100; data0 <- shift_left_logical(r[rd], 16) )
-			else if (address<1:0> = 2) then (
-				byte_mask <- 0011; data0 <- r[rd] )
-		) else if (STB or STBA) then (
-			if (address<1:0> = 0) then (
-				byte_mask <- 1000; data0 <- shift_left_logical(r[rd], 24) )
-			) else if (address<1:0> = 1) then (
-				byte_mask <- 0100; data0 <- shift_left_logical(r[rd], 16) )
-			) else if (address<1:0> = 2) then (
-				byte_mask <- 0010; data0 <- shift_left_logical(r[rd], 8) )
-			) else if (address<1:0> = 3) then (
-				byte_mask <- 0001; data0 <- r[rd] )
-			)
-		);
+	    if (STF) then ( byte_mask <- 1111; data0 <- f[rd] )
+	    else if (STC) then ( byte_mask <- 1111; data0 <- implementation_dependent_value )
+	    else if (STDF) then ( byte_mask <- 1111; data0 <- f[rd & 0x1e] )
+	    else if (STDC) then ( byte_mask <- 1111; data0 <- implementation_dependent_value )
+	    else if (STD or STDA) then ( byte_mask <- 1111; data0 <- r[rd & 0x1e] )
+	    else if (STDFQ) then ( byte_mask <- 1111; data0 <- implementation_dependent_value )
+	    else if (STDCQ) then ( byte_mask <- 1111; data0 <- implementation_dependent_value )
+	    else if (STFSR) then (
+	        while ((FSR.qne = 1) and (trap = 0)) (
+	            // wait for pending floating-point instructions to complete
+	        )
+	        next;
+	        byte_mask <- 1111; data0 <- FSR
+	    ) else if (STCSR) then (
+	        { implementation-dependent actions }
+	        byte_mask <- 1111; data0 <- CSR
+	    ) else if (ST or STA) then ( byte_mask <- 1111; data0 = r[rd] )
+	    else if (STH or STHA) then (
+	        if (address<1:0> = 0) then (
+	            byte_mask <- 1100; data0 <- shift_left_logical(r[rd], 16) )
+	        else if (address<1:0> = 2) then (
+	            byte_mask <- 0011; data0 <- r[rd] )
+	    ) else if (STB or STBA) then (
+	        if (address<1:0> = 0) then (
+	            byte_mask <- 1000; data0 <- shift_left_logical(r[rd], 24) )
+	        ) else if (address<1:0> = 1) then (
+	            byte_mask <- 0100; data0 <- shift_left_logical(r[rd], 16) )
+	        ) else if (address<1:0> = 2) then (
+	            byte_mask <- 0010; data0 <- shift_left_logical(r[rd], 8) )
+	        ) else if (address<1:0> = 3) then (
+	            byte_mask <- 0001; data0 <- r[rd] )
+	        )
+	    );
 	);
 	next;
 	if (trap = 0) then (
-		MAE <- memory_write(addr_space, address, byte_mask, data1);
-		next;
-		if (MAE = 1) then (
-			trap <- 1;
-			data_access_exception <- 1
-		)
+	    MAE <- memory_write(addr_space, address, byte_mask, data1);
+	    next;
+	    if (MAE = 1) then (
+	        trap <- 1;
+	        data_access_exception <- 1
+	    )
 	);
 	if ((trap = 0) and (STD or STDA or STDF or STDC or STDFQ or STDCQ)) then (
-		if (STD or STDA) then ( data1 <- r[rd or 00001] )
-		else if (STDF) then ( data1 <- f[rd or 00001] )
-		else if (STDC) then ( data1 <- implementation_dependent_value }
-		else if (STDFQ) then ( data1 <- implementation_dependent_value }
-		else if (STDCQ) then ( data1 <- implementation_dependent_value }
-		next;
-		MAE <- memory_write(addr_space, address + 4, 1111, data1);
-		next;
-		if (MAE = 1) then ( { MAE = 1 only due to a "non-resumable machine-check error" }
-			trap <- 1;
-			data_access_exception <- 1
-		)
+	    if (STD or STDA) then ( data1 <- r[rd or 00001] )
+	    else if (STDF) then ( data1 <- f[rd or 00001] )
+	    else if (STDC) then ( data1 <- implementation_dependent_value }
+	    else if (STDFQ) then ( data1 <- implementation_dependent_value }
+	    else if (STDCQ) then ( data1 <- implementation_dependent_value }
+	    next;
+	    MAE <- memory_write(addr_space, address + 4, 1111, data1);
+	    next;
+	    if (MAE = 1) then ( { MAE = 1 only due to a "non-resumable machine-check error" }
+	        trap <- 1;
+	        data_access_exception <- 1
+	    )
 	);
 	*/
 
@@ -1759,100 +1760,100 @@ void mb86901_device::execute_load(UINT32 op)
 	/* The SPARC Instruction Manual: Version 8, page 163, "Appendix C - ISP Descriptions - C.9. Instruction Defintions - Load Instructions" (SPARCv8.pdf, pg. 160)
 
 	if (LDD or LD or LDSH or LDUH or LDSB or LDUB or LDDF or LDF or LDFSR or LDDC or LDC or LDCSR) then (
-		address <- r[rs1] + (if (i = 0) then r[rs2] else sign_extend(simm13));
-		addr_space <- (if (S = 0) then 10 else 11)
+	    address <- r[rs1] + (if (i = 0) then r[rs2] else sign_extend(simm13));
+	    addr_space <- (if (S = 0) then 10 else 11)
 	) else if (LDDA or LDA or LDSHA or LDUHA or LDSBA or LDUBA) then (
-		if (S = 0) then (
-			trap <- 1;
-			privileged_instruction <- 1
-		) else if (i = 1) then (
-			trap <- 1;
-			illegal_instruction <- 1
-		) else (
-			address <- r[rs1] + r[rs2];
-			addr_space <- asi
-		)
+	    if (S = 0) then (
+	        trap <- 1;
+	        privileged_instruction <- 1
+	    ) else if (i = 1) then (
+	        trap <- 1;
+	        illegal_instruction <- 1
+	    ) else (
+	        address <- r[rs1] + r[rs2];
+	        addr_space <- asi
+	    )
 	)
 	next;
 	if (trap = 0) then (
-		if ( (LDF or LDDF or LDFSR) and ((EF = 0) or (bp_FPU_present = 0)) then (
-			trap <- 1;
-			fp_disabled <- 1
-		) else if ( (LDC or LDDC or LDCSR) and ((EC = 0) or (bp_CP_present = 0)) then (
-			trap <- 1;
-			cp_disabled <- 1
-		) else if ( ( (LDD or LDDA or LDDF or LDDC) and (address<2:0> != 0)) or
-			((LD or LDA or LDF or LDFSR or LDC or LDCSR) and (address<1:0> != 0)) or
-			((LDSH or LDSHA or LDUH or LDUHA) and address<0> != 0) ) then (
-			trap <- 1;
-			mem_address_not_aligned <- 1
-		) else if (LDDF and (rd<0> != 0)) then (
-			trap <- 1;
-			fp_exception <- 1;
-			ftt <- invalid_fpr_register
-		) else if ((LDF or LDDF or LDFSR) and (an FPU sequence error is detected)) then (
-			trap <- 1;
-			fp_exception <- 1;
-			ftt <- sequence_error
-		) else if ((LDC or LDDC or LDCSR) and (a CP sequence error is detected)) then (
-			trap <- 1;
-			cp_exception <- 1;
-			{ possibly additional implementation-dependent actions }
-		)
+	    if ( (LDF or LDDF or LDFSR) and ((EF = 0) or (bp_FPU_present = 0)) then (
+	        trap <- 1;
+	        fp_disabled <- 1
+	    ) else if ( (LDC or LDDC or LDCSR) and ((EC = 0) or (bp_CP_present = 0)) then (
+	        trap <- 1;
+	        cp_disabled <- 1
+	    ) else if ( ( (LDD or LDDA or LDDF or LDDC) and (address<2:0> != 0)) or
+	        ((LD or LDA or LDF or LDFSR or LDC or LDCSR) and (address<1:0> != 0)) or
+	        ((LDSH or LDSHA or LDUH or LDUHA) and address<0> != 0) ) then (
+	        trap <- 1;
+	        mem_address_not_aligned <- 1
+	    ) else if (LDDF and (rd<0> != 0)) then (
+	        trap <- 1;
+	        fp_exception <- 1;
+	        ftt <- invalid_fpr_register
+	    ) else if ((LDF or LDDF or LDFSR) and (an FPU sequence error is detected)) then (
+	        trap <- 1;
+	        fp_exception <- 1;
+	        ftt <- sequence_error
+	    ) else if ((LDC or LDDC or LDCSR) and (a CP sequence error is detected)) then (
+	        trap <- 1;
+	        cp_exception <- 1;
+	        { possibly additional implementation-dependent actions }
+	    )
 	);
 	next;
 	if (trap = 0) then {
-		(data, MAE) <- memory_read(addr_space, address);
-		next;
-		if (MAE = 1) then (
-			trap <- 1;
-			data_access_exception <- 1;
-		) else (
-			if (LDSB or LDSBA or LDUB or LDUBA) then (
-				if	    (address<1:0> = 0) then byte <- data<31:24>
-				else if (address<1:0> = 1) then byte <- data<23:16>
-				else if (address<1:0> = 2) then byte <- data<15: 8>
-				else if (address<1:0> = 3) then byte <- data< 7: 0>
-				next;
-				if (LDSB or LDSBA) then
-					word0 <- sign_extend_byte(byte)
-				else
-					word0 <- zero_extend_byte(byte)
-			) else if (LDSH or LDSHA or LDUH or LDUHA) then (
-				if      (address<1:0> = 0) then halfword <- data<31:16>
-				else if (address<1:0> = 2) then halfword <- data<15: 0>
-				next;
-				if (LDSH or LDSHA) then
-					word0 <- sign_extend_halfword(halfword)
-				else
-					word0 <- zero_extend_halfword(halfword)
-			) else
-				word0 <- data
-		)
+	    (data, MAE) <- memory_read(addr_space, address);
+	    next;
+	    if (MAE = 1) then (
+	        trap <- 1;
+	        data_access_exception <- 1;
+	    ) else (
+	        if (LDSB or LDSBA or LDUB or LDUBA) then (
+	            if      (address<1:0> = 0) then byte <- data<31:24>
+	            else if (address<1:0> = 1) then byte <- data<23:16>
+	            else if (address<1:0> = 2) then byte <- data<15: 8>
+	            else if (address<1:0> = 3) then byte <- data< 7: 0>
+	            next;
+	            if (LDSB or LDSBA) then
+	                word0 <- sign_extend_byte(byte)
+	            else
+	                word0 <- zero_extend_byte(byte)
+	        ) else if (LDSH or LDSHA or LDUH or LDUHA) then (
+	            if      (address<1:0> = 0) then halfword <- data<31:16>
+	            else if (address<1:0> = 2) then halfword <- data<15: 0>
+	            next;
+	            if (LDSH or LDSHA) then
+	                word0 <- sign_extend_halfword(halfword)
+	            else
+	                word0 <- zero_extend_halfword(halfword)
+	        ) else
+	            word0 <- data
+	    )
 	);
 	next;
 	if (trap = 0) then (
-		if ( (rd != 0) and (LD or LDA or LDSH or LDSHA
-		    or LDUHA or LDUH or LDSB or LDSBA or LDUB or LDUBA) ) then
-				r[rd] <- word0
-		else if (LDF) then f[rd] <- word0
-		else if (LDC) then { implementation-dependent actions }
-		else if (LDFSR) then FSR <- word0
-		else if (LDCSR) then CSR <- word0
-		else if (LDD or LDDA) then r[rd and 11110] <- word0
-		else if (LDDF) then f[rd and 11110] <- word0
-		else if (LDDC) then { implementation-dependent actions }
+	    if ( (rd != 0) and (LD or LDA or LDSH or LDSHA
+	        or LDUHA or LDUH or LDSB or LDSBA or LDUB or LDUBA) ) then
+	            r[rd] <- word0
+	    else if (LDF) then f[rd] <- word0
+	    else if (LDC) then { implementation-dependent actions }
+	    else if (LDFSR) then FSR <- word0
+	    else if (LDCSR) then CSR <- word0
+	    else if (LDD or LDDA) then r[rd and 11110] <- word0
+	    else if (LDDF) then f[rd and 11110] <- word0
+	    else if (LDDC) then { implementation-dependent actions }
 	);
 	next;
 	if (((trap = 0) and (LDD or LDDA or LDDF or LDDC)) then (
-		(word1, MAE) <- memory_read(addr_space, address + 4);
-		next;
-		if (MAE = 1) then ( { MAE = 1 only due to a "non-resumable machine-check error" }
-			trap <- 1;
-			data_access_exception <- 1 )
-		else if (LDD or LDDA) then r[rd or 1] <- word1
-		else if (LDDF) then f[rd or 1] <- word1
-		else if (LDDC) then { implementation-dependent actions }
+	    (word1, MAE) <- memory_read(addr_space, address + 4);
+	    next;
+	    if (MAE = 1) then ( { MAE = 1 only due to a "non-resumable machine-check error" }
+	        trap <- 1;
+	        data_access_exception <- 1 )
+	    else if (LDD or LDDA) then r[rd or 1] <- word1
+	    else if (LDDF) then f[rd or 1] <- word1
+	    else if (LDDC) then { implementation-dependent actions }
 	);
 	*/
 
@@ -1953,9 +1954,13 @@ void mb86901_device::execute_load(UINT32 op)
 				else if ((address & 3) == 2) halfword = data & 0xffff;
 
 				if (LDSH || LDSHA)
+				{
 					word0 = (((INT32)halfword) << 16) >> 16;
+				}
 				else
+				{
 					word0 = halfword;
+				}
 			}
 			else
 			{
@@ -1978,7 +1983,7 @@ void mb86901_device::execute_load(UINT32 op)
 		else if (LDDC) { } // implementation-dependent actions
 	}
 
-	if (!m_trap)
+	if (!m_trap && (LDD || LDDA || LDDF || LDDC))
 	{
 		UINT32 word1 = read_sized_word(addr_space, address + 4, 4);
 		if (MAE)
@@ -2003,59 +2008,59 @@ void mb86901_device::execute_ldstub(UINT32 op)
 	/* The SPARC Instruction Manual: Version 8, page 169, "Appendix C - ISP Descriptions - Atomic Load-Store Unsigned Byte Instructions" (SPARCv8.pdf, pg. 166)
 
 	if (LDSTUB) then (
-		address <- r[rs1] + (if (i = 0) then r[rs2] else sign_extend(simm13));
-		addr_space <- (if (S = 0) then 10 else 11)
+	    address <- r[rs1] + (if (i = 0) then r[rs2] else sign_extend(simm13));
+	    addr_space <- (if (S = 0) then 10 else 11)
 	} else if (LDSTUBA) then (
-		if (S = 0) then (
-			trap <- 1;
-			privileged_instruction <- 1
-		) else if (i = 1) then (
-			trap <- 1;
-			illegal_instruction <- 1
-		) else (
-			address <- r[rs1] + r[rs2];
-			addr_space <- asi
-		)
+	    if (S = 0) then (
+	        trap <- 1;
+	        privileged_instruction <- 1
+	    ) else if (i = 1) then (
+	        trap <- 1;
+	        illegal_instruction <- 1
+	    ) else (
+	        address <- r[rs1] + r[rs2];
+	        addr_space <- asi
+	    )
 	);
 	next;
 	if (trap = 0) then (
-		while ( (pb_block_ldst_byte = 1) or (pb_block_ldst_word = 1) ) then (
-			{ wait for lock(s) to be lifted }
-			{ an implementation actually need only block when another LDSTUB or SWAP
-			  is pending on the same byte in memory as the one addressed by this LDSTUB }
-		};
-		next;
-		pb_block_ldst_byte <- 1;
-		next;
-		(data, MAE) <- memory_read(addr_space, address);
-		next;
-		if (MAE = 1) then (
-			trap <- 1;
-			data_access_exception <- 1
-		)
+	    while ( (pb_block_ldst_byte = 1) or (pb_block_ldst_word = 1) ) then (
+	        { wait for lock(s) to be lifted }
+	        { an implementation actually need only block when another LDSTUB or SWAP
+	          is pending on the same byte in memory as the one addressed by this LDSTUB }
+	    };
+	    next;
+	    pb_block_ldst_byte <- 1;
+	    next;
+	    (data, MAE) <- memory_read(addr_space, address);
+	    next;
+	    if (MAE = 1) then (
+	        trap <- 1;
+	        data_access_exception <- 1
+	    )
 	)
 	next;
 	if (trap = 0) then (
-		if      (address<1:0> = 0) then ( byte_mask <- 1000 )
-		else if (address<1:0> = 1) then ( byte_mask <- 0100 )
-		else if (address<1:0> = 2) then ( byte_mask <- 0010 )
-		else if (address<1:0> = 3) then ( byte_mask <- 0001 )
-		;
-		next;
-		MAE <- memory_write(addr_space, address, byte_mask, FFFFFFFF);
-		next;
-		pb_block_ldst_byte <- 0;
-		if (MAE = 1) then ( { MAE = 1 only due to a "non-resumable machine-check error" }
-			trap <- 1;
-			data_access_exception <- 1
-		) else (
-			if      (address<1:0> = 0) then word <- zero_extend_byte(data<31:24>)
-			else if (address<1:0> = 1) then word <- zero_extend_byte(data<23:24>)
-			else if (address<1:0> = 2) then word <- zero_extend_byte(data<15: 8>)
-			else if (address<1:0> = 3) then word <- zero_extend_byte(data< 7: 0>)
-			next;
-			if (rd != 0) then r[rd] <- word
-		)
+	    if      (address<1:0> = 0) then ( byte_mask <- 1000 )
+	    else if (address<1:0> = 1) then ( byte_mask <- 0100 )
+	    else if (address<1:0> = 2) then ( byte_mask <- 0010 )
+	    else if (address<1:0> = 3) then ( byte_mask <- 0001 )
+	    ;
+	    next;
+	    MAE <- memory_write(addr_space, address, byte_mask, FFFFFFFF);
+	    next;
+	    pb_block_ldst_byte <- 0;
+	    if (MAE = 1) then ( { MAE = 1 only due to a "non-resumable machine-check error" }
+	        trap <- 1;
+	        data_access_exception <- 1
+	    ) else (
+	        if      (address<1:0> = 0) then word <- zero_extend_byte(data<31:24>)
+	        else if (address<1:0> = 1) then word <- zero_extend_byte(data<23:24>)
+	        else if (address<1:0> = 2) then word <- zero_extend_byte(data<15: 8>)
+	        else if (address<1:0> = 3) then word <- zero_extend_byte(data< 7: 0>)
+	        next;
+	        if (rd != 0) then r[rd] <- word
+	    )
 	);
 	*/
 
@@ -2253,16 +2258,16 @@ bool mb86901_device::evaluate_condition(UINT32 op)
 	bool v = ICC_V_SET;
 	bool c = ICC_C_SET;
 
-	switch(COND & 7)							// COND & 8
-	{											// 0		8
-		case 0:		take = false; break;		// bn		ba
-		case 1:		take = z; break;			// bz		bne
-		case 2:		take = z | (n ^ z); break;	// ble		bg
-		case 3:		take = n ^ v; break;		// bl		bge
-		case 4:		take = c | z; break;		// bleu		bgu
-		case 5:		take = c; break;			// bcs		bcc
-		case 6:		take = n; break;			// bneg		bpos
-		case 7:		take = v; break;			// bvs		bvc
+	switch(COND & 7)                            // COND & 8
+	{                                           // 0        8
+		case 0:     take = false; break;        // bn       ba
+		case 1:     take = z; break;            // bz       bne
+		case 2:     take = z | (n ^ z); break;  // ble      bg
+		case 3:     take = n ^ v; break;        // bl       bge
+		case 4:     take = c | z; break;        // bleu     bgu
+		case 5:     take = c; break;            // bcs      bcc
+		case 6:     take = n; break;            // bneg     bpos
+		case 7:     take = v; break;            // bvs      bvc
 	}
 
 	if (COND & 8)
@@ -2281,32 +2286,32 @@ void mb86901_device::execute_bicc(UINT32 op)
 	/* The SPARC Instruction Manual: Version 8, page 178, "Appendix C - ISP Descriptions - Branch on Integer Condition Instructions" (SPARCv8.pdf, pg. 175)
 
 	eval_icc := (
-		if (BNE)	then (if (Z = 0) then 1 else 0);
-		if (BE)		then (if (Z = 1) then 1 else 0);
-		if (BG)		then (if ((Z or (N xor V)) = 0) then 1 else 0);
-		if (BLE)	then (if ((Z or (N xor V)) = 1) then 1 else 0);
-		if (BGE)	then (if ((N xor V) = 0) then 1 else 0);
-		if (BL)		then (if ((N xor V) = 1) then 1 else 0);
-		if (BGU)	then (if ((C = 0) and (Z = 0)) then 1 else 0);
-		if (BLEU)	then (if ((C = 1) or (Z = 1)) then 1 else 0);
-		if (BCC)	then (if (C = 0) then 1 else 0);
-		if (BCS)	then (if (C = 1) then 1 else 0);
-		if (BPOS)	then (if (N = 0) then 1 else 0);
-		if (BNEG)	then (if (N = 1) then 1 else 0);
-		if (BVC)	then (if (V = 0) then 1 else 0);
-		if (BVS)	then (if (V = 1) then 1 else 0);
-		if (BA)		then 1;
-		if (BN)		then 0;
+	    if (BNE)    then (if (Z = 0) then 1 else 0);
+	    if (BE)     then (if (Z = 1) then 1 else 0);
+	    if (BG)     then (if ((Z or (N xor V)) = 0) then 1 else 0);
+	    if (BLE)    then (if ((Z or (N xor V)) = 1) then 1 else 0);
+	    if (BGE)    then (if ((N xor V) = 0) then 1 else 0);
+	    if (BL)     then (if ((N xor V) = 1) then 1 else 0);
+	    if (BGU)    then (if ((C = 0) and (Z = 0)) then 1 else 0);
+	    if (BLEU)   then (if ((C = 1) or (Z = 1)) then 1 else 0);
+	    if (BCC)    then (if (C = 0) then 1 else 0);
+	    if (BCS)    then (if (C = 1) then 1 else 0);
+	    if (BPOS)   then (if (N = 0) then 1 else 0);
+	    if (BNEG)   then (if (N = 1) then 1 else 0);
+	    if (BVC)    then (if (V = 0) then 1 else 0);
+	    if (BVS)    then (if (V = 1) then 1 else 0);
+	    if (BA)     then 1;
+	    if (BN)     then 0;
 	)
 	PC <- nPC;
 	if (eval_icc = 1) then (
-		nPC <- PC + sign_extend(disp22[]00);
-		if (BA and (a = 1)) then
-			annul <- 1 { only for annulling Branch-Always }
+	    nPC <- PC + sign_extend(disp22[]00);
+	    if (BA and (a = 1)) then
+	        annul <- 1 { only for annulling Branch-Always }
 	) else (
-		nPC <- nPC + 4;
-		if (a = 1) then
-			annul <- 1 { only for annulling branches other than BA }
+	    nPC <- nPC + 4;
+	    if (a = 1) then
+	        annul <- 1 { only for annulling branches other than BA }
 	)
 	*/
 
@@ -2337,35 +2342,35 @@ void mb86901_device::execute_ticc(UINT32 op)
 	/* The SPARC Instruction Manual: Version 8, page 182, "Appendix C - ISP Descriptions - Trap on Integer Condition Instructions" (SPARCv8.pdf, pg. 179)
 
 	trap_eval_icc := (
-		if (TNE)	then (if (Z = 0) then 1 else 0);
-		if (TE)		then (if (Z = 1) then 1 else 0);
-		if (TG)		then (if ((Z or (N xor V)) = 0) then 1 else 0);
-		if (TLE)	then (if ((Z or (N xor V)) = 1) then 1 else 0);
-		if (TGE)	then (if ((N xor V) = 0) then 1 else 0);
-		if (TL)		then (if ((N xor V) = 1) then 1 else 0);
-		if (TGU)	then (if ((C = 0) and (Z = 0)) then 1 else 0);
-		if (TLEU)	then (if ((C = 1) or (Z = 1)) then 1 else 0);
-		if (TCC)	then (if (C = 0) then 1 else 0);
-		if (TCS)	then (if (C = 1) then 1 else 0);
-		if (TPOS)	then (if (N = 0) then 1 else 0);
-		if (TNEG)	then (if (N = 1) then 1 else 0);
-		if (TVC)	then (if (V = 0) then 1 else 0);
-		if (TVS)	then (if (V = 1) then 1 else 0);
-		if (TA)		then 1;
-		if (TN)		then 0;
+	    if (TNE)    then (if (Z = 0) then 1 else 0);
+	    if (TE)     then (if (Z = 1) then 1 else 0);
+	    if (TG)     then (if ((Z or (N xor V)) = 0) then 1 else 0);
+	    if (TLE)    then (if ((Z or (N xor V)) = 1) then 1 else 0);
+	    if (TGE)    then (if ((N xor V) = 0) then 1 else 0);
+	    if (TL)     then (if ((N xor V) = 1) then 1 else 0);
+	    if (TGU)    then (if ((C = 0) and (Z = 0)) then 1 else 0);
+	    if (TLEU)   then (if ((C = 1) or (Z = 1)) then 1 else 0);
+	    if (TCC)    then (if (C = 0) then 1 else 0);
+	    if (TCS)    then (if (C = 1) then 1 else 0);
+	    if (TPOS)   then (if (N = 0) then 1 else 0);
+	    if (TNEG)   then (if (N = 1) then 1 else 0);
+	    if (TVC)    then (if (V = 0) then 1 else 0);
+	    if (TVS)    then (if (V = 1) then 1 else 0);
+	    if (TA)     then 1;
+	    if (TN)     then 0;
 	)
 
 	trap_number := r[rs1] + (if (i = 0) then r[rs2] else sign_extend(software_trap#));
 
 	if (Ticc) then (
-		if (trap_eval_icc = 1) then (
-			trap <- 1;
-			trap_instruction <- 1;
-			ticc_trap_type <- trap_number<6:0>
-		) else (
-			PC <- nPC;
-			nPC <- nPC + 4;
-		)
+	    if (trap_eval_icc = 1) then (
+	        trap <- 1;
+	        trap_instruction <- 1;
+	        ticc_trap_type <- trap_number<6:0>
+	    ) else (
+	        PC <- nPC;
+	        nPC <- nPC + 4;
+	    )
 	);
 	*/
 
@@ -2484,76 +2489,76 @@ void mb86901_device::execute_trap()
 	next;
 
 	if (error_mode = 0) then (
-		ET <- 0;
-		PS <- S;
-		CWP <- (CWP - 1) modulo NWINDOWS;
+	    ET <- 0;
+	    PS <- S;
+	    CWP <- (CWP - 1) modulo NWINDOWS;
 
-		next;
-		if (annul = 0) then (
-			r[17] <- PC;
-			r[18] <- nPC;
-		) else { annul != 0) } (
-			r[17] <- nPC;
-			r[18] <- nPC + 4;
-			annul <- 0;
-		)
+	    next;
+	    if (annul = 0) then (
+	        r[17] <- PC;
+	        r[18] <- nPC;
+	    ) else { annul != 0) } (
+	        r[17] <- nPC;
+	        r[18] <- nPC + 4;
+	        annul <- 0;
+	    )
 
-		next;
-		S <- 1;
-		if (reset_trap = 0) then (
-			PC <- TBR;
-			nPC <- TBR + 4;
-		) else { reset_trap = 1 } (
-			PC <- 0;
-			nPC <- 4;
-			reset_trap <- 0;
-		)
+	    next;
+	    S <- 1;
+	    if (reset_trap = 0) then (
+	        PC <- TBR;
+	        nPC <- TBR + 4;
+	    ) else { reset_trap = 1 } (
+	        PC <- 0;
+	        nPC <- 4;
+	        reset_trap <- 0;
+	    )
 	);
 
 	select_trap := (
-		if (reset_trap = 1) then { ignore ET, and leave tt unchanged }
-		else if (ET = 0) then (
-			execute_mode <- 0;
-			error_mode <- 1 )
-		else if (data_store_error = 1) then tt <- 00101011
-		else if (instruction_access_error = 1) then tt <- 00100001
-		else if (r_register_access_error = 1) then tt <- 00100000
-		else if (instruction_access_exception = 1) then tt <- 00000001
-		else if (privileged_instruction = 1) then tt <- 00000011
-		else if (illegal_instruction = 1) then tt <- 00000010
-		else if (fp_disabled = 1) then tt <- 00000100
-		else if (cp_disabled = 1) then tt <- 00100100
-		else if (unimplemented_FLUSH = 1) then tt <- 00100101
-		else if (window_overflow = 1) then tt <- 00000101
-		else if (window_underflow = 1) then tt <- 00000110
-		else if (mem_address_not_aligned = 1) then tt <- 00000111
-		else if (fp_exception = 1) then tt <- 00001000
-		else if (cp_exception = 1) then tt <- 00101000
-		else if (data_access_error = 1) then tt <- 00101001
-		else if (data_access_exception = 1) then tt <- 00001001
-		else if (tag_overflow = 1) then tt <- 00001010
-		else if (division_by_zero = 1) then tt <- 00101010
-		else if (trap_instruction = 1) then tt <- 1[]ticc_trap_type
-		else if (interrupt_level > 0) then tt <- 0001[]interrupt_level;
+	    if (reset_trap = 1) then { ignore ET, and leave tt unchanged }
+	    else if (ET = 0) then (
+	        execute_mode <- 0;
+	        error_mode <- 1 )
+	    else if (data_store_error = 1) then tt <- 00101011
+	    else if (instruction_access_error = 1) then tt <- 00100001
+	    else if (r_register_access_error = 1) then tt <- 00100000
+	    else if (instruction_access_exception = 1) then tt <- 00000001
+	    else if (privileged_instruction = 1) then tt <- 00000011
+	    else if (illegal_instruction = 1) then tt <- 00000010
+	    else if (fp_disabled = 1) then tt <- 00000100
+	    else if (cp_disabled = 1) then tt <- 00100100
+	    else if (unimplemented_FLUSH = 1) then tt <- 00100101
+	    else if (window_overflow = 1) then tt <- 00000101
+	    else if (window_underflow = 1) then tt <- 00000110
+	    else if (mem_address_not_aligned = 1) then tt <- 00000111
+	    else if (fp_exception = 1) then tt <- 00001000
+	    else if (cp_exception = 1) then tt <- 00101000
+	    else if (data_access_error = 1) then tt <- 00101001
+	    else if (data_access_exception = 1) then tt <- 00001001
+	    else if (tag_overflow = 1) then tt <- 00001010
+	    else if (division_by_zero = 1) then tt <- 00101010
+	    else if (trap_instruction = 1) then tt <- 1[]ticc_trap_type
+	    else if (interrupt_level > 0) then tt <- 0001[]interrupt_level;
 
-		next;
+	    next;
 
-		trap <- 0;
-		instruction_access_exception <- 0;
-		illegal_instruction <- 0;
-		privileged_instruction <- 0;
-		fp_disabled <- 0;
-		cp_disabled <- 0;
-		window_overflow <- 0;
-		window_underflow <- 0;
-		mem_address_not_aligned <- 0;
-		fp_exception <- 0;
-		cp_exception <- 0;
-		data_access_exception <- 0;
-		tag_overflow <- 0;
-		division_by_zero <- 0;
-		trap_instruction <- 0;
-		interrupt_level <- 0;
+	    trap <- 0;
+	    instruction_access_exception <- 0;
+	    illegal_instruction <- 0;
+	    privileged_instruction <- 0;
+	    fp_disabled <- 0;
+	    cp_disabled <- 0;
+	    window_overflow <- 0;
+	    window_underflow <- 0;
+	    mem_address_not_aligned <- 0;
+	    fp_exception <- 0;
+	    cp_exception <- 0;
+	    data_access_exception <- 0;
+	    tag_overflow <- 0;
+	    division_by_zero <- 0;
+	    trap_instruction <- 0;
+	    interrupt_level <- 0;
 	);
 	*/
 
@@ -2610,7 +2615,7 @@ void mb86901_device::complete_instruction_execution(UINT32 op)
 {
 	switch (OP)
 	{
-	case OP_TYPE0:	// Bicc, SETHI, FBfcc
+	case OP_TYPE0:  // Bicc, SETHI, FBfcc
 		switch (OP2)
 		{
 		case OP2_UNIMP: // unimp
@@ -2619,7 +2624,7 @@ void mb86901_device::complete_instruction_execution(UINT32 op)
 		case OP2_BICC: // branch on integer condition codes
 			execute_bicc(op);
 			break;
-		case OP2_SETHI:	// sethi
+		case OP2_SETHI: // sethi
 			SET_RDREG(IMM22);
 			break;
 		case OP2_FBFCC: // branch on floating-point condition codes
@@ -2669,26 +2674,26 @@ void mb86901_device::dispatch_instruction(UINT32 op)
 	/* The SPARC Instruction Manual: Version 8, page 159, "Appendix C - ISP Descriptions - C.6. Instruction Dispatch" (SPARCv8.pdf, pg. 156)
 
 	illegal_IU_instr :- (
-		if ( ( (op == 00) and (op2 == 000) ) { UNIMP instruction }
-		   or
+	    if ( ( (op == 00) and (op2 == 000) ) { UNIMP instruction }
+	       or
 	       ( ((op=11) or (op=10)) and (op3=unassigned) )
-		   then 1 else 0
+	       then 1 else 0
 
 	if (illegal_IU_instr = 1) then (
-		trap <- 1
-		illegal_instruction <- 1
+	    trap <- 1
+	    illegal_instruction <- 1
 	);
 	if ((FPop1 or FPop2 or FBfcc) and ((EF = 0) or (bp_FPU_present = 0))) then (
-		trap <- 1;
-		fp_disabled <- 1
+	    trap <- 1;
+	    fp_disabled <- 1
 	);
 	if (CPop1 or CPop2 or CBccc) and ((EC = 0) or (bp_CP_present = 0))) then (
-		trap <- 1;
-		cp_disabled <- 1
+	    trap <- 1;
+	    cp_disabled <- 1
 	);
 	next;
 	if (trap = 0) then (
-		{ code for specific instruction, defined below }
+	    { code for specific instruction, defined below }
 	);
 	*/
 	bool illegal_IU_instr = (OP == 0 && OP2 == 0) || ((OP == 3 && !m_ldst_op3_assigned[OP3]) || (OP == 2 && !m_alu_op3_assigned[OP3]));
@@ -2737,12 +2742,12 @@ void mb86901_device::execute_step()
 	/* The SPARC Instruction Manual: Version 8, page 156, "Appendix C - ISP Descriptions - C.5. Processor States and Instruction Dispatch" (SPARCv8.pdf, pg. 153)
 
 	if (bp_reset_in = 1) then (
-		execute_mode <- 0;
-		reset_mode <- 1;
-		break { out of while (execute_mode = 1) loop }
+	    execute_mode <- 0;
+	    reset_mode <- 1;
+	    break { out of while (execute_mode = 1) loop }
 	) else if ((ET = 1) and ((bp_IRL = 15) or (bp_IRL > PIL))) then (
-		trap <- 1;
-		interrupt_level <- bp_IRL
+	    trap <- 1;
+	    interrupt_level <- bp_IRL
 	);
 	next;
 
@@ -2750,40 +2755,40 @@ void mb86901_device::execute_step()
 
 	if (execute_mode = 1) then ( { execute_trap may have set execute_mode to 0 }
 
-		{ the following code emulates the delayed nature of the write-state-register instructions.
-		PSR <- PSR'; PSR' <- PSR''; PSR'' <- PSR'''; PSR''' <- PSR'''';
-		ASR <- ASR'; ASR' <- ASR''; ASR'' <- ASR'''; ASR''' <- ASR'''';
-		TBR <- TBR'; TBR' <- TBR''; TBR'' <- TBR'''; TBR''' <- TBR'''';
-		WIM <- WIM'; WIM' <- WIM''; WIM'' <- WIM'''; WIM''' <- WIM'''';
-		  Y <-   Y';   Y' <-   Y'';   Y'' <-   Y''';   Y''' <-   Y'''';
-		next;
+	    { the following code emulates the delayed nature of the write-state-register instructions.
+	    PSR <- PSR'; PSR' <- PSR''; PSR'' <- PSR'''; PSR''' <- PSR'''';
+	    ASR <- ASR'; ASR' <- ASR''; ASR'' <- ASR'''; ASR''' <- ASR'''';
+	    TBR <- TBR'; TBR' <- TBR''; TBR'' <- TBR'''; TBR''' <- TBR'''';
+	    WIM <- WIM'; WIM' <- WIM''; WIM'' <- WIM'''; WIM''' <- WIM'''';
+	      Y <-   Y';   Y' <-   Y'';   Y'' <-   Y''';   Y''' <-   Y'''';
+	    next;
 
-		addr_space := (if (S = 0) then 8 else 9);
-		(instruction, MAE) <- memory_read(addr_space, PC);
-		next;
+	    addr_space := (if (S = 0) then 8 else 9);
+	    (instruction, MAE) <- memory_read(addr_space, PC);
+	    next;
 
-		if ( (MAE = 1) and (annul = 0) ) then (
-			trap <- 1;
-			instruction_access_exception <- 1
-		) else (
-			if (annul = 0) then (
-				dispatch_instruction ; { See Section C.6 }
-				next;
-				if (FPop1 or FPop2) then (
-					complete_fp_execution { See Section C.7 }
-				)
-				next;
-				if ( (trap = 0) and
-				      not (CALL or RETT or JMPL or Bicc or FBfcc or CBccc or Ticc) ) then (
-					PC <- nPC;
-					nPC <- nPC + 4
-				)
-			) else { annul != 0 } (
-				annul <- 0;
-				PC <- nPC;
-				nPC <- nPC + 4
-			)
-		)
+	    if ( (MAE = 1) and (annul = 0) ) then (
+	        trap <- 1;
+	        instruction_access_exception <- 1
+	    ) else (
+	        if (annul = 0) then (
+	            dispatch_instruction ; { See Section C.6 }
+	            next;
+	            if (FPop1 or FPop2) then (
+	                complete_fp_execution { See Section C.7 }
+	            )
+	            next;
+	            if ( (trap = 0) and
+	                  not (CALL or RETT or JMPL or Bicc or FBfcc or CBccc or Ticc) ) then (
+	                PC <- nPC;
+	                nPC <- nPC + 4
+	            )
+	        ) else { annul != 0 } (
+	            annul <- 0;
+	            PC <- nPC;
+	            nPC <- nPC + 4
+	        )
+	    )
 	)
 	*/
 	if (m_bp_reset_in)
@@ -2806,6 +2811,263 @@ void mb86901_device::execute_step()
 
 		UINT32 addr_space = (IS_USER ? 8 : 9);
 		UINT32 op = read_sized_word(addr_space, PC, 4);
+
+#if 0
+		if (PC == 0xffef0000)
+		{
+			UINT32 opcode = read_sized_word(11, REG(5), 2);
+			if (!(REG(5) & 2))
+			{
+				opcode >>= 16;
+			}
+			UINT32 l1 = opcode << 2;
+			l1 += REG(2);
+			UINT32 handler_offset = read_sized_word(11, l1, 2);
+			if (!(l1 & 2))
+			{
+				handler_offset >>= 16;
+			}
+			handler_offset <<= 2;
+			handler_offset += REG(2);
+			if (handler_offset == 0xffe87964)
+			{
+				printf("Opcode at %08x: %04x, handler is at %08x // call %08x\n", REG(5), opcode, handler_offset, l1 + 2);
+			}
+			else if (handler_offset == 0xffe8799c)
+			{
+				UINT32 address = REG(5) + 2;
+				UINT32 half = read_sized_word(11, address, 2);
+				if (!(address & 2)) half >>= 16;
+
+				printf("Opcode at %08x: %04x, handler is at %08x // push_data current result (%08x) + load address %08x\n", REG(5), opcode, handler_offset, REG(4), REG(3) + half);
+			}
+			else if (handler_offset == 0xffe879e4)
+			{
+				UINT32 address = l1 + 2;
+				UINT32 half0 = read_sized_word(11, address, 2);
+				if (address & 2) half0 <<= 16;
+
+				address = l1 + 4;
+				UINT32 half1 = read_sized_word(11, address, 2);
+				if (!(address & 2)) half1 >>= 16;
+
+				UINT32 value = half0 | half1;
+
+				printf("Opcode at %08x: %04x, handler is at %08x // push_data current result (%08x) + load immediate word from handler table (%08x)\n", REG(5), opcode, handler_offset, REG(4), value);
+			}
+			else if (handler_offset == 0xffe879c4)
+			{
+				UINT32 address = l1 + 2;
+				UINT32 l0 = read_sized_word(11, address, 2);
+				if (!(address & 2)) l0 >>= 16;
+
+				address = REG(3) + l0;
+				UINT32 l1_2 = read_sized_word(11, address, 2);
+				if (!(address & 2)) l1_2 >>= 16;
+
+				address = REG(2) + (l1_2 << 2);
+				UINT32 l0_2 = read_sized_word(11, address, 2);
+				if (!(address & 2)) l0_2 >>= 16;
+
+				UINT32 dest = REG(2) + (l0_2 << 2);
+
+				printf("Opcode at %08x: %04x, handler is at %08x // SPARC branch to %08x, calcs: g2(%08x) + halfword[g2(%04x) + (halfword[g3(%08x) + halfword[entry_point(%04x) + 2](%04x)](%04x) << 2)](%08x)\n", REG(5), opcode, handler_offset, dest, REG(2), REG(2), REG(3), l1, l0, l1_2, l0_2);
+				printf("                                                 // Target func: %08x\n", l0_2 << 2);
+				switch (l0_2 << 2)
+				{
+					case 0x10: // call
+						printf("                                                 // call %08x\n", (REG(2) + (l1_2 << 2)) + 2);
+						break;
+					default:
+						printf("                                                 // unknown handler address: %08x\n", REG(2) + (l0_2 << 2));
+						break;
+				}
+			}
+			else if (handler_offset == 0xffe8c838)
+			{
+				UINT32 address = l1 + 2;
+				UINT32 half0 = read_sized_word(11, address, 2);
+				if (address & 2) half0 <<= 16;
+
+				address = l1 + 4;
+				UINT32 half1 = read_sized_word(11, address, 2);
+				if (!(address & 2)) half1 >>= 16;
+
+				UINT32 value = half0 | half1;
+
+				printf("Opcode at %08x: %04x, handler is at %08x // add 32-bit word (%08x) from handler table to result (%08x + %08x = %08x)\n", REG(5), opcode, handler_offset, value, REG(4), value, REG(4) + value);
+			}
+			else if (opcode == 0x003f || opcode == 0x0066 || opcode == 0x0099 || opcode == 0x0121 || opcode == 0x0136 || opcode == 0x014f || opcode == 0x0155 || opcode == 0x01c7 || opcode == 0x01cd ||
+						opcode == 0x0217 || opcode == 0x0289 || opcode == 0x0296 || opcode == 0x029d || opcode == 0x02f2 || opcode == 0x0334 || opcode == 0x0381 || opcode == 0x3d38)
+			{
+				switch(opcode)
+				{
+					case 0x003f:
+					{
+						UINT32 address = REG(5) + 2;
+						UINT32 half0 = read_sized_word(11, address, 2);
+						if (address & 2) half0 <<= 16;
+
+						address = REG(5) + 4;
+						UINT32 half1 = read_sized_word(11, address, 2);
+						if (!(address & 2)) half1 >>= 16;
+
+						UINT32 value = half0 | half1;
+
+						printf("Opcode at %08x: %04x, handler is at %08x // push_data current result (%08x) + load immediate word from instructions (%08x)\n", REG(5), opcode, handler_offset, REG(4), value);
+						break;
+					}
+
+					case 0x0066:
+					{
+						UINT32 address = REG(5) + 2;
+						UINT32 offset = read_sized_word(11, address, 2);
+						if (!(address & 2)) offset >>= 16;
+
+						UINT32 target = REG(5) + 2 + offset;
+
+						printf("Opcode at %08x: %04x, handler is at %08x // if result (%08x) is zero, jump to %08x\n", REG(5), opcode, handler_offset, REG(4), target);
+						break;
+					}
+
+					case 0x0099:
+					{
+						UINT32 l1_2 = REG(4);
+
+						UINT32 address = REG(7);
+						UINT32 l0_2 = read_sized_word(11, address, 4);
+
+						address = REG(7) + 4;
+						UINT32 popped_g4 = read_sized_word(11, address, 4);
+
+						address = REG(5) + 2;
+						UINT32 offset = read_sized_word(11, address, 2);
+						if (!(address & 2)) offset >>= 16;
+
+						UINT32 target = REG(5) + 2 + offset;
+
+						printf("Opcode at %08x: %04x, handler is at %08x // branch relative to %08x if data stack pop/top (%08x) == result (%08x), pop_data result (%08x)\n", REG(5), opcode, handler_offset, target, l0_2, l1_2, popped_g4);
+						if (l1_2 == l0_2)
+						{
+							printf("                                                 // branch will be taken\n");
+						}
+						else
+						{
+							printf("                                                 // branch will not be taken\n");
+							printf("                                                 // push pc (%08x) onto program stack\n", REG(5) + 2);
+							printf("                                                 // push previous data stack top + 0x80000000 (%08x) onto program stack\n", l0_2 + 0x8000000);
+							printf("                                                 // push diff of (result - stack top) (%08x - %08x = %08x)\n", popped_g4, l0_2 + 0x8000000, popped_g4 - (l0_2 + 0x80000000));
+						}
+
+						break;
+					}
+
+					case 0x0121:
+					{
+						UINT32 address = REG(7);
+						UINT32 word = read_sized_word(11, address, 4);
+						printf("Opcode at %08x: %04x, handler is at %08x // logical-AND result with data stack pop, store in result: %08x = %08x & %08x\n", REG(5), opcode, handler_offset, word & REG(4), word, REG(4));
+						break;
+					}
+
+					case 0x0136:
+						printf("Opcode at %08x: %04x, handler is at %08x // invert result (%08x -> %08x)\n", REG(5), opcode, handler_offset, REG(4), REG(4) ^ 0xffffffff);
+						break;
+
+					case 0x014f:
+					{
+						UINT32 address = REG(7);
+						UINT32 word = read_sized_word(11, address, 4);
+						printf("Opcode at %08x: %04x, handler is at %08x // add result to data stack pop, store in result: %08x = %08x + %08x\n", REG(5), opcode, handler_offset, word + REG(4), word, REG(4));
+						break;
+					}
+
+					case 0x0155:
+					{
+						UINT32 address = REG(7);
+						UINT32 word = read_sized_word(11, address, 4);
+						printf("Opcode at %08x: %04x, handler is at %08x // subtract result from data stack pop, store in result: %08x = %08x - %08x\n", REG(5), opcode, handler_offset, word - REG(4), word, REG(4));
+						break;
+					}
+
+					case 0x01c7:
+					{
+						UINT32 address = REG(6);
+						UINT32 half0 = read_sized_word(11, address, 2);
+						if (address & 2) half0 <<= 16;
+
+						address = REG(6) + 2;
+						UINT32 half1 = read_sized_word(11, address, 2);
+						if (!(address & 2)) half1 >>= 16;
+
+						UINT32 value = half0 | half1;
+
+						printf("Opcode at %08x: %04x, handler is at %08x // return (%08x) (pops off program stack)\n", REG(5), opcode, handler_offset, value);
+						break;
+					}
+
+					case 0x01cd:
+						printf("Opcode at %08x: %04x, handler is at %08x // insert result (%08x) between data stack top (%08x) and next data stack entry\n", REG(5), opcode, handler_offset, REG(4), read_sized_word(11, REG(7), 4));
+						break;
+
+					case 0x0217:
+					{
+						UINT32 value = read_sized_word(11, REG(7), 4);
+						printf("Opcode at %08x: %04x, handler is at %08x // if pop_data (%08x) >= result (%08x), set result to 0, otherwise -1 (%08x)\n", REG(5), opcode, handler_offset, value, REG(4), (value >= REG(4)) ? 0 : ~0);
+						break;
+					}
+
+					case 0x0289:
+						printf("Opcode at %08x: %04x, handler is at %08x // push_data(g4 (%08x))\n", REG(5), opcode, handler_offset, REG(4));
+						break;
+
+					case 0x0296:
+						printf("Opcode at %08x: %04x, handler is at %08x // swap result (%08x) with top of data stack (%08x)\n", REG(5), opcode, handler_offset, REG(4), read_sized_word(11, REG(7), 4));
+						break;
+
+					case 0x029d:
+					{
+						UINT32 top = read_sized_word(11, REG(7), 4);
+						UINT32 next = read_sized_word(11, REG(7) + 4, 4);
+						printf("Opcode at %08x: %04x, handler is at %08x // swap the top two values of the data stack (%08x <-> %08x), exchange second value with result (%08x <-> %08x)\n", REG(5), opcode, handler_offset, top, next, REG(4), next);
+						break;
+					}
+
+					case 0x02f2:
+						printf("Opcode at %08x: %04x, handler is at %08x // decrement g4 (%08x -> %08x)\n", REG(5), opcode, handler_offset, REG(4), REG(4) - 1);
+						break;
+
+					case 0x0334:
+					{
+						UINT32 address = REG(4);
+						UINT32 half0 = read_sized_word(11, address, 2);
+						if (address & 2) half0 <<= 16;
+
+						address = REG(4) + 2;
+						UINT32 half1 = read_sized_word(11, address, 2);
+						if (!(address & 2)) half1 >>= 16;
+
+						UINT32 value = half0 | half1;
+
+						printf("Opcode at %08x: %04x, handler is at %08x // load result with 32-bit word at result address (g4 = [%08x] (%08x)\n", REG(5), opcode, handler_offset, REG(4), value);
+						break;
+					}
+
+					case 0x0381:
+						printf("Opcode at %08x: %04x, handler is at %08x // word[g4 (%08x)] = pop_data(g7), result = pop_data(g7), g7 = %08x\n", REG(5), opcode, handler_offset, REG(4), REG(7));
+						break;
+
+					case 0x3d38:
+						printf("Opcode at %08x: %04x, handler is at %08x // call ffe8fe90\n", REG(5), opcode, handler_offset);
+						break;
+				}
+			}
+			else
+			{
+				printf("Opcode at %08x: %04x, handler is at %08x\n", REG(5), opcode, handler_offset);
+			}
+		}
+#endif
 
 		if (MAE && !m_annul)
 		{
@@ -2831,7 +3093,6 @@ void mb86901_device::execute_step()
 			}
 			else
 			{
-
 				m_annul = 0;
 				PC = nPC;
 				nPC = nPC + 4;
@@ -2850,12 +3111,12 @@ void mb86901_device::reset_step()
 	/* The SPARC Instruction Manual: Version 8, page 156, "Appendix C - ISP Descriptions - C.5. Processor States and Instruction Dispatch" (SPARCv8.pdf, pg. 153)
 
 	while (reset_mode = 1) (
-		if (bp_reset_in = 0) then (
-			reset_mode <- 0;
-			execute_mode <- 1;
-			trap <- 1;
-			reset_trap <- 1;
-		)
+	    if (bp_reset_in = 0) then (
+	        reset_mode <- 0;
+	        execute_mode <- 1;
+	        trap <- 1;
+	        reset_trap <- 1;
+	    )
 	);
 	*/
 
@@ -2878,11 +3139,11 @@ void mb86901_device::error_step()
 	/* The SPARC Instruction Manual: Version 8, page 157, "Appendix C - ISP Descriptions - C.5. Processor States and Instruction Dispatch" (SPARCv8.pdf, pg. 154)
 
 	while (error_mode = 1) (
-		if (bp_reset_in = 1) then (
-			error_mode <- 0;
-			reset_mode <- 1;
-			pb_error <- 0
-		)
+	    if (bp_reset_in = 1) then (
+	        error_mode <- 0;
+	        reset_mode <- 1;
+	        pb_error <- 0
+	    )
 	);
 	*/
 
@@ -2931,11 +3192,69 @@ void mb86901_device::execute_run()
 		{
 			for (int i = 0; i < 8; i++)
 			{
-				m_dbgregs[i]		= *m_regs[8 + i];
-				m_dbgregs[8 + i]	= *m_regs[16 + i];
-				m_dbgregs[16 + i]	= *m_regs[24 + i];
+				m_dbgregs[i]        = *m_regs[8 + i];
+				m_dbgregs[8 + i]    = *m_regs[16 + i];
+				m_dbgregs[16 + i]   = *m_regs[24 + i];
 			}
 		}
 		--m_icount;
 	}
+}
+
+
+//-------------------------------------------------
+//  get_reg_r - get integer register value for
+//  disassembler
+//-------------------------------------------------
+
+UINT64 mb86901_device::get_reg_r(unsigned index) const
+{
+	return REG(index & 31);
+}
+
+
+//-------------------------------------------------
+//  get_reg_pc - get program counter value for
+//  disassembler
+//-------------------------------------------------
+
+UINT64 mb86901_device::get_translated_pc() const
+{
+	// FIXME: how do we apply translation to the address so it's in the same space the disassembler sees?
+	return m_pc;
+}
+
+
+//-------------------------------------------------
+//  get_icc - get integer condition codes for
+//  disassembler
+//-------------------------------------------------
+
+UINT8 mb86901_device::get_icc() const
+{
+	return (m_psr & PSR_ICC_MASK) >> PSR_ICC_SHIFT;
+}
+
+
+//-------------------------------------------------
+//  get_icc - get extended integer condition codes
+//  for disassembler
+//-------------------------------------------------
+
+UINT8 mb86901_device::get_xcc() const
+{
+	// not present before SPARCv9
+	return 0;
+}
+
+
+//-------------------------------------------------
+//  get_icc - get extended integer condition codes
+//  for disassembler
+//-------------------------------------------------
+
+UINT8 mb86901_device::get_fcc(unsigned index) const
+{
+	// only one fcc instance before SPARCv9
+	return (m_fsr >> 10) & 3;
 }

@@ -30,7 +30,6 @@
 
 
 namespace ui {
-
 /***************************************************************************
     CONSTANTS
 ***************************************************************************/
@@ -2459,7 +2458,7 @@ void menu::draw_common_arrow(float origx1, float origy1, float origx2, float ori
 
 float menu::draw_icon(int linenum, void *selectedref, float x0, float y0)
 {
-	if (!ui_globals::has_icons || (item[0].flags & FLAG_UI_SWLIST)) 
+	if (!ui_globals::has_icons || (item[0].flags & FLAG_UI_SWLIST))
 		return 0.0f;
 
 	float ud_arrow_width = ui().get_line_height() * container->manager().ui_aspect(container);
@@ -2961,7 +2960,7 @@ void menu::extra_text_draw_box(float origx1, float origx2, float origy, float ys
 
 //-------------------------------------------------
 //  extra_text_position - given extra text that has
-//	been put into a layout, position it
+//  been put into a layout, position it
 //-------------------------------------------------
 
 void menu::extra_text_position(float origx1, float origx2, float origy, float yspan, text_layout &layout,

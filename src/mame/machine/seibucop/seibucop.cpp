@@ -2,58 +2,63 @@
 // copyright-holders:Olivier Galibert, Angelo Salese, David Haywood, Tomasz Slanina
 /***************************************************************************
 
- Seibu Cop (Co-Processor) device emulation
-  a.k.a. known as Toshiba gate array TC25SC rebadged as:
-  SEI300 - Legionnaire PCB
-  There's also a ROM labeled COP-Dx, which is probably used for some in-game maths: 
-  COP-D1 - Seibu Cup Soccer PCBs
-  COP-D2 - legionna.cpp and raiden2.cpp, latter might use another component too
-  COP-D3 - New Zero Team / Raiden 2 V33 HWs
-  Raiden 2 first boss arms is known to behave strangely without this ROM on a real PCB
-  
-  (new implementation, based on Raiden 2 code)
-  
- TODO:
- - improve documentation, ffs!
- - split commands into own file, 2000+ lines is excessive;
- - improve class OO public/protected/private;
- - give this one own folder;
- - nuke legacy command implementations;
- - assert for something that needs actual playtesting is bad.
- - add better debug facilities in a new sub-class, including but not limited to:
-   - disable collision detection;
-   - printing facilities;
-   - debugger break on pre-setted commands;
-   - ...
- per-game TODO:
- legionnaire
- - (fixed) player walks on spot on stage clear;
- - several enemies seems to not like a missing min/max range limit for a specific operation? 
-   (when i.e. first boss goes to bottom of the screen and become unreachable)
- - (btanb) Throw is made by quickly double jumping (!)    
- heated barrel
- - gives random value to hi-score if you continue (only the first time, not a bug?);
- - (fixed?) throws random address exceptions at level 3 and above, a RAM address arrives corrupt in the snippet at 0x136a;
- - (fixed?) some corrupt sprites, probably a non-fatal version of the one above;
- - stage 2 boss attacks only in vertical (regressed with the 130e / 3b30 / 42c2 command merge);
- - (fixed) level 3+ boss movements looks wrong;
- - stage 3 "homing" missiles doesn't seem to like our 6200 hookup here, except it's NOT 6200!?
- sd gundam
- - stage 3 mid-boss still has the sprite garbage bug;
- - stage 4: has sprite stuck on bottom-left of screen;
- - palette dims too much on attract / continue screen. 
-   It's known that the DMA data arrangement gives same results on a real Legionnaire board, so shrug
- 
- 
-  Tech notes:
-  -----------
-  [0x6fc] DMA mode bit scheme:
-  ---1 ---1 ---- ---- fill op if true, else transfer
-  ---- ---- x--- ---- palette brightness
-  ---- ---- ---x ---- internal buffer selector
-  ---- ---- ---- x--- size modifier? Bus transfer size actually?
-  ---- ---- ---- -xxx select channel
-  
+    Seibu Cop (Co-Processor) device emulation
+    a.k.a. known as Toshiba gate array TC25SC rebadged as:
+    SEI300 - Legionnaire PCB
+    [...]
+    There's also a ROM labeled COP-Dx, which is probably used for some in-game maths:
+    COP-D1 - Seibu Cup Soccer PCBs
+    COP-D2 - legionna.cpp and raiden2.cpp, latter might use another component too
+    COP-D3 - New Zero Team / Raiden 2 V33 HWs
+    Raiden 2 first boss arms is known to behave strangely without this ROM on a real PCB
+
+    TODO:
+    - improve documentation, ffs!
+    - split into files, still needed:
+        - BCD;
+        - collision detection;
+        - command parser -> to cmd file;
+        - sd gundam sprite dma -> to dma file;
+    - convert to internal memory map, remove trampolines along the way.
+    - DMA mode needs to be cleaned up;
+    - improve class OO public/protected/private;
+    - nuke legacy command implementations;
+    - assert for something that needs actual playtesting is bad.
+    - add better debug facilities in a new sub-class, including but not limited to:
+        - disable collision detection;
+        - printing facilities;
+        - debugger break on pre-setted commands;
+        - ...
+
+    per-game TODO:
+    Legionnaire
+    - (fixed) player walks on spot on stage clear;
+    - several if not all enemies definitely wants some sort of "axis aligned bounding box" in order to stop from going out of range
+        (when i.e. first boss goes to bottom of the screen and become unreachable)
+    - (btanb) Throw is made by quickly double jumping (!)
+    Heated Barrel
+    - gives random value to hi-score if you continue (only the first time, not a bug?);
+    - (fixed?) throws random address exceptions at level 3 and above, a RAM address arrives corrupt in the snippet at 0x136a;
+    - (fixed?) some corrupt sprites, probably a non-fatal version of the one above;
+    - stage 2 boss attacks only in vertical (regressed with the 130e / 3b30 / 42c2 command merge);
+    - (fixed) level 3+ boss movements looks wrong;
+    - stage 3 "homing" missiles doesn't seem to like our 6200 hookup here, except it's NOT 6200!?
+    - barrels seen in later levels seems to fail an axis aligned bounding box, not unlike Legionnaire.
+    SD Gundam
+    - stage 3 mid-boss still has the sprite garbage bug;
+    - stage 4: has sprite stuck on bottom-left of screen;
+    - palette dims too much on attract / continue screen.
+      It's known that the DMA data arrangement gives same results on a real Legionnaire board, so shrug?
+
+    Tech notes (to move into mainpage):
+    -----------
+    [0x6fc] DMA mode bit scheme:
+    ---1 ---1 ---- ---- fill op if true, else transfer
+    ---- ---- x--- ---- palette brightness
+    ---- ---- ---x ---- internal buffer selector
+    ---- ---- ---- x--- size modifier? Bus transfer size actually?
+    ---- ---- ---- -xxx select channel
+
 ***************************************************************************/
 
 #include "emu.h"
@@ -237,7 +242,7 @@ void raiden2cop_device::device_start()
 	m_host_cpu = machine().device<cpu_device>("maincpu");
 	m_host_space = &m_host_cpu->space(AS_PROGRAM);
 	m_host_endian = m_host_space->endianness() == ENDIANNESS_BIG; // m_cpu_is_68k
-	
+
 	m_byte_endian_val = m_host_endian ? 3 : 0;
 	m_word_endian_val = m_host_endian ? 2 : 0;
 }
@@ -703,11 +708,11 @@ WRITE16_MEMBER(raiden2cop_device::cop_dma_trigger_w)
 	switch (cop_dma_mode)
 	{
 		case 0x14:
-		{ 
+		{
 			dma_tilemap_buffer();
 			break;
 		}
-		
+
 		case 0x15:
 		{
 			dma_palette_buffer();
@@ -722,10 +727,10 @@ WRITE16_MEMBER(raiden2cop_device::cop_dma_trigger_w)
 		case 0x85:
 		case 0x86:
 		case 0x87:
-		{ 	dma_palette_brightness();
+		{   dma_palette_brightness();
 			break;
 		}
-		
+
 	/********************************************************************************************************************/
 	case 0x09: {
 		UINT32 src, dst, size;
@@ -790,7 +795,7 @@ WRITE16_MEMBER(raiden2cop_device::cop_dma_trigger_w)
 		case 0x11c:
 		case 0x11d:
 		case 0x11e:
-		case 0x11f: 
+		case 0x11f:
 		{
 			dma_fill();
 			break;
@@ -838,7 +843,7 @@ WRITE16_MEMBER(raiden2cop_device::cop_itoa_low_w)
 WRITE16_MEMBER(raiden2cop_device::cop_itoa_high_w)
 {
 	cop_itoa = (cop_itoa & ~(mem_mask << 16)) | ((data & mem_mask) << 16);
-	
+
 	// Godzilla cares, otherwise you get 2p score overflow in 1p vs 2p, TODO: might actually be HW endianness dependant?
 	bcd_update();
 }
@@ -1169,30 +1174,10 @@ WRITE16_MEMBER( raiden2cop_device::cop_sort_param_w)
 	cop_sort_param = data;
 }
 
+// TODO: trampoline
 WRITE16_MEMBER( raiden2cop_device::cop_sort_dma_trig_w)
 {
-	struct sort_entry {
-		INT16 sorting_key;
-		UINT16 val;
-	};
-
-	std::vector<sort_entry> entries(data);
-	for(int i=0; i<data; i++) {
-		sort_entry &e = entries[i];
-		e.val = m_host_space->read_word(cop_sort_lookup + 2*i);
-		e.sorting_key = m_host_space->read_word(cop_sort_ram_addr + e.val);
-	}
-	switch(cop_sort_param) {
-	case 1:
-		std::sort(entries.begin(), entries.end(), [](const auto &a, const auto &b){ return a.sorting_key > b.sorting_key; });
-		break;
-	case 2:
-		std::sort(entries.begin(), entries.end(), [](const auto &a, const auto &b){ return a.sorting_key < b.sorting_key; });
-		break;
-	}
-
-	for(int i=0; i<data; i++)
-		m_host_space->write_word(cop_sort_lookup + 2*i, entries[i].val);
+	dma_zsorting(data);
 }
 
 /* Random number generators (only verified on 68k games) */
@@ -1568,7 +1553,7 @@ WRITE16_MEMBER(raiden2cop_device::LEGACY_cop_cmd_w)
 	{
 		if(data == 0xf105) // cupsoc transition from presentation to kick off
 			return;
-			
+
 		printf("did not execute %04x\n", data); // cup soccer triggers this a lot (and others)
 	}
 }

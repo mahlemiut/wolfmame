@@ -228,7 +228,7 @@ WRITE8_MEMBER( funkball_state::serial_w )
 {
 	if(offset == 0)
 	{
-		// TODO: hack, main CPU sends a CR only here, actually expecting Windows-style newline. 
+		// TODO: hack, main CPU sends a CR only here, actually expecting Windows-style newline.
 		if(data == 0x0d)
 			m_terminal->write(space,0,0x0a);
 		else
@@ -839,7 +839,7 @@ static MACHINE_CONFIG_START( funkball, funkball_state )
 	MCFG_SCREEN_VISIBLE_AREA(0, 511, 16, 447)
 
 	MCFG_DEVICE_ADD("terminal", GENERIC_TERMINAL, 0)
-	
+
 	MCFG_INTEL_28F320J5_ADD("u29")
 	MCFG_INTEL_28F320J5_ADD("u30")
 	MCFG_INTEL_28F320J5_ADD("u3")
@@ -849,13 +849,13 @@ ROM_START( funkball )
 	ROM_REGION32_LE(0x20000, "bios", ROMREGION_ERASEFF)
 	ROM_LOAD( "512k-epr.u62", 0x010000, 0x010000, CRC(cced894a) SHA1(298c81716e375da4b7215f3e588a45ca3ea7e35c) )
 
-	ROM_REGION(0x400000, "u3", ROMREGION_ERASE00) // Sound Program / Samples
+	ROM_REGION16_BE(0x400000, "u3", ROMREGION_ERASE00) // Sound Program / Samples
 	ROM_LOAD16_WORD( "flash.u3", 0x000000, 0x400000, CRC(fb376abc) SHA1(ea4c48bb6cd2055431a33f5c426e52c7af6997eb) )
 
-	ROM_REGION(0x400000, "u29", ROMREGION_ERASE00) // Main Program
+	ROM_REGION16_BE(0x400000, "u29", ROMREGION_ERASE00) // Main Program
 	ROM_LOAD16_WORD( "flash.u29",0x000000, 0x400000, CRC(7cf6ff4b) SHA1(4ccdd4864ad92cc218998f3923997119a1a9dd1d) )
 
-	ROM_REGION(0x400000, "u30", ROMREGION_ERASE00)
+	ROM_REGION16_BE(0x400000, "u30", ROMREGION_ERASE00)
 	ROM_LOAD16_WORD( "flash.u30",0x000000, 0x400000, CRC(1d46717a) SHA1(acfbd0a2ccf4d717779733c4a9c639296c3bbe0e) )
 ROM_END
 

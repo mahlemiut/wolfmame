@@ -25,7 +25,7 @@ public:
 	virtual ~ptokenizer() {}
 
 	explicit ptokenizer(pistream &strm)
-	: m_strm(strm), m_lineno(1), m_px(0), m_string('"')
+	: m_strm(strm), m_lineno(0), m_px(0), m_string('"')
 	{}
 
 	enum token_type
@@ -158,7 +158,6 @@ public:
 
 	struct define_t
 	{
-		define_t() { };
 		define_t(const pstring &name, const pstring &replace)
 		: m_name(name), m_replace(replace)
 		{}
@@ -166,7 +165,7 @@ public:
 		pstring m_replace;
 	};
 
-	ppreprocessor();
+	ppreprocessor(std::vector<define_t> *defines = nullptr);
 	virtual ~ppreprocessor() {}
 
 	template<class ISTR, class OSTR>

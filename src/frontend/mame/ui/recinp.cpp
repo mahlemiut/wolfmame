@@ -263,7 +263,7 @@ void ui_menu_playback_inp::handle()
 
 	if(browse_done)
 	{
-		if(browse_result == menu_file_selector::R_FILE)
+		if(browse_result == menu_file_selector::result::FILE)
 		{
 			int pos = inp_file.find_last_of("/\\");
 			strcpy(m_filename_entry,inp_file.substr(pos+1).c_str());
@@ -311,7 +311,7 @@ void ui_menu_playback_inp::handle()
 				if(menu_event->iptkey == IPT_UI_SELECT)
 				{
 					// browse for INP file
-					menu::stack_push<menu_file_selector>(ui(), container, nullptr, inp_dir, inp_file, false, false, false, &browse_result);
+					menu::stack_push<menu_file_selector>(ui(), container, nullptr, inp_dir, inp_file, false, false, false, browse_result);
 					browse_done = true;
 				}
 				break;

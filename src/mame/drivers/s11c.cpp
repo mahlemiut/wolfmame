@@ -10,7 +10,7 @@
 #include "cpu/m6809/m6809.h"
 #include "machine/6821pia.h"
 #include "sound/hc55516.h"
-#include "sound/2151intf.h"
+#include "sound/ym2151.h"
 #include "sound/dac.h"
 #include "audio/s11c_bg.h"
 #include "includes/s11c.h"
@@ -237,8 +237,8 @@ static MACHINE_CONFIG_START( s11c, s11c_state )
 	MCFG_PIA_WRITEPA_HANDLER(WRITE8(s11_state, pia40_pa_w))
 	MCFG_PIA_WRITEPB_HANDLER(WRITE8(s11_state, pia40_pb_w))
 	MCFG_PIA_CB2_HANDLER(WRITELINE(s11_state, pia40_cb2_w))
-	MCFG_PIA_IRQA_HANDLER(DEVWRITELINE("bgcpu", m6809_device, firq_line))
-	MCFG_PIA_IRQB_HANDLER(DEVWRITELINE("bgcpu", m6809_device, nmi_line))
+	MCFG_PIA_IRQA_HANDLER(INPUTLINE("bgcpu", M6809_FIRQ_LINE))
+	MCFG_PIA_IRQB_HANDLER(INPUTLINE("bgcpu", INPUT_LINE_NMI))
 	*/
 MACHINE_CONFIG_END
 

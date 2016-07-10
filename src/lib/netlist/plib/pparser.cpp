@@ -41,9 +41,11 @@ pstring::code_t ptokenizer::getc()
 {
 	if (m_px >= m_cur_line.len())
 	{
+		m_lineno++;
 		if (m_strm.readline(m_cur_line))
 		{
-			m_cur_line += "\n";
+			if (m_cur_line.right(1) != "\n")
+				m_cur_line += "\n";
 			m_px = 0;
 		}
 		else
@@ -245,7 +247,7 @@ ptokenizer::token_t ptokenizer::get_token_internal()
 
 void ptokenizer::error(const pstring &errs)
 {
-	verror("Error: " + errs, currentline_no(), currentline_str());
+	verror(errs, currentline_no(), currentline_str());
 	//throw error;
 }
 
@@ -253,7 +255,7 @@ void ptokenizer::error(const pstring &errs)
 // A simple preprocessor
 // ----------------------------------------------------------------------------------------
 
-ppreprocessor::ppreprocessor()
+ppreprocessor::ppreprocessor(std::vector<define_t> *defines)
 : m_ifflag(0), m_level(0), m_lineno(0)
 {
 	m_expr_sep.push_back("!");
@@ -268,6 +270,13 @@ ppreprocessor::ppreprocessor()
 	m_expr_sep.push_back("\t");
 
 	m_defines.insert({"__PLIB_PREPROCESSOR__", define_t("__PLIB_PREPROCESSOR__", "1")});
+	if (defines != nullptr)
+	{
+		for (auto & p : *defines)
+		{
+			m_defines.insert({p.m_name, p});
+		}
+	}
 }
 
 void ppreprocessor::error(const pstring &err)
@@ -452,7 +461,6 @@ pstring  ppreprocessor::process_line(const pstring &line)
 		if (m_ifflag == 0)
 		{
 			ret.cat(lt);
-			ret.cat("\n");
 		}
 	}
 	return ret;

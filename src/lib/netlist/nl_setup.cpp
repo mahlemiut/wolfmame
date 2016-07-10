@@ -223,8 +223,8 @@ void setup_t::register_and_set_param(pstring name, param_t &param)
 				static_cast<param_str_t &>(param).initial(val);
 			}
 			break;
-			default:
-				log().fatal("Parameter is not supported {1} : {2}\n", name, val);
+			//default:
+			//	log().fatal("Parameter is not supported {1} : {2}\n", name, val);
 		}
 	}
 	if (!m_params.insert({param.name(), param_ref_t(param.name(), param.device(), param)}).second)
@@ -975,7 +975,7 @@ nl_double setup_t::model_value(model_map_t &map, const pstring &entity)
 		case 'a': factor = 1e-18; break;
 		default:
 			if (numfac < "0" || numfac > "9")
-				fatalerror_e(plib::pfmt("Unknown number factor <{1}> in: {2}")(numfac)(entity));
+				nl_exception(plib::pfmt("Unknown number factor <{1}> in: {2}")(numfac)(entity));
 	}
 	if (factor != NL_FCONST(1.0))
 		tmp = tmp.left(tmp.len() - 1);
@@ -1002,6 +1002,23 @@ void setup_t::include(const pstring &netlist_name)
 	log().fatal("unable to find {1} in source collection", netlist_name);
 }
 
+bool setup_t::parse_stream(plib::pistream &istrm, const pstring &name)
+{
+	plib::pomemstream ostrm;
+
+	plib::pimemstream istrm2(plib::ppreprocessor(&m_defines).process(istrm, ostrm));
+	return parser_t(istrm2, *this).parse(name);
+}
+
+void setup_t::register_define(pstring defstr)
+{
+	auto p = defstr.find("=");
+	if (p>0)
+		register_define(defstr.left(p), defstr.substr(p+1));
+	else
+		register_define(defstr, "1");
+}
+
 // ----------------------------------------------------------------------------------------
 // base sources
 // ----------------------------------------------------------------------------------------
@@ -1009,28 +1026,19 @@ void setup_t::include(const pstring &netlist_name)
 bool source_string_t::parse(setup_t &setup, const pstring &name)
 {
 	plib::pimemstream istrm(m_str.cstr(), m_str.len());
-	plib::pomemstream ostrm;
-
-	plib::pimemstream istrm2(plib::ppreprocessor().process(istrm, ostrm));
-	return parser_t(istrm2, setup).parse(name);
+	return setup.parse_stream(istrm, name);
 }
 
 bool source_mem_t::parse(setup_t &setup, const pstring &name)
 {
 	plib::pimemstream istrm(m_str.cstr(), m_str.len());
-	plib::pomemstream ostrm;
-
-	plib::pimemstream istrm2(plib::ppreprocessor().process(istrm, ostrm));
-	return parser_t(istrm2, setup).parse(name);
+	return setup.parse_stream(istrm, name);
 }
 
 bool source_file_t::parse(setup_t &setup, const pstring &name)
 {
 	plib::pifilestream istrm(m_filename);
-	plib::pomemstream ostrm;
-
-	plib::pimemstream istrm2(plib::ppreprocessor().process(istrm, ostrm));
-	return parser_t(istrm2, setup).parse(name);
+	return setup.parse_stream(istrm, name);
 }
 
 }

@@ -159,7 +159,7 @@ void menu_audit::handle()
 	std::stable_sort(m_unavailablesorted.begin(), m_unavailablesorted.end(), sorted_game_list);
 	save_available_machines();
 	reset_parent(reset_options::SELECT_FIRST);
-	menu::stack_pop(machine());
+	stack_pop();
 }
 
 //-------------------------------------------------
@@ -168,7 +168,7 @@ void menu_audit::handle()
 
 void menu_audit::populate()
 {
-	item_append("Dummy", nullptr, 0, (void *)(FPTR)1);
+	item_append("Dummy", "", 0, (void *)(FPTR)1);
 }
 
 //-------------------------------------------------

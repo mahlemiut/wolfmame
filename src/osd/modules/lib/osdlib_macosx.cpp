@@ -15,7 +15,7 @@
 #include <signal.h>
 #include <dlfcn.h>
 
-#include <codecvt>
+#include <cstdio>
 #include <iomanip>
 #include <memory>
 
@@ -50,8 +50,10 @@ int osd_setenv(const char *name, const char *value, int overwrite)
 //  osd_process_kill
 //============================================================
 
-void osd_process_kill(void)
+void osd_process_kill()
 {
+	std::fflush(stdout);
+	std::fflush(stderr);
 	kill(getpid(), SIGKILL);
 }
 

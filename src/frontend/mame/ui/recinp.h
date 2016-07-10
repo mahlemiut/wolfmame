@@ -13,6 +13,8 @@
 #ifndef __UI_RECINP_H__
 #define __UI_RECINP_H__
 
+#include "ui/filesel.h"
+
 #define TOTAL_WARNINGS 3
 
 namespace ui {
@@ -50,7 +52,7 @@ public:
 	virtual void handle() override;
 private:
 	virtual void start_inp() override;
-	int browse_result;
+	menu_file_selector::result browse_result;
 	std::string inp_file;
 	std::string inp_dir;
 	bool browse_done;

@@ -11801,6 +11801,7 @@ suprglob                        // (c) 1983
 theglob                         // (c) 1983
 theglob2                        // (c) 1983
 theglob3                        // (c) 1983
+beastf                          // (c) 1984
 
 @source:eprom.cpp
 eprom                           // 136069           (c) 1989
@@ -13658,8 +13659,8 @@ gstrikera                       // (c) [1993] Human
 gstrikerj                       // (c) [1993] Human
 twrldc94                        // (c) 1994 Tecmo
 twrldc94a                       // (c) 1994 Tecmo
-vgoalsca                        // (c) 199? Temco
-vgoalsoc                        // (c) 199? Temco
+vgoalsca                        // (c) 199? Tecmo
+vgoalsoc                        // (c) 199? Tecmo
 
 @source:gsword.cpp
 gsword                          // AC  (c) 1984 Taito Corporation
@@ -27391,11 +27392,11 @@ murogmbl                        // ???
 @source:mustache.cpp
 mustache                        // (c) 1987 March
 
-@source:mvme350.cpp
-mvme350                         //
-
 @source:mvme147.cpp
 mvme147                         // (c) 1989 Motorola
+
+@source:mvme350.cpp
+mvme350                         //
 
 @source:mw18w.cpp
 18w                             // 653 (c) 1979 Midway
@@ -29083,7 +29084,7 @@ abscam                          // hack
 acitya                          // (c) 1983 Epos Corporation
 alibaba                         // (c) 1982 Sega
 alibabab                        // Mustafa" and 40 Thieves (Ali Baba bootleg)
-beastf                          // (c) 1984 Epos Corporation
+beastfp                         // (c) 1984 Epos Corporation
 bigbucks                        // (c) 1986 Dynasoft Inc.
 birdiy                          // (c) 1983 Mama Top
 bucaner                         // hack
@@ -30566,6 +30567,9 @@ pockchal
 @source:pockstat.cpp
 pockstat                        // 1999 Sony PocketStation
 
+@source:pofo.cpp
+pofo                            //
+
 @source:poisk1.cpp
 poisk1                          //
 
@@ -30644,9 +30648,6 @@ popobear                        // (c) 2000 BMC
 
 @source:popper.cpp
 popper                          // (c) 1983 Omori Electric Co., Ltd.
-
-@source:portfoli.cpp
-pofo                            //
 
 @source:portrait.cpp
 portrait                        // (c) 1983 Olympia
@@ -34043,7 +34044,9 @@ sun3_460                        //
 sun_s10                         //
 sun_s20                         //
 sun4_20                         //
+sun4_110						//
 sun4_300                        //
+sun4_400						//
 sun4_40                         //
 sun4_50                         //
 sun4_60                         //

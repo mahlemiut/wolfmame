@@ -22,7 +22,7 @@ namespace ui {
 class ui_menu_record_inp : public menu
 {
 public:
-	ui_menu_record_inp(mame_ui_manager &mui, render_container *container, const game_driver *driver = nullptr);
+	ui_menu_record_inp(mame_ui_manager &mui, render_container &container, const game_driver *driver = nullptr);
 	virtual ~ui_menu_record_inp();
 	virtual void populate() override;
 	virtual void handle() override;
@@ -46,7 +46,7 @@ private:
 class ui_menu_playback_inp : public ui_menu_record_inp
 {
 public:
-	ui_menu_playback_inp(mame_ui_manager &mui, render_container *container, const game_driver *driver = nullptr);
+	ui_menu_playback_inp(mame_ui_manager &mui, render_container &container, const game_driver *driver = nullptr);
 	virtual ~ui_menu_playback_inp();
 	virtual void populate() override;
 	virtual void handle() override;

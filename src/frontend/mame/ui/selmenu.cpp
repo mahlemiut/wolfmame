@@ -1076,6 +1076,16 @@ void menu_select_launch::handle_events(UINT32 flags, event &ev)
 						ev.iptkey = IPT_UI_DATS;
 						stop = true;
 					}
+					else if (hover == HOVER_B_RECORD_INP)
+					{
+						ev.iptkey = IPT_UI_RECORD_INP;
+						stop = true;
+					}
+					else if (hover == HOVER_B_PLAY_INP)
+					{
+						ev.iptkey = IPT_UI_PLAY_INP;
+						stop = true;
+					}
 					else if (hover >= HOVER_RP_FIRST && hover <= HOVER_RP_LAST)
 					{
 						ui_globals::rpanel = (HOVER_RP_FIRST - hover) * (-1);

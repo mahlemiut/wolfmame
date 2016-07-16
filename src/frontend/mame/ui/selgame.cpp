@@ -444,7 +444,7 @@ void menu_select_game::handle()
 			{
 				const game_driver *driver = (const game_driver *)menu_event->itemref;
 				if ((FPTR)driver > 3)
-					menu::stack_push<ui_menu_record_inp>(ui(), container, driver);
+					menu::stack_push<ui_menu_record_inp>(ui(), container(), driver);
 			}
 			else
 			{
@@ -465,7 +465,7 @@ void menu_select_game::handle()
 			{
 				const game_driver *driver = (const game_driver *)menu_event->itemref;
 				if ((FPTR)driver > 3)
-					menu::stack_push<ui_menu_playback_inp>(ui(), container, driver);
+					menu::stack_push<ui_menu_playback_inp>(ui(), container(), driver);
 			}
 			else
 			{

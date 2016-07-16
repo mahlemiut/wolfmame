@@ -188,7 +188,7 @@ void input_viewer::render_input()
 		return;
 	}
 
-	render_container* ui = &(machine().render().ui_container());
+	render_container& ui = machine().render().ui_container();
 	machine().render().ui_container().add_quad(0.0f,1.0f-(float)(inptype[m_layout].lines*height),1.0f,1.0f,BGCOL,NULL,PRIMFLAG_BLENDMODE(BLENDMODE_ALPHA));
 	while(inptype[m_layout].inp[port].port != -1)
 	{
@@ -216,7 +216,7 @@ void input_viewer::render_input()
 
 void input_viewer::render_dips()
 {
-	render_container* ui = &(machine().render().ui_container());
+	render_container& ui = machine().render().ui_container();
 	int dip_num = 0;
 	float height = mame_machine_manager::instance()->ui().get_line_height();
 	int x;
@@ -232,7 +232,7 @@ void input_viewer::render_dips()
 		}
 	}
 
-	ui->add_quad(0.0f,1.0f-(float)(dip_num*height),1.0f,1.0f,BGCOL,NULL,PRIMFLAG_BLENDMODE(BLENDMODE_ALPHA));
+	ui.add_quad(0.0f,1.0f-(float)(dip_num*height),1.0f,1.0f,BGCOL,NULL,PRIMFLAG_BLENDMODE(BLENDMODE_ALPHA));
 	x = dip_num;
 
 	/* loop over all input ports */

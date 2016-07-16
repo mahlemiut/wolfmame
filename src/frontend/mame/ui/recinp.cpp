@@ -23,7 +23,7 @@ namespace ui {
 
 // INP recording class
 
-ui_menu_record_inp::ui_menu_record_inp(mame_ui_manager &mui, render_container *container, const game_driver *driver) : menu(mui, container)
+ui_menu_record_inp::ui_menu_record_inp(mame_ui_manager &mui, render_container &container, const game_driver *driver) : menu(mui, container)
 {
 	std::string path;
 	m_driver = (driver == nullptr) ? mame_options::system(mui.machine().options()) : driver;
@@ -139,7 +139,7 @@ void ui_menu_record_inp::handle()
 void ui_menu_record_inp::populate()
 {
 	// add options items
-	item_append(_("Start recording"), nullptr, 0 , (void*)(FPTR)1);
+	item_append(_("Start recording"), "", 0 , (void*)(FPTR)1);
 
 	customtop = mame_machine_manager::instance()->ui().get_line_height() + (3.0f * UI_BOX_TB_BORDER);
 }
@@ -159,21 +159,21 @@ void ui_menu_record_inp::custom_render(void *selectedref, float top, float botto
 	str += m_filename_entry;
 	str += "_";
 
-	mui.draw_outlined_box(container, 0.1f,origy1 - (height*2),0.9f,origy1, UI_BACKGROUND_COLOR);
-	mui.draw_text_full(container,_("Please enter a filename for the INP..."),0.1f,origy1 - (height*2),0.8f, ui::text_layout::CENTER, ui::text_layout::TRUNCATE, mame_ui_manager::NORMAL, UI_TEXT_COLOR, UI_TEXT_BG_COLOR, nullptr, nullptr);
-	mui.draw_text_full(container,str.c_str(),0.1f,origy1 - height,0.8f, ui::text_layout::CENTER, ui::text_layout::TRUNCATE, mame_ui_manager::NORMAL, UI_TEXT_COLOR, UI_TEXT_BG_COLOR, nullptr, nullptr);
+	mui.draw_outlined_box(container(), 0.1f,origy1 - (height*2),0.9f,origy1, UI_BACKGROUND_COLOR);
+	mui.draw_text_full(container(),_("Please enter a filename for the INP..."),0.1f,origy1 - (height*2),0.8f, ui::text_layout::CENTER, ui::text_layout::TRUNCATE, mame_ui_manager::NORMAL, UI_TEXT_COLOR, UI_TEXT_BG_COLOR, nullptr, nullptr);
+	mui.draw_text_full(container(),str.c_str(),0.1f,origy1 - height,0.8f, ui::text_layout::CENTER, ui::text_layout::TRUNCATE, mame_ui_manager::NORMAL, UI_TEXT_COLOR, UI_TEXT_BG_COLOR, nullptr, nullptr);
 	
 	// warning display
 	if(m_warning_count > 0)
 	{
 		float line = 2;
 		int x;
-		mui.draw_outlined_box(container, 0.1f,1.0f - (height*2*m_warning_count),0.9f,1.0f, UI_YELLOW_COLOR);
+		mui.draw_outlined_box(container(), 0.1f,1.0f - (height*2*m_warning_count),0.9f,1.0f, UI_YELLOW_COLOR);
 		for(x=0;x<TOTAL_WARNINGS;x++)
 		{
 			if(m_warning[x])
 			{
-				mui.draw_text_full(container,m_warning_text[x].c_str(),0.1f,1.0f - (height*line),0.8f, ui::text_layout::LEFT, ui::text_layout::WORD, mame_ui_manager::NORMAL, UI_TEXT_COLOR, UI_TEXT_BG_COLOR, nullptr, nullptr);
+				mui.draw_text_full(container(),m_warning_text[x].c_str(),0.1f,1.0f - (height*line),0.8f, ui::text_layout::LEFT, ui::text_layout::WORD, mame_ui_manager::NORMAL, UI_TEXT_COLOR, UI_TEXT_BG_COLOR, nullptr, nullptr);
 				line += 2;
 			}
 		}
@@ -197,7 +197,7 @@ void ui_menu_record_inp::start_inp()
 			for (software_list_device &swlistdev : software_list_device_iterator(enumerator.config().root_device()))
 				if (!swlistdev.get_info().empty())
 				{
-					menu::stack_push<menu_select_software>(ui(), container, m_driver);
+					menu::stack_push<menu_select_software>(ui(), container(), m_driver);
 					return;
 				}
 		}
@@ -205,7 +205,7 @@ void ui_menu_record_inp::start_inp()
 		s_bios biosname;
 		machine().options().set_value(OPTION_RECORD,m_filename_entry,OPTION_PRIORITY_HIGH,error);
 		if (!mame_machine_manager::instance()->ui().options().skip_bios_menu() && has_multiple_bios(m_driver, biosname))
-			menu::stack_push<bios_selection>(ui(), container, biosname, (void *)m_driver, false, false);
+			menu::stack_push<bios_selection>(ui(), container(), biosname, (void *)m_driver, false, false);
 		else
 		{
 			reselect_last::driver = m_driver->name;
@@ -225,7 +225,7 @@ void ui_menu_record_inp::start_inp()
 
 
 // INP playback class
-ui_menu_playback_inp::ui_menu_playback_inp(mame_ui_manager &mui, render_container *container, const game_driver *driver) 
+ui_menu_playback_inp::ui_menu_playback_inp(mame_ui_manager &mui, render_container &container, const game_driver *driver) 
 	: ui_menu_record_inp(mui, container, driver),
 	  browse_done(false)
 {
@@ -245,8 +245,8 @@ ui_menu_playback_inp::~ui_menu_playback_inp()
 void ui_menu_playback_inp::populate()
 {
 	// add options items
-	item_append(_("Start playback"), nullptr, 0 , (void*)(FPTR)1);
-	item_append(_("Browse..."), nullptr, 0 , (void*)(FPTR)2);
+	item_append(_("Start playback"), "", 0 , (void*)(FPTR)1);
+	item_append(_("Browse..."), "", 0 , (void*)(FPTR)2);
 	customtop = mame_machine_manager::instance()->ui().get_line_height() + (3.0f * UI_BOX_TB_BORDER);
 }
 
@@ -311,7 +311,7 @@ void ui_menu_playback_inp::handle()
 				if(menu_event->iptkey == IPT_UI_SELECT)
 				{
 					// browse for INP file
-					menu::stack_push<menu_file_selector>(ui(), container, nullptr, inp_dir, inp_file, false, false, false, browse_result);
+					menu::stack_push<menu_file_selector>(ui(), container(), nullptr, inp_dir, inp_file, false, false, false, browse_result);
 					browse_done = true;
 				}
 				break;
@@ -366,7 +366,7 @@ void ui_menu_playback_inp::start_inp()
 			for (software_list_device &swlistdev : software_list_device_iterator(enumerator.config().root_device()))
 				if (!swlistdev.get_info().empty())
 				{
-					menu::stack_push<menu_select_software>(ui(), container, m_driver);
+					menu::stack_push<menu_select_software>(ui(), container(), m_driver);
 					return;
 				}
 		}
@@ -374,7 +374,7 @@ void ui_menu_playback_inp::start_inp()
 		s_bios biosname;
 		machine().options().set_value(OPTION_PLAYBACK,m_filename_entry,OPTION_PRIORITY_HIGH,error);
 		if (!mame_machine_manager::instance()->ui().options().skip_bios_menu() && has_multiple_bios(m_driver, biosname))
-			menu::stack_push<bios_selection>(ui(), container, biosname, (void *)m_driver, false, false);
+			menu::stack_push<bios_selection>(ui(), container(), biosname, (void *)m_driver, false, false);
 		else
 		{
 			reselect_last::driver = m_driver->name;

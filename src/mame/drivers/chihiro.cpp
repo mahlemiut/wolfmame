@@ -386,7 +386,7 @@ Thanks to Alex, Mr Mudkips, and Philip Burke for this info.
 
 #define LOG_PCI
 //#define LOG_BASEBOARD
-
+//#define VERBOSE_MSG
 
 /////////////////////////
 extern const device_type JVS_MASTER;
@@ -499,6 +499,8 @@ public:
 	ohci_hlean2131sc_device(const machine_config &mconfig, const char *tag, device_t *owner, UINT32 clock);
 	void initialize(running_machine &machine, ohci_usb_controller *usb_bus_manager) override;
 	int handle_nonstandard_request(int endpoint, USBSetupPacket *setup) override;
+	int handle_bulk_pid(int endpoint, int pid, UINT8 *buffer, int size) override;
+	void set_region_base(UINT8 *data);
 
 protected:
 	virtual void device_start() override;
@@ -515,6 +517,7 @@ private:
 	static const UINT8 strdesc0[];
 	static const UINT8 strdesc1[];
 	static const UINT8 strdesc2[];
+	UINT8 *region;
 };
 
 const device_type OHCI_HLEAN2131SC = &device_creator<ohci_hlean2131sc_device>;
@@ -804,9 +807,11 @@ int ohci_hlean2131qc_device::handle_nonstandard_request(int endpoint, USBSetupPa
 {
 	int sense;
 
+#ifdef VERBOSE_MSG
+	printf("Control request to an2131qc: %x %x %x %x %x %x %x\n\r", endpoint, endpoints[endpoint].controldirection, setup->bmRequestType, setup->bRequest, setup->wValue, setup->wIndex, setup->wLength);
+#endif
 	if (endpoint != 0)
 		return -1;
-	printf("Control request to an2131qc: %x %x %x %x %x %x %x\n\r", endpoint, endpoints[endpoint].controldirection, setup->bmRequestType, setup->bRequest, setup->wValue, setup->wIndex, setup->wLength);
 	// default valuse for data stage
 	for (int n = 0; n < setup->wLength; n++)
 		endpoints[endpoint].buffer[n] = 0x50 ^ n;
@@ -857,7 +862,7 @@ int ohci_hlean2131qc_device::handle_nonstandard_request(int endpoint, USBSetupPa
 		// data for the packets will be transferred to the host using endpoint 4 (IN)
 		// the nuber of bytes to transfer is returned at bytes 4 and 5 in the data stage of this control transfer
 		// data transferred starts with a byte with value 0, then a byte with value the number of packets received, then a block of bytes for each packet
-		// the bytes for a packet start with the jvs node address, then a dummy one (must be 0), then a 16 bit number in little endian format that specifies how many bytes follow
+		// the bytes for a packet start with the jvs node address of the sender, then a dummy one (must be 0), then a 16 bit number in little endian format that specifies how many bytes follow
 		// the bytes that follow contain the body of the packet as received from the jvs bus, from the 0xa0 byte to the checksum
 		endpoints[endpoint].buffer[0] = 0; // 0 if not busy
 		endpoints[endpoint].buffer[5] = jvs.buffer_out_used >> 8; // amount to transfer with endpoint 4
@@ -910,7 +915,10 @@ int ohci_hlean2131qc_device::handle_nonstandard_request(int endpoint, USBSetupPa
 		// data for the packets will be transferred from the host using endpoint 4 (OUT)
 		// data sent by the host contains first a byte with value 0 that is ignored, then a byte specifying the number of packets that follow, then the data for each packet
 		// the data for each packet contains first a byte with value 0, then the sync byte (0xe0) then all the other bytes of the packet ending with the checksum byte
+		// broadcast packets must have a destination node address of value 0xff
+#ifdef VERBOSE_MSG
 		printf(" Jvs packets data of %d bytes\n\r", setup->wIndex);
+#endif
 		endpoints[endpoint].buffer[0] = 0;
 		if (jvs.buffer_out_used == 0)
 		{
@@ -953,7 +961,9 @@ int ohci_hlean2131qc_device::handle_nonstandard_request(int endpoint, USBSetupPa
 
 int ohci_hlean2131qc_device::handle_bulk_pid(int endpoint, int pid, UINT8 *buffer, int size)
 {
-	printf("Bulk request: %x %d %x\n\r", endpoint, pid, size);
+#ifdef VERBOSE_MSG
+	printf("Bulk request to an2131qc: %x %d %x\n\r", endpoint, pid, size);
+#endif
 	if (((endpoint == 1) || (endpoint == 2)) && (pid == InPid))
 	{
 		if (size > endpoints[endpoint].remain)
@@ -974,15 +984,19 @@ int ohci_hlean2131qc_device::handle_bulk_pid(int endpoint, int pid, UINT8 *buffe
 	{
 		if (size > endpoints[4].remain)
 			size = endpoints[4].remain;
+#ifdef VERBOSE_MSG
 		for (int n = 0; n < size; n++)
 			printf(" %02x", buffer[n]);
+#endif
 		if (size > 0) {
 			memcpy(endpoints[4].position, buffer, size);
 			endpoints[4].position = endpoints[4].position + size;
 			endpoints[4].remain = endpoints[4].remain - size;
 			if (endpoints[4].remain == 0)
 			{
+#ifdef VERBOSE_MSG
 				printf("\n\r");
+#endif
 				// extract packets
 				int numpk = jvs.buffer_in[1];
 				int p = 2;
@@ -1011,6 +1025,8 @@ int ohci_hlean2131qc_device::handle_bulk_pid(int endpoint, int pid, UINT8 *buffe
 					// use data of this packet
 					jvs.master->send_packet(dest, len, jvs.buffer_in + p);
 					// generate response
+					if (dest == 0xff)
+						dest = 0;
 					int recv = jvs.master->received_packet(jvs.buffer_out + jvs.buffer_out_used + 5);
 					// update buffer_out
 					if (recv > 0)
@@ -1021,7 +1037,7 @@ int ohci_hlean2131qc_device::handle_bulk_pid(int endpoint, int pid, UINT8 *buffe
 						jvs.buffer_out[jvs.buffer_out_used + 5 + recv] = chk & 255;
 						jvs.buffer_out_packets++;
 						// jvs node address
-						jvs.buffer_out[jvs.buffer_out_used] = jvs.buffer_out[jvs.buffer_out_used + 5];
+						jvs.buffer_out[jvs.buffer_out_used] = (UINT8)dest;
 						// dummy
 						jvs.buffer_out[jvs.buffer_out_used + 1] = 0;
 						// length following
@@ -1063,6 +1079,12 @@ ohci_hlean2131sc_device::ohci_hlean2131sc_device(const machine_config &mconfig, 
 	device_t(mconfig, OHCI_HLEAN2131SC, "OHCI Hlean2131sc", tag, owner, clock, "ohci_hlean2131sc", __FILE__),
 	ohci_function_device()
 {
+	region = nullptr;
+}
+
+void ohci_hlean2131sc_device::set_region_base(UINT8 *data)
+{
+	region = data;
 }
 
 void ohci_hlean2131sc_device::initialize(running_machine &machine, ohci_usb_controller *usb_bus_manager)
@@ -1085,14 +1107,137 @@ void ohci_hlean2131sc_device::initialize(running_machine &machine, ohci_usb_cont
 
 int ohci_hlean2131sc_device::handle_nonstandard_request(int endpoint, USBSetupPacket *setup)
 {
+//#ifdef VERBOSE_MSG
+	printf("Control request to an2131sc: %x %x %x %x %x %x %x\n\r", endpoint, endpoints[endpoint].controldirection, setup->bmRequestType, setup->bRequest, setup->wValue, setup->wIndex, setup->wLength);
+//#endif
 	if (endpoint != 0)
 		return -1;
-	printf("Control request to an2131sc: %x %x %x %x %x %x %x\n\r", endpoint, endpoints[endpoint].controldirection, setup->bmRequestType, setup->bRequest, setup->wValue, setup->wIndex, setup->wLength);
 	for (int n = 0; n < setup->wLength; n++)
-		endpoints[endpoint].buffer[n] = 0xa0 ^ n;
+		endpoints[endpoint].buffer[n] = 0x50 ^ n;
+	endpoints[endpoint].buffer[1] = 0;
+	endpoints[endpoint].buffer[2] = 0x52; // PINSB
+	endpoints[endpoint].buffer[3] = 0x53; // OUTB
+	endpoints[endpoint].buffer[4] = 0;
+	endpoints[endpoint].buffer[5] = 0;
+	endpoints[endpoint].buffer[6] = 0x56; // PINSC
+	endpoints[endpoint].buffer[7] = 0x57; // OUTC
+	// bRequest is a command value
+	if (setup->bRequest == 0x16)
+	{
+		// this command is used to read data from the first i2c serial eeprom connected to the chip
+		// setup->wValue = start address to read from
+		// setup->wIndex = number of bytes to read
+		// data will be transferred to the host using endpoint 1 (IN)
+		endpoints[1].remain = setup->wIndex & 255;
+		endpoints[1].position = region + setup->wValue; // usually wValue is 0x1f00
+		endpoints[endpoint].buffer[0] = 0;
+	}
+	else if (setup->bRequest == 0x17)
+	{
+		endpoints[endpoint].buffer[0] = 0x99;
+	}
+	else if (setup->bRequest == 0x1a)
+	{
+		endpoints[endpoint].buffer[0] = 0x99;
+	}
+	else if (setup->bRequest == 0x1b)
+	{
+		endpoints[endpoint].buffer[0] = 0x99; //
+	}
+	else if (setup->bRequest == 0x1d)
+	{
+		// this command is used to write data to the first i2c serial eeprom connected to the chip
+		// no more than 32 bytes can be written at a time
+		// setup->wValue = start address to write to
+		// setup->wIndex = number of bytes to write
+		// data will be transferred from the host using endpoint 1 (OUT)
+		endpoints[endpoint].buffer[0] = 0;
+	}
+	else if (setup->bRequest == 0x1e)
+	{
+		endpoints[endpoint].buffer[0] = 0x99;
+	}
+	else if (setup->bRequest == 0x22)
+	{
+		endpoints[endpoint].buffer[0] = 0x99;
+	}
+	else if (setup->bRequest == 0x23)
+	{
+		endpoints[endpoint].buffer[0] = 0x99;
+	}
+	else if (setup->bRequest == 0x25) //
+	{
+		endpoints[endpoint].buffer[0] = 0x99;
+	}
+	else if (setup->bRequest == 0x26) //
+	{
+		endpoints[endpoint].buffer[0] = 0x99;
+	}
+	else if (setup->bRequest == 0x27) //
+	{
+		endpoints[endpoint].buffer[0] = 0x99;
+	}
+	else if (setup->bRequest == 0x28)
+	{
+		endpoints[endpoint].buffer[0] = 0x99;
+	}
+	else if (setup->bRequest == 0x29)
+	{
+		endpoints[endpoint].buffer[0] = 0x99;
+	}
+	else if (setup->bRequest == 0x2a)
+	{
+		endpoints[endpoint].buffer[0] = 0x99;
+	}
+	else if (setup->bRequest == 0x2b)
+	{
+		endpoints[endpoint].buffer[0] = 0x99;
+	}
+	else if (setup->bRequest == 0x2c)
+	{
+		endpoints[endpoint].buffer[0] = 0x99;
+	}
+	else if (setup->bRequest == 0x2d)
+	{
+		endpoints[endpoint].buffer[0] = 0x99;
+	}
+	else if (setup->bRequest == 0x2e) //
+	{
+		endpoints[endpoint].buffer[0] = 0x99;
+	}
+	else if (setup->bRequest == 0x2f)
+	{
+		endpoints[endpoint].buffer[0] = 0x99;
+	}
+	else if (setup->bRequest == 0x30)
+	{
+		endpoints[endpoint].buffer[0] = 0x99;
+	}
+	else if (setup->bRequest == 0x31)
+	{
+		endpoints[endpoint].buffer[0] = 0x99;
+	} else
+		endpoints[endpoint].buffer[0] = 0x99; // usnupported command
+
 	endpoints[endpoint].position = endpoints[endpoint].buffer;
 	endpoints[endpoint].remain = setup->wLength;
 	return 0;
+}
+
+int ohci_hlean2131sc_device::handle_bulk_pid(int endpoint, int pid, UINT8 *buffer, int size)
+{
+//#ifdef VERBOSE_MSG
+	printf("Bulk request to an2131sc: %x %d %x\n\r", endpoint, pid, size);
+//#endif
+	if (((endpoint == 1) || (endpoint == 2)) && (pid == InPid))
+	{
+		if (size > endpoints[endpoint].remain)
+			size = endpoints[endpoint].remain;
+		memcpy(buffer, endpoints[endpoint].position, size);
+		endpoints[endpoint].position = endpoints[endpoint].position + size;
+		endpoints[endpoint].remain = endpoints[endpoint].remain - size;
+	}
+	return size;
 }
 
 void ohci_hlean2131sc_device::device_start()
@@ -1408,8 +1553,8 @@ INPUT_PORTS_END
 
 void chihiro_state::machine_start()
 {
-	ohci_hlean2131qc_device *usb_device;
-	//ohci_hlean2131sc_device *usb_device;
+	ohci_hlean2131qc_device *usb_device1;
+	ohci_hlean2131sc_device *usb_device2;
 
 	xbox_base_state::machine_start();
 	chihiro_devs.ide = machine().device<bus_master_ide_controller_device>("ide");
@@ -1429,11 +1574,14 @@ void chihiro_state::machine_start()
 			break;
 		}
 	usbhack_counter = 0;
-	usb_device = machine().device<ohci_hlean2131qc_device>("ohci_hlean2131qc");
-	usb_device->initialize(machine(), ohci_usb);
-	usb_device->set_region_base(memregion(":others")->base()); // temporary
-	//usb_device = machine().device<ohci_hlean2131sc_device>("ohci_hlean2131sc");
-	ohci_usb->usb_ohci_plug(1, usb_device); // connect
+	usb_device1 = machine().device<ohci_hlean2131qc_device>("ohci_hlean2131qc");
+	usb_device1->initialize(machine(), ohci_usb);
+	usb_device1->set_region_base(memregion(":others")->base()); // temporary
+	ohci_usb->usb_ohci_plug(1, usb_device1); // connect
+	usb_device2 = machine().device<ohci_hlean2131sc_device>("ohci_hlean2131sc");
+	usb_device2->initialize(machine(), ohci_usb);
+	usb_device2->set_region_base(memregion(":others")->base() + 0x2080); // temporary
+	ohci_usb->usb_ohci_plug(2, usb_device2); // connect
 	// savestates
 	save_item(NAME(usbhack_counter));
 }
@@ -1455,6 +1603,7 @@ static MACHINE_CONFIG_DERIVED_CLASS(chihiro_base, xbox_base, chihiro_state)
 
 	// next lines are temporary
 	MCFG_DEVICE_ADD("ohci_hlean2131qc", OHCI_HLEAN2131QC, 0)
+	MCFG_DEVICE_ADD("ohci_hlean2131sc", OHCI_HLEAN2131SC, 0)
 	MCFG_DEVICE_ADD("jvs_master", JVS_MASTER, 0)
 	MCFG_SEGA_837_13551_DEVICE_ADD("837_13551", "jvs_master", ":TILT", ":P1", ":P2", ":A0", ":A1", ":A2", ":A3", ":A4", ":A5", ":A6", ":A7", ":OUTPUT")
 	MACHINE_CONFIG_END

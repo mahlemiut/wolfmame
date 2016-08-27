@@ -678,8 +678,6 @@ TIMER_DEVICE_CALLBACK_MEMBER(segaorun_state::bankmotor_update)
 //  for Out Run
 //-------------------------------------------------
 
-IOPORT_ARRAY_MEMBER( segaorun_state::digital_ports ) { "SERVICE", "UNKNOWN", "COINAGE", "DSW" };
-
 READ16_MEMBER( segaorun_state::outrun_custom_io_r )
 {
 	offset &= 0x7f/2;
@@ -695,7 +693,7 @@ READ16_MEMBER( segaorun_state::outrun_custom_io_r )
 
 		case 0x30/2:
 		{
-			return read_safe(m_adc_ports[m_adc_select], 0x0010);
+			return m_adc_ports[m_adc_select].read_safe(0x0010);
 		}
 
 		case 0x60/2:
@@ -781,7 +779,7 @@ READ16_MEMBER( segaorun_state::shangon_custom_io_r )
 
 		case 0x3020/2:
 		{
-			return read_safe(m_adc_ports[m_adc_select], 0x0010);
+			return m_adc_ports[m_adc_select].read_safe(0x0010);
 		}
 
 		default:

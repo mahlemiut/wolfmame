@@ -49,13 +49,10 @@ public:
 
 	virtual ioport_constructor device_input_ports() const override;
 	virtual machine_config_constructor device_mconfig_additions() const override;
-	virtual const rom_entry *device_rom_region() const override;
+	virtual const tiny_rom_entry *device_rom_region() const override;
 
 protected:
-	required_ioport m_io_kbd0;
-	required_ioport m_io_kbd1;
-	required_ioport m_io_kbd2;
-	required_ioport m_io_kbd3;
+	required_ioport_array<4> m_io_kbd;
 	required_ioport m_io_kbdc;
 
 	virtual void device_start() override;

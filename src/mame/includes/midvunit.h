@@ -57,6 +57,7 @@ public:
 			m_midvplus_misc(*this, "midvplus_misc"),
 			m_videoram(*this, "videoram", 32),
 			m_textureram(*this, "textureram") ,
+		m_adc_ports(*this, {"WHEEL", "ACCEL", "BRAKE"}),
 		m_maincpu(*this, "maincpu"),
 		m_watchdog(*this, "watchdog"),
 		m_screen(*this, "screen"),
@@ -74,6 +75,8 @@ public:
 	optional_shared_ptr<UINT32> m_midvplus_misc;
 	required_shared_ptr<UINT16> m_videoram;
 	required_shared_ptr<UINT32> m_textureram;
+
+	optional_ioport_array<3> m_adc_ports;
 
 	UINT8 m_cmos_protected;
 	UINT16 m_control_data;
@@ -93,6 +96,13 @@ public:
 	UINT8 m_video_changed;
 	emu_timer *m_scanline_timer;
 	std::unique_ptr<midvunit_renderer> m_poly;
+	UINT8 m_galil_input_index;
+	UINT8 m_galil_input_length;
+	const char *m_galil_input;
+	UINT8 m_galil_output_index;
+	char m_galil_output[450];
+	UINT32 m_output;
+	UINT8 m_output_mode;
 	DECLARE_WRITE32_MEMBER(midvunit_dma_queue_w);
 	DECLARE_READ32_MEMBER(midvunit_dma_queue_entries_r);
 	DECLARE_READ32_MEMBER(midvunit_dma_trigger_r);
@@ -128,12 +138,15 @@ public:
 	DECLARE_WRITE32_MEMBER(midvplus_misc_w);
 	DECLARE_WRITE8_MEMBER(midvplus_xf1_w);
 	DECLARE_READ32_MEMBER(generic_speedup_r);
+	DECLARE_READ32_MEMBER(midvunit_output_r);
+	DECLARE_WRITE32_MEMBER(midvunit_output_w);
 	DECLARE_DRIVER_INIT(crusnu40);
 	DECLARE_DRIVER_INIT(crusnu21);
 	DECLARE_DRIVER_INIT(crusnwld);
 	DECLARE_DRIVER_INIT(wargods);
 	DECLARE_DRIVER_INIT(offroadc);
 	DECLARE_DRIVER_INIT(crusnusa);
+	void set_input(const char *s);
 	void init_crusnwld_common(offs_t speedup);
 	void init_crusnusa_common(offs_t speedup);
 	virtual void machine_start() override;

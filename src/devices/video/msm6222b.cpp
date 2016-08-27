@@ -23,7 +23,7 @@ ROM_END
 
 msm6222b_device::msm6222b_device(const machine_config &mconfig, device_type type, const char *name, const char *tag, device_t *owner, UINT32 clock, const char *shortname, const char *source) :
 	device_t(mconfig, type, name, tag, owner, clock, shortname, source), cursor_direction(false), cursor_blinking(false), two_line(false), shift_on_write(false), double_height(false), cursor_on(false), display_on(false), adc(0), shift(0),
-	m_cgrom(*this)
+	m_cgrom(*this, finder_base::DUMMY_TAG)
 {
 }
 
@@ -40,7 +40,7 @@ msm6222b_01_device::msm6222b_01_device(const machine_config &mconfig, const char
 	m_cgrom.set_tag("cgrom");
 }
 
-const rom_entry *msm6222b_01_device::device_rom_region() const
+const tiny_rom_entry *msm6222b_01_device::device_rom_region() const
 {
 	return ROM_NAME(msm6222b_01);
 }

@@ -231,8 +231,9 @@ public:
 		, m_io_in0(*this, "IN0")
 		, m_io_in1(*this, "IN1")
 		, m_io_in2(*this, "IN2")
-		, m_io_grid(*this, "GRID")
-		{ }
+		, m_io_grid(*this, "GRID.%u", 0)
+	{
+	}
 
 	DECLARE_READ8_MEMBER( gamecom_internal_r );
 	DECLARE_READ8_MEMBER( gamecom_pio_r );
@@ -274,7 +275,7 @@ private:
 	void handle_stylus_press(int column);
 	void recompute_lcd_params();
 	void handle_input_press(UINT16 mux_data);
-	int common_load(device_image_interface &image, generic_slot_device *slot);
+	image_init_result common_load(device_image_interface &image, generic_slot_device *slot);
 	virtual void machine_reset() override;
 	virtual void video_start() override;
 	required_shared_ptr<UINT8> m_p_videoram;

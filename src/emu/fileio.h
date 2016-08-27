@@ -34,20 +34,25 @@ namespace util { class archive_file; }
 class path_iterator
 {
 public:
-	// construction/destruction
-	path_iterator(const char *searchpath);
+	// constructors
+	path_iterator(std::string &&searchpath);
+	path_iterator(std::string const &searchpath);
+	path_iterator(path_iterator &&that);
+	path_iterator(path_iterator const &that);
 
-	// getters
+	// assignment operators
+	path_iterator &operator=(path_iterator &&that);
+	path_iterator &operator=(path_iterator const &that);
+
+	// main interface
 	bool next(std::string &buffer, const char *name = nullptr);
-
-	// reset
-	void reset() { m_current = m_base; m_index = 0; }
+	void reset();
 
 private:
 	// internal state
-	const char *    m_base;
-	const char *    m_current;
-	int             m_index;
+	std::string                 m_searchpath;
+	std::string::const_iterator m_current;
+	bool                        m_is_first;
 };
 
 
@@ -59,8 +64,11 @@ class file_enumerator
 {
 public:
 	// construction/destruction
-	file_enumerator(const char *searchpath);
-	~file_enumerator();
+	template <typename... T> file_enumerator(T &&... args) : m_iterator(std::forward<T>(args)...) { }
+	file_enumerator(file_enumerator &&) = default;
+	file_enumerator(file_enumerator const &) = delete;
+	file_enumerator &operator=(file_enumerator &&) = default;
+	file_enumerator &operator=(file_enumerator const &) = delete;
 
 	// iterator
 	const osd::directory::entry *next();
@@ -70,7 +78,6 @@ private:
 	path_iterator       m_iterator;
 	osd::directory::ptr m_curdir;
 	std::string         m_pathbuffer;
-	//int             m_buflen;
 };
 
 
@@ -82,7 +89,7 @@ class emu_file
 public:
 	// file open/creation
 	emu_file(UINT32 openflags);
-	emu_file(const char *searchpath, UINT32 openflags);
+	emu_file(std::string &&searchpath, UINT32 openflags);
 	virtual ~emu_file();
 
 	// getters
@@ -101,14 +108,14 @@ public:
 	void set_restrict_to_mediapath(bool rtmp = true) { m_restrict_to_mediapath = rtmp; }
 
 	// open/close
-	osd_file::error open(const char *name);
-	osd_file::error open(const char *name1, const char *name2);
-	osd_file::error open(const char *name1, const char *name2, const char *name3);
-	osd_file::error open(const char *name1, const char *name2, const char *name3, const char *name4);
-	osd_file::error open(const char *name, UINT32 crc);
-	osd_file::error open(const char *name1, const char *name2, UINT32 crc);
-	osd_file::error open(const char *name1, const char *name2, const char *name3, UINT32 crc);
-	osd_file::error open(const char *name1, const char *name2, const char *name3, const char *name4, UINT32 crc);
+	osd_file::error open(const std::string &name);
+	osd_file::error open(const std::string &name1, const std::string &name2);
+	osd_file::error open(const std::string &name1, const std::string &name2, const std::string &name3);
+	osd_file::error open(const std::string &name1, const std::string &name2, const std::string &name3, const std::string &name4);
+	osd_file::error open(const std::string &name, UINT32 crc);
+	osd_file::error open(const std::string &name1, const std::string &name2, UINT32 crc);
+	osd_file::error open(const std::string &name1, const std::string &name2, const std::string &name3, UINT32 crc);
+	osd_file::error open(const std::string &name1, const std::string &name2, const std::string &name3, const std::string &name4, UINT32 crc);
 	osd_file::error open_next();
 	osd_file::error open_ram(const void *data, UINT32 length);
 	void close();
@@ -155,7 +162,7 @@ private:
 	path_iterator   m_mediapaths;                   // media-path iterator
 	UINT32          m_crc;                          // file's CRC
 	UINT32          m_openflags;                    // flags we used for the open
-	util::hash_collection m_hashes;                       // collection of hashes
+	util::hash_collection m_hashes;                 // collection of hashes
 
 	std::unique_ptr<util::archive_file> m_zipfile;  // ZIP file pointer
 	dynamic_buffer  m_zipdata;                      // ZIP file data

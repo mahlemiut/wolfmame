@@ -39,15 +39,15 @@ class tvc_state : public driver_device
 {
 public:
 	tvc_state(const machine_config &mconfig, device_type type, const char *tag)
-	: driver_device(mconfig, type, tag),
-	m_maincpu(*this, "maincpu"),
-	m_ram(*this, RAM_TAG),
-	m_sound(*this, "custom"),
-	m_cassette(*this, "cassette"),
-	m_cart(*this, "cartslot"),
-	m_centronics(*this, CENTRONICS_TAG),
-	m_palette(*this, "palette"),
-	m_keyboard(*this, "LINE")
+		: driver_device(mconfig, type, tag)
+		, m_maincpu(*this, "maincpu")
+		, m_ram(*this, RAM_TAG)
+		, m_sound(*this, "custom")
+		, m_cassette(*this, "cassette")
+		, m_cart(*this, "cartslot")
+		, m_centronics(*this, CENTRONICS_TAG)
+		, m_palette(*this, "palette")
+		, m_keyboard(*this, "LINE.%u", 0)
 	{ }
 
 	required_device<cpu_device> m_maincpu;
@@ -742,11 +742,11 @@ QUICKLOAD_LOAD_MEMBER( tvc_state, tvc64)
 	{
 		image.fseek(0x90, SEEK_SET);
 		image.fread(m_ram->pointer() + 0x19ef, image.length() - 0x90);
-		return IMAGE_INIT_PASS;
+		return image_init_result::PASS;
 	}
 	else
 	{
-		return IMAGE_INIT_FAIL;
+		return image_init_result::FAIL;
 	}
 }
 

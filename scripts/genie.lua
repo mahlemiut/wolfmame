@@ -75,10 +75,17 @@ end
 
 function addprojectflags()
 	local version = str_to_version(_OPTIONS["gcc_version"])
-	if _OPTIONS["gcc"]~=nil and string.find(_OPTIONS["gcc"], "gcc") and (version >= 50100) then
-		buildoptions_cpp {
-			"-Wsuggest-override",
-		}
+	if _OPTIONS["gcc"]~=nil and string.find(_OPTIONS["gcc"], "gcc") then
+		if version >= 50100 then
+			buildoptions_cpp {
+				"-Wsuggest-override",
+			}
+		end
+		if version >= 60000 then
+			buildoptions_cpp {
+				"-flifetime-dse=1",
+			}
+		end
 	end
 end
 
@@ -87,6 +94,7 @@ SOUNDS  = {}
 MACHINES  = {}
 VIDEOS = {}
 BUSES  = {}
+FORMATS  = {}
 
 newoption {
 	trigger = "with-tools",
@@ -950,23 +958,15 @@ end
 			buildoptions {
 				"-Wno-cast-align",
 				"-Wno-tautological-compare",
-				"-Wno-dynamic-class-memaccess",
 				"-Wno-unused-value",
-				"-Wno-inline-new-delete",
 				"-Wno-constant-logical-operand",
-				"-Wno-deprecated-register",
+				"-Wno-missing-braces", -- clang is not as permissive as GCC about std::array initialization
 				"-fdiagnostics-show-note-include-stack",
 			}
 			if (version >= 30500) then
 				buildoptions {
-					"-Wno-absolute-value",
 					"-Wno-unknown-warning-option",
 					"-Wno-extern-c-compat",
-				}
-			end
-			if (version >= 70000) then
-				buildoptions {
-					"-Wno-tautological-undefined-compare",
 				}
 			end
 		else
@@ -1313,6 +1313,13 @@ if (not os.isfile(path.join("src", "osd",  _OPTIONS["osd"] .. ".lua"))) then
 end
 dofile(path.join("src", "osd", _OPTIONS["osd"] .. ".lua"))
 dofile(path.join("src", "lib.lua"))
+if (MACHINES["NETLIST"]~=null or _OPTIONS["with-tools"]) then
+dofile(path.join("src", "netlist.lua"))
+end
+--if (STANDALONE~=true) then
+dofile(path.join("src", "formats.lua"))
+formatsProject(_OPTIONS["target"],_OPTIONS["subtarget"])
+--end
 
 group "3rdparty"
 dofile(path.join("src", "3rdparty.lua"))

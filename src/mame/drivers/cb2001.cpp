@@ -447,7 +447,7 @@ UINT32 cb2001_state::screen_update_cb2001(screen_device &screen, bitmap_rgb32 &b
    is being executed incorrectly */
 WRITE16_MEMBER(cb2001_state::cb2001_vidctrl_w)
 {
-	if (mem_mask&0xff00) // video control?
+	if (ACCESSING_BITS_8_15) // video control?
 	{
 		printf("cb2001_vidctrl_w %04x %04x\n", data, mem_mask);
 		m_videobank = (data & 0x0800)>>11;
@@ -458,7 +458,7 @@ WRITE16_MEMBER(cb2001_state::cb2001_vidctrl_w)
 
 WRITE16_MEMBER(cb2001_state::cb2001_vidctrl2_w)
 {
-	if (mem_mask&0xff00) // video control?
+	if (ACCESSING_BITS_8_15) // video control?
 	{
 		printf("cb2001_vidctrl2_w %04x %04x\n", data, mem_mask); // i think this switches to 'reels' mode
 		m_videomode = (data>>8) & 0x03; // which bit??
@@ -524,9 +524,9 @@ TILE_GET_INFO_MEMBER(cb2001_state::get_cb2001_reel3_tile_info)
 
 void cb2001_state::video_start()
 {
-	m_reel1_tilemap = &machine().tilemap().create(m_gfxdecode, tilemap_get_info_delegate(FUNC(cb2001_state::get_cb2001_reel1_tile_info),this),TILEMAP_SCAN_ROWS, 8, 32, 64, 8);
-	m_reel2_tilemap = &machine().tilemap().create(m_gfxdecode, tilemap_get_info_delegate(FUNC(cb2001_state::get_cb2001_reel2_tile_info),this),TILEMAP_SCAN_ROWS, 8, 32, 64, 8);
-	m_reel3_tilemap = &machine().tilemap().create(m_gfxdecode, tilemap_get_info_delegate(FUNC(cb2001_state::get_cb2001_reel3_tile_info),this),TILEMAP_SCAN_ROWS, 8, 32, 64, 8);
+	m_reel1_tilemap = &machine().tilemap().create(*m_gfxdecode, tilemap_get_info_delegate(FUNC(cb2001_state::get_cb2001_reel1_tile_info),this),TILEMAP_SCAN_ROWS, 8, 32, 64, 8);
+	m_reel2_tilemap = &machine().tilemap().create(*m_gfxdecode, tilemap_get_info_delegate(FUNC(cb2001_state::get_cb2001_reel2_tile_info),this),TILEMAP_SCAN_ROWS, 8, 32, 64, 8);
+	m_reel3_tilemap = &machine().tilemap().create(*m_gfxdecode, tilemap_get_info_delegate(FUNC(cb2001_state::get_cb2001_reel3_tile_info),this),TILEMAP_SCAN_ROWS, 8, 32, 64, 8);
 
 	m_reel1_tilemap->set_scroll_cols(64);
 	m_reel2_tilemap->set_scroll_cols(64);

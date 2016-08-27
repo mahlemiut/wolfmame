@@ -642,6 +642,11 @@ UINT8 mc6847_base_device::input(UINT16 address)
 template<int sample_count, int yres>
 void mc6847_base_device::record_scanline_res(int scanline, INT32 start_pos, INT32 end_pos)
 {
+	// determine the "sample_modulo" (e.g. - for 32 samples per row, query the video RAM every
+	// position, for 16 samples per row, query every other position)
+	const int sample_modulo = 32 / sample_count;
+	static_assert((32 / sample_modulo) == sample_count, "Expected 32 to be divisible by sample_count");
+
 	UINT8 current_sample_count = (start_pos > 0) ? m_data[scanline].m_sample_count : 0;
 
 	// main loop
@@ -651,7 +656,8 @@ void mc6847_base_device::record_scanline_res(int scanline, INT32 start_pos, INT3
 		if (pos == 0)
 			m_video_address = scanline / (192 / yres) * sample_count;
 
-		if ((sample_count == 32) || ((pos % 1) == 0))
+		// are we sampling this position?
+		if ((pos % sample_modulo) == 0)
 		{
 			// input data
 			UINT8 data = input(m_video_address++);
@@ -743,8 +749,8 @@ void mc6847_base_device::record_body_scanline(UINT16 physical_scanline, UINT16 s
 
 void mc6847_base_device::record_partial_body_scanline(UINT16 physical_scanline, UINT16 scanline, INT32 start_clock, INT32 end_clock)
 {
-	INT32 start_pos = MAX(scanline_position_from_clock(start_clock), 0);
-	INT32 end_pos = MIN(scanline_position_from_clock(end_clock), 42);
+	INT32 start_pos = std::max(scanline_position_from_clock(start_clock), 0);
+	INT32 end_pos = std::min(scanline_position_from_clock(end_clock), 42);
 
 	if (start_pos < end_pos)
 		record_body_scanline(physical_scanline, scanline, start_pos, end_pos);
@@ -834,7 +840,7 @@ UINT32 mc6847_base_device::screen_update(screen_device &screen, bitmap_rgb32 &bi
 		}
 	}
 
-	for (y = MAX(0, min_y - base_y); y < MIN(192, max_y - base_y); y++)
+	for (y = std::max(0, min_y - base_y); y < std::min(192, max_y - base_y); y++)
 	{
 		/* left border */
 		for (x = min_x; x < base_x; x++)

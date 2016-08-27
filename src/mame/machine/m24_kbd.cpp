@@ -10,7 +10,7 @@ ROM_START( m24_keyboard )
 ROM_END
 
 
-const rom_entry *m24_keyboard_device::device_rom_region() const
+const tiny_rom_entry *m24_keyboard_device::device_rom_region() const
 {
 	return ROM_NAME( m24_keyboard );
 }
@@ -211,11 +211,11 @@ ioport_constructor m24_keyboard_device::device_input_ports() const
 }
 
 m24_keyboard_device::m24_keyboard_device(const machine_config &mconfig, const char *tag, device_t *owner, UINT32 clock)
-	: device_t(mconfig, M24_KEYBOARD, "Olivetti M24 Keyboard", tag, owner, clock, "m24_kbd", __FILE__),
-		m_rows(*this, "ROW"),
-		m_mousebtn(*this, "MOUSEBTN"),
-		m_out_data(*this),
-		m_mcu(*this, "mcu")
+	: device_t(mconfig, M24_KEYBOARD, "Olivetti M24 Keyboard", tag, owner, clock, "m24_kbd", __FILE__)
+	, m_rows(*this, "ROW.%u", 0)
+	, m_mousebtn(*this, "MOUSEBTN")
+	, m_out_data(*this)
+	, m_mcu(*this, "mcu")
 {
 }
 

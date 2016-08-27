@@ -106,16 +106,13 @@ READ16_MEMBER( segaybd_state::analog_r )
 WRITE16_MEMBER( segaybd_state::analog_w )
 {
 	int selected = ((offset & 3) == 3) ? (3 + (m_misc_io_data[0x08/2] & 3)) : (offset & 3);
-	m_analog_data[offset & 3] = read_safe(m_adc_ports[selected], 0xff);
+	m_analog_data[offset & 3] = m_adc_ports[selected].read_safe(0xff);
 }
 
 
 //-------------------------------------------------
 //  io_chip_r - handle reads from the I/O chip
 //-------------------------------------------------
-
-IOPORT_ARRAY_MEMBER( segaybd_state::digital_ports )
-{ "P1", "GENERAL", "LIMITSW", "PORTD", "PORTE", "DSW", "COINAGE", "PORTH" };
 
 READ16_MEMBER( segaybd_state::io_chip_r )
 {

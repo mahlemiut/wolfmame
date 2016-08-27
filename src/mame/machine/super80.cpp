@@ -43,7 +43,7 @@ void super80_state::super80_cassette_motor( bool motor_state )
 		m_cassette->change_state(CASSETTE_MOTOR_ENABLED,CASSETTE_MASK_MOTOR);
 
 	/* does user want to hear the sound? */
-	if BIT(m_io_config->read(), 3)
+	if (BIT(m_io_config->read(), 3))
 		m_cassette->change_state(CASSETTE_SPEAKER_ENABLED,CASSETTE_MASK_SPEAKER);
 	else
 		m_cassette->change_state(CASSETTE_SPEAKER_MUTED,CASSETTE_MASK_SPEAKER);
@@ -241,14 +241,14 @@ QUICKLOAD_LOAD_MEMBER( super80_state, super80 )
 	UINT16 exec_addr, start_addr, end_addr;
 
 	/* load the binary into memory */
-	if (z80bin_load_file(&image, m_maincpu->space(AS_PROGRAM), file_type, &exec_addr, &start_addr, &end_addr) == IMAGE_INIT_FAIL)
-		return IMAGE_INIT_FAIL;
+	if (z80bin_load_file(&image, m_maincpu->space(AS_PROGRAM), file_type, &exec_addr, &start_addr, &end_addr) != image_init_result::PASS)
+		return image_init_result::FAIL;
 
 	/* is this file executable? */
 	if (exec_addr != 0xffff)
 		/* check to see if autorun is on */
-		if BIT(m_io_config->read(), 0)
+		if (BIT(m_io_config->read(), 0))
 			m_maincpu->set_pc(exec_addr);
 
-	return IMAGE_INIT_PASS;
+	return image_init_result::PASS;
 }

@@ -198,16 +198,16 @@ MACHINE_RESET_MEMBER(microvision_state, microvision)
 			switch ( m_rc_type )
 			{
 				case RC_TYPE_100PF_21_0K:
-					static_set_clock( m_tms1100, 550000 );
+					static_set_clock( *m_tms1100, 550000 );
 					break;
 
 				case RC_TYPE_100PF_23_2K:
 				case RC_TYPE_UNKNOWN:   // Default to most occurring setting
-					static_set_clock( m_tms1100, 500000 );
+					static_set_clock( *m_tms1100, 500000 );
 					break;
 
 				case RC_TYPE_100PF_39_4K:
-					static_set_clock( m_tms1100, 300000 );
+					static_set_clock( *m_tms1100, 300000 );
 					break;
 			}
 			break;
@@ -524,7 +524,7 @@ DEVICE_IMAGE_LOAD_MEMBER(microvision_state, microvsn_cart)
 	if ( file_size != 1024 && file_size != 2048 )
 	{
 		image.seterror(IMAGE_ERROR_UNSPECIFIED, "Invalid rom file size");
-		return IMAGE_INIT_FAIL;
+		return image_init_result::FAIL;
 	}
 
 	/* Read cartridge */
@@ -533,7 +533,7 @@ DEVICE_IMAGE_LOAD_MEMBER(microvision_state, microvsn_cart)
 		if (image.fread(rom1, file_size) != file_size)
 		{
 			image.seterror(IMAGE_ERROR_UNSPECIFIED, "Unable to fully read from file");
-			return IMAGE_INIT_FAIL;
+			return image_init_result::FAIL;
 		}
 	}
 	else
@@ -547,7 +547,7 @@ DEVICE_IMAGE_LOAD_MEMBER(microvision_state, microvsn_cart)
 		if (pla)
 			m_pla = 1;
 
-		tms1100_cpu_device::set_output_pla(m_tms1100, m_pla ? microvision_output_pla_1 : microvision_output_pla_0);
+		tms1100_cpu_device::set_output_pla(*m_tms1100, m_pla ? microvision_output_pla_1 : microvision_output_pla_0);
 
 		// Set default setting for PCB type and RC type
 		m_pcb_type = microvision_state::PCB_TYPE_UNKNOWN;
@@ -614,7 +614,7 @@ DEVICE_IMAGE_LOAD_MEMBER(microvision_state, microvsn_cart)
 			m_cpu_type = microvision_state::CPU_TYPE_TMS1100;
 			break;
 	}
-	return IMAGE_INIT_PASS;
+	return image_init_result::PASS;
 }
 
 

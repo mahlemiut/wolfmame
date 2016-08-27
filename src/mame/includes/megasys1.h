@@ -26,7 +26,7 @@ public:
 		: driver_device(mconfig, type, tag),
 		m_vregs(*this, "vregs"),
 		m_objectram(*this, "objectram"),
-		m_scrollram(*this, "scrollram"),
+		m_scrollram(*this, "scrollram.%u", 0),
 		m_ram(*this, "ram"),
 		m_maincpu(*this, "maincpu"),
 		m_audiocpu(*this, "audiocpu"),
@@ -104,14 +104,12 @@ public:
 	DECLARE_WRITE16_MEMBER(protection_peekaboo_w);
 	DECLARE_READ16_MEMBER(megasys1A_mcu_hs_r);
 	DECLARE_WRITE16_MEMBER(megasys1A_mcu_hs_w);
-	DECLARE_READ16_MEMBER(edfbl_input_r);
 	DECLARE_READ16_MEMBER(iganinju_mcu_hs_r);
 	DECLARE_WRITE16_MEMBER(iganinju_mcu_hs_w);
 	DECLARE_READ16_MEMBER(soldamj_spriteram16_r);
 	DECLARE_WRITE16_MEMBER(soldamj_spriteram16_w);
 	DECLARE_READ16_MEMBER(stdragon_mcu_hs_r);
 	DECLARE_WRITE16_MEMBER(stdragon_mcu_hs_w);
-	DECLARE_READ16_MEMBER(monkelf_input_r);
 	DECLARE_WRITE16_MEMBER(megasys1_scrollram_0_w);
 	DECLARE_WRITE16_MEMBER(megasys1_scrollram_1_w);
 	DECLARE_WRITE16_MEMBER(megasys1_scrollram_2_w);

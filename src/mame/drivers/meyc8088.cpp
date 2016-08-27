@@ -43,13 +43,16 @@ public:
 		m_maincpu(*this,"maincpu"),
 		m_vram(*this, "vram"),
 		m_heartbeat(*this, "heartbeat"),
-		m_dac(*this, "dac")
+		m_dac(*this, "dac"),
+		m_switches(*this, {"C0", "C1", "C2", "C3"})
 	{ }
 
 	required_device<cpu_device> m_maincpu;
 	required_shared_ptr<UINT8> m_vram;
 	required_device<timer_device> m_heartbeat;
 	required_device<dac_device> m_dac;
+
+	optional_ioport_array<4> m_switches;
 
 	UINT8 m_status;
 	UINT8 m_common;
@@ -160,7 +163,7 @@ UINT32 meyc8088_state::screen_update_meyc8088(screen_device &screen, bitmap_ind1
 void meyc8088_state::screen_eof_meyc8088(screen_device &screen, bool state)
 {
 	// INTR on LC255 (pulses at start and end of vblank), INTA hardwired to $20
-	generic_pulse_irq_line_and_vector(m_maincpu, 0, 0x20, 1);
+	generic_pulse_irq_line_and_vector(*m_maincpu, 0, 0x20, 1);
 }
 
 
@@ -231,10 +234,10 @@ READ8_MEMBER(meyc8088_state::meyc8088_input_r)
 	UINT8 ret = 0xff;
 
 	// multiplexed switch inputs
-	if (~m_common & 1) ret &= read_safe(ioport("C0"), 0); // bit switches
-	if (~m_common & 2) ret &= read_safe(ioport("C1"), 0); // control switches
-	if (~m_common & 4) ret &= read_safe(ioport("C2"), 0); // light switches
-	if (~m_common & 8) ret &= read_safe(ioport("C3"), 0); // light switches
+	if (~m_common & 1) ret &= m_switches[0].read_safe(0); // bit switches
+	if (~m_common & 2) ret &= m_switches[1].read_safe(0); // control switches
+	if (~m_common & 4) ret &= m_switches[2].read_safe(0); // light switches
+	if (~m_common & 8) ret &= m_switches[3].read_safe(0); // light switches
 
 	return ret;
 }

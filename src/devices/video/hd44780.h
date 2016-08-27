@@ -63,21 +63,21 @@ protected:
 	virtual void device_timer(emu_timer &timer, device_timer_id id, int param, void *ptr) override;
 
 	// optional information overrides
-	virtual const rom_entry *device_rom_region() const override;
+	virtual const tiny_rom_entry *device_rom_region() const override;
 
 	// charset
 	enum
 	{
 		CHARSET_HD44780_A00,
 		CHARSET_KS0066_F05 /*,
-        CHARSET_HD44780_A01,
-        CHARSET_HD44780_A02,
-        CHARSET_KS0066_F00,
-        CHARSET_KS0066_F03,
-        CHARSET_KS0066_F04,
-        CHARSET_KS0066_F06,
-        CHARSET_KS0066_F59
-        */
+		CHARSET_HD44780_A01,
+		CHARSET_HD44780_A02,
+		CHARSET_KS0066_F00,
+		CHARSET_KS0066_F03,
+		CHARSET_KS0066_F04,
+		CHARSET_KS0066_F06,
+		CHARSET_KS0066_F59
+		*/
 	};
 
 	void set_charset_type(int type);
@@ -105,7 +105,8 @@ private:
 	bool        m_busy_flag;      // busy flag
 	UINT8       m_ddram[0x80];    // internal display data RAM
 	UINT8       m_cgram[0x40];    // internal chargen RAM
-	optional_region_ptr<UINT8> m_cgrom; // internal chargen ROM
+	UINT8 const *m_cgrom;
+	optional_region_ptr<UINT8> m_cgrom_region; // internal chargen ROM
 	int         m_ac;             // address counter
 	UINT8       m_dr;             // data register
 	UINT8       m_ir;             // instruction register

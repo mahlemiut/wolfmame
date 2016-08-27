@@ -40,7 +40,7 @@ TILE_GET_INFO_MEMBER(flkatck_state::get_tile_info_A)
 
 	if ((attr == 0x0d) && (!ctrl_0) && (!ctrl_2))
 		bank = 0;   /*  this allows the game to print text
-                    in all banks selected by the k007121 */
+		            in all banks selected by the k007121 */
 
 	SET_TILE_INFO_MEMBER(0,
 			code + 256*bank,
@@ -68,8 +68,8 @@ TILE_GET_INFO_MEMBER(flkatck_state::get_tile_info_B)
 
 void flkatck_state::video_start()
 {
-	m_k007121_tilemap[0] = &machine().tilemap().create(m_gfxdecode, tilemap_get_info_delegate(FUNC(flkatck_state::get_tile_info_A),this), TILEMAP_SCAN_ROWS, 8, 8, 32, 32);
-	m_k007121_tilemap[1] = &machine().tilemap().create(m_gfxdecode, tilemap_get_info_delegate(FUNC(flkatck_state::get_tile_info_B),this), TILEMAP_SCAN_ROWS, 8, 8, 32, 32);
+	m_k007121_tilemap[0] = &machine().tilemap().create(*m_gfxdecode, tilemap_get_info_delegate(FUNC(flkatck_state::get_tile_info_A),this), TILEMAP_SCAN_ROWS, 8, 8, 32, 32);
+	m_k007121_tilemap[1] = &machine().tilemap().create(*m_gfxdecode, tilemap_get_info_delegate(FUNC(flkatck_state::get_tile_info_B),this), TILEMAP_SCAN_ROWS, 8, 8, 32, 32);
 }
 
 

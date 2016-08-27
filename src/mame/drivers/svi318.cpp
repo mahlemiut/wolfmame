@@ -56,7 +56,7 @@ public:
 		m_cassette(*this, "cassette"),
 		m_cart_rom(*this, "cartslot"),
 		m_expander(*this, "exp"),
-		m_keyboard(*this, "KEY"),
+		m_keyboard(*this, "KEY.%u", 0),
 		m_buttons(*this, "BUTTONS"),
 		m_intvdp(0), m_intexp(0),
 		m_romdis(1), m_ramdis(1),
@@ -505,7 +505,7 @@ DEVICE_IMAGE_LOAD_MEMBER( svi3x8_state, cartridge )
 	m_cart_rom->rom_alloc(size, GENERIC_ROM8_WIDTH, ENDIANNESS_LITTLE);
 	m_cart_rom->common_load_rom(m_cart_rom->get_rom_base(), size, "rom");
 
-	return IMAGE_INIT_PASS;
+	return image_init_result::PASS;
 }
 
 

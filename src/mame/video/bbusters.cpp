@@ -72,9 +72,9 @@ WRITE16_MEMBER(bbusters_state::pf2_w)
 
 VIDEO_START_MEMBER(bbusters_state,bbuster)
 {
-	m_fix_tilemap = &machine().tilemap().create(m_gfxdecode, tilemap_get_info_delegate(FUNC(bbusters_state::get_tile_info),this), TILEMAP_SCAN_ROWS, 8, 8, 32, 32);
-	m_pf1_tilemap = &machine().tilemap().create(m_gfxdecode, tilemap_get_info_delegate(FUNC(bbusters_state::get_pf1_tile_info),this), TILEMAP_SCAN_COLS, 16, 16, 128, 32);
-	m_pf2_tilemap = &machine().tilemap().create(m_gfxdecode, tilemap_get_info_delegate(FUNC(bbusters_state::get_pf2_tile_info),this), TILEMAP_SCAN_COLS, 16, 16, 128, 32);
+	m_fix_tilemap = &machine().tilemap().create(*m_gfxdecode, tilemap_get_info_delegate(FUNC(bbusters_state::get_tile_info),this), TILEMAP_SCAN_ROWS, 8, 8, 32, 32);
+	m_pf1_tilemap = &machine().tilemap().create(*m_gfxdecode, tilemap_get_info_delegate(FUNC(bbusters_state::get_pf1_tile_info),this), TILEMAP_SCAN_COLS, 16, 16, 128, 32);
+	m_pf2_tilemap = &machine().tilemap().create(*m_gfxdecode, tilemap_get_info_delegate(FUNC(bbusters_state::get_pf2_tile_info),this), TILEMAP_SCAN_COLS, 16, 16, 128, 32);
 
 	m_pf1_tilemap->set_transparent_pen(15);
 	m_fix_tilemap->set_transparent_pen(15);
@@ -84,9 +84,9 @@ VIDEO_START_MEMBER(bbusters_state,bbuster)
 
 VIDEO_START_MEMBER(bbusters_state,mechatt)
 {
-	m_fix_tilemap = &machine().tilemap().create(m_gfxdecode, tilemap_get_info_delegate(FUNC(bbusters_state::get_tile_info),this), TILEMAP_SCAN_ROWS, 8, 8, 32, 32);
-	m_pf1_tilemap = &machine().tilemap().create(m_gfxdecode, tilemap_get_info_delegate(FUNC(bbusters_state::get_pf1_tile_info),this), TILEMAP_SCAN_COLS, 16, 16, 256, 32);
-	m_pf2_tilemap = &machine().tilemap().create(m_gfxdecode, tilemap_get_info_delegate(FUNC(bbusters_state::get_pf2_tile_info),this), TILEMAP_SCAN_COLS, 16, 16, 256, 32);
+	m_fix_tilemap = &machine().tilemap().create(*m_gfxdecode, tilemap_get_info_delegate(FUNC(bbusters_state::get_tile_info),this), TILEMAP_SCAN_ROWS, 8, 8, 32, 32);
+	m_pf1_tilemap = &machine().tilemap().create(*m_gfxdecode, tilemap_get_info_delegate(FUNC(bbusters_state::get_pf1_tile_info),this), TILEMAP_SCAN_COLS, 16, 16, 256, 32);
+	m_pf2_tilemap = &machine().tilemap().create(*m_gfxdecode, tilemap_get_info_delegate(FUNC(bbusters_state::get_pf2_tile_info),this), TILEMAP_SCAN_COLS, 16, 16, 256, 32);
 
 	m_pf1_tilemap->set_transparent_pen(15);
 	m_fix_tilemap->set_transparent_pen(15);
@@ -122,19 +122,19 @@ inline const UINT8 *bbusters_state::get_source_ptr(gfx_element *gfx, UINT32 spri
 		break;
 
 	case 1: /* 32 x 32 block
-                0 1
-                2 3
-            */
+	            0 1
+	            2 3
+	        */
 		ADJUST_4x4;
 		break;
 
 	case 2: /* 64 by 64 block
-                0  1    4  5
-                2  3    6  7
+	            0  1    4  5
+	            2  3    6  7
 
-                8  9    12 13
-                10 11   14 15
-            */
+	            8  9    12 13
+	            10 11   14 15
+	        */
 		ADJUST_4x4;
 		ADJUST_8x8;
 		break;

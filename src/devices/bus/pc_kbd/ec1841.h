@@ -31,7 +31,7 @@ public:
 	ec_1841_keyboard_device(const machine_config &mconfig, const char *tag, device_t *owner, UINT32 clock);
 
 	// optional information overrides
-	virtual const rom_entry *device_rom_region() const override;
+	virtual const tiny_rom_entry *device_rom_region() const override;
 	virtual machine_config_constructor device_mconfig_additions() const override;
 	virtual ioport_constructor device_input_ports() const override;
 
@@ -52,22 +52,7 @@ protected:
 
 private:
 	required_device<cpu_device> m_maincpu;
-	required_ioport m_md00;
-	required_ioport m_md01;
-	required_ioport m_md02;
-	required_ioport m_md03;
-	required_ioport m_md04;
-	required_ioport m_md05;
-	required_ioport m_md06;
-	required_ioport m_md07;
-	required_ioport m_md08;
-	required_ioport m_md09;
-	required_ioport m_md10;
-	required_ioport m_md11;
-	required_ioport m_md12;
-	required_ioport m_md13;
-	required_ioport m_md14;
-	required_ioport m_md15;
+	required_ioport_array<16> m_kbd;
 
 	UINT8 m_bus;
 	UINT8 m_p1;

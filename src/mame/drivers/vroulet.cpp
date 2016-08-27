@@ -128,8 +128,11 @@ TILE_GET_INFO_MEMBER(vroulet_state::get_bg_tile_info)
 
 void vroulet_state::video_start()
 {
-	m_bg_tilemap = &machine().tilemap().create(m_gfxdecode, tilemap_get_info_delegate(FUNC(vroulet_state::get_bg_tile_info),this), TILEMAP_SCAN_ROWS,
-		8, 8, 32, 32);
+	m_bg_tilemap = &machine().tilemap().create(
+			*m_gfxdecode,
+			tilemap_get_info_delegate(FUNC(vroulet_state::get_bg_tile_info),this),
+			TILEMAP_SCAN_ROWS,
+			8, 8, 32, 32);
 }
 
 UINT32 vroulet_state::screen_update(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect)
@@ -167,7 +170,7 @@ static INPUT_PORTS_START( vroulet )
 	PORT_START("IN0")
 	PORT_SERVICE( 0x01, IP_ACTIVE_LOW )
 	PORT_BIT( 0x02, IP_ACTIVE_LOW, IPT_TILT )
-	PORT_BIT( 0x04, IP_ACTIVE_LOW, IPT_OTHER ) PORT_CODE(KEYCODE_F1) PORT_NAME("Memory Reset")
+	PORT_BIT( 0x04, IP_ACTIVE_LOW, IPT_MEMORY_RESET )
 	PORT_BIT( 0x08, IP_ACTIVE_LOW, IPT_BUTTON9 ) PORT_NAME("Reset Machine")
 	PORT_BIT( 0x10, IP_ACTIVE_LOW, IPT_SERVICE1 )
 	PORT_BIT( 0x20, IP_ACTIVE_LOW, IPT_COIN2 )

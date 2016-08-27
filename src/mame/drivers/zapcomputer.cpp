@@ -92,19 +92,19 @@ READ8_MEMBER( zapcomp_state::keyboard_r )
 	UINT8 special = ioport("X1")->read();
 	UINT16 hex_keys = ioport("X0")->read();
 
-	if BIT(special, 2) /* "SHIFT" key is pressed */
+	if (BIT(special, 2)) /* "SHIFT" key is pressed */
 		retval |= 0x40; /* turn on the SHIFT bit but DO NOT turn on the strobe bit */
 
-	if BIT(special, 1) /* "NEXT" key is pressed */
+	if (BIT(special, 1)) /* "NEXT" key is pressed */
 		retval |= 0xA0; /* turn on the strobe & NEXT bits */
 
-	if BIT(special, 0) /* "EXEC" key is pressed */
+	if (BIT(special, 0)) /* "EXEC" key is pressed */
 		retval |= 0x90; /* turn on the strobe & EXEC bit */
 
 	for (int i=0; i<16; i++)
 		if (hex_keys & (1 << i))
 			retval |= (0x80 | i); /* provide the key index in bits 3-0
-                                     as well as turning on the strobe bit */
+			                         as well as turning on the strobe bit */
 
 	return retval;
 }

@@ -2,7 +2,7 @@
 // copyright-holders:Nathan Woods, Miodrag Milanovic
 /*********************************************************************
 
-    cassette.c
+    cassette.cpp
 
     Interface to the cassette image abstraction code
 
@@ -73,10 +73,11 @@ void cassette_image_device::device_config_complete()
 bool cassette_image_device::is_motor_on()
 {
 	if ((m_state & CASSETTE_MASK_UISTATE) == CASSETTE_STOPPED)
-		return FALSE;
+		return false;
 	if ((m_state & CASSETTE_MASK_MOTOR) != CASSETTE_MOTOR_ENABLED)
-		return FALSE;
-	return TRUE;
+		return false;
+	else
+		return true;
 }
 
 
@@ -157,8 +158,8 @@ void cassette_image_device::output(double value)
 	{
 		update();
 
-		value = MIN(value, 1.0);
-		value = MAX(value, -1.0);
+		value = std::min(value, 1.0);
+		value = std::max(value, -1.0);
 
 		m_value = (INT32) (value * 0x7FFFFFFF);
 	}
@@ -250,55 +251,54 @@ void cassette_image_device::device_start()
 	m_value = 0;
 }
 
-bool cassette_image_device::call_create(int format_type, util::option_resolution *format_options)
+image_init_result cassette_image_device::call_create(int format_type, util::option_resolution *format_options)
 {
-	return call_load();
+	return internal_load(true);
 }
 
-bool cassette_image_device::call_load()
+image_init_result cassette_image_device::call_load()
 {
-	casserr_t err;
-	int cassette_flags;
-	const char *extension;
-	int is_writable;
+	return internal_load(false);
+}
+
+image_init_result cassette_image_device::internal_load(bool is_create)
+{
+	cassette_image::error err;
 	device_image_interface *image = nullptr;
 	interface(image);
 
-	if ((has_been_created()) || (length() == 0))
+	if (is_create)
 	{
-		/* creating an image */
+		// creating an image
 		err = cassette_create((void *)image, &image_ioprocs, &wavfile_format, m_create_opts, CASSETTE_FLAG_READWRITE|CASSETTE_FLAG_SAVEONEXIT, &m_cassette);
-		if (err)
+		if (err != cassette_image::error::SUCCESS)
 			goto error;
 	}
 	else
 	{
-		/* opening an image */
+		// opening an image
+		bool retry;
 		do
 		{
-			is_writable = !is_readonly();
-			cassette_flags = is_writable ? (CASSETTE_FLAG_READWRITE|CASSETTE_FLAG_SAVEONEXIT) : CASSETTE_FLAG_READONLY;
-			std::string fname;
-			if (software_entry()==nullptr) {
-				extension = filetype();
-			} else {
-				fname = m_mame_file->filename();
-				int loc = fname.find_last_of('.');
-				if (loc!=-1) {
-					extension = fname.substr(loc + 1,fname.length()-loc).c_str();
-				} else {
-					extension = "";
-				}
-			}
-			err = cassette_open_choices((void *)image, &image_ioprocs, extension, m_formats, cassette_flags, &m_cassette);
+			// we probably don't want to retry...
+			retry = false;
 
-			/* this is kind of a hack */
-			if (err && is_writable)
+			// try opening the cassette
+			int cassette_flags = is_readonly()
+				? CASSETTE_FLAG_READONLY
+				: (CASSETTE_FLAG_READWRITE | CASSETTE_FLAG_SAVEONEXIT);
+			err = cassette_open_choices((void *)image, &image_ioprocs, filetype(), m_formats, cassette_flags, &m_cassette);
+
+			// special case - if we failed due to readwrite not being supported, make the image be read only and retry
+			if (err == cassette_image::error::READ_WRITE_UNSUPPORTED)
+			{
 				make_readonly();
+				retry = true;
+			}
 		}
-		while(err && is_writable);
+		while(retry);
 
-		if (err)
+		if (err != cassette_image::error::SUCCESS)
 			goto error;
 	}
 
@@ -314,22 +314,22 @@ bool cassette_image_device::call_load()
 	m_speed = 1;
 	m_direction = 1;
 
-	return IMAGE_INIT_PASS;
+	return image_init_result::PASS;
 
 error:
 	image_error_t imgerr = IMAGE_ERROR_UNSPECIFIED;
 	switch(err)
 	{
-		case CASSETTE_ERROR_INTERNAL:
+		case cassette_image::error::INTERNAL:
 			imgerr = IMAGE_ERROR_INTERNAL;
 			break;
-		case CASSETTE_ERROR_UNSUPPORTED:
+		case cassette_image::error::UNSUPPORTED:
 			imgerr = IMAGE_ERROR_UNSUPPORTED;
 			break;
-		case CASSETTE_ERROR_OUTOFMEMORY:
+		case cassette_image::error::OUT_OF_MEMORY:
 			imgerr = IMAGE_ERROR_OUTOFMEMORY;
 			break;
-		case CASSETTE_ERROR_INVALIDIMAGE:
+		case cassette_image::error::INVALID_IMAGE:
 			imgerr = IMAGE_ERROR_INVALIDIMAGE;
 			break;
 		default:
@@ -337,7 +337,7 @@ error:
 			break;
 	}
 	image->seterror(imgerr, "" );
-	return IMAGE_INIT_FAIL;
+	return image_init_result::FAIL;
 }
 
 

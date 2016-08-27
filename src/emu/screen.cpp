@@ -556,7 +556,7 @@ screen_device::screen_device(const machine_config &mconfig, const char *tag, dev
 		m_yoffset(0.0f),
 		m_xscale(1.0f),
 		m_yscale(1.0f),
-		m_palette(*this),
+		m_palette(*this, finder_base::DUMMY_TAG),
 		m_video_attributes(0),
 		m_svg_region(nullptr),
 		m_container(nullptr),
@@ -1093,8 +1093,8 @@ void screen_device::realloc_screen_bitmaps()
 		return;
 
 	// determine effective size to allocate
-	INT32 effwidth = MAX(m_width, m_visarea.max_x + 1);
-	INT32 effheight = MAX(m_height, m_visarea.max_y + 1);
+	INT32 effwidth = std::max(m_width, m_visarea.max_x + 1);
+	INT32 effheight = std::max(m_height, m_visarea.max_y + 1);
 
 	// reize all registered screen bitmaps
 	for (auto &item : m_auto_bitmap_list)
@@ -1143,14 +1143,14 @@ bool screen_device::update_partial(int scanline)
 		if (machine().video().skip_this_frame())
 		{
 			LOG_PARTIAL_UPDATES(("skipped due to frameskipping\n"));
-			return FALSE;
+			return false;
 		}
 
 		// skip if this screen is not visible anywhere
 		if (!machine().render().is_live(*this))
 		{
 			LOG_PARTIAL_UPDATES(("skipped because screen not live\n"));
-			return FALSE;
+			return false;
 		}
 	}
 
@@ -1666,8 +1666,8 @@ void screen_device::finalize_burnin()
 		UINT64 *src = &m_burnin.pix64(y);
 		for (int x = 0; x < srcwidth; x++)
 		{
-			minval = MIN(minval, src[x]);
-			maxval = MAX(maxval, src[x]);
+			minval = std::min(minval, src[x]);
+			maxval = std::max(maxval, src[x]);
 		}
 	}
 

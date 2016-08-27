@@ -133,7 +133,7 @@ const device_type NAMCO_54XX = &device_creator<namco_54xx_device>;
 namco_54xx_device::namco_54xx_device(const machine_config &mconfig, const char *tag, device_t *owner, UINT32 clock)
 	: device_t(mconfig, NAMCO_54XX, "Namco 54xx", tag, owner, clock, "namco54", __FILE__),
 	m_cpu(*this, "mcu"),
-	m_discrete(*this),
+	m_discrete(*this, finder_base::DUMMY_TAG),
 	m_basenode(0),
 	m_latched_cmd(0)
 {
@@ -161,7 +161,7 @@ machine_config_constructor namco_54xx_device::device_mconfig_additions() const
 //  the device's ROM definitions
 //-------------------------------------------------
 
-const rom_entry *namco_54xx_device::device_rom_region() const
+const tiny_rom_entry *namco_54xx_device::device_rom_region() const
 {
 	return ROM_NAME(namco_54xx );
 }

@@ -25,14 +25,14 @@
 #include <dinput.h>
 
 #undef interface
+#undef min
+#undef max
 
 // MAME headers
 #include "emu.h"
-#include "osdepend.h"
 
 // MAMEOS headers
 #include "strconv.h"
-#include "winutil.h"
 #include "winmain.h"
 
 #include "input_common.h"
@@ -294,7 +294,7 @@ private:
 		bstr_ptr bstrClassName;
 		bstr_ptr bstrNamespace;
 		DWORD uReturned = 0;
-		UINT iDevice = 0;
+		UINT iDevice;
 		VARIANT var;
 		HRESULT hr;
 

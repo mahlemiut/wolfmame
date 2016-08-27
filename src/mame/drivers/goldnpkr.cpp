@@ -1217,12 +1217,12 @@ TILE_GET_INFO_MEMBER(goldnpkr_state::wcrdxtnd_get_bg_tile_info)
 
 void goldnpkr_state::video_start()
 {
-	m_bg_tilemap = &machine().tilemap().create(m_gfxdecode, tilemap_get_info_delegate(FUNC(goldnpkr_state::get_bg_tile_info),this), TILEMAP_SCAN_ROWS, 8, 8, 32, 32);
+	m_bg_tilemap = &machine().tilemap().create(*m_gfxdecode, tilemap_get_info_delegate(FUNC(goldnpkr_state::get_bg_tile_info),this), TILEMAP_SCAN_ROWS, 8, 8, 32, 32);
 }
 
 VIDEO_START_MEMBER(goldnpkr_state,wcrdxtnd)
 {
-	m_bg_tilemap = &machine().tilemap().create(m_gfxdecode, tilemap_get_info_delegate(FUNC(goldnpkr_state::wcrdxtnd_get_bg_tile_info),this), TILEMAP_SCAN_ROWS, 8, 8, 32, 32);
+	m_bg_tilemap = &machine().tilemap().create(*m_gfxdecode, tilemap_get_info_delegate(FUNC(goldnpkr_state::wcrdxtnd_get_bg_tile_info),this), TILEMAP_SCAN_ROWS, 8, 8, 32, 32);
 }
 
 UINT32 goldnpkr_state::screen_update_goldnpkr(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect)
@@ -1690,7 +1690,7 @@ static ADDRESS_MAP_START( wildcrdb_map, AS_PROGRAM, 8, goldnpkr_state )
 	AM_RANGE(0x2100, 0x2100) AM_DEVWRITE("crtc", mc6845_device, address_w)
 	AM_RANGE(0x2101, 0x2101) AM_DEVREADWRITE("crtc", mc6845_device, register_r, register_w)
 	AM_RANGE(0x2800, 0x2fff) AM_RAM
-	AM_RANGE(0x3000, 0xffff) AM_ROM
+	AM_RANGE(0x3000, 0x7fff) AM_ROM
 ADDRESS_MAP_END
 
 static ADDRESS_MAP_START( wildcrdb_mcu_map, AS_PROGRAM, 8, goldnpkr_state )

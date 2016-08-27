@@ -17,7 +17,7 @@
 #include "emuopts.h"
 #include "mameopts.h"
 #include "audit.h"
-#include "softlist.h"
+#include "softlist_dev.h"
 
 namespace ui {
 

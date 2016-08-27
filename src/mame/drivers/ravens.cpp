@@ -147,13 +147,13 @@ READ8_MEMBER( ravens_state::port17_r )
 	keyin = ioport("X0")->read();
 	if (keyin != 0xff)
 		for (i = 0; i < 8; i++)
-			if BIT(~keyin, i)
+			if (BIT(~keyin, i))
 				return i | 0x80;
 
 	keyin = ioport("X1")->read();
 	if (keyin != 0xff)
 		for (i = 0; i < 8; i++)
-			if BIT(~keyin, i)
+			if (BIT(~keyin, i))
 				return i | 0x88;
 
 	keyin = ioport("X2")->read();
@@ -161,7 +161,7 @@ READ8_MEMBER( ravens_state::port17_r )
 		m_maincpu->reset();
 	if (keyin != 0xff)
 		for (i = 0; i < 8; i++)
-			if BIT(~keyin, i)
+			if (BIT(~keyin, i))
 				return (i<<4) | 0x80;
 
 	return 0;
@@ -269,7 +269,7 @@ QUICKLOAD_LOAD_MEMBER( ravens_state, ravens )
 	int quick_length;
 	dynamic_buffer quick_data;
 	int read_;
-	int result = IMAGE_INIT_FAIL;
+	image_init_result result = image_init_result::FAIL;
 
 	quick_length = image.length();
 	if (quick_length < 0x0900)
@@ -316,7 +316,7 @@ QUICKLOAD_LOAD_MEMBER( ravens_state, ravens )
 				// Start the quickload
 				m_maincpu->set_state_int(S2650_PC, exec_addr);
 
-				result = IMAGE_INIT_PASS;
+				result = image_init_result::PASS;
 			}
 		}
 	}

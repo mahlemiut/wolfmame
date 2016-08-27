@@ -430,10 +430,10 @@ WRITE16_MEMBER(gaelco3d_state::analog_port_latch_w)
 	{
 		if (!(data & 0xff))
 		{
-			m_analog_ports[0] = read_safe(ioport("ANALOG0"), 0);
-			m_analog_ports[1] = read_safe(ioport("ANALOG1"), 0);
-			m_analog_ports[2] = read_safe(ioport("ANALOG2"), 0);
-			m_analog_ports[3] = read_safe(ioport("ANALOG3"), 0);
+			m_analog_ports[0] = m_analog[0].read_safe(0);
+			m_analog_ports[1] = m_analog[1].read_safe(0);
+			m_analog_ports[2] = m_analog[2].read_safe(0);
+			m_analog_ports[3] = m_analog[3].read_safe(0);
 		}
 	}
 	else
@@ -625,7 +625,7 @@ TIMER_DEVICE_CALLBACK_MEMBER(gaelco3d_state::adsp_autobuffer_irq)
 		reg = m_adsp_ireg_base;
 
 		/* generate the (internal, thats why the pulse) irq */
-		generic_pulse_irq_line(m_adsp, ADSP2105_IRQ1, 1);
+		generic_pulse_irq_line(*m_adsp, ADSP2105_IRQ1, 1);
 	}
 
 	/* store it */

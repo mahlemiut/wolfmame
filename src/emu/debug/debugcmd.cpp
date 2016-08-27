@@ -235,8 +235,8 @@ debugger_commands::debugger_commands(running_machine& machine, debugger_cpu& cpu
 
 	m_console.register_command("dasm",      CMDFLAG_NONE, 0, 3, 5, std::bind(&debugger_commands::execute_dasm, this, _1, _2, _3));
 
-	m_console.register_command("trace",     CMDFLAG_NONE, 0, 1, 3, std::bind(&debugger_commands::execute_trace, this, _1, _2, _3));
-	m_console.register_command("traceover", CMDFLAG_NONE, 0, 1, 3, std::bind(&debugger_commands::execute_traceover, this, _1, _2, _3));
+	m_console.register_command("trace",     CMDFLAG_NONE, 0, 1, 4, std::bind(&debugger_commands::execute_trace, this, _1, _2, _3));
+	m_console.register_command("traceover", CMDFLAG_NONE, 0, 1, 4, std::bind(&debugger_commands::execute_traceover, this, _1, _2, _3));
 	m_console.register_command("traceflush",CMDFLAG_NONE, 0, 0, 0, std::bind(&debugger_commands::execute_traceflush, this, _1, _2, _3));
 
 	m_console.register_command("history",   CMDFLAG_NONE, 0, 0, 2, std::bind(&debugger_commands::execute_history, this, _1, _2, _3));
@@ -2940,7 +2940,7 @@ void debugger_commands::execute_mount(int ref, int params, const char **param)
 	{
 		if (strcmp(img.brief_instance_name(),param[0]) == 0)
 		{
-			if (img.load(param[1])==IMAGE_INIT_FAIL)
+			if (img.load(param[1]) != image_init_result::PASS)
 				m_console.printf("Unable to mount file %s on %s\n",param[1],param[0]);
 			else
 				m_console.printf("File %s mounted on %s\n",param[1],param[0]);

@@ -24,6 +24,7 @@
 #include <mutex>
 #include <memory>
 #include <queue>
+#include <iterator>
 #include <algorithm>
 
 // MAME headers
@@ -109,8 +110,8 @@ static int lookup_sdl_code(const char *scode)
 class sdl_device : public event_based_device<SDL_Event>
 {
 public:
-	sdl_device(running_machine &machine, const char* name, input_device_class devclass, input_module &module)
-		: event_based_device(machine, name, devclass, module)
+	sdl_device(running_machine &machine, const char *name, const char *id, input_device_class devclass, input_module &module)
+		: event_based_device(machine, name, id, devclass, module)
 	{
 	}
 
@@ -131,8 +132,8 @@ class sdl_keyboard_device : public sdl_device
 public:
 	keyboard_state keyboard;
 
-	sdl_keyboard_device(running_machine &machine, const char* name, input_module &module)
-		: sdl_device(machine, name, DEVICE_CLASS_KEYBOARD, module),
+	sdl_keyboard_device(running_machine &machine, const char *name, const char *id, input_module &module)
+		: sdl_device(machine, name, id, DEVICE_CLASS_KEYBOARD, module),
 		keyboard({{0}})
 	{
 	}
@@ -191,11 +192,19 @@ public:
 
 class sdl_mouse_device : public sdl_device
 {
+private:
+	const std::chrono::milliseconds double_click_speed = std::chrono::milliseconds(250);
+	std::chrono::system_clock::time_point last_click;
+	int last_x;
+	int last_y;
+
 public:
 	mouse_state mouse;
 
-	sdl_mouse_device(running_machine &machine, const char* name, input_module &module)
-		: sdl_device(machine, name, DEVICE_CLASS_MOUSE, module),
+	sdl_mouse_device(running_machine &machine, const char *name, const char *id, input_module &module)
+		: sdl_device(machine, name, id, DEVICE_CLASS_MOUSE, module),
+		last_x(0),
+		last_y(0),
 		mouse({0})
 	{
 	}
@@ -234,22 +243,18 @@ public:
 			//printf("But down %d %d %d %d %s\n", event.button.which, event.button.button, event.button.x, event.button.y, devinfo->name.c_str());
 			if (sdlevent.button.button == 1)
 			{
-				// FIXME Move static declaration
-				static osd_ticks_t last_click = 0;
-				static int last_x = 0;
-				static int last_y = 0;
 				int cx, cy;
-				osd_ticks_t click = osd_ticks() * 1000 / osd_ticks_per_second();
+				auto click = std::chrono::system_clock::now();
 				auto window = GET_FOCUS_WINDOW(&sdlevent.button);
 				if (window != nullptr && window->xy_to_render_target(sdlevent.button.x, sdlevent.button.y, &cx, &cy))
 				{
 					machine().ui_input().push_mouse_down_event(window->target(), cx, cy);
-					// FIXME Parameter ?
-					if ((click - last_click < 250)
+
+					if (click - last_click < double_click_speed
 						&& (cx >= last_x - 4 && cx <= last_x + 4)
 						&& (cy >= last_y - 4 && cy <= last_y + 4))
 					{
-						last_click = 0;
+						last_click = std::chrono::time_point<std::chrono::system_clock>::min();
 						machine().ui_input().push_mouse_double_click_event(window->target(), cx, cy);
 					}
 					else
@@ -333,8 +338,8 @@ public:
 	sdl_joystick_state    joystick;
 	sdl_api_state         sdl_state;
 
-	sdl_joystick_device(running_machine &machine, const char *name, input_module &module)
-		: sdl_device(machine, name, DEVICE_CLASS_JOYSTICK, module),
+	sdl_joystick_device(running_machine &machine, const char *name, const char *id, input_module &module)
+		: sdl_device(machine, name, id, DEVICE_CLASS_JOYSTICK, module),
 			joystick({{0}}),
 			sdl_state({ nullptr })
 	{
@@ -414,8 +419,8 @@ public:
 class sdl_sixaxis_joystick_device : public sdl_joystick_device
 {
 public:
-	sdl_sixaxis_joystick_device(running_machine &machine, const char *name, input_module &module)
-		: sdl_joystick_device(machine, name, module)
+	sdl_sixaxis_joystick_device(running_machine &machine, const char *name, const char *id, input_module &module)
+		: sdl_joystick_device(machine, name, id, module)
 	{
 	}
 
@@ -531,7 +536,7 @@ public:
 		osd_printf_verbose("Keyboard: Start initialization\n");
 
 		// SDL only has 1 keyboard add it now
-		devinfo = devicelist()->create_device<sdl_keyboard_device>(machine, "System keyboard", *this);
+		devinfo = devicelist()->create_device<sdl_keyboard_device>(machine, "System keyboard", "System keyboard", *this);
 
 		// populate it
 		for (int keynum = 0; local_table[keynum].mame_key != ITEM_ID_INVALID; keynum++)
@@ -667,7 +672,7 @@ public:
 		osd_printf_verbose("Mouse: Start initialization\n");
 
 		// SDL currently only supports one mouse
-		devinfo = devicelist()->create_device<sdl_mouse_device>(machine, "System mouse", *this);
+		devinfo = devicelist()->create_device<sdl_mouse_device>(machine, "System mouse", "System mouse", *this);
 
 		// add the axes
 		devinfo->device()->add_item("X", ITEM_ID_XAXIS, generic_axis_get_state<std::int32_t>, &devinfo->mouse.lX);
@@ -687,29 +692,27 @@ public:
 };
 
 
-static void devmap_register(device_map_t *devmap, int physical_idx, const std::string &name)
+static void devmap_register(device_map_t &devmap, int physical_idx, const std::string &name)
 {
-	int found = 0;
-	int stick, i;
-
-	for (i = 0; i < MAX_DEVMAP_ENTRIES; i++)
+	// Attempt to find the entry by name
+	auto entry = std::find_if(std::begin(devmap.map), std::end(devmap.map), [&name](auto &item)
 	{
-		if (strcmp(name.c_str(), devmap->map[i].name.c_str()) == 0 && devmap->map[i].physical < 0)
-		{
-			devmap->map[i].physical = physical_idx;
-			found = 1;
-			devmap->logical[physical_idx] = i;
-		}
+		return item.name == name && item.physical < 0;
+	});
+
+	// If we didn't find it by name, find the first free slot
+	if (entry == std::end(devmap.map))
+	{
+		entry = std::find_if(std::begin(devmap.map), std::end(devmap.map), [](auto &item) { return item.name.empty(); });
 	}
 
-	if (found == 0)
+	if (entry != std::end(devmap.map))
 	{
-		stick = devmap_leastfree(devmap);
-		devmap->map[stick].physical = physical_idx;
-		devmap->map[stick].name = name;
-		devmap->logical[physical_idx] = stick;
+		entry->physical = physical_idx;
+		entry->name = name;
+		int logical_idx = std::distance(std::begin(devmap.map), entry);
+		devmap.logical[physical_idx] = logical_idx;
 	}
-
 }
 
 //============================================================
@@ -757,7 +760,7 @@ public:
 		for (physical_stick = 0; physical_stick < SDL_NumJoysticks(); physical_stick++)
 		{
 				std::string joy_name = remove_spaces(SDL_JoystickNameForIndex(physical_stick));
-				devmap_register(&m_joy_map, physical_stick, joy_name.c_str());
+				devmap_register(m_joy_map, physical_stick, joy_name);
 		}
 
 		for (int stick = 0; stick < MAX_DEVMAP_ENTRIES; stick++)
@@ -887,16 +890,16 @@ private:
 			{
 				snprintf(tempname, ARRAY_LENGTH(tempname), "NC%d", index);
 				m_sixaxis_mode
-					? devicelist()->create_device<sdl_sixaxis_joystick_device>(machine, tempname, *this)
-					: devicelist()->create_device<sdl_joystick_device>(machine, tempname, *this);
+					? devicelist()->create_device<sdl_sixaxis_joystick_device>(machine, tempname, tempname, *this)
+					: devicelist()->create_device<sdl_joystick_device>(machine, tempname, tempname, *this);
 			}
 
 			return nullptr;
 		}
 
 		return m_sixaxis_mode
-			? devicelist()->create_device<sdl_sixaxis_joystick_device>(machine, devmap->map[index].name.c_str(), *this)
-			: devicelist()->create_device<sdl_joystick_device>(machine, devmap->map[index].name.c_str(), *this);
+			? devicelist()->create_device<sdl_sixaxis_joystick_device>(machine, devmap->map[index].name.c_str(), devmap->map[index].name.c_str(), *this)
+			: devicelist()->create_device<sdl_joystick_device>(machine, devmap->map[index].name.c_str(), devmap->map[index].name.c_str(), *this);
 	}
 };
 

@@ -2178,7 +2178,8 @@ pitfightj                       // Japan
 @source:atarig42.cpp
 guardian                        // 136092           (c) 1992
 roadriot                        // 136089           (c) 1991
-roadrioto                       // 136089           (c) 1991
+roadriota                       // 136089           (c) 1991
+roadriotb                       // 136089           (c) 1991
 
 @source:atarigt.cpp
 primrage                        // 136102           (c) 1994
@@ -11202,6 +11203,7 @@ cutefght                        // (c) 1998 SemiCom
 dreamwld                        // (c) 2000 SemiCom
 gaialast                        // (c) 1999 SemiCom
 rolcrush                        // (c) 1999 Trust
+rolcrusha                       // (c) 1999 SemiCom
 
 @source:drgnmst.cpp
 drgnmst                         // (c) 1994
@@ -12192,6 +12194,7 @@ fgoal                           // TF  (c) 1979 Taito Corporation
 fgoala                          // MF  (c) 1979 Taito Corporation
 
 @source:fidel6502.cpp
+chesster                        //
 csc                             // CSC: Champion Sensory Chess Challenger (English)
 cscfr                           // * French
 cscg                            // * German
@@ -12797,6 +12800,7 @@ thepitm                         // bootleg
 timefgtr                        // (c) Taito (Brazil) - rewrite of Time Pilot
 tst_galx                        // Galaxian Test ROM
 turpin                          // (c) 1981 Sega
+turpins                         // (c) 1981 bootleg
 turtles                         // (c) 1981 Stern
 uniwars                         // (c) Irem
 warofbug                        // (c) 1981 Armenia
@@ -29303,7 +29307,7 @@ pacuman                         // bootleg
 paintrlr                        // 1981 bootleg
 pengojpm                        // bootleg
 pengopac                        // bootleg
-pinguinos						// bootleg
+pinguinos                       // bootleg
 piranha                         // GL
 piranhah                        // hack
 piranhao                        // GL
@@ -30188,7 +30192,8 @@ sonstwr2                        //
 wolfman                         //
 
 @source:pg685.cpp
-pg685							//
+pg685                           //
+pg685oua12                      //
 
 
 
@@ -30797,6 +30802,7 @@ popeye                          // (c) 1982
 popeyebl                        // bootleg
 popeyef                         // (c) 1982
 popeyeu                         // (c) 1982
+popeyej                         //
 skyskipr                        // (c) 1981
 
 @source:popobear.cpp
@@ -31529,6 +31535,7 @@ spacecho2                       // bootleg
 speakres                        // [Sun Electronics]
 speakresb                       // bootleg
 stratvox                        // [1980 Sun Electronics] Taito
+stratvoxa                       // [1980 Sun Electronics] Taito
 stratvoxb                       // bootleg
 ttmahjng                        // Taito
 
@@ -32173,7 +32180,6 @@ newsin7                         // (c) 1983 ATW USA, Inc.
 newsin7a                        // (c) 1982 ATW USA, Inc.
 triplep                         // (c) 1982 KKI / made by Sanritsu?
 triplepa                        // (c) 1982 KKI / made by Sanritsu?
-turpins                         // (c) 1981 bootleg
 
 @source:scregg.cpp
 dommy                           // TA-00?? (c) 1983 (Arcade TV Game List - P.90, Left, 13 from top)
@@ -32286,6 +32292,7 @@ fantzn2                         // (c) 1988
 hangonjr                        // (c) 1985
 opaopa                          //
 ridleofp                        // (c) 1986 Sega / Nasco
+slapshtr                        // (c) 1986 Sega
 tetrisse                        // (c) 1988
 transfrm                        // 834-5803 (c) 1986
 
@@ -32798,6 +32805,7 @@ rdftadi                         // (c) 1996 Seibu Kaihatsu (Dream Island license
 rdftam                          // (c) 1996 Seibu Kaihatsu (Metrotainment license)
 rdftau                          // (c) 1996 Seibu Kaihatsu
 rdftauge                        // (c) 1996 Seibu Kaihatsu (Tuning license and text display, but Australia region code)
+rdftgb                          // (c) 1996 Seibu Kaihatsu
 rdftit                          // (c) 1996 Seibu Kaihatsu
 rdftj                           // (c) 1996 Seibu Kaihatsu
 rdftja                          // (c) 1996 Seibu Kaihatsu
@@ -35099,7 +35107,7 @@ spcteam                         //
 @source:tecmo.cpp
 backfirt                        // bootleg [(c) 1988 Tecmo]
 gemini                          // (c) 1987 Tecmo
-geminib							// bootleg
+geminib                         // bootleg
 rygar                           // 6002 - (c) 1986 Tecmo
 rygar2                          // 6002 - (c) 1986 Tecmo
 rygar3                          // 6002 - (c) 1986 Tecmo

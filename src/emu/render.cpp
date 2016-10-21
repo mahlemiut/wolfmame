@@ -967,7 +967,7 @@ render_target::render_target(render_manager &manager, const internal_layout *lay
 	m_layerconfig = m_base_layerconfig;
 
 	// load the layout files
-	load_layout_files(layoutfile, flags & RENDER_CREATE_SINGLE_FILE);
+	load_layout_files(layoutfile, (flags & RENDER_CREATE_SINGLE_FILE)!=0);
 
 	// set the current view to the first one
 	set_view(0);
@@ -1219,7 +1219,7 @@ void render_target::compute_visible_area(INT32 target_width, INT32 target_height
 			int scale_mode = m_scale_mode;
 			if (m_scale_mode == SCALE_FRACTIONAL_AUTO)
 			{
-				bool is_rotated = (m_manager.machine().system().flags & ORIENTATION_SWAP_XY) ^ (target_orientation & ORIENTATION_SWAP_XY);
+				bool is_rotated = ((m_manager.machine().system().flags & ORIENTATION_SWAP_XY) ^ (target_orientation & ORIENTATION_SWAP_XY))!=0;
 				scale_mode = is_rotated ^ target_is_portrait ? SCALE_FRACTIONAL_Y : SCALE_FRACTIONAL_X;
 			}
 
@@ -1402,6 +1402,7 @@ render_primitive_list &render_target::get_primitives()
 	{
 		render_primitive *prim = list.alloc(render_primitive::QUAD);
 		set_render_bounds_xy(&prim->bounds, 0.0f, 0.0f, (float)m_width, (float)m_height);
+		prim->full_bounds = prim->bounds;
 		set_render_color(&prim->color, 1.0f, 1.0f, 1.0f, 1.0f);
 		prim->texture.base = nullptr;
 		prim->flags = PRIMFLAG_BLENDMODE(BLENDMODE_ALPHA);
@@ -1411,6 +1412,7 @@ render_primitive_list &render_target::get_primitives()
 		{
 			prim = list.alloc(render_primitive::QUAD);
 			set_render_bounds_xy(&prim->bounds, 1.0f, 1.0f, (float)(m_width - 1), (float)(m_height - 1));
+			prim->full_bounds = prim->bounds;
 			set_render_color(&prim->color, 1.0f, 0.0f, 0.0f, 0.0f);
 			prim->texture.base = nullptr;
 			prim->flags = PRIMFLAG_BLENDMODE(BLENDMODE_ALPHA);
@@ -1855,6 +1857,9 @@ void render_target::add_container_primitives(render_primitive_list &list, const 
 		prim->color.b = container_xform.color.b * curitem.color().b;
 		prim->color.a = container_xform.color.a * curitem.color().a;
 
+		// copy unclipped bounds
+		prim->full_bounds = prim->bounds;
+
 		// now switch off the type
 		bool clipped = true;
 		switch (curitem.type())
@@ -1917,7 +1922,7 @@ void render_target::add_container_primitives(render_primitive_list &list, const 
 					clipped = render_clip_quad(&prim->bounds, &cliprect, &prim->texcoords);
 
 					// apply the final orientation from the quad flags and then build up the final flags
-					prim->flags = (curitem.flags() & ~(PRIMFLAG_TEXORIENT_MASK | PRIMFLAG_BLENDMODE_MASK | PRIMFLAG_TEXFORMAT_MASK))
+					prim->flags |= (curitem.flags() & ~(PRIMFLAG_TEXORIENT_MASK | PRIMFLAG_BLENDMODE_MASK | PRIMFLAG_TEXFORMAT_MASK))
 						| PRIMFLAG_TEXORIENT(finalorient)
 						| PRIMFLAG_TEXFORMAT(curitem.texture()->format());
 					prim->flags |= blendmode != -1
@@ -1977,7 +1982,7 @@ void render_target::add_container_primitives(render_primitive_list &list, const 
 						clipped = render_clip_quad(&prim->bounds, &cliprect, &prim->texcoords);
 
 						// apply the final orientation from the quad flags and then build up the final flags
-						prim->flags = (curitem.flags() & ~(PRIMFLAG_TEXORIENT_MASK | PRIMFLAG_BLENDMODE_MASK | PRIMFLAG_TEXFORMAT_MASK))
+						prim->flags |= (curitem.flags() & ~(PRIMFLAG_TEXORIENT_MASK | PRIMFLAG_BLENDMODE_MASK | PRIMFLAG_TEXFORMAT_MASK))
 							| PRIMFLAG_TEXORIENT(finalorient);
 						prim->flags |= blendmode != -1
 							? PRIMFLAG_BLENDMODE(blendmode)
@@ -1986,7 +1991,7 @@ void render_target::add_container_primitives(render_primitive_list &list, const 
 					else
 					{
 						// set the basic flags
-						prim->flags = (curitem.flags() & ~PRIMFLAG_BLENDMODE_MASK)
+						prim->flags |= (curitem.flags() & ~PRIMFLAG_BLENDMODE_MASK)
 							| PRIMFLAG_BLENDMODE(BLENDMODE_ALPHA);
 
 						// apply clipping
@@ -2008,22 +2013,23 @@ void render_target::add_container_primitives(render_primitive_list &list, const 
 		// allocate a primitive
 		render_primitive *prim = list.alloc(render_primitive::QUAD);
 		set_render_bounds_wh(&prim->bounds, xform.xoffs, xform.yoffs, xform.xscale, xform.yscale);
+		prim->full_bounds = prim->bounds;
 		prim->color = container_xform.color;
 		width = render_round_nearest(prim->bounds.x1) - render_round_nearest(prim->bounds.x0);
 		height = render_round_nearest(prim->bounds.y1) - render_round_nearest(prim->bounds.y0);
 
 		container.overlay()->get_scaled(
-				(container_xform.orientation & ORIENTATION_SWAP_XY) ? height : width,
-				(container_xform.orientation & ORIENTATION_SWAP_XY) ? width : height, prim->texture, list);
+			(container_xform.orientation & ORIENTATION_SWAP_XY) ? height : width,
+			(container_xform.orientation & ORIENTATION_SWAP_XY) ? width : height, prim->texture, list);
 
 		// determine UV coordinates
 		prim->texcoords = oriented_texcoords[container_xform.orientation];
 
 		// set the flags and add it to the list
-		prim->flags = PRIMFLAG_TEXORIENT(container_xform.orientation) |
-						PRIMFLAG_BLENDMODE(BLENDMODE_RGB_MULTIPLY) |
-						PRIMFLAG_TEXFORMAT(container.overlay()->format()) |
-						PRIMFLAG_TEXSHADE(1);
+		prim->flags = PRIMFLAG_TEXORIENT(container_xform.orientation)
+			| PRIMFLAG_BLENDMODE(BLENDMODE_RGB_MULTIPLY)
+			| PRIMFLAG_TEXFORMAT(container.overlay()->format())
+			| PRIMFLAG_TEXSHADE(1);
 
 		list.append_or_return(*prim, false);
 	}
@@ -2057,6 +2063,7 @@ void render_target::add_element_primitives(render_primitive_list &list, const ob
 		INT32 width = render_round_nearest(xform.xscale);
 		INT32 height = render_round_nearest(xform.yscale);
 		set_render_bounds_wh(&prim->bounds, render_round_nearest(xform.xoffs), render_round_nearest(xform.yoffs), (float) width, (float) height);
+		prim->full_bounds = prim->bounds;
 		if (xform.orientation & ORIENTATION_SWAP_XY)
 			std::swap(width, height);
 		width = std::min(width, m_maxtexwidth);
@@ -2228,27 +2235,27 @@ void render_target::config_load(xml_data_node &targetnode)
 	// modify the artwork config
 	int tmpint = xml_get_attribute_int(&targetnode, "backdrops", -1);
 	if (tmpint == 0 || tmpint == 1)
-		set_backdrops_enabled(tmpint);
+		set_backdrops_enabled(tmpint != 0);
 
 	tmpint = xml_get_attribute_int(&targetnode, "overlays", -1);
 	if (tmpint == 0 || tmpint == 1)
-		set_overlays_enabled(tmpint);
+		set_overlays_enabled(tmpint != 0);
 
 	tmpint = xml_get_attribute_int(&targetnode, "bezels", -1);
 	if (tmpint == 0 || tmpint == 1)
-		set_bezels_enabled(tmpint);
+		set_bezels_enabled(tmpint != 0);
 
 	tmpint = xml_get_attribute_int(&targetnode, "cpanels", -1);
 	if (tmpint == 0 || tmpint == 1)
-		set_cpanels_enabled(tmpint);
+		set_cpanels_enabled(tmpint != 0);
 
 	tmpint = xml_get_attribute_int(&targetnode, "marquees", -1);
 	if (tmpint == 0 || tmpint == 1)
-		set_marquees_enabled(tmpint);
+		set_marquees_enabled(tmpint != 0);
 
 	tmpint = xml_get_attribute_int(&targetnode, "zoom", -1);
 	if (tmpint == 0 || tmpint == 1)
-		set_zoom_to_screen(tmpint);
+		set_zoom_to_screen(tmpint != 0);
 
 	// apply orientation
 	tmpint = xml_get_attribute_int(&targetnode, "rotate", -1);
@@ -2511,6 +2518,7 @@ void render_target::add_clear_extents(render_primitive_list &list)
 			{
 				render_primitive *prim = list.alloc(render_primitive::QUAD);
 				set_render_bounds_xy(&prim->bounds, (float)x0, (float)y0, (float)x1, (float)y1);
+				prim->full_bounds = prim->bounds;
 				set_render_color(&prim->color, 1.0f, 0.0f, 0.0f, 0.0f);
 				prim->texture.base = nullptr;
 				prim->flags = PRIMFLAG_BLENDMODE(BLENDMODE_ALPHA);

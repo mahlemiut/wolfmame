@@ -49,7 +49,6 @@ SLOT_INTERFACE_EXTERN( coco_cart );
 #define SAM_TAG                     "sam"
 #define VDG_TAG                     "vdg"
 #define SCREEN_TAG                  "screen"
-#define DAC_TAG                     "dac"
 #define CARTRIDGE_TAG               "ext"
 #define RS232_TAG                   "rs232"
 #define DWSOCK_TAG                  "dwsock"
@@ -93,7 +92,7 @@ public:
 	required_device<cpu_device> m_maincpu;
 	required_device<pia6821_device> m_pia_0;
 	required_device<pia6821_device> m_pia_1;
-	required_device<dac_device> m_dac;
+	required_device<dac_byte_interface> m_dac;
 	required_device<wave_device> m_wave;
 	required_device<cococart_slot_device> m_cococart;
 	required_device<ram_device> m_ram;
@@ -233,9 +232,9 @@ private:
 	UINT8 floating_bus_read(void);
 
 	// input ports
-	ioport_port *m_keyboard[7];
-	ioport_port *m_joystick_type_control;
-	ioport_port *m_joystick_hires_control;
+	required_ioport_array<7> m_keyboard;
+	optional_ioport m_joystick_type_control;
+	optional_ioport m_joystick_hires_control;
 	analog_input_t m_joystick;
 	analog_input_t m_rat_mouse;
 	analog_input_t m_diecom_lightgun;

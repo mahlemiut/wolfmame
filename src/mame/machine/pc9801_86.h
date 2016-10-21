@@ -58,9 +58,9 @@ private:
 	UINT16 m_head, m_tail, m_count, m_irq_rate;
 	bool m_pcmirq, m_fmirq;
 	required_device<ym2608_device>  m_opna;
-	required_device<dac_device> m_dacl;
-	required_device<dac_device> m_dacr;
-	dynamic_buffer m_queue;
+	required_device<dac_word_interface> m_ldac;
+	required_device<dac_word_interface> m_rdac;
+	std::vector<UINT8> m_queue;
 	emu_timer *m_dac_timer;
 };
 

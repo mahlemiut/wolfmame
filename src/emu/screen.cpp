@@ -114,9 +114,7 @@ screen_device_svg_renderer::screen_device_svg_renderer(memory_region *region)
 			}
 		}
 	m_key_state.resize(m_key_count);
-	// Don't memset a vector<bool>, they're special, and not in a good way
-	for(int i=0; i != m_key_count; i++)
-		m_key_state[i] = false;
+	std::fill(m_key_state.begin(),m_key_state.end(),false);
 
 	m_sx = m_sy = 0;
 	m_scale = 1.0;
@@ -248,7 +246,7 @@ void screen_device_svg_renderer::output_change(const char *outname, INT32 value)
 	auto l = m_key_ids.find(outname);
 	if (l == m_key_ids.end())
 		return;
-	m_key_state[l->second] = value;
+	m_key_state[l->second] = value!=0;
 }
 
 void screen_device_svg_renderer::compute_initial_bboxes(std::vector<bbox> &bboxes)

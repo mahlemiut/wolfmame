@@ -2,7 +2,7 @@
 // copyright-holders:Antoine Mine
 /****************************************************************************
 
-    hp48.c
+    hp48.cpp
 
     Memory cards for HP48 SX/GX
 
@@ -95,7 +95,7 @@
 
 struct hp48_card
 {
-	imgtool_stream *stream;
+	imgtool::stream *stream;
 		int modified;
 
 		/* size, in bytes of card data: from 32 KB to 4 MB */
@@ -149,6 +149,11 @@ static const char hp48_create_optionspec[] = "S32/64/[128]/256/512/1024/2048/409
  Utility functions
 *****************************************************************************/
 
+
+static hp48_card *get_hp48_card(imgtool::image &image)
+{
+	return (hp48_card*) image.extra_bytes();
+}
 
 /* byes to nibbles */
 static void unpack(UINT8* dst, UINT8* src, int nsize)
@@ -327,83 +332,85 @@ static UINT16 crc(UINT8* data, int len)
 *****************************************************************************/
 
 
-static imgtoolerr_t hp48_open(imgtool_image *img, imgtool_stream *stream)
+static imgtoolerr_t hp48_open(imgtool::image &img, imgtool::stream::ptr &&stream)
 {
-	hp48_card* c = (hp48_card*) imgtool_image_extra_bytes( img );
-	int size = stream_size( stream );
+	hp48_card* c = get_hp48_card(img);
+	int size = stream->size();
 
-		/* check that size is a power of 2 between 32 KB and 4 MG */
-		if ( (size < 32 * 1024) ||
-				(size > 4 * 1024 * 1024) ||
-				(size & (size-1)) )
-		{
-				return IMGTOOLERR_CORRUPTIMAGE;
-		}
+	/* check that size is a power of 2 between 32 KB and 4 MG */
+	if ( (size < 32 * 1024) ||
+			(size > 4 * 1024 * 1024) ||
+			(size & (size-1)) )
+	{
+		return IMGTOOLERR_CORRUPTIMAGE;
+	}
 
-		/* store info */
-	c->stream = stream;
+	/* store info */
+	c->stream = stream.get();
 	c->modified = 0;
-		c->size = size;
-		c->data = (UINT8*) malloc( 2 * size );
-		if ( !c->data )
-		{
-				return IMGTOOLERR_READERROR;
-		}
+	c->size = size;
+	c->data = (UINT8*) malloc( 2 * size );
+	if ( !c->data )
+	{
+		return IMGTOOLERR_READERROR;
+	}
 
-		/* fully load image */
-	stream_seek( stream, 0, SEEK_SET );
-	if ( stream_read( stream, c->data, size ) < size )
-		{
-				return IMGTOOLERR_READERROR;
-		}
-		unpack( c->data, c->data, 2 * size );
+	/* fully load image */
+	c->stream->seek(0, SEEK_SET);
+	if (c->stream->read(c->data, size) < size)
+	{
+		return IMGTOOLERR_READERROR;
+	}
+	unpack( c->data, c->data, 2 * size );
 
+	c->stream = stream.release();
 	return IMGTOOLERR_SUCCESS;
 }
 
 
 
-static imgtoolerr_t hp48_create(imgtool_image* img,
-				imgtool_stream *stream,
+static imgtoolerr_t hp48_create(imgtool::image &img,
+				imgtool::stream::ptr &&stream,
 				util::option_resolution *opts)
 {
-	hp48_card* c = (hp48_card*) imgtool_image_extra_bytes( img );
+	hp48_card* c = get_hp48_card(img);
 	int size;
 
-		size = opts->lookup_int('S');
+	size = opts->lookup_int('S');
 
-		c->stream = stream;
-		c->modified = 1;
-		c->size = size * 1024;
-		c->data = (UINT8*) malloc( 2 * c->size );
-		if ( !c->data )
-		{
-				return IMGTOOLERR_READERROR;
-		}
+	c->stream = stream.get();
+	c->modified = 1;
+	c->size = size * 1024;
+	c->data = (UINT8*) malloc( 2 * c->size );
+	if ( !c->data )
+	{
+		return IMGTOOLERR_READERROR;
+	}
 
-		/* zeroing the image seems fine */
-		memset( c->data, 0, 2 * c->size );
+	/* zeroing the image seems fine */
+	memset( c->data, 0, 2 * c->size );
 
+	c->stream = stream.release();
 	return IMGTOOLERR_SUCCESS;
 }
 
 
 
-static void hp48_close(imgtool_image *img)
+static void hp48_close(imgtool::image &img)
 {
-	hp48_card* c = (hp48_card*) imgtool_image_extra_bytes( img );
+	hp48_card* c = get_hp48_card(img);
 
 	if ( c->modified )
 		{
 				/* save image */
 				pack( c->data, c->data, 2 * c->size );
-				stream_seek( c->stream, 0, SEEK_SET );
-				stream_write( c->stream, c->data, c->size );
+				c->stream->seek(0, SEEK_SET);
+				c->stream->write(c->data, c->size);
 		}
 
 		/* clean up */
 		free( c->data );
-	stream_close( c->stream );
+	delete c->stream;
 }
 
 
@@ -413,35 +420,30 @@ static void hp48_close(imgtool_image *img)
 
 void hp48_partition_get_info(const imgtool_class *imgclass, UINT32 state, union imgtoolinfo *info);
 
-static imgtoolerr_t hp48_list_partitions(imgtool_image *img,
-											imgtool_partition_info *partitions,
-											size_t len)
+static imgtoolerr_t hp48_list_partitions(imgtool::image &img, std::vector<imgtool::partition_info> &partitions)
 {
-	hp48_card* c = (hp48_card*) imgtool_image_extra_bytes( img );
+	hp48_card* c = get_hp48_card(img);
 
-		int i;
-		for ( i = 0; i < len && i * MAX_PORT_SIZE < c->size ; i++ )
-		{
-				/* offset and size in bytes */
-				partitions[i].base_block = i * MAX_PORT_SIZE;
-				partitions[i].block_count = c->size - partitions[i].base_block;
-				if ( partitions[i].block_count > MAX_PORT_SIZE )
-				{
-						partitions[i].block_count = MAX_PORT_SIZE;
-				}
+	int i;
+	for (i = 0; i * MAX_PORT_SIZE < c->size ; i++)
+	{
+		// offset and size in bytes
+		UINT64 base_block = i * MAX_PORT_SIZE;
+		UINT64 block_count = std::min((UINT64)c->size - base_block, (UINT64)MAX_PORT_SIZE);
 
-				partitions[i].get_info = hp48_partition_get_info;
-		}
+		// append the partition
+		partitions.emplace_back(hp48_partition_get_info, base_block, block_count);
+	}
 
 	return IMGTOOLERR_SUCCESS;
 }
 
-static imgtoolerr_t hp48_open_partition(imgtool_partition *part,
+static imgtoolerr_t hp48_open_partition(imgtool::partition &part,
 					UINT64 first_block, UINT64 block_count)
 {
-	imgtool_image* img = imgtool_partition_image( part );
-	hp48_card* c = (hp48_card*) imgtool_image_extra_bytes( img );
-	hp48_partition* p = (hp48_partition*) imgtool_partition_extra_bytes( part );
+	imgtool::image &img(part.image());
+	hp48_card* c = get_hp48_card(img);
+	hp48_partition* p = (hp48_partition*) part.extra_bytes();
 
 		if ( first_block + block_count > c->size )
 				return IMGTOOLERR_INVALIDPARTITION;
@@ -455,33 +457,31 @@ static imgtoolerr_t hp48_open_partition(imgtool_partition *part,
 
 
 
-static imgtoolerr_t hp48_beginenum(imgtool_directory *enumeration,
-									const char *path)
+static imgtoolerr_t hp48_beginenum(imgtool::directory &enumeration, const char *path)
 {
-	hp48_directory* d = (hp48_directory*) imgtool_directory_extrabytes( enumeration );
+	hp48_directory* d = (hp48_directory*) enumeration.extra_bytes();
 
-		d->pos = 0;
+	d->pos = 0;
 
 	return IMGTOOLERR_SUCCESS;
 }
 
 
 
-static imgtoolerr_t hp48_nextenum(imgtool_directory *enumeration,
-									imgtool_dirent *ent)
+static imgtoolerr_t hp48_nextenum(imgtool::directory &enumeration, imgtool_dirent &ent)
 {
-	imgtool_partition *part = imgtool_directory_partition( enumeration );
-	//imgtool_image* img = imgtool_partition_image( part );
-	//hp48_card* c = (hp48_card*) imgtool_image_extra_bytes( img );
-	hp48_partition* p = (hp48_partition*) imgtool_partition_extra_bytes( part );
-	hp48_directory* d = (hp48_directory*) imgtool_directory_extrabytes( enumeration );
+	imgtool::partition &part(enumeration.partition());
+	//imgtool::image &img(part.image());
+	//hp48_card* c = get_hp48_card(img);
+	hp48_partition* p = (hp48_partition*) part.extra_bytes();
+	hp48_directory* d = (hp48_directory*) enumeration.extra_bytes();
 
 		UINT8* data = p->data;
 		int pos = d->pos;
 
 		if ( pos < 0 || pos+12 > 2*p->size )
 		{
-				ent->eof = 1;
+				ent.eof = 1;
 				return IMGTOOLERR_SUCCESS;
 		}
 
@@ -496,21 +496,21 @@ static imgtoolerr_t hp48_nextenum(imgtool_directory *enumeration,
 				int namelen = read8( data+pos );
 				pos += 2;
 				if ( (pos + 2*namelen > 2*p->size) ||
-						(namelen >= sizeof(ent->filename)) )
+						(namelen >= sizeof(ent.filename)) )
 				{
-						ent->eof = 1;
+						ent.eof = 1;
 						return IMGTOOLERR_CORRUPTFILE;
 				}
-				readstring( ent->filename, data+pos, namelen );
+				readstring( ent.filename, data+pos, namelen );
 
 				/* compute size in bytes, removing name, length & CRC fields */
-		ent->filesize = ((totalsize - 19 - 2*namelen) + 1) / 2;
+		ent.filesize = ((totalsize - 19 - 2*namelen) + 1) / 2;
 
 				switch (prolog)
 				{
-				case PROLOG_LIBRARY:  strncpy( ent->attr, "LIB", sizeof(ent->attr) ); break;
-				case PROLOG_BACKUP:   strncpy( ent->attr, "BAK", sizeof(ent->attr) ); break;
-				default:              strncpy( ent->attr, "?", sizeof(ent->attr) );
+				case PROLOG_LIBRARY:  strncpy( ent.attr, "LIB", sizeof(ent.attr) ); break;
+				case PROLOG_BACKUP:   strncpy( ent.attr, "BAK", sizeof(ent.attr) ); break;
+				default:              strncpy( ent.attr, "?", sizeof(ent.attr) );
 				}
 
 				d->pos = d->pos + totalsize + 5;
@@ -518,7 +518,7 @@ static imgtoolerr_t hp48_nextenum(imgtool_directory *enumeration,
 		else
 		{
 				/* 0 or unknown object => end */
-				ent->eof = 1;
+				ent.eof = 1;
 		}
 
 	return IMGTOOLERR_SUCCESS;
@@ -526,11 +526,11 @@ static imgtoolerr_t hp48_nextenum(imgtool_directory *enumeration,
 
 
 
-static imgtoolerr_t hp48_freespace(imgtool_partition *part, UINT64 *size)
+static imgtoolerr_t hp48_freespace(imgtool::partition &part, UINT64 *size)
 {
-	//imgtool_image* img = imgtool_partition_image( part );
-	//hp48_card* c = (hp48_card*) imgtool_image_extra_bytes( img );
-	hp48_partition* p = (hp48_partition*) imgtool_partition_extra_bytes( part );
+	//imgtool::image &img(part.image());
+	//hp48_card* c = get_hp48_card(img);
+	hp48_partition* p = (hp48_partition*) part.extra_bytes();
 
 		*size = p->size - (find_end(p)+1)/2;
 
@@ -539,14 +539,14 @@ static imgtoolerr_t hp48_freespace(imgtool_partition *part, UINT64 *size)
 
 
 
-static imgtoolerr_t hp48_readfile(imgtool_partition *part,
+static imgtoolerr_t hp48_readfile(imgtool::partition &part,
 									const char *filename,
 									const char *fork,
-									imgtool_stream *destf)
+									imgtool::stream &destf)
 {
-	//imgtool_image* img = imgtool_partition_image( part );
-	//hp48_card* c = (hp48_card*) imgtool_image_extra_bytes( img );
-	hp48_partition* p = (hp48_partition*) imgtool_partition_extra_bytes( part );
+	//imgtool::image &img(part.image());
+	//hp48_card* c = get_hp48_card(img);
+	hp48_partition* p = (hp48_partition*) part.extra_bytes();
 
 		/* find entry */
 		int totalsize, start, size;
@@ -566,7 +566,7 @@ static imgtoolerr_t hp48_readfile(imgtool_partition *part,
 		size -= 10;
 
 		/* save header */
-		stream_write( destf, hp48_prefix, 8);
+		destf.write(hp48_prefix, 8);
 
 		/* save contents to host file */
 		int bytesize = (size + 1) / 2;
@@ -576,7 +576,7 @@ static imgtoolerr_t hp48_readfile(imgtool_partition *part,
 				return IMGTOOLERR_FILENOTFOUND;
 		}
 		pack( buf, p->data + start, size );
-		stream_write( destf, buf, bytesize );
+		destf.write(buf, bytesize);
 		free( buf );
 
 		return IMGTOOLERR_SUCCESS;
@@ -584,12 +584,12 @@ static imgtoolerr_t hp48_readfile(imgtool_partition *part,
 
 
 
-static imgtoolerr_t hp48_deletefile(imgtool_partition *part,
+static imgtoolerr_t hp48_deletefile(imgtool::partition &part,
 									const char *filename)
 {
-	imgtool_image* img = imgtool_partition_image( part );
-		hp48_card* c = (hp48_card*) imgtool_image_extra_bytes( img );
-	hp48_partition* p = (hp48_partition*) imgtool_partition_extra_bytes( part );
+	imgtool::image &img(part.image());
+	hp48_card* c = get_hp48_card(img);
+	hp48_partition* p = (hp48_partition*) part.extra_bytes();
 
 		/* find entry */
 		int totalsize;
@@ -610,19 +610,19 @@ static imgtoolerr_t hp48_deletefile(imgtool_partition *part,
 
 
 
-static imgtoolerr_t hp48_writefile(imgtool_partition *part,
+static imgtoolerr_t hp48_writefile(imgtool::partition &part,
 									const char *filename,
 									const char *fork,
-									imgtool_stream *sourcef,
+									imgtool::stream &sourcef,
 									util::option_resolution *opts)
 {
-	imgtool_image* img = imgtool_partition_image( part );
-		hp48_card* c = (hp48_card*) imgtool_image_extra_bytes( img );
-	hp48_partition* p = (hp48_partition*) imgtool_partition_extra_bytes( part );
+	imgtool::image &img(part.image());
+	hp48_card* c = get_hp48_card(img);
+	hp48_partition* p = (hp48_partition*) part.extra_bytes();
 
 		/* check header */
 		char head[8];
-		stream_read( sourcef, head, 8 );
+		sourcef.read(head, 8);
 		if ( memcmp( head, hp48_prefix, 7) )
 		{
 				return IMGTOOLERR_READERROR;
@@ -640,7 +640,7 @@ static imgtoolerr_t hp48_writefile(imgtool_partition *part,
 		if ( len > 255 ) len = 255;
 
 		/* check size */
-	int filesize = stream_size( sourcef ) - 8;
+		int filesize = sourcef.size() - 8;
 		if ( pos + 2*filesize + 24 + 2*len > 2 * p->size )
 		{
 				return IMGTOOLERR_NOSPACE;
@@ -649,7 +649,7 @@ static imgtoolerr_t hp48_writefile(imgtool_partition *part,
 		/* load file */
 		UINT8* buf = (UINT8*) malloc( filesize );
 		if ( !buf ) return IMGTOOLERR_NOSPACE;
-		stream_read( sourcef, buf, filesize );
+		sourcef.read(buf, filesize);
 
 		/* store backup object */
 		int org = pos;
@@ -732,7 +732,7 @@ void hp48_get_info(const imgtool_class *imgclass, UINT32 state, union imgtoolinf
 		case IMGTOOLINFO_PTR_OPEN:                          info->open        = hp48_open; break;
 		case IMGTOOLINFO_PTR_CREATE:                        info->create      = hp48_create; break;
 		case IMGTOOLINFO_PTR_CLOSE:                         info->close       = hp48_close; break;
-				case IMGTOOLINFO_PTR_LIST_PARTITIONS:               info->list_partitions = hp48_list_partitions; break;
+		case IMGTOOLINFO_PTR_LIST_PARTITIONS:               info->list_partitions = hp48_list_partitions; break;
 
 		case IMGTOOLINFO_INT_IMAGE_EXTRA_BYTES:             info->i = sizeof(hp48_card); break;
 		}

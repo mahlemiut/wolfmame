@@ -15,6 +15,7 @@
 #include "video/vector.h"
 #include "machine/laserdsc.h"
 #include "drivenum.h"
+#include "natkeyboard.h"
 #include "render.h"
 #include "luaengine.h"
 #include "cheat.h"
@@ -212,8 +213,7 @@ void mame_ui_manager::init()
 	// request a callback upon exiting
 	machine().add_notifier(MACHINE_NOTIFY_EXIT, machine_notify_delegate(FUNC(mame_ui_manager::exit), this));
 
-	// retrieve options
-	m_use_natural_keyboard = machine().options().natural_keyboard();
+	// create mouse bitmap
 	bitmap_argb32 *ui_mouse_bitmap = auto_alloc(machine(), bitmap_argb32(32, 32));
 	UINT32 *dst = &ui_mouse_bitmap->pix32(0);
 	memcpy(dst,mouse_bitmap,32*32*sizeof(UINT32));
@@ -317,9 +317,10 @@ void mame_ui_manager::display_startup_screens(bool first_time)
 				if (!messagebox_text.empty())
 				{
 					set_handler(ui_callback_type::MODAL, std::bind(&mame_ui_manager::handler_messagebox_anykey, this, _1));
-					if (machine().system().flags & (MACHINE_WRONG_COLORS | MACHINE_IMPERFECT_COLORS | MACHINE_REQUIRES_ARTWORK | MACHINE_IMPERFECT_GRAPHICS | MACHINE_IMPERFECT_SOUND | MACHINE_IMPERFECT_KEYBOARD | MACHINE_NO_SOUND))
+					// TODO: don't think BTANB should be marked yellow? Also move this snippet to specific getter
+					if (machine().system().flags & (MACHINE_WARNING_FLAGS|MACHINE_BTANB_FLAGS))
 						messagebox_backcolor = UI_YELLOW_COLOR;
-					if (machine().system().flags & (MACHINE_NOT_WORKING | MACHINE_UNEMULATED_PROTECTION | MACHINE_MECHANICAL))
+					if (machine().system().flags & (MACHINE_FATAL_FLAGS))
 						messagebox_backcolor = UI_RED_COLOR;
 				}
 				break;
@@ -1097,7 +1098,7 @@ UINT32 mame_ui_manager::handler_ingame(render_container &container)
 	}
 
 	// determine if we should disable the rest of the UI
-	bool has_keyboard = machine().ioport().has_keyboard();
+	bool has_keyboard = machine_info().has_keyboard();
 	bool ui_disabled = (has_keyboard && !machine().ui_active());
 
 	// is ScrLk UI toggling applicable here?
@@ -1134,7 +1135,7 @@ UINT32 mame_ui_manager::handler_ingame(render_container &container)
 	}
 
 	// is the natural keyboard enabled?
-	if (use_natural_keyboard() && (machine().phase() == MACHINE_PHASE_RUNNING))
+	if (machine().ioport().natkeyboard().in_use() && (machine().phase() == MACHINE_PHASE_RUNNING))
 		process_natural_keyboard();
 
 	if (!ui_disabled)
@@ -2146,19 +2147,6 @@ INT32 mame_ui_manager::slider_crossoffset(running_machine &machine, void *arg, i
 	return field->crosshair_offset();
 }
 #endif
-
-//-------------------------------------------------
-//  set_use_natural_keyboard - specifies
-//  whether the natural keyboard is active
-//-------------------------------------------------
-
-void mame_ui_manager::set_use_natural_keyboard(bool use_natural_keyboard)
-{
-	m_use_natural_keyboard = use_natural_keyboard;
-	std::string error;
-	machine().options().set_value(OPTION_NATURAL_KEYBOARD, use_natural_keyboard, OPTION_PRIORITY_CMDLINE, error);
-	assert(error.empty());
-}
 
 
 //-------------------------------------------------

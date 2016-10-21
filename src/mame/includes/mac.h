@@ -24,6 +24,7 @@
 #include "machine/macrtc.h"
 #include "sound/asc.h"
 #include "sound/awacs.h"
+#include "sound/dac.h"
 #include "cpu/m68000/m68000.h"
 
 #define MAC_SCREEN_NAME "screen"
@@ -145,46 +146,6 @@ enum model_t
 
 void mac_fdc_set_enable_lines(device_t *device, int enable_mask);
 
-/*----------- defined in audio/mac.c -----------*/
-
-class mac_sound_device : public device_t,
-							public device_sound_interface
-{
-public:
-	mac_sound_device(const machine_config &mconfig, const char *tag, device_t *owner, UINT32 clock);
-	~mac_sound_device() {}
-
-	void enable_sound(int on);
-	void set_sound_buffer(int buffer);
-	void set_volume(int volume);
-	void sh_updatebuffer();
-
-protected:
-	// device-level overrides
-	virtual void device_config_complete() override;
-	virtual void device_start() override;
-
-	// sound stream update overrides
-	virtual void sound_stream_update(sound_stream &stream, stream_sample_t **inputs, stream_sample_t **outputs, int samples) override;
-private:
-	// internal state
-
-	ram_device *m_ram;
-	model_t m_mac_model;
-
-	sound_stream *m_mac_stream;
-	int m_sample_enable;
-	UINT16 *m_mac_snd_buf_ptr;
-	std::unique_ptr<UINT8[]> m_snd_cache;
-	int m_snd_cache_len;
-	int m_snd_cache_head;
-	int m_snd_cache_tail;
-	int m_indexx;
-};
-
-extern const device_type MAC_SOUND;
-
-
 /* Mac driver data */
 
 class mac_state : public driver_device
@@ -210,11 +171,15 @@ public:
 		m_mouse2(*this, "MOUSE2"),
 		m_keys(*this, "KEY%u", 0),
 		m_montype(*this, "MONTYPE"),
+		m_snd_enable(false),
+		m_main_buffer(true),
+		m_snd_vol(7),
 		m_vram(*this,"vram"),
 		m_vram16(*this,"vram16"),
 		m_via2_ca1_hack(0),
 		m_screen(*this, "screen"),
-		m_palette(*this, "palette")
+		m_palette(*this, "palette"),
+		m_dac(*this, "dac")
 	{
 	}
 
@@ -252,6 +217,11 @@ public:
 	emu_timer *m_overlay_timeout;
 	TIMER_CALLBACK_MEMBER(overlay_timeout_func);
 	DECLARE_READ32_MEMBER(rom_switch_r);
+	
+	TIMER_DEVICE_CALLBACK_MEMBER(mac_scanline);
+	bool m_snd_enable;
+	bool m_main_buffer;
+	int m_snd_vol;
 
 #ifndef MAC_USE_EMULATED_KBD
 	/* used to store the reply to most keyboard commands */
@@ -338,6 +308,7 @@ public:
 	void pmu_exec();
 	void mac_adb_newaction(int state);
 	void set_adb_line(int linestate);
+	void update_volume();
 
 	DECLARE_READ16_MEMBER ( mac_via_r );
 	DECLARE_WRITE16_MEMBER ( mac_via_w );
@@ -449,6 +420,8 @@ private:
 	int m_via2_ca1_hack;
 	optional_device<screen_device> m_screen;
 	optional_device<palette_device> m_palette;
+	optional_device<dac_8bit_pwm_device> m_dac;
+	
 public:
 	emu_timer *m_scanline_timer;
 	emu_timer *m_adb_timer;

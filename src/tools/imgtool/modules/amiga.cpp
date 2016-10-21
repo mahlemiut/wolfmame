@@ -209,7 +209,7 @@ struct softlink_block
 /* Basic Amiga floppy disk image info */
 struct amiga_floppy
 {
-	imgtool_stream *stream;
+	imgtool::stream *stream;
 	UINT8 sectors;
 };
 
@@ -230,11 +230,11 @@ struct amiga_iterator
 *****************************************************************************/
 
 
-static imgtoolerr_t amiga_image_read_sector(imgtool_image* img,
+static imgtoolerr_t amiga_image_read_sector(imgtool::image &img,
 	UINT32 track, UINT32 head, UINT32 sector, void *buf, size_t len);
-static imgtoolerr_t amiga_image_read_sector(imgtool_image* img,
+static imgtoolerr_t amiga_image_read_sector(imgtool::image &img,
 	UINT32 track, UINT32 head, UINT32 sector, std::vector<UINT8> &buffer);
-static imgtoolerr_t amiga_image_write_sector(imgtool_image* img,
+static imgtoolerr_t amiga_image_write_sector(imgtool::image &img,
 	UINT32 track, UINT32 head, UINT32 sector, const void *buf, size_t len, int ddam);
 
 
@@ -398,10 +398,17 @@ static UINT32 block_checksum(UINT8 *buffer, int length)
 }
 
 
-/* Returns the total number of blocks in the image */
-static int get_total_blocks(imgtool_image *img)
+/* Get Amiga floppy data */
+static amiga_floppy *get_amiga_floppy(imgtool::image &image)
 {
-	amiga_floppy *f = (amiga_floppy *)imgtool_image_extra_bytes(img);
+	return (amiga_floppy *)image.extra_bytes();
+}
+
+
+/* Returns the total number of blocks in the image */
+static int get_total_blocks(imgtool::image &img)
+{
+	amiga_floppy *f = get_amiga_floppy(img);
 
 	return 2 * 80 * f->sectors;
 }
@@ -418,12 +425,12 @@ static void find_block(amiga_floppy *f, int block, int *track,
 
 
 /* Generic read block */
-static imgtoolerr_t read_block(imgtool_image *img, int block, UINT8 *buffer)
+static imgtoolerr_t read_block(imgtool::image &img, int block, UINT8 *buffer)
 {
 	imgtoolerr_t ret;
 	int track, head, sector;
 
-	find_block((amiga_floppy *) imgtool_image_extra_bytes(img), block, &track, &head, &sector);
+	find_block(get_amiga_floppy(img), block, &track, &head, &sector);
 
 	/* get block from image */
 	ret = amiga_image_read_sector(img, track, head, sector, buffer, BSIZE);
@@ -434,12 +441,12 @@ static imgtoolerr_t read_block(imgtool_image *img, int block, UINT8 *buffer)
 
 
 /* Generic write block */
-static imgtoolerr_t write_block(imgtool_image *img, int block, const UINT8 *buffer)
+static imgtoolerr_t write_block(imgtool::image &img, int block, const UINT8 *buffer)
 {
 	imgtoolerr_t ret;
 	int track, head, sector;
 
-	find_block((amiga_floppy *) imgtool_image_extra_bytes(img), block, &track, &head, &sector);
+	find_block(get_amiga_floppy(img), block, &track, &head, &sector);
 
 	/* write block to image */
 	ret = amiga_image_write_sector(img, track, head, sector, buffer, BSIZE, 0);
@@ -450,7 +457,7 @@ static imgtoolerr_t write_block(imgtool_image *img, int block, const UINT8 *buff
 
 
 /* Return the type a block */
-static sec_type get_block_type(imgtool_image *img, int block)
+static sec_type get_block_type(imgtool::image &img, int block)
 {
 	imgtoolerr_t ret;
 	UINT8 buffer[BSIZE];
@@ -474,7 +481,7 @@ static sec_type get_block_type(imgtool_image *img, int block)
 
 
 /* Read a bitmap block */
-static imgtoolerr_t read_bitmap_block(imgtool_image *img, int block, bitmap_block *bm)
+static imgtoolerr_t read_bitmap_block(imgtool::image &img, int block, bitmap_block *bm)
 {
 	imgtoolerr_t ret;
 	UINT8 buffer[BSIZE];
@@ -492,7 +499,7 @@ static imgtoolerr_t read_bitmap_block(imgtool_image *img, int block, bitmap_bloc
 
 
 /* Write a bitmap block */
-static imgtoolerr_t write_bitmap_block(imgtool_image *img, int block, const bitmap_block *bm)
+static imgtoolerr_t write_bitmap_block(imgtool::image &img, int block, const bitmap_block *bm)
 {
 	imgtoolerr_t ret;
 	UINT8 buffer[BSIZE];
@@ -511,7 +518,7 @@ static imgtoolerr_t write_bitmap_block(imgtool_image *img, int block, const bitm
 
 #ifdef UNUSED_FUNCTION
 /* Read a bitmap extended block */
-static imgtoolerr_t read_bitmap_ext_block(imgtool_image *img, int block, bitmap_ext_block *bm)
+static imgtoolerr_t read_bitmap_ext_block(imgtool::image *img, int block, bitmap_ext_block *bm)
 {
 	imgtoolerr_t ret;
 	UINT8 buffer[BSIZE];
@@ -530,7 +537,7 @@ static imgtoolerr_t read_bitmap_ext_block(imgtool_image *img, int block, bitmap_
 
 
 /* Read the root block */
-static imgtoolerr_t read_root_block(imgtool_image *img, root_block *root)
+static imgtoolerr_t read_root_block(imgtool::image &img, root_block *root)
 {
 	imgtoolerr_t ret;
 	UINT8 buffer[BSIZE];
@@ -558,7 +565,7 @@ static imgtoolerr_t read_root_block(imgtool_image *img, root_block *root)
 }
 
 
-static imgtoolerr_t write_root_block(imgtool_image *img, const root_block *root)
+static imgtoolerr_t write_root_block(imgtool::image &img, const root_block *root)
 {
 	imgtoolerr_t ret;
 	UINT8 buffer[BSIZE];
@@ -595,7 +602,7 @@ static imgtoolerr_t write_root_block(imgtool_image *img, const root_block *root)
 
 
 /* Read a file block */
-static imgtoolerr_t read_file_block(imgtool_image *img, int block, file_block *fb)
+static imgtoolerr_t read_file_block(imgtool::image &img, int block, file_block *fb)
 {
 	imgtoolerr_t ret;
 	UINT8 buffer[BSIZE];
@@ -629,7 +636,7 @@ static imgtoolerr_t read_file_block(imgtool_image *img, int block, file_block *f
 }
 
 
-static imgtoolerr_t read_file_ext_block(imgtool_image *img, int block, file_ext_block *fe)
+static imgtoolerr_t read_file_ext_block(imgtool::image &img, int block, file_ext_block *fe)
 {
 	imgtoolerr_t ret;
 	UINT8 buffer[BSIZE];
@@ -650,7 +657,7 @@ static imgtoolerr_t read_file_ext_block(imgtool_image *img, int block, file_ext_
 }
 
 
-static imgtoolerr_t read_data_block(imgtool_image *img, int block, data_block *d)
+static imgtoolerr_t read_data_block(imgtool::image &img, int block, data_block *d)
 {
 	imgtoolerr_t ret;
 	UINT8 buffer[BSIZE];
@@ -672,7 +679,7 @@ static imgtoolerr_t read_data_block(imgtool_image *img, int block, data_block *d
 
 
 /* Read a directory block */
-static imgtoolerr_t read_dir_block(imgtool_image *img, int block, dir_block *db)
+static imgtoolerr_t read_dir_block(imgtool::image &img, int block, dir_block *db)
 {
 	imgtoolerr_t ret;
 	UINT8 buffer[BSIZE];
@@ -702,7 +709,7 @@ static imgtoolerr_t read_dir_block(imgtool_image *img, int block, dir_block *db)
 }
 
 
-static imgtoolerr_t write_dir_block(imgtool_image *img, int block, const dir_block *db)
+static imgtoolerr_t write_dir_block(imgtool::image &img, int block, const dir_block *db)
 {
 	UINT8 buffer[BSIZE];
 
@@ -735,7 +742,7 @@ static imgtoolerr_t write_dir_block(imgtool_image *img, int block, const dir_blo
 }
 
 
-static imgtoolerr_t read_hardlink_block(imgtool_image *img, int block, hardlink_block *hl)
+static imgtoolerr_t read_hardlink_block(imgtool::image &img, int block, hardlink_block *hl)
 {
 	imgtoolerr_t ret;
 	UINT8 buffer[BSIZE];
@@ -763,7 +770,7 @@ static imgtoolerr_t read_hardlink_block(imgtool_image *img, int block, hardlink_
 }
 
 
-static imgtoolerr_t read_softlink_block(imgtool_image *img, int block, softlink_block *sl)
+static imgtoolerr_t read_softlink_block(imgtool::image &img, int block, softlink_block *sl)
 {
 	imgtoolerr_t ret;
 	UINT8 buffer[BSIZE];
@@ -790,7 +797,7 @@ static imgtoolerr_t read_softlink_block(imgtool_image *img, int block, softlink_
 
 
 /* Returns the disk type */
-static disk_type get_disk_type(imgtool_image *img)
+static disk_type get_disk_type(imgtool::image &img)
 {
 	imgtoolerr_t ret;
 	UINT8 buffer[BSIZE];
@@ -812,7 +819,7 @@ static disk_type get_disk_type(imgtool_image *img)
 
 
 /* Returns TRUE if the disk is formatted with the FastFileSystem */
-static int is_ffs(imgtool_image *img)
+static int is_ffs(imgtool::image &img)
 {
 	disk_type t = get_disk_type(img);
 
@@ -823,7 +830,7 @@ static int is_ffs(imgtool_image *img)
 
 
 /* Returns TRUE if the disk uses the international mode */
-static int is_intl(imgtool_image *img)
+static int is_intl(imgtool::image &img)
 {
 	disk_type t = get_disk_type(img);
 
@@ -835,7 +842,7 @@ static int is_intl(imgtool_image *img)
 
 #ifdef UNUSED_FUNCTION
 /* Returns TRUE if the disk uses the directory cache mode */
-static int is_dirc(imgtool_image *img)
+static int is_dirc(imgtool::image *img)
 {
 	disk_type t = get_disk_type(img);
 
@@ -844,7 +851,7 @@ static int is_dirc(imgtool_image *img)
 }
 #endif
 
-static imgtoolerr_t get_hash_table(imgtool_image *img, int block, UINT32 *ht)
+static imgtoolerr_t get_hash_table(imgtool::image &img, int block, UINT32 *ht)
 {
 	imgtoolerr_t ret;
 
@@ -884,7 +891,7 @@ static imgtoolerr_t get_hash_table(imgtool_image *img, int block, UINT32 *ht)
 }
 
 
-static imgtoolerr_t set_hash_table(imgtool_image *img, int block, const UINT32 *ht)
+static imgtoolerr_t set_hash_table(imgtool::image &img, int block, const UINT32 *ht)
 {
 	UINT8 buffer[BSIZE];
 	imgtoolerr_t ret;
@@ -904,13 +911,13 @@ static imgtoolerr_t set_hash_table(imgtool_image *img, int block, const UINT32 *
 }
 
 #ifdef UNUSED_FUNCTION
-static imgtoolerr_t get_root_hash_table(imgtool_image *img, UINT32 *ht)
+static imgtoolerr_t get_root_hash_table(imgtool::image *img, UINT32 *ht)
 {
 	return get_hash_table(img, get_total_blocks(img)/2, ht);
 }
 #endif
 
-static imgtoolerr_t get_blockname(imgtool_image *img, int block, char *dest)
+static imgtoolerr_t get_blockname(imgtool::image &img, int block, char *dest)
 {
 	UINT8 buffer[BSIZE];
 	imgtoolerr_t ret;
@@ -927,7 +934,7 @@ static imgtoolerr_t get_blockname(imgtool_image *img, int block, char *dest)
 }
 
 
-static imgtoolerr_t get_hash_chain(imgtool_image *img, int block, UINT32 *chain)
+static imgtoolerr_t get_hash_chain(imgtool::image &img, int block, UINT32 *chain)
 {
 	UINT8 buffer[BSIZE];
 	imgtoolerr_t ret;
@@ -943,7 +950,7 @@ static imgtoolerr_t get_hash_chain(imgtool_image *img, int block, UINT32 *chain)
 }
 
 
-static imgtoolerr_t set_hash_chain(imgtool_image *img, int block, UINT32 chain)
+static imgtoolerr_t set_hash_chain(imgtool::image &img, int block, UINT32 chain)
 {
 	UINT8 buffer[BSIZE];
 	imgtoolerr_t ret;
@@ -963,7 +970,7 @@ static imgtoolerr_t set_hash_chain(imgtool_image *img, int block, UINT32 chain)
 }
 
 
-static imgtoolerr_t walk_hash_chain(imgtool_image *img, const char *path, int start_block, int *prev_block, int *block)
+static imgtoolerr_t walk_hash_chain(imgtool::image &img, const char *path, int start_block, int *prev_block, int *block)
 {
 	imgtoolerr_t err;
 	UINT32 hash_chain;
@@ -1065,7 +1072,7 @@ static imgtoolerr_t walk_hash_chain(imgtool_image *img, const char *path, int st
 /* Returns the block number for a dir/file/link entry given as NUL delimited
  * list of path parts, for example "dir1\0dir2\0dir3" returns the block number
  * for directory "dir3" */
-static imgtoolerr_t find_entry(imgtool_image *img, const char *path, int start_block, int *block)
+static imgtoolerr_t find_entry(imgtool::image &img, const char *path, int start_block, int *block)
 {
 	imgtoolerr_t ret;
 	const char *next_path;
@@ -1127,7 +1134,7 @@ static imgtoolerr_t find_entry(imgtool_image *img, const char *path, int start_b
 }
 
 
-static imgtoolerr_t get_block_chksum(imgtool_image *img, int block, UINT32 *chksum, int bitmap)
+static imgtoolerr_t get_block_chksum(imgtool::image &img, int block, UINT32 *chksum, int bitmap)
 {
 	imgtoolerr_t ret;
 	UINT8 buffer[BSIZE];
@@ -1153,7 +1160,7 @@ static imgtoolerr_t get_block_chksum(imgtool_image *img, int block, UINT32 *chks
 }
 
 
-static imgtoolerr_t fix_chksum(imgtool_image *img, int block, int bitmap)
+static imgtoolerr_t fix_chksum(imgtool::image &img, int block, int bitmap)
 {
 	imgtoolerr_t ret;
 	UINT8 buffer[BSIZE];
@@ -1185,20 +1192,20 @@ static imgtoolerr_t fix_chksum(imgtool_image *img, int block, int bitmap)
 }
 
 
-static imgtoolerr_t fix_block_chksum(imgtool_image *img, int block)
+static imgtoolerr_t fix_block_chksum(imgtool::image &img, int block)
 {
 	return fix_chksum(img, block, FALSE);
 }
 
 
-static imgtoolerr_t fix_bitmap_chksum(imgtool_image *img, int block)
+static imgtoolerr_t fix_bitmap_chksum(imgtool::image &img, int block)
 {
 	return fix_chksum(img, block, TRUE);
 }
 
 
 /* Set a block as used */
-static imgtoolerr_t bitmap_mark(imgtool_image *img, int block, int used)
+static imgtoolerr_t bitmap_mark(imgtool::image &img, int block, int used)
 {
 	imgtoolerr_t ret;
 	bitmap_block bm;
@@ -1242,19 +1249,19 @@ static imgtoolerr_t bitmap_mark(imgtool_image *img, int block, int used)
 }
 
 
-static imgtoolerr_t bitmap_mark_used(imgtool_image *img, int block)
+static imgtoolerr_t bitmap_mark_used(imgtool::image &img, int block)
 {
 	return bitmap_mark(img, block, TRUE);
 }
 
 
-static imgtoolerr_t bitmap_mark_free(imgtool_image *img, int block)
+static imgtoolerr_t bitmap_mark_free(imgtool::image &img, int block)
 {
 	return bitmap_mark(img, block, FALSE);
 }
 
 
-static imgtoolerr_t update_block_modified_date(imgtool_image *img, int block)
+static imgtoolerr_t update_block_modified_date(imgtool::image &img, int block)
 {
 	UINT8 buffer[BSIZE];
 	imgtoolerr_t ret;
@@ -1281,7 +1288,7 @@ static imgtoolerr_t update_block_modified_date(imgtool_image *img, int block)
 }
 
 
-static imgtoolerr_t clear_hash_table_entry(imgtool_image *img, int parent, char *filename)
+static imgtoolerr_t clear_hash_table_entry(imgtool::image &img, int parent, char *filename)
 {
 	imgtoolerr_t ret;
 	UINT32 ht[TSIZE], chain;
@@ -1364,7 +1371,7 @@ static int get_first_bit(UINT32 *array, int size)
 
 
 #ifdef UNUSED_FUNCTION
-static imgtoolerr_t walk_bitmap_ext_blocks(imgtool_image *img, int start, int *block)
+static imgtoolerr_t walk_bitmap_ext_blocks(imgtool::image *img, int start, int *block)
 {
 	imgtoolerr_t ret;
 	bitmap_ext_block bm_ext;
@@ -1401,7 +1408,7 @@ static imgtoolerr_t walk_bitmap_ext_blocks(imgtool_image *img, int start, int *b
 
 /* Searches for a block marked as free
  * TODO: bm_ext support for HDs */
-static imgtoolerr_t find_free_block(imgtool_image *img, int *block)
+static imgtoolerr_t find_free_block(imgtool::image &img, int *block)
 {
 	imgtoolerr_t ret;
 	root_block root;
@@ -1434,7 +1441,7 @@ static imgtoolerr_t find_free_block(imgtool_image *img, int *block)
 }
 
 
-static imgtoolerr_t add_entry(imgtool_image *img, int parent, int block)
+static imgtoolerr_t add_entry(imgtool::image &img, int parent, int block)
 {
 	imgtoolerr_t ret;
 	UINT32 ht[TSIZE];
@@ -1469,7 +1476,7 @@ static imgtoolerr_t add_entry(imgtool_image *img, int parent, int block)
 
 
 /* Recursively create new directory entries */
-static imgtoolerr_t makedir(imgtool_image *img, const char *path, int parent)
+static imgtoolerr_t makedir(imgtool::image &img, const char *path, int parent)
 {
 	imgtoolerr_t ret;
 	dir_block dir;
@@ -1523,7 +1530,7 @@ static imgtoolerr_t makedir(imgtool_image *img, const char *path, int parent)
 
 
 /* Recursively checks the path parts and creates directories for them */
-static imgtoolerr_t checkdir(imgtool_image *img, const char *path, int parent)
+static imgtoolerr_t checkdir(imgtool::image &img, const char *path, int parent)
 {
 	imgtoolerr_t ret;
 	int block;
@@ -1567,7 +1574,7 @@ static imgtoolerr_t checkdir(imgtool_image *img, const char *path, int parent)
 
 
 /* Writes the file data from the specified block into the stream */
-static imgtoolerr_t write_file_block_data(imgtool_image *img, int block, int size, imgtool_stream *destf)
+static imgtoolerr_t write_file_block_data(imgtool::image &img, int block, int size, imgtool::stream &destf)
 {
 	imgtoolerr_t ret;
 	UINT8 buffer[BSIZE];
@@ -1606,7 +1613,7 @@ static imgtoolerr_t write_file_block_data(imgtool_image *img, int block, int siz
 	}
 
 	/* Write data to stream */
-	if (stream_write (destf, buffer, size) != size)
+	if (destf.write(buffer, size) != size)
 	{
 		return IMGTOOLERR_WRITEERROR;
 	}
@@ -1615,7 +1622,7 @@ static imgtoolerr_t write_file_block_data(imgtool_image *img, int block, int siz
 }
 
 
-static imgtoolerr_t walk_data_block_ptr(imgtool_image *img, UINT32 *ptr, int *filesize, imgtool_stream *destf, int write)
+static imgtoolerr_t walk_data_block_ptr(imgtool::image &img, UINT32 *ptr, int *filesize, imgtool::stream *destf, bool write)
 {
 	int i, blocksize = is_ffs(img) ? BSIZE : BSIZE-24;
 	imgtoolerr_t ret;
@@ -1627,7 +1634,7 @@ static imgtoolerr_t walk_data_block_ptr(imgtool_image *img, UINT32 *ptr, int *fi
 
 		if (write)
 		{
-			ret = write_file_block_data(img, ptr[i], bytes_left, destf);
+			ret = write_file_block_data(img, ptr[i], bytes_left, *destf);
 			if (ret) return ret;
 		}
 		else
@@ -1646,20 +1653,20 @@ static imgtoolerr_t walk_data_block_ptr(imgtool_image *img, UINT32 *ptr, int *fi
 }
 
 
-static imgtoolerr_t write_data_block_ptr(imgtool_image *img, UINT32 *ptr, int *filesize, imgtool_stream *destf)
+static imgtoolerr_t write_data_block_ptr(imgtool::image &img, UINT32 *ptr, int *filesize, imgtool::stream &destf)
 {
-	return walk_data_block_ptr(img, ptr, filesize, destf, TRUE);
+	return walk_data_block_ptr(img, ptr, filesize, &destf, true);
 }
 
 
 /* Marks all blocks pointed to by the data block pointers as free */
-static imgtoolerr_t clear_data_block_ptr(imgtool_image *img, UINT32 *ptr, int *filesize)
+static imgtoolerr_t clear_data_block_ptr(imgtool::image &img, UINT32 *ptr, int *filesize)
 {
-	return walk_data_block_ptr(img, ptr, filesize, NULL, FALSE);
+	return walk_data_block_ptr(img, ptr, filesize, nullptr, false);
 }
 
 
-static imgtoolerr_t walk_file_ext_data(imgtool_image *img, int block, int *filesize, imgtool_stream *destf, int write)
+static imgtoolerr_t walk_file_ext_data(imgtool::image &img, int block, int *filesize, imgtool::stream *destf, int write)
 {
 	file_ext_block file_ext;
 	imgtoolerr_t ret;
@@ -1698,20 +1705,20 @@ static imgtoolerr_t walk_file_ext_data(imgtool_image *img, int block, int *files
 }
 
 
-static imgtoolerr_t write_file_ext_data(imgtool_image *img, int block, int *filesize, imgtool_stream *destf)
+static imgtoolerr_t write_file_ext_data(imgtool::image &img, int block, int *filesize, imgtool::stream *destf)
 {
 	return walk_file_ext_data(img, block, filesize, destf, TRUE);
 }
 
 
-static imgtoolerr_t clear_file_ext_data(imgtool_image *img, int block, int *filesize)
+static imgtoolerr_t clear_file_ext_data(imgtool::image &img, int block, int *filesize)
 {
 	return walk_file_ext_data(img, block, filesize, NULL, FALSE);
 }
 
 
 /* Updates the disk alteration date stored in the root block */
-static imgtoolerr_t update_disk_alteration_date(imgtool_image *img)
+static imgtoolerr_t update_disk_alteration_date(imgtool::image &img)
 {
 	imgtoolerr_t ret;
 	root_block root;
@@ -1742,12 +1749,11 @@ static imgtoolerr_t update_disk_alteration_date(imgtool_image *img)
 *****************************************************************************/
 
 
-static imgtoolerr_t amiga_image_open(imgtool_image *img, imgtool_stream *stream)
+static imgtoolerr_t amiga_image_open(imgtool::image &img, imgtool::stream::ptr &&stream)
 {
-	amiga_floppy *f = (amiga_floppy *) imgtool_image_extra_bytes(img);
-	UINT64 size = stream_size(stream);
+	amiga_floppy *f = get_amiga_floppy(img);
+	UINT64 size = stream->size();
 
-	f->stream = stream;
 	f->sectors = size/BSIZE/80/2;
 
 	if (f->sectors != 11 && f->sectors != 22)
@@ -1755,16 +1761,20 @@ static imgtoolerr_t amiga_image_open(imgtool_image *img, imgtool_stream *stream)
 		return IMGTOOLERR_CORRUPTIMAGE;
 	}
 
+	f->stream = stream.release();
 	return IMGTOOLERR_SUCCESS;
 }
 
 
-static void amiga_image_exit(imgtool_image *img)
+static void amiga_image_exit(imgtool::image &img)
 {
+	amiga_floppy *f = get_amiga_floppy(img);
+	if (f->stream)
+		delete f->stream;
 }
 
 
-static void amiga_image_info(imgtool_image *img, char *string, size_t len)
+static void amiga_image_info(imgtool::image &img, std::ostream &stream)
 {
 	imgtoolerr_t ret;
 	root_block root;
@@ -1792,30 +1802,30 @@ static void amiga_image_info(imgtool_image *img, char *string, size_t len)
 	strcat(info, "\n  Root modified: ");
 	strcat(info, r);
 
-	strncpy(string, info, len);
+	stream << info;
 }
 
 
-static imgtoolerr_t amiga_image_read_sector(imgtool_image* img, UINT32 track, UINT32 head, UINT32 sector, void *buf, size_t len)
+static imgtoolerr_t amiga_image_read_sector(imgtool::image &img, UINT32 track, UINT32 head, UINT32 sector, void *buf, size_t len)
 {
-	amiga_floppy *f = (amiga_floppy *) imgtool_image_extra_bytes(img);
+	amiga_floppy *f = get_amiga_floppy(img);
 
 	/* skip ahead to the area we want to read */
-	stream_seek(f->stream, track * (head+1) * f->sectors * BSIZE + sector * BSIZE, SEEK_CUR);
+	f->stream->seek(track * (head+1) * f->sectors * BSIZE + sector * BSIZE, SEEK_CUR);
 
-	if (stream_read(f->stream, buf, len) != len)
+	if (f->stream->read(buf, len) != len)
 	{
 		return IMGTOOLERR_READERROR;
 	}
 
 	/* reset stream */
-	stream_seek(f->stream, 0, 0);
+	f->stream->seek(0, 0);
 
 	return IMGTOOLERR_SUCCESS;
 }
 
 
-static imgtoolerr_t amiga_image_read_sector(imgtool_image* img,
+static imgtoolerr_t amiga_image_read_sector(imgtool::image &img,
 	UINT32 track, UINT32 head, UINT32 sector, std::vector<UINT8> &buffer)
 {
 	try { buffer.resize(BSIZE); }
@@ -1825,33 +1835,33 @@ static imgtoolerr_t amiga_image_read_sector(imgtool_image* img,
 }
 
 
-static imgtoolerr_t amiga_image_write_sector(imgtool_image* img, UINT32 track, UINT32 head, UINT32 sector, const void *buf, size_t len, int ddam)
+static imgtoolerr_t amiga_image_write_sector(imgtool::image &img, UINT32 track, UINT32 head, UINT32 sector, const void *buf, size_t len, int ddam)
 {
-	amiga_floppy *f = (amiga_floppy *) imgtool_image_extra_bytes(img);
+	amiga_floppy *f = get_amiga_floppy(img);
 
 	/* skip ahead to the area we want to write */
-	stream_seek(f->stream, track * (head+1) * f->sectors * BSIZE + sector * BSIZE, SEEK_CUR);
+	f->stream->seek(track * (head+1) * f->sectors * BSIZE + sector * BSIZE, SEEK_CUR);
 
 	/* write data */
-	if (stream_write(f->stream, buf, len) != len)
+	if (f->stream->write(buf, len) != len)
 	{
 		return IMGTOOLERR_WRITEERROR;
 	}
 
 	/* reset stream */
-	stream_seek(f->stream, 0, 0);
+	f->stream->seek(0, 0);
 
 	return IMGTOOLERR_SUCCESS;
 }
 
 
-static imgtoolerr_t amiga_image_beginenum(imgtool_directory *enumeration, const char *path)
+static imgtoolerr_t amiga_image_beginenum(imgtool::directory &enumeration, const char *path)
 {
-	int blocks = get_total_blocks(imgtool_directory_image(enumeration));
+	int blocks = get_total_blocks(enumeration.image());
 	imgtoolerr_t ret;
 	amiga_iterator *iter;
 
-	iter = (amiga_iterator *) imgtool_directory_extrabytes(enumeration);
+	iter = (amiga_iterator *) enumeration.extra_bytes();
 	if (!iter) return IMGTOOLERR_OUTOFMEMORY;
 
 	iter->index = 1;
@@ -1861,7 +1871,7 @@ static imgtoolerr_t amiga_image_beginenum(imgtool_directory *enumeration, const 
 	if (path[0])
 	{
 		/* search for the directory block, start with the root block */
-		ret = find_entry(imgtool_directory_image(enumeration), path, blocks/2, &iter->block);
+		ret = find_entry(enumeration.image(), path, blocks/2, &iter->block);
 		if (ret) return ret;
 	}
 	else
@@ -1874,9 +1884,9 @@ static imgtoolerr_t amiga_image_beginenum(imgtool_directory *enumeration, const 
 }
 
 
-static imgtoolerr_t amiga_image_nextenum(imgtool_directory *enumeration, imgtool_dirent *ent)
+static imgtoolerr_t amiga_image_nextenum(imgtool::directory &enumeration, imgtool_dirent &ent)
 {
-	amiga_iterator *iter = (amiga_iterator *) imgtool_directory_extrabytes(enumeration);
+	amiga_iterator *iter = (amiga_iterator *) enumeration.extra_bytes();
 	imgtoolerr_t ret;
 	UINT32 ht[TSIZE];
 	int block;
@@ -1884,12 +1894,12 @@ static imgtoolerr_t amiga_image_nextenum(imgtool_directory *enumeration, imgtool
 	/* finished listing all entries? */
 	if (iter->eof == 1 || iter->ht_index == TSIZE)
 	{
-		ent->eof = 1;
+		ent.eof = 1;
 		return IMGTOOLERR_SUCCESS;
 	}
 
 	/* get hash table */
-	ret = get_hash_table(imgtool_directory_image(enumeration), iter->block, ht);
+	ret = get_hash_table(enumeration.image(), iter->block, ht);
 	if (ret) return ret;
 
 	/* skip empty hash table entries */
@@ -1899,7 +1909,7 @@ static imgtoolerr_t amiga_image_nextenum(imgtool_directory *enumeration, imgtool
 		/* check if we are already at the end */
 		if (iter->ht_index == TSIZE)
 		{
-			ent->eof = 1;
+			ent.eof = 1;
 			return IMGTOOLERR_SUCCESS;
 		}
 	}
@@ -1907,22 +1917,22 @@ static imgtoolerr_t amiga_image_nextenum(imgtool_directory *enumeration, imgtool
 	/* get block number */
 	block = (iter->next_block == 0) ? ht[iter->ht_index] : iter->next_block;
 
-	switch (get_block_type(imgtool_directory_image(enumeration), block))
+	switch (get_block_type(enumeration.image(), block))
 	{
 	case ST_FILE:
 	{
 		file_block file;
 
 		/* get block */
-		ret = read_file_block(imgtool_directory_image(enumeration), block, &file);
+		ret = read_file_block(enumeration.image(), block, &file);
 		if (ret) return ret;
 
 		/* fill directory entry */
-		strncpyz(ent->filename, (char *)file.filename, file.name_len + 1);
-		ent->filesize = file.byte_size;
-		ent->lastmodified_time = amiga_crack_time(&file.date);
-		amiga_decode_flags(file.protect, ent->attr);
-		strncpyz(ent->comment, (char *)file.comment, file.comm_len + 1);
+		strncpyz(ent.filename, (char *)file.filename, file.name_len + 1);
+		ent.filesize = file.byte_size;
+		ent.lastmodified_time = amiga_crack_time(&file.date);
+		amiga_decode_flags(file.protect, ent.attr);
+		strncpyz(ent.comment, (char *)file.comment, file.comm_len + 1);
 
 		iter->next_block = file.hash_chain;
 
@@ -1934,15 +1944,15 @@ static imgtoolerr_t amiga_image_nextenum(imgtool_directory *enumeration, imgtool
 		dir_block dir;
 
 		/* get block */
-		ret = read_dir_block(imgtool_directory_image(enumeration), block, &dir);
+		ret = read_dir_block(enumeration.image(), block, &dir);
 		if (ret) return ret;
 
 		/* fill directory entry */
-		strncpyz(ent->filename, (char *)dir.dirname, dir.name_len + 1);
-		ent->lastmodified_time = amiga_crack_time(&dir.date);
-		amiga_decode_flags(dir.protect, ent->attr);
-		strncpyz(ent->comment, (char *)dir.comment, dir.comm_len + 1);
-		ent->directory = 1;
+		strncpyz(ent.filename, (char *)dir.dirname, dir.name_len + 1);
+		ent.lastmodified_time = amiga_crack_time(&dir.date);
+		amiga_decode_flags(dir.protect, ent.attr);
+		strncpyz(ent.comment, (char *)dir.comment, dir.comm_len + 1);
+		ent.directory = 1;
 
 		iter->next_block = dir.hash_chain;
 
@@ -1954,15 +1964,15 @@ static imgtoolerr_t amiga_image_nextenum(imgtool_directory *enumeration, imgtool
 		softlink_block sl;
 
 		/* get block */
-		ret = read_softlink_block(imgtool_directory_image(enumeration), block, &sl);
+		ret = read_softlink_block(enumeration.image(), block, &sl);
 		if (ret) return ret;
 
 		/* fill directory entry */
-		strncpyz(ent->filename, (char *)sl.slname, sl.name_len + 1);
-		ent->lastmodified_time = amiga_crack_time(&sl.date);
-		amiga_decode_flags(sl.protect, ent->attr);
-		strncpyz(ent->comment, (char *)sl.comment, sl.comm_len + 1);
-		strcpy(ent->softlink, (char *)sl.symbolic_name);
+		strncpyz(ent.filename, (char *)sl.slname, sl.name_len + 1);
+		ent.lastmodified_time = amiga_crack_time(&sl.date);
+		amiga_decode_flags(sl.protect, ent.attr);
+		strncpyz(ent.comment, (char *)sl.comment, sl.comm_len + 1);
+		strcpy(ent.softlink, (char *)sl.symbolic_name);
 
 		iter->next_block = sl.hash_chain;
 
@@ -1971,31 +1981,31 @@ static imgtoolerr_t amiga_image_nextenum(imgtool_directory *enumeration, imgtool
 
 	case ST_LINKDIR:
 
-		ent->directory = 1;
+		ent.directory = 1;
 
 	case ST_LINKFILE:
 	{
 		hardlink_block hl;
 
 		/* get block */
-		ret = read_hardlink_block(imgtool_directory_image(enumeration), block, &hl);
+		ret = read_hardlink_block(enumeration.image(), block, &hl);
 		if (ret) return ret;
 
 		/* get filesize from linked file */
-		if (!ent->directory)
+		if (!ent.directory)
 		{
 			file_block file;
-			ret = read_file_block(imgtool_directory_image(enumeration), hl.real_entry, &file);
+			ret = read_file_block(enumeration.image(), hl.real_entry, &file);
 			if (ret) return ret;
-			ent->filesize = file.byte_size;
+			ent.filesize = file.byte_size;
 		}
 
 		/* fill directory entry */
-		strncpyz(ent->filename, (char *)hl.hlname, hl.name_len + 1);
-		ent->lastmodified_time = amiga_crack_time(&hl.date);
-		amiga_decode_flags(hl.protect, ent->attr);
-		strncpyz(ent->comment, (char *)hl.comment, hl.comm_len + 1);
-		ent->hardlink = 1;
+		strncpyz(ent.filename, (char *)hl.hlname, hl.name_len + 1);
+		ent.lastmodified_time = amiga_crack_time(&hl.date);
+		amiga_decode_flags(hl.protect, ent.attr);
+		strncpyz(ent.comment, (char *)hl.comment, hl.comm_len + 1);
+		ent.hardlink = 1;
 
 		iter->next_block = hl.hash_chain;
 
@@ -2019,16 +2029,10 @@ static imgtoolerr_t amiga_image_nextenum(imgtool_directory *enumeration, imgtool
 }
 
 
-static void amiga_image_closeenum(imgtool_directory *enumeration)
-{
-	free(enumeration);
-}
-
-
-static imgtoolerr_t amiga_image_freespace(imgtool_partition *partition, UINT64 *size)
+static imgtoolerr_t amiga_image_freespace(imgtool::partition &partition, UINT64 *size)
 {
 	imgtoolerr_t ret;
-	imgtool_image *image = imgtool_partition_image(partition);
+	imgtool::image &image(partition.image());
 	const int data_size = is_ffs(image) ? BSIZE : BSIZE-24;
 	root_block root;
 	bitmap_block bm;
@@ -2079,9 +2083,9 @@ static imgtoolerr_t amiga_image_freespace(imgtool_partition *partition, UINT64 *
 }
 
 
-static imgtoolerr_t amiga_image_readfile(imgtool_partition *partition, const char *filename, const char *fork, imgtool_stream *destf)
+static imgtoolerr_t amiga_image_readfile(imgtool::partition &partition, const char *filename, const char *fork, imgtool::stream &destf)
 {
-	imgtool_image *img = imgtool_partition_image(partition);
+	imgtool::image &img(partition.image());
 	imgtoolerr_t ret;
 	file_block file;
 	int filesize, block;
@@ -2105,7 +2109,7 @@ static imgtoolerr_t amiga_image_readfile(imgtool_partition *partition, const cha
 	if (filesize == 0) return IMGTOOLERR_SUCCESS;
 
 	/* Phase 2: Follow file extension blocks */
-	ret = write_file_ext_data(img, file.extension, &filesize, destf);
+	ret = write_file_ext_data(img, file.extension, &filesize, &destf);
 	if (ret) return ret;
 
 	return IMGTOOLERR_SUCCESS;
@@ -2116,9 +2120,9 @@ static imgtoolerr_t amiga_image_readfile(imgtool_partition *partition, const cha
  * the Directory block (or from the same-hash-value list) and the bitmap is
  * updated. File header block, Data blocks and File extension blocks are not
  * cleared, but the bitmap blocks are updated. */
-static imgtoolerr_t amiga_image_deletefile(imgtool_partition *partition, const char *fname)
+static imgtoolerr_t amiga_image_deletefile(imgtool::partition &partition, const char *fname)
 {
-	imgtool_image *img = imgtool_partition_image(partition);
+	imgtool::image &img(partition.image());
 	imgtoolerr_t ret;
 	int parent, block;
 	char filename[31];
@@ -2189,15 +2193,15 @@ static imgtoolerr_t amiga_image_deletefile(imgtool_partition *partition, const c
 }
 
 
-static imgtoolerr_t amiga_image_writefile(imgtool_partition *partition, const char *filename, const char *fork, imgtool_stream *sourcef, util::option_resolution *opts)
+static imgtoolerr_t amiga_image_writefile(imgtool::partition &partition, const char *filename, const char *fork, imgtool::stream &sourcef, util::option_resolution *opts)
 {
 	return IMGTOOLERR_UNIMPLEMENTED;
 }
 
 
-static imgtoolerr_t amiga_image_create(imgtool_image *img, imgtool_stream *stream, util::option_resolution *opts)
+static imgtoolerr_t amiga_image_create(imgtool::image &img, imgtool::stream::ptr &&stream, util::option_resolution *opts)
 {
-	amiga_floppy *f = (amiga_floppy *) imgtool_image_extra_bytes(img);
+	amiga_floppy *f = get_amiga_floppy(img);
 	const std::string &dskname = opts->lookup_string('N');
 	imgtoolerr_t ret;
 	UINT8 buffer[BSIZE];
@@ -2206,7 +2210,7 @@ static imgtoolerr_t amiga_image_create(imgtool_image *img, imgtool_stream *strea
 	time_t now;
 	int blocks;
 
-	f->stream = stream;
+	f->stream = stream.get();
 
 	switch (opts->lookup_int('S'))
 	{
@@ -2296,13 +2300,14 @@ static imgtoolerr_t amiga_image_create(imgtool_image *img, imgtool_stream *strea
 	ret = write_block(img, blocks - 1, buffer);
 	if (ret) return ret;
 
+	f->stream = stream.release();
 	return IMGTOOLERR_SUCCESS;
 }
 
 
-static imgtoolerr_t amiga_image_createdir(imgtool_partition *partition, const char *path)
+static imgtoolerr_t amiga_image_createdir(imgtool::partition &partition, const char *path)
 {
-	imgtool_image *img = imgtool_partition_image(partition);
+	imgtool::image &img(partition.image());
 	imgtoolerr_t ret;
 
 	/* Create directories */
@@ -2317,25 +2322,25 @@ static imgtoolerr_t amiga_image_createdir(imgtool_partition *partition, const ch
 }
 
 
-static imgtoolerr_t amiga_image_getattrs(imgtool_partition *partition, const char *path, const UINT32 *attrs, imgtool_attribute *values)
+static imgtoolerr_t amiga_image_getattrs(imgtool::partition &partition, const char *path, const UINT32 *attrs, imgtool_attribute *values)
 {
 	return IMGTOOLERR_UNIMPLEMENTED;
 }
 
 
-static imgtoolerr_t amiga_image_setattrs(imgtool_partition *partition, const char *path, const UINT32 *attrs, const imgtool_attribute *values)
+static imgtoolerr_t amiga_image_setattrs(imgtool::partition &partition, const char *path, const UINT32 *attrs, const imgtool_attribute *values)
 {
 	return IMGTOOLERR_UNIMPLEMENTED;
 }
 
 
-static imgtoolerr_t amiga_image_geticoninfo(imgtool_partition *partition, const char *path, imgtool_iconinfo *iconinfo)
+static imgtoolerr_t amiga_image_geticoninfo(imgtool::partition &partition, const char *path, imgtool_iconinfo *iconinfo)
 {
 	return IMGTOOLERR_UNIMPLEMENTED;
 }
 
 
-static imgtoolerr_t amiga_image_suggesttransfer(imgtool_partition *partition, const char *fname, imgtool_transfer_suggestion *suggestions, size_t suggestions_length)
+static imgtoolerr_t amiga_image_suggesttransfer(imgtool::partition &partition, const char *fname, imgtool_transfer_suggestion *suggestions, size_t suggestions_length)
 {
 	return IMGTOOLERR_UNIMPLEMENTED;
 }
@@ -2400,7 +2405,6 @@ void amiga_floppy_get_info(const imgtool_class *imgclass, UINT32 state, union im
 		case IMGTOOLINFO_PTR_INFO:                       info->info = amiga_image_info; break;
 		case IMGTOOLINFO_PTR_BEGIN_ENUM:                 info->begin_enum = amiga_image_beginenum; break;
 		case IMGTOOLINFO_PTR_NEXT_ENUM:                  info->next_enum = amiga_image_nextenum; break;
-		case IMGTOOLINFO_PTR_CLOSE_ENUM:                 info->close_enum = amiga_image_closeenum; break;
 		case IMGTOOLINFO_PTR_FREE_SPACE:                 info->free_space = amiga_image_freespace; break;
 		case IMGTOOLINFO_PTR_READ_FILE:                  info->read_file = amiga_image_readfile; break;
 		case IMGTOOLINFO_PTR_WRITE_FILE:                 info->write_file = amiga_image_writefile; break;

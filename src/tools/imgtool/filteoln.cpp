@@ -20,7 +20,7 @@ static imgtoolerr_t convert_stream_eolns(imgtool::stream &source, imgtool::strea
 {
 	size_t len, i, pos;
 	char buffer[2000];
-	int hit_cr = FALSE;
+	int hit_cr = false;
 
 	while((len = source.read(buffer, sizeof(buffer))) > 0)
 	{
@@ -115,7 +115,7 @@ done:
 
 
 
-void filter_eoln_getinfo(UINT32 state, union filterinfo *info)
+void filter_eoln_getinfo(uint32_t state, union filterinfo *info)
 {
 	switch(state)
 	{

@@ -502,12 +502,25 @@ done:
 
 imgtoolerr_t imgtool::image::list_partitions(std::vector<imgtool::partition_info> &partitions)
 {
-	/* implemented? */
-	if (!module().list_partitions)
-		return (imgtoolerr_t)(IMGTOOLERR_UNIMPLEMENTED | IMGTOOLERR_SRC_FUNCTIONALITY);
+	imgtoolerr_t err;
 
+	// clear out partitions first
 	partitions.clear();
-	return module().list_partitions(*this, partitions);
+
+	// implemented?
+	if (module().list_partitions)
+	{
+		// if so, call the module's callback
+		err = module().list_partitions(*this, partitions);
+		if (err)
+			return err;
+	}
+	else
+	{
+		// default implementation
+		partitions.emplace_back(unknown_partition_get_info, 0, ~0);
+	}
+	return IMGTOOLERR_SUCCESS;	
 }
 
 
@@ -627,34 +640,20 @@ imgtoolerr_t imgtool::partition::open(imgtool::image &image, int partition_index
 	uint64_t base_block, block_count;
 	imgtoolerr_t (*open_partition)(imgtool::partition &partition, uint64_t first_block, uint64_t block_count);
 
-	if (image.module().list_partitions)
-	{
-		// this image supports partitions  - retrieve the info on the partitions
-		err = image.module().list_partitions(image, partitions);
-		if (err)
-			return err;
+	// list the partitions
+	err = image.list_partitions(partitions);
+	if (err)
+		return err;
 
-		// is this an invalid index?
-		if ((partition_index < 0) || (partition_index >= partitions.size()) || !partitions[partition_index].get_info())
-			return IMGTOOLERR_INVALIDPARTITION;
+	// is this an invalid index?
+	if ((partition_index < 0) || (partition_index >= partitions.size()) || !partitions[partition_index].get_info())
+		return IMGTOOLERR_INVALIDPARTITION;
 
-		// use this partition
-		memset(&imgclass, 0, sizeof(imgclass));
-		imgclass.get_info = partitions[partition_index].get_info();
-		base_block = partitions[partition_index].base_block();
-		block_count = partitions[partition_index].block_count();
-	}
-	else
-	{
-		// this image does not support partitions
-		if (partition_index != 0)
-			return IMGTOOLERR_INVALIDPARTITION;
-
-		// identify the image class
-		imgclass = image.module().imgclass;
-		base_block = 0;
-		block_count = ~0;
-	}
+	// use this partition 
+	memset(&imgclass, 0, sizeof(imgclass));
+	imgclass.get_info = partitions[partition_index].get_info();
+	base_block = partitions[partition_index].base_block();
+	block_count = partitions[partition_index].block_count();
 
 	// allocate the new partition object
 	try { p = std::make_unique<imgtool::partition>(image, imgclass, partition_index, base_block, block_count); }
@@ -663,7 +662,6 @@ imgtoolerr_t imgtool::partition::open(imgtool::image &image, int partition_index
 		err = (imgtoolerr_t)IMGTOOLERR_OUTOFMEMORY;
 		goto done;
 	}
-
 
 	// call the partition open function, if present
 	open_partition = (imgtoolerr_t (*)(imgtool::partition &, uint64_t, uint64_t)) imgtool_get_info_fct(&imgclass, IMGTOOLINFO_PTR_OPEN_PARTITION);
@@ -914,7 +912,7 @@ imgtoolerr_t imgtool::image::internal_open(const imgtool_module *module, const c
 	}
 
 	// open the stream
-	stream = imgtool::stream::ptr(imgtool::stream::open(fname, read_or_write));
+	stream = imgtool::stream::open(fname, read_or_write);
 	if (!stream)
 	{
 		err = (imgtoolerr_t)(IMGTOOLERR_FILENOTFOUND | IMGTOOLERR_SRC_IMAGEFILE);
@@ -1871,7 +1869,7 @@ imgtoolerr_t imgtool::partition::get_file(const char *filename, const char *fork
 	const char *dest, filter_getinfoproc filter)
 {
 	imgtoolerr_t err;
-	imgtool::stream *f;
+	imgtool::stream::ptr f;
 	char *new_fname = nullptr;
 	char *alloc_dest = nullptr;
 	const char *filter_extension = nullptr;
@@ -1919,8 +1917,6 @@ imgtoolerr_t imgtool::partition::get_file(const char *filename, const char *fork
 		goto done;
 
 done:
-	if (f != nullptr)
-		delete f;
 	if (alloc_dest != nullptr)
 		free(alloc_dest);
 	if (new_fname != nullptr)
@@ -1938,7 +1934,7 @@ imgtoolerr_t imgtool::partition::put_file(const char *newfname, const char *fork
 	const char *source, util::option_resolution *opts, filter_getinfoproc filter)
 {
 	imgtoolerr_t err;
-	imgtool::stream *f = nullptr;
+	imgtool::stream::ptr f;
 	imgtool_charset charset;
 	char *alloc_newfname = nullptr;
 	std::string basename;
@@ -1971,8 +1967,6 @@ imgtoolerr_t imgtool::partition::put_file(const char *newfname, const char *fork
 
 done:
 	/* clean up */
-	if (f != nullptr)
-		delete f;
 	if (alloc_newfname != nullptr)
 		osd_free(alloc_newfname);
 	return err;

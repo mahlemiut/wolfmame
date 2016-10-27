@@ -2627,8 +2627,6 @@ void ioport_manager::playback_end(const char *message)
 
 void ioport_manager::playback_frame(const attotime &curtime)
 {
-	uint32_t speed;
-
 	// if playing back, fetch the information and verify
 	if (m_playback_file.is_open())
 	{
@@ -2643,9 +2641,6 @@ void ioport_manager::playback_frame(const attotime &curtime)
 
 		// then the speed
 		uint32_t curspeed;
-		speed = playback_read(curspeed);
-		m_playback_accumulated_speed += speed;
-		rec_speed = (double)speed / (1 << 20);
 		m_playback_accumulated_speed += playback_read(curspeed);
 		m_playback_accumulated_frames++;
 	}

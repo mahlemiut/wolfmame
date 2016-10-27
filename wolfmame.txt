@@ -1,6 +1,6 @@
 ------------------------------------------------------------------------------------------------
-WolfMAME 0.178                                                                       28/Sep/2016
-Based on the MAME(tm) 0.178 source, modified by Barry Rodewald
+WolfMAME 0.179                                                                       27/Oct/2016
+Based on the MAME(tm) 0.179 source, modified by Barry Rodewald
 ------------------------------------------------------------------------------------------------
 
 

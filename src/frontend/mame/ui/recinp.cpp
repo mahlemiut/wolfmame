@@ -112,7 +112,7 @@ void ui_menu_record_inp::handle()
 		}
 		if(menu_event->itemref != nullptr)
 		{
-			switch((FPTR)menu_event->itemref)
+			switch((uintptr_t)menu_event->itemref)
 			{
 			case 1:
 				if(menu_event->iptkey == IPT_UI_SELECT)
@@ -139,7 +139,7 @@ void ui_menu_record_inp::handle()
 void ui_menu_record_inp::populate()
 {
 	// add options items
-	item_append(_("Start recording"), "", 0 , (void*)(FPTR)1);
+	item_append(_("Start recording"), "", 0 , (void*)(uintptr_t)1);
 
 	customtop = mame_machine_manager::instance()->ui().get_line_height() + (3.0f * UI_BOX_TB_BORDER);
 }
@@ -245,8 +245,8 @@ ui_menu_playback_inp::~ui_menu_playback_inp()
 void ui_menu_playback_inp::populate()
 {
 	// add options items
-	item_append(_("Start playback"), "", 0 , (void*)(FPTR)1);
-	item_append(_("Browse..."), "", 0 , (void*)(FPTR)2);
+	item_append(_("Start playback"), "", 0 , (void*)(uintptr_t)1);
+	item_append(_("Browse..."), "", 0 , (void*)(uintptr_t)2);
 	customtop = mame_machine_manager::instance()->ui().get_line_height() + (3.0f * UI_BOX_TB_BORDER);
 }
 
@@ -296,7 +296,7 @@ void ui_menu_playback_inp::handle()
 		}
 		if(menu_event->itemref != nullptr)
 		{
-			switch((FPTR)menu_event->itemref)
+			switch((uintptr_t)menu_event->itemref)
 			{
 			case 1:
 				if(menu_event->iptkey == IPT_UI_SELECT)

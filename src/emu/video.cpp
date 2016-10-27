@@ -275,7 +275,7 @@ std::string video_manager::speed_text()
 	bool paused = machine().paused();
 
 	/* show frame counter */
-	util::stream_format(str,"[%i] : ",(UINT32)m_machine.first_screen()->frame_number());
+	util::stream_format(str,"[%i] : ",(uint32_t)m_machine.first_screen()->frame_number());
 
 	if (paused)
 		str << "paused";

@@ -2648,6 +2648,7 @@ void ioport_manager::playback_frame(const attotime &curtime)
 		rec_speed = (double)speed / (1 << 20);
 		m_playback_accumulated_speed += playback_read(curspeed);
 		m_playback_accumulated_frames++;
+		rec_speed = curspeed / double(1 << 20);
 	}
 }
 

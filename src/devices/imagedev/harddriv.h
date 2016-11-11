@@ -40,11 +40,11 @@ public:
 
 	virtual iodevice_t image_type() const override { return IO_HARDDISK; }
 
-	virtual bool is_readable()  const override { return 1; }
-	virtual bool is_writeable() const override { return 1; }
-	virtual bool is_creatable() const override { return 0; }
-	virtual bool must_be_loaded() const override { return 0; }
-	virtual bool is_reset_on_load() const override { return 0; }
+	virtual bool is_readable()  const override { return true; }
+	virtual bool is_writeable() const override { return true; }
+	virtual bool is_creatable() const override { return false; }
+	virtual bool must_be_loaded() const override { return false; }
+	virtual bool is_reset_on_load() const override { return false; }
 	virtual const char *image_interface() const override { return m_interface; }
 	virtual const char *file_extensions() const override { return "chd,hd"; }
 	virtual const util::option_guide &create_option_guide() const override;
@@ -84,10 +84,10 @@ extern const device_type HARDDISK;
 	MCFG_DEVICE_ADD(_tag, HARDDISK, 0)
 
 #define MCFG_HARDDISK_LOAD(_class,_method)                                \
-	harddisk_image_device::static_set_device_load(*device, device_image_load_delegate(&DEVICE_IMAGE_LOAD_NAME(_class,_method), #_class "::device_image_load_" #_method, downcast<_class *>(owner)));
+	harddisk_image_device::static_set_device_load(*device, device_image_load_delegate(&DEVICE_IMAGE_LOAD_NAME(_class,_method), downcast<_class *>(owner)));
 
 #define MCFG_HARDDISK_UNLOAD(_class,_method)                            \
-	harddisk_image_device::static_set_device_unload(*device, device_image_func_delegate(&DEVICE_IMAGE_UNLOAD_NAME(_class,_method), #_class "::device_image_unload_" #_method, downcast<_class *>(owner)));
+	harddisk_image_device::static_set_device_unload(*device, device_image_func_delegate(&DEVICE_IMAGE_UNLOAD_NAME(_class,_method), downcast<_class *>(owner)));
 
 #define MCFG_HARDDISK_INTERFACE(_interface)                         \
 	harddisk_image_device::static_set_interface(*device, _interface);

@@ -165,13 +165,13 @@ private:
 shaders::shaders() :
 	d3dintf(nullptr), machine(nullptr), d3d(nullptr), post_fx_enable(false), oversampling_enable(false),
 	num_screens(0), curr_screen(0), shadow_texture(nullptr), options(nullptr), black_surface(nullptr),
-	black_texture(nullptr), recording_movie(false),render_snap(false), snap_copy_target(nullptr),
+	black_texture(nullptr), recording_movie(false), render_snap(false), snap_copy_target(nullptr),
 	snap_copy_texture(nullptr), snap_target(nullptr), snap_texture(nullptr), snap_width(0), snap_height(0),
 	initialized(false), backbuffer(nullptr), curr_effect(nullptr), default_effect(nullptr),
 	prescale_effect(nullptr), post_effect(nullptr), distortion_effect(nullptr), focus_effect(nullptr),
 	phosphor_effect(nullptr), deconverge_effect(nullptr), color_effect(nullptr), ntsc_effect(nullptr),
 	bloom_effect(nullptr), downsample_effect(nullptr), vector_effect(nullptr), curr_texture(nullptr),
-	curr_render_target(nullptr), curr_poly(nullptr)
+	curr_render_target(nullptr), curr_poly(nullptr), d3dx_create_effect_from_file_ptr(nullptr)
 {
 }
 
@@ -1271,6 +1271,8 @@ int shaders::screen_pass(d3d_render_target *rt, int source_index, poly_info *pol
 {
 	int next_index = source_index;
 
+	d3d->set_blendmode(PRIMFLAG_GET_BLENDMODE(poly->flags()));
+
 	curr_effect = default_effect;
 	curr_effect->update_uniforms();
 	curr_effect->set_technique("ScreenTechnique");
@@ -1301,6 +1303,8 @@ int shaders::screen_pass(d3d_render_target *rt, int source_index, poly_info *pol
 
 void shaders::ui_pass(poly_info *poly, int vertnum)
 {
+	d3d->set_blendmode(PRIMFLAG_GET_BLENDMODE(poly->flags()));
+
 	curr_effect = default_effect;
 	curr_effect->update_uniforms();
 	curr_effect->set_technique("UiTechnique");

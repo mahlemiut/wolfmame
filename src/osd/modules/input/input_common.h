@@ -13,6 +13,8 @@
 
 #include "input_module.h"
 
+#include "inputdev.h"
+
 #include <chrono>
 #include <memory>
 #include <mutex>
@@ -350,12 +352,14 @@ public:
 struct key_trans_entry {
 	input_item_id   mame_key;
 
-#if !defined(OSD_WINDOWS)
+#if defined(OSD_SDL)
 	int             sdl_scancode;
 	int             sdl_key;
-#else
+#elif defined(OSD_WINDOWS)
 	int             scan_code;
 	unsigned char   virtual_key;
+#elif defined(OSD_UWP)
+	Windows::System::VirtualKey virtual_key;
 #endif
 
 	char            ascii_key;
@@ -389,6 +393,8 @@ public:
 #if defined(OSD_WINDOWS)
 	input_item_id map_di_scancode_to_itemid(int di_scancode) const;
 	int vkey_for_mame_code(input_code code) const;
+#elif defined(OSD_UWP)
+	input_item_id map_vkey_to_itemid(Windows::System::VirtualKey vkey) const;
 #endif
 
 	static keyboard_trans_table& instance()

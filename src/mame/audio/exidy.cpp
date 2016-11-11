@@ -742,7 +742,7 @@ void venture_sound_device::sound_stream_update(sound_stream &stream, stream_samp
 
 
 
-static ADDRESS_MAP_START( venture_audio_map, AS_PROGRAM, 8, driver_device )
+static ADDRESS_MAP_START( venture_audio_map, AS_PROGRAM, 8, venture_sound_device )
 	ADDRESS_MAP_GLOBAL_MASK(0x7fff)
 	AM_RANGE(0x0000, 0x007f) AM_MIRROR(0x0780) AM_RAM
 	AM_RANGE(0x0800, 0x087f) AM_MIRROR(0x0780) AM_DEVREADWRITE("riot", riot6532_device, read, write)
@@ -822,13 +822,13 @@ READ8_MEMBER( venture_sound_device::mtrap_voiceio_r )
 }
 
 
-static ADDRESS_MAP_START( cvsd_map, AS_PROGRAM, 8, driver_device )
+static ADDRESS_MAP_START( cvsd_map, AS_PROGRAM, 8, venture_sound_device )
 	ADDRESS_MAP_GLOBAL_MASK(0x3fff)
 	AM_RANGE(0x0000, 0x3fff) AM_ROM
 ADDRESS_MAP_END
 
 
-static ADDRESS_MAP_START( cvsd_iomap, AS_IO, 8, driver_device )
+static ADDRESS_MAP_START( cvsd_iomap, AS_IO, 8, venture_sound_device )
 	ADDRESS_MAP_GLOBAL_MASK(0xff)
 	AM_RANGE(0x00, 0xff) AM_DEVREADWRITE("custom", venture_sound_device, mtrap_voiceio_r, mtrap_voiceio_w)
 ADDRESS_MAP_END
@@ -862,7 +862,7 @@ READ8_MEMBER( victory_sound_device::response_r )
 {
 	uint8_t ret = m_pia1->b_output();
 
-	if (VICTORY_LOG_SOUND) logerror("%04X:!!!! Sound response read = %02X\n", m_maincpu->pcbase(), ret);
+	if (IS_ENABLED(VICTORY_LOG_SOUND)) logerror("%04X:!!!! Sound response read = %02X\n", m_maincpu->pcbase(), ret);
 
 	m_pia1_cb1 = 0;
 	m_pia1->cb1_w(m_pia1_cb1);
@@ -875,7 +875,7 @@ READ8_MEMBER( victory_sound_device::status_r )
 {
 	uint8_t ret = (m_pia1_ca1 << 7) | (m_pia1_cb1 << 6);
 
-	if (VICTORY_LOG_SOUND) logerror("%04X:!!!! Sound status read = %02X\n", m_maincpu->pcbase(), ret);
+	if (IS_ENABLED(VICTORY_LOG_SOUND)) logerror("%04X:!!!! Sound status read = %02X\n", m_maincpu->pcbase(), ret);
 
 	return ret;
 }
@@ -890,7 +890,7 @@ TIMER_CALLBACK_MEMBER( victory_sound_device::delayed_command_w )
 
 WRITE8_MEMBER( victory_sound_device::command_w )
 {
-	if (VICTORY_LOG_SOUND) logerror("%04X:!!!! Sound command = %02X\n", m_maincpu->pcbase(), data);
+	if (IS_ENABLED(VICTORY_LOG_SOUND)) logerror("%04X:!!!! Sound command = %02X\n", m_maincpu->pcbase(), data);
 
 	space.machine().scheduler().synchronize(timer_expired_delegate(FUNC(victory_sound_device::delayed_command_w), this), data);
 }
@@ -898,7 +898,7 @@ WRITE8_MEMBER( victory_sound_device::command_w )
 
 WRITE_LINE_MEMBER( victory_sound_device::irq_clear_w )
 {
-	if (VICTORY_LOG_SOUND) logerror("%s:!!!! Sound IRQ clear = %02X\n", machine().describe_context(), state);
+	if (IS_ENABLED(VICTORY_LOG_SOUND)) logerror("%s:!!!! Sound IRQ clear = %02X\n", machine().describe_context(), state);
 
 	if (!state)
 	{
@@ -910,7 +910,7 @@ WRITE_LINE_MEMBER( victory_sound_device::irq_clear_w )
 
 WRITE_LINE_MEMBER( victory_sound_device::main_ack_w )
 {
-	if (VICTORY_LOG_SOUND) logerror("%s:!!!! Sound Main ACK W = %02X\n", machine().describe_context(), state);
+	if (IS_ENABLED(VICTORY_LOG_SOUND)) logerror("%s:!!!! Sound Main ACK W = %02X\n", machine().describe_context(), state);
 
 	if (m_victory_sound_response_ack_clk && !state)
 	{
@@ -1006,7 +1006,7 @@ void victory_sound_device::sound_stream_update(sound_stream &stream, stream_samp
 
 
 
-static ADDRESS_MAP_START( victory_audio_map, AS_PROGRAM, 8, driver_device )
+static ADDRESS_MAP_START( victory_audio_map, AS_PROGRAM, 8, venture_sound_device )
 	AM_RANGE(0x0000, 0x00ff) AM_MIRROR(0x0f00) AM_RAM
 	AM_RANGE(0x1000, 0x107f) AM_MIRROR(0x0f80) AM_DEVREADWRITE("riot", riot6532_device, read, write)
 	AM_RANGE(0x2000, 0x2003) AM_MIRROR(0x0ffc) AM_DEVREADWRITE("pia1", pia6821_device, read, write)

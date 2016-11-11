@@ -321,7 +321,7 @@ void laserdisc_device::device_start()
 	init_audio();
 
 	// register callbacks
-	machine().configuration().config_register("laserdisc", config_saveload_delegate(FUNC(laserdisc_device::config_load), this), config_saveload_delegate(FUNC(laserdisc_device::config_save), this));
+	machine().configuration().config_register("laserdisc", config_saveload_delegate(&laserdisc_device::config_load, this), config_saveload_delegate(&laserdisc_device::config_save, this));
 }
 
 
@@ -497,7 +497,7 @@ void laserdisc_device::set_slider_speed(int32_t tracks_per_vsync)
 	else
 		m_attospertrack = -(vsyncperiod / -tracks_per_vsync).as_attoseconds();
 
-	if (LOG_SLIDER)
+	if (IS_ENABLED(LOG_SLIDER))
 		printf("Slider speed = %d\n", tracks_per_vsync);
 }
 
@@ -514,7 +514,7 @@ void laserdisc_device::advance_slider(int32_t numtracks)
 
 	// then update the track position
 	add_and_clamp_track(numtracks);
-	if (LOG_SLIDER)
+	if (IS_ENABLED(LOG_SLIDER))
 		printf("Advance by %d\n", numtracks);
 }
 
@@ -792,7 +792,7 @@ void laserdisc_device::init_disc()
 void laserdisc_device::init_video()
 {
 	// register for VBLANK callbacks
-	m_screen->register_vblank_callback(vblank_state_delegate(FUNC(laserdisc_device::vblank_state_changed), this));
+	m_screen->register_vblank_callback(vblank_state_delegate(&laserdisc_device::vblank_state_changed, this));
 
 	// allocate palette for applying brightness/contrast/gamma
 	m_videopalette = palette_t::alloc(256);

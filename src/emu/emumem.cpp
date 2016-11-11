@@ -1553,6 +1553,20 @@ memory_manager::memory_manager(running_machine &machine)
 	memset(m_bank_ptr, 0, sizeof(m_bank_ptr));
 }
 
+//-------------------------------------------------
+//  allocate - allocate memory spaces
+//-------------------------------------------------
+
+void memory_manager::allocate(device_memory_interface &memory)
+{
+	for (address_spacenum spacenum = AS_0; spacenum < ADDRESS_SPACES; ++spacenum)
+	{
+		// if there is a configuration for this space, we need an address space
+		const address_space_config *spaceconfig = memory.space_config(spacenum);
+		if (spaceconfig != nullptr)
+			address_space::allocate(m_spacelist, *this, *spaceconfig, memory, spacenum);
+	}
+}
 
 //-------------------------------------------------
 //  initialize - initialize the memory system
@@ -1563,13 +1577,9 @@ void memory_manager::initialize()
 	// loop over devices and spaces within each device
 	memory_interface_iterator iter(machine().root_device());
 	for (device_memory_interface &memory : iter)
-		for (address_spacenum spacenum = AS_0; spacenum < ADDRESS_SPACES; ++spacenum)
-		{
-			// if there is a configuration for this space, we need an address space
-			const address_space_config *spaceconfig = memory.space_config(spacenum);
-			if (spaceconfig != nullptr)
-				address_space::allocate(m_spacelist,*this, *spaceconfig, memory, spacenum);
-		}
+		allocate(memory);
+
+	allocate(m_machine.m_dummy_space);
 
 	// construct and preprocess the address_map for each space
 	for (auto &space : m_spacelist)
@@ -2001,7 +2011,7 @@ void address_space::prepare_map()
 	m_map = std::make_unique<address_map>(m_device, m_spacenum);
 
 	// merge in the submaps
-	m_map->uplift_submaps(machine(), m_device, m_device.owner() ? *m_device.owner() : m_device, endianness());
+	m_map->uplift_submaps(machine(), m_device.owner() ? *m_device.owner() : m_device, endianness());
 
 	// extract global parameters specified by the map
 	m_unmap = (m_map->m_unmapval == 0) ? 0 : ~0;
@@ -2424,8 +2434,8 @@ void address_space::unmap_generic(offs_t addrstart, offs_t addrend, offs_t addrm
 void address_space::install_device_delegate(offs_t addrstart, offs_t addrend, device_t &device, address_map_delegate &delegate, int bits, uint64_t unitmask)
 {
 	check_address("install_device_delegate", addrstart, addrend);
-	address_map map(*this, addrstart, addrend, bits, unitmask, device, delegate);
-	map.uplift_submaps(machine(), m_device, device, endianness());
+	address_map map(*this, addrstart, addrend, bits, unitmask, m_device, delegate);
+	map.uplift_submaps(machine(), device, endianness());
 	populate_from_map(&map);
 }
 
@@ -3400,7 +3410,7 @@ uint16_t address_table::derive_range(offs_t byteaddress, offs_t &bytestart, offs
 	uint16_t curl1entry = l1entry;
 	uint16_t curentry = entry;
 	bytestart = byteaddress;
-	while (1)
+	while (true)
 	{
 		// if we need to scan the subtable, do it
 		if (curentry != curl1entry)
@@ -3438,7 +3448,7 @@ uint16_t address_table::derive_range(offs_t byteaddress, offs_t &bytestart, offs
 	curl1entry = l1entry;
 	curentry = entry;
 	byteend = byteaddress;
-	while (1)
+	while (true)
 	{
 		// if we need to scan the subtable, do it
 		if (curentry != curl1entry)
@@ -3502,7 +3512,7 @@ void address_table::mask_all_handlers(offs_t mask)
 uint16_t address_table::subtable_alloc()
 {
 	// loop
-	while (1)
+	while (true)
 	{
 		// find a subtable with a usecount of 0
 		for (uint16_t subindex = 0; subindex < SUBTABLE_COUNT; subindex++)

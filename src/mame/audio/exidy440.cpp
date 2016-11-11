@@ -131,7 +131,7 @@ void exidy440_sound_device::device_start()
 	m_mixer_buffer_left = make_unique_clear<int32_t[]>(clock());
 	m_mixer_buffer_right = make_unique_clear<int32_t[]>(clock());
 
-	if (SOUND_LOG)
+	if (IS_ENABLED(SOUND_LOG))
 		m_debuglog = fopen("sound.log", "w");
 }
 
@@ -141,7 +141,7 @@ void exidy440_sound_device::device_start()
 
 void exidy440_sound_device::device_stop()
 {
-	if (SOUND_LOG && m_debuglog)
+	if (IS_ENABLED(SOUND_LOG) && m_debuglog)
 		fclose(m_debuglog);
 }
 
@@ -775,7 +775,7 @@ void exidy440_sound_device::decode_and_filter_cvsd(uint8_t *input, int bytes, in
 	}
 
 	/* make sure the volume goes smoothly to 0 over the last 512 samples */
-	if (FADE_TO_ZERO)
+	if (IS_ENABLED(FADE_TO_ZERO))
 	{
 		int16_t *data;
 
@@ -859,7 +859,7 @@ void exidy440_sound_device::sound_stream_update(sound_stream &stream, stream_sam
  *
  *************************************/
 
-static ADDRESS_MAP_START( exidy440_audio_map, AS_PROGRAM, 8, driver_device )
+static ADDRESS_MAP_START( exidy440_audio_map, AS_PROGRAM, 8, exidy440_sound_device )
 	AM_RANGE(0x0000, 0x7fff) AM_NOP
 	AM_RANGE(0x8000, 0x801f) AM_MIRROR(0x03e0) AM_DEVREADWRITE("custom", exidy440_sound_device, m6844_r, m6844_w)
 	AM_RANGE(0x8400, 0x840f) AM_MIRROR(0x03f0) AM_DEVREADWRITE("custom", exidy440_sound_device, sound_volume_r, sound_volume_w)

@@ -28,8 +28,8 @@ output_manager::output_manager(running_machine &machine)
 		m_uniqueid(12345)
 {
 	/* add pause callback */
-	machine.add_notifier(MACHINE_NOTIFY_PAUSE, machine_notify_delegate(FUNC(output_manager::pause), this));
-	machine.add_notifier(MACHINE_NOTIFY_RESUME, machine_notify_delegate(FUNC(output_manager::resume), this));
+	machine.add_notifier(MACHINE_NOTIFY_PAUSE, machine_notify_delegate(&output_manager::pause, this));
+	machine.add_notifier(MACHINE_NOTIFY_RESUME, machine_notify_delegate(&output_manager::resume, this));
 }
 
 /*-------------------------------------------------
@@ -105,7 +105,7 @@ void output_manager::set_value(const char *outname, int32_t value)
 	/* if the value is different, signal the notifier */
 	if (oldval != value)
 	{
-		if (OUTPUT_VERBOSE)
+		if (IS_ENABLED(OUTPUT_VERBOSE))
 			machine().logerror("Output %s = %d (was %d)\n", outname, value, oldval);
 
 		/* call the local notifiers first */

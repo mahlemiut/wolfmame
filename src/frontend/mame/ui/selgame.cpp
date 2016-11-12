@@ -427,13 +427,13 @@ void menu_select_game::handle()
 			if (!isfavorite())
 			{
 				const game_driver *driver = (const game_driver *)menu_event->itemref;
-				if ((FPTR)driver > 3)
+				if ((uintptr_t)driver > 3)
 					menu::stack_push<ui_menu_record_inp>(ui(), container(), driver);
 			}
 			else
 			{
 //				ui_software_info *swinfo  = (ui_software_info *)menu_event->itemref;
-//				if ((FPTR)swinfo > 3 && machine().datfile().has_data(swinfo->driver))
+//				if ((uintptr_t)swinfo > 3 && machine().datfile().has_data(swinfo->driver))
 //				{
 //					if (swinfo->startempty == 1)
 //						menu::stack_push<ui_menu_record_inp>(ui(), container, swinfo->driver);
@@ -448,13 +448,13 @@ void menu_select_game::handle()
 			if (!isfavorite())
 			{
 				const game_driver *driver = (const game_driver *)menu_event->itemref;
-				if ((FPTR)driver > 3)
+				if ((uintptr_t)driver > 3)
 					menu::stack_push<ui_menu_playback_inp>(ui(), container(), driver);
 			}
 			else
 			{
 //				ui_software_info *swinfo  = (ui_software_info *)m_event->itemref;
-//				if ((FPTR)swinfo > 3 && machine().datfile().has_data(swinfo->driver))
+//				if ((uintptr_t)swinfo > 3 && machine().datfile().has_data(swinfo->driver))
 //				{
 //					if (swinfo->startempty == 1)
 //						menu::stack_push<ui_menu_playback_inp>(ui(), container, swinfo->driver);

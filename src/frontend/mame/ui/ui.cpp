@@ -952,9 +952,9 @@ bool if_recording_or_playing_back_stop_and_return_true(running_machine& machine)
 			snprintf(bufferx, sizeof(bufferx), timearray, "RECORD");
 			machine.ioport().record_end(bufferx);
 		}
-		return TRUE;
+		return true;
 	}
-	return FALSE;
+	return false;
 }
 
 //-------------------------------------------------

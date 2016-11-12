@@ -2589,7 +2589,7 @@ void ioport_manager::playback_end(const char *message)
 		// pop a message
 		if (message != nullptr)
 			machine().popmessage("Playback Ended - %u Frames (%s) - Speed %.2f%%\nReason: %s",
-				(UINT32)m_playback_accumulated_frames, timearray, avg / (1 << 20), message);
+				(uint32_t)m_playback_accumulated_frames, timearray, avg / (1 << 20), message);
 
 		// display speed stats
 		if (m_playback_accumulated_speed > 0)
@@ -2617,7 +2617,7 @@ void ioport_manager::playback_end(const char *message)
 
 void ioport_manager::playback_frame(const attotime &curtime)
 {
-	UINT32 speed;
+	uint32_t speed;
 
 	// if playing back, fetch the information and verify
 	if (m_playback_file.is_open())
@@ -2635,8 +2635,6 @@ void ioport_manager::playback_frame(const attotime &curtime)
 		uint32_t curspeed;
 		speed = playback_read(curspeed);
 		m_playback_accumulated_speed += speed;
-		rec_speed = (double)speed / (1 << 20);
-		m_playback_accumulated_speed += playback_read(curspeed);
 		m_playback_accumulated_frames++;
 		rec_speed = curspeed / double(1 << 20);
 	}
@@ -2816,7 +2814,7 @@ void ioport_manager::record_end(const char *message)
 		
 		// write end date to header
 		system_time systime;
-		UINT8 data[8];
+		uint8_t data[8];
 		machine().current_datetime(systime);
 		m_record_file.compress(FCOMPRESS_NONE);  // disable compression
 		m_record_file.seek(0x38,SEEK_SET);  // TODO: modernise this to match use of the header class		

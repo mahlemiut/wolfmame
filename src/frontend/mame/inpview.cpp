@@ -297,7 +297,7 @@ int input_viewer::input_port_used(int type,int player)
 	/* loop over all input ports */
 	for (auto &port : machine().ioport().ports())
 	{
-		UINT32 portvalue;
+		uint32_t portvalue;
 
 		/* loop over all bitfields for this port */
 		for (ioport_field &field : port.second->fields())

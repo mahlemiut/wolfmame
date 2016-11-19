@@ -333,6 +333,7 @@ mephisto.cpp
 mes.cpp
 mice.cpp
 micral.cpp
+micro20.cpp
 microdec.cpp
 microkit.cpp
 micronic.cpp
@@ -476,6 +477,7 @@ pp01.cpp
 prestige.cpp
 primo.cpp
 pro80.cpp
+prodigy.cpp
 prof180x.cpp
 prof80.cpp
 prophet600.cpp
@@ -507,6 +509,7 @@ rd100.cpp
 rd110.cpp
 replicator.cpp
 rex6000.cpp
+risc2500.cpp
 riscpc.cpp
 rm380z.cpp
 rmnimbus.cpp
@@ -630,6 +633,7 @@ ts803.cpp
 ts816.cpp
 tsispch.cpp
 tutor.cpp
+tv910.cpp
 tv950.cpp
 tv990.cpp
 tvc.cpp

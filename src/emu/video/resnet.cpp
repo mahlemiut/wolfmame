@@ -201,7 +201,7 @@ double compute_resistor_weights(
 	}
 
 /* debug code */
-if (IS_ENABLED(VERBOSE))
+if (VERBOSE)
 {
 	osd_printf_info("compute_resistor_weights():  scaler = %15.10f\n",scale);
 	osd_printf_info("min val :%i  max val:%i  Total number of networks :%i\n", minval, maxval, networks_no );
@@ -391,7 +391,7 @@ double compute_resistor_net_outputs(
 	}
 
 /* debug code */
-if (IS_ENABLED(VERBOSE))
+if (VERBOSE)
 {
 	osd_printf_info("compute_resistor_net_outputs():  scaler = %15.10f\n",scale);
 	osd_printf_info("min val :%i  max val:%i  Total number of networks :%i\n", minval, maxval, networks_no );
@@ -449,7 +449,7 @@ int compute_res_net(int inputs, int channel, const res_net_info &di)
 {
 	double rTotal=0.0;
 	double v = 0;
-	int i;
+	int    i;
 
 	double vBias = di.rgb[channel].vBias;
 	double vOH = di.vOH;
@@ -459,7 +459,7 @@ int compute_res_net(int inputs, int channel, const res_net_info &di)
 	double vcc = di.vcc;
 	double ttlHRes = 0;
 	double rGnd = di.rgb[channel].rGnd;
-	uint8_t  OpenCol = di.OpenCol;
+	u8     OpenCol = di.OpenCol;
 
 	/* Global options */
 
@@ -692,15 +692,15 @@ int compute_res_net(int inputs, int channel, const res_net_info &di)
 	return (int) (v * 255 / vcc + 0.4);
 }
 
-void compute_res_net_all(std::vector<rgb_t> &rgb, const uint8_t *prom, const res_net_decode_info &rdi, const res_net_info &di)
+void compute_res_net_all(std::vector<rgb_t> &rgb, const u8 *prom, const res_net_decode_info &rdi, const res_net_info &di)
 {
-	uint8_t r,g,b;
+	u8 r,g,b;
 	int i,j,k;
 
 	rgb.resize(rdi.end - rdi.start + 1);
 	for (i=rdi.start; i<=rdi.end; i++)
 	{
-		uint8_t t[3] = {0,0,0};
+		u8 t[3] = {0,0,0};
 		int s;
 		for (j=0;j<rdi.numcomp;j++)
 			for (k=0; k<3; k++)

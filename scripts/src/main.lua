@@ -86,7 +86,7 @@ end
 		}
 		configuration "**/scripts/resources/uwp/assets/*.png"
 			flags { "DeploymentContent" }
-	
+
 	-- Effects and Shaders
 	configuration { "winstore*" }
 		files {
@@ -233,8 +233,7 @@ end
 	}
 if (STANDALONE~=true) then
 	links {
-		"frontend",	
-		"http",
+		"frontend",
 	}
 end
 if (MACHINES["NETLIST"]~=null) then

@@ -88,12 +88,12 @@ DONE (x) (p=partly)         NMOS         CMOS
 #define VERBOSE 0
 
 #define LOGPRINT(x) { do { if (VERBOSE) logerror x; } while (0); }
-#define LOG(x)		{} 
-#define LOGR(x)		{} 
-#define LOGTX(x)   	{} 
-#define LOGRX(x)	{} 
-#define LOGSETUP(x)	{} LOGPRINT(x)
-#define LOGINT(x)	{} 
+#define LOG(x)      {}
+#define LOGR(x)     {}
+#define LOGTX(x)    {}
+#define LOGRX(x)    {}
+#define LOGSETUP(x) {} LOGPRINT(x)
+#define LOGINT(x)   {}
 
 #if VERBOSE > 1
 #define logerror printf
@@ -526,7 +526,7 @@ void duscc_device::trigger_interrupt(int index, int state)
 	m_int_state[priority_level] |= Z80_DAISY_INT;
 	LOGINT((" - Interrupt Priority Level %d, caused by Source %02x with vector %02x\n",priority_level, source, m_ivrm ));
 
-	// check for interupts
+	// check for interrupts
 	check_interrupts();
 }
 

@@ -413,7 +413,7 @@ end
 			MAME_DIR .. "3rdparty/lzma/C/BraIA64.c",
 			MAME_DIR .. "3rdparty/lzma/C/CpuArch.c",
 			MAME_DIR .. "3rdparty/lzma/C/Delta.c",
-			MAME_DIR .. "3rdparty/lzma/C/DllSecur.c",
+			-- MAME_DIR .. "3rdparty/lzma/C/DllSecur.c",
 			MAME_DIR .. "3rdparty/lzma/C/LzFind.c",
 			-- MAME_DIR .. "3rdparty/lzma/C/LzFindMt.c",
 			MAME_DIR .. "3rdparty/lzma/C/Lzma2Dec.c",
@@ -587,7 +587,7 @@ end
 		forcedincludes {
 			MAME_DIR .. "src/osd/uwp/uwpcompat.h"
 		}
-	
+
 	configuration {}
 
 	files {
@@ -1521,12 +1521,12 @@ end
 			"-Wno-discarded-qualifiers",
 			"-Wno-unused-but-set-variable",
 		}
-	
+
 	configuration { "mingw-clang"}
 		buildoptions_c {
 			"-Wno-incompatible-pointer-types-discards-qualifiers"
 		}
-		
+
 	configuration { "osx*"}
 		buildoptions {
 			"-Wno-undef",

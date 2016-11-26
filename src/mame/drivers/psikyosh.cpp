@@ -602,9 +602,9 @@ static INPUT_PORTS_START( soldividk )
 	PORT_INCLUDE( common )
 
 	PORT_START("JP4")   /* jumper pads on the PCB */
-//	PORT_DIPNAME( 0x01000000, 0x01000000, DEF_STR( Region ) ) /* Game is hard coded to Korea */
-//	PORT_DIPSETTING(          0x00000000, DEF_STR( Japan ) )
-//	PORT_DIPSETTING(          0x01000000, DEF_STR( World ) )
+//  PORT_DIPNAME( 0x01000000, 0x01000000, DEF_STR( Region ) ) /* Game is hard coded to Korea */
+//  PORT_DIPSETTING(          0x00000000, DEF_STR( Japan ) )
+//  PORT_DIPSETTING(          0x01000000, DEF_STR( World ) )
 	PORT_BIT( 0x10000000, IP_ACTIVE_HIGH, IPT_SPECIAL ) PORT_READ_LINE_DEVICE_MEMBER("eeprom", eeprom_serial_93cxx_device, do_read)
 INPUT_PORTS_END
 
@@ -802,12 +802,11 @@ static MACHINE_CONFIG_START( psikyo3v1, psikyosh_state )
 
 
 	/* sound hardware */
-	MCFG_SPEAKER_STANDARD_STEREO("lspeaker", "rspeaker")
+	MCFG_SPEAKER_STANDARD_MONO("mono")
 
 	MCFG_SOUND_ADD("ymf", YMF278B, MASTER_CLOCK/2)
 	MCFG_YMF278B_IRQ_HANDLER(INPUTLINE("maincpu", 12))
-	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "lspeaker", 1.0)
-	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "rspeaker", 1.0)
+	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 1.0)
 MACHINE_CONFIG_END
 
 static MACHINE_CONFIG_DERIVED( psikyo5, psikyo3v1 )

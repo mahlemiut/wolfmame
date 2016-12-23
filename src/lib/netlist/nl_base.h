@@ -125,6 +125,7 @@ class NETLIB_NAME(name) : public device_t
 #define NETLIB_SUBXX(chip) std::unique_ptr< nld_ ## chip >
 
 #define NETLIB_UPDATE(chip) void NETLIB_NAME(chip) :: update(void) NL_NOEXCEPT
+#define NETLIB_PARENT_UPDATE(chip) NETLIB_NAME(chip) :: update();
 
 #define NETLIB_RESET(chip) void NETLIB_NAME(chip) :: reset(void)
 
@@ -832,7 +833,8 @@ namespace netlist
 			STRING,
 			DOUBLE,
 			INTEGER,
-			LOGIC
+			LOGIC,
+			POINTER // Special-case which is always initialized at MAME startup time
 		};
 
 		param_t(const param_type_t atype, device_t &device, const pstring &name);
@@ -868,6 +870,7 @@ namespace netlist
 	using param_str_t = param_template_t<pstring, param_t::STRING>;
 
 	using param_logic_t = param_template_t<bool, param_t::LOGIC>;
+	using param_ptr_t = param_template_t<std::uint_fast8_t*, param_t::POINTER>;
 
 	class param_model_t : public param_str_t
 	{

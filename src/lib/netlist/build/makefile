@@ -66,29 +66,45 @@ NLOBJS := \
 	$(NLOBJ)/analog/nld_switches.o \
 	$(NLOBJ)/analog/nld_twoterm.o \
 	$(NLOBJ)/analog/nld_opamps.o \
+	$(NLOBJ)/devices/nld_2102A.o \
+	$(NLOBJ)/devices/nld_2716.o \
 	$(NLOBJ)/devices/nld_4020.o \
 	$(NLOBJ)/devices/nld_4066.o \
 	$(NLOBJ)/devices/nld_7448.o \
 	$(NLOBJ)/devices/nld_7450.o \
+	$(NLOBJ)/devices/nld_7473.o \
 	$(NLOBJ)/devices/nld_7474.o \
+	$(NLOBJ)/devices/nld_7475.o \
 	$(NLOBJ)/devices/nld_7483.o \
+	$(NLOBJ)/devices/nld_7485.o \
 	$(NLOBJ)/devices/nld_7490.o \
 	$(NLOBJ)/devices/nld_7493.o \
 	$(NLOBJ)/devices/nld_74107.o \
 	$(NLOBJ)/devices/nld_74123.o \
 	$(NLOBJ)/devices/nld_74153.o \
+	$(NLOBJ)/devices/nld_74161.o \
+	$(NLOBJ)/devices/nld_74165.o \
+	$(NLOBJ)/devices/nld_74166.o \
+	$(NLOBJ)/devices/nld_74174.o \
 	$(NLOBJ)/devices/nld_74175.o \
 	$(NLOBJ)/devices/nld_74192.o \
 	$(NLOBJ)/devices/nld_74193.o \
+	$(NLOBJ)/devices/nld_74194.o \
 	$(NLOBJ)/devices/nld_74279.o \
+	$(NLOBJ)/devices/nld_74365.o \
 	$(NLOBJ)/devices/nld_74ls629.o \
 	$(NLOBJ)/devices/nld_82S16.o \
+	$(NLOBJ)/devices/nld_82S126.o \
 	$(NLOBJ)/devices/nld_9310.o \
 	$(NLOBJ)/devices/nld_9312.o \
 	$(NLOBJ)/devices/nld_9316.o \
+	$(NLOBJ)/devices/nld_9322.o \
+	$(NLOBJ)/devices/nld_am2847.o \
+	$(NLOBJ)/devices/nld_dm9334.o \
 	$(NLOBJ)/devices/nld_mm5837.o \
 	$(NLOBJ)/devices/nld_ne555.o \
 	$(NLOBJ)/devices/nld_r2r_dac.o \
+	$(NLOBJ)/devices/nld_tristate.o \
 	$(NLOBJ)/devices/nld_legacy.o \
 	$(NLOBJ)/devices/net_lib.o \
 	$(NLOBJ)/devices/nld_log.o \

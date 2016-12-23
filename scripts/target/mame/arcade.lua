@@ -263,6 +263,8 @@ SOUNDS["AD1848"] = true
 --SOUNDS["UPD1771"] = true
 SOUNDS["VOLT_REG"] = true
 --SOUNDS["MEA8000"] = true
+SOUNDS["DAC76"] = true
+SOUNDS["MM5837"] = true
 
 --------------------------------------------------
 -- specify available video cores
@@ -283,6 +285,7 @@ VIDEOS["DM9368"] = true
 --VIDEOS["EF9345"] = true
 --VIDEOS["EF9364"] = true
 --VIDEOS["EF9365"] = true
+VIDEOS["EF9369"] = true
 --VIDEOS["GF4500"] = true
 VIDEOS["GF7600GS"] = true
 VIDEOS["EPIC12"] = true
@@ -359,6 +362,7 @@ MACHINES["TTL74123"] = true
 MACHINES["TTL74145"] = true
 MACHINES["TTL74148"] = true
 MACHINES["TTL74153"] = true
+MACHINES["TTL74157"] = true
 --MACHINES["TTL74161"] = true
 --MACHINES["TTL74175"] = true
 MACHINES["TTL74181"] = true
@@ -563,6 +567,8 @@ MACHINES["X76F041"] = true
 MACHINES["X76F100"] = true
 MACHINES["Z80CTC"] = true
 MACHINES["Z80DART"] = true
+--MACHINES["Z80SIO"] = true
+MACHINES["Z80SCC"] = true
 MACHINES["Z80DMA"] = true
 MACHINES["Z80PIO"] = true
 MACHINES["Z80STI"] = true
@@ -1882,6 +1888,7 @@ files {
 	MAME_DIR .. "src/mame/machine/pgmprot_orlegend.cpp",
 	MAME_DIR .. "src/mame/machine/pgmprot_orlegend.h",
 	MAME_DIR .. "src/mame/drivers/pgm2.cpp",
+	MAME_DIR .. "src/mame/drivers/pgm3.cpp",
 	MAME_DIR .. "src/mame/drivers/spoker.cpp",
 	MAME_DIR .. "src/mame/machine/igs036crypt.cpp",
 	MAME_DIR .. "src/mame/machine/igs036crypt.h",
@@ -2508,6 +2515,7 @@ files {
 	MAME_DIR .. "src/mame/includes/mcr68.h",
 	MAME_DIR .. "src/mame/machine/mcr68.cpp",
 	MAME_DIR .. "src/mame/video/mcr68.cpp",
+	MAME_DIR .. "src/mame/drivers/zwackery.cpp",
 	MAME_DIR .. "src/mame/drivers/midqslvr.cpp",
 	MAME_DIR .. "src/mame/drivers/midtunit.cpp",
 	MAME_DIR .. "src/mame/includes/midtunit.h",
@@ -2550,6 +2558,8 @@ files {
 	MAME_DIR .. "src/mame/machine/midwayic.h",
 	MAME_DIR .. "src/mame/audio/midway.cpp",
 	MAME_DIR .. "src/mame/audio/midway.h",
+	MAME_DIR .. "src/mame/audio/csd.cpp",
+	MAME_DIR .. "src/mame/audio/csd.h",
 }
 
 createMAMEProjects(_target, _subtarget, "namco")
@@ -3044,8 +3054,8 @@ files {
 	MAME_DIR .. "src/mame/video/blockade.cpp",
 	MAME_DIR .. "src/mame/drivers/calorie.cpp",
 	MAME_DIR .. "src/mame/drivers/chihiro.cpp",
-	MAME_DIR .. "src/mame/includes/chihiro.h",
-	MAME_DIR .. "src/mame/video/chihiro.cpp",
+	MAME_DIR .. "src/mame/includes/xbox_nv2a.h",
+	MAME_DIR .. "src/mame/video/xbox_nv2a.cpp",
 	MAME_DIR .. "src/mame/drivers/coolridr.cpp",
 	MAME_DIR .. "src/mame/drivers/deniam.cpp",
 	MAME_DIR .. "src/mame/includes/deniam.h",
@@ -3966,10 +3976,6 @@ files {
 createMAMEProjects(_target, _subtarget, "tong")
 files {
 	MAME_DIR .. "src/mame/drivers/beezer.cpp",
-	MAME_DIR .. "src/mame/includes/beezer.h",
-	MAME_DIR .. "src/mame/machine/beezer.cpp",
-	MAME_DIR .. "src/mame/video/beezer.cpp",
-	MAME_DIR .. "src/mame/audio/beezer.cpp",
 }
 
 createMAMEProjects(_target, _subtarget, "unico")
@@ -4668,4 +4674,3 @@ files {
 	MAME_DIR .. "src/mame/video/xyonix.cpp",
 }
 end
-

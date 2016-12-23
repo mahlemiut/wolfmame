@@ -9,6 +9,8 @@
 #include "machine/pci.h"
 #include "machine/nvram.h"
 #include "machine/eepromser.h"
+#include "machine/z80scc.h"
+#include "bus/rs232/rs232.h"
 
 //MCFG_PCI_DEVICE_ADD(_tag, _type, _main_id, _revision, _pclass, _subsystem_id)
 
@@ -29,6 +31,26 @@
 #define MCFG_ITEAGLE_PERIPH_ADD(_tag) \
 	MCFG_PCI_DEVICE_ADD(_tag, ITEAGLE_PERIPH, 0x1080C693, 0x00, 0x060100, 0x00)
 
+// Functional emulation of AMD AM85C30 serial controller
+// Two channels, A & B
+class iteagle_am85c30
+{
+public:
+	void reset(void);
+	void write_control(uint8_t data, int channel);
+	uint8_t read_control(int channel);
+	void write_data(uint8_t data, int channel);
+	uint8_t read_data(int channel);
+	void write_rx_str(int channel, std::string resp);
+	std::string get_tx_str(int channel) { return m_serial_tx[channel]; };
+	void clear_tx_str(int channel) { m_serial_tx[channel].clear(); };
+	bool check_interrupt(void) { return (m_rr_regs[0][3] != 0); };
+private:
+	uint8_t m_rr_regs[2][16];
+	uint8_t m_wr_regs[2][16];
+	std::string m_serial_tx[2];
+	std::string m_serial_rx[2];
+};
 
 class iteagle_fpga_device : public pci_device
 {
@@ -37,10 +59,14 @@ public:
 	virtual machine_config_constructor device_mconfig_additions() const override;
 
 	required_device<nvram_device> m_rtc;
+	required_device<scc85C30_device> m_scc1;
 
 	void set_init_info(int version, int seq_init) {m_version=version; m_seq_init=seq_init;}
 	void set_irq_info(const char *tag, const int irq_num, const int serial_num) {
 		m_cpu_tag = tag; m_irq_num = irq_num; m_serial_irq_num = serial_num;}
+
+	DECLARE_WRITE_LINE_MEMBER(serial_interrupt);
+	DECLARE_WRITE8_MEMBER(serial_rx_w);
 
 protected:
 	virtual void device_start() override;
@@ -59,19 +85,14 @@ private:
 	uint32_t m_ram[0x20000 / 4];
 	uint32_t m_prev_reg;
 
-	std::string m_serial_str;
-	std::string m_serial_rx3;
-	uint8_t m_serial_idx;
-	bool  m_serial_data;
-	uint8_t m_serial_com0[0x10];
-	uint8_t m_serial_com1[0x10];
-	uint8_t m_serial_com2[0x10];
-	uint8_t m_serial_com3[0x10];
-
 	uint32_t m_version;
 	uint32_t m_seq_init;
 	uint32_t m_seq;
 	uint32_t m_seq_rem1, m_seq_rem2;
+
+	iteagle_am85c30 m_serial0_1;
+	iteagle_am85c30 m_serial2_3;
+
 	void update_sequence(uint32_t data);
 	void update_sequence_eg1(uint32_t data);
 

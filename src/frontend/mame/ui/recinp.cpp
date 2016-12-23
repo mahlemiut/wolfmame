@@ -136,7 +136,7 @@ void ui_menu_record_inp::handle()
 //  populate
 //-------------------------------------------------
 
-void ui_menu_record_inp::populate()
+void ui_menu_record_inp::populate(float &customtop, float &custombottom)
 {
 	// add options items
 	item_append(_("Start recording"), "", 0 , (void*)(uintptr_t)1);
@@ -242,7 +242,7 @@ ui_menu_playback_inp::~ui_menu_playback_inp()
 //  populate
 //-------------------------------------------------
 
-void ui_menu_playback_inp::populate()
+void ui_menu_playback_inp::populate(float &customtop, float &custombottom)
 {
 	// add options items
 	item_append(_("Start playback"), "", 0 , (void*)(uintptr_t)1);

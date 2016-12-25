@@ -389,7 +389,7 @@ MACHINES["AY31015"] = true
 MACHINES["BANKDEV"] = true
 MACHINES["CDP1852"] = true
 MACHINES["CDP1871"] = true
---MACHINES["CMOS40105"] = true
+MACHINES["CMOS40105"] = true
 MACHINES["CDU76S"] = true
 MACHINES["COM8116"] = true
 MACHINES["CR589"] = true
@@ -2490,10 +2490,6 @@ files {
 	MAME_DIR .. "src/mame/drivers/astrocde.cpp",
 	MAME_DIR .. "src/mame/includes/astrocde.h",
 	MAME_DIR .. "src/mame/video/astrocde.cpp",
-	MAME_DIR .. "src/mame/audio/gorf.cpp",
-	MAME_DIR .. "src/mame/audio/gorf.h",
-	MAME_DIR .. "src/mame/audio/wow.cpp",
-	MAME_DIR .. "src/mame/audio/wow.h",
 	MAME_DIR .. "src/mame/drivers/atlantis.cpp",
 	MAME_DIR .. "src/mame/drivers/balsente.cpp",
 	MAME_DIR .. "src/mame/includes/balsente.h",
@@ -2937,14 +2933,12 @@ files {
 	MAME_DIR .. "src/mame/drivers/pacman.cpp",
 	MAME_DIR .. "src/mame/includes/pacman.h",
 	MAME_DIR .. "src/mame/video/pacman.cpp",
-	MAME_DIR .. "src/mame/machine/acitya.cpp",
-	MAME_DIR .. "src/mame/machine/acitya.h",
+	MAME_DIR .. "src/mame/machine/epos.cpp",
+	MAME_DIR .. "src/mame/machine/epos.h",
 	MAME_DIR .. "src/mame/machine/jumpshot.cpp",
 	MAME_DIR .. "src/mame/machine/jumpshot.h",
 	MAME_DIR .. "src/mame/machine/pacplus.cpp",
 	MAME_DIR .. "src/mame/machine/pacplus.h",
-	MAME_DIR .. "src/mame/machine/theglobp.cpp",
-	MAME_DIR .. "src/mame/machine/theglobp.h",
 	MAME_DIR .. "src/mame/drivers/pengo.cpp",
 }
 

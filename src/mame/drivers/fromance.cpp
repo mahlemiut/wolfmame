@@ -734,7 +734,7 @@ static INPUT_PORTS_START( daiyogen )
 	PORT_DIPSETTING(    0x01, DEF_STR( Off ) )
 	PORT_DIPNAME( 0x06, 0x00, "Player Initial Score" )  PORT_DIPLOCATION("SW1:!2,!3")
 	PORT_DIPSETTING(    0x00, "1,000" )
-		PORT_DIPSETTING(    0x04, "1,500" )
+	PORT_DIPSETTING(    0x04, "1,500" )
 	PORT_DIPSETTING(    0x02, "2,000" )
 	PORT_DIPSETTING(    0x06, "3,000" )
 	PORT_DIPNAME( 0x18, 0x00, "Computer Difficulty" )   PORT_DIPLOCATION("SW1:!4,!5")
@@ -890,7 +890,7 @@ MACHINE_START_MEMBER(fromance_state,fromance)
 	save_item(NAME(m_directionflag));
 	save_item(NAME(m_commanddata));
 	save_item(NAME(m_portselect));
-	
+
 	save_item(NAME(m_adpcm_reset));
 	save_item(NAME(m_adpcm_data));
 	save_item(NAME(m_vclk_left));

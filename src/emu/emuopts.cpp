@@ -205,6 +205,12 @@ const options_entry emu_options::s_option_entries[] =
 	{ OPTION_LANGUAGE ";lang",                           "English",   OPTION_STRING,    "display language" },
 	{ OPTION_INPVIEW ";iv",                              NULL,        OPTION_INTEGER,    "displays the input of the specified player on-screen" },
 	{ OPTION_INPLAYOUT ";il",                            NULL,        OPTION_STRING,     "sets the layout for -inpview (standard, mahjong, dualstick, neogeo, 6button)" },
+
+	{ nullptr,                                nullptr,           OPTION_HEADER,  "HTTP SERVER OPTIONS" },
+	{ OPTION_HTTP,					          "0",               OPTION_BOOLEAN, "HTTP server enable" },
+	{ OPTION_HTTP_PORT,				          "8080",            OPTION_INTEGER, "HTTP server port" },
+	{ OPTION_HTTP_ROOT,				          "web",             OPTION_STRING,  "HTTP server document root" },
+
 	{ nullptr }
 };
 

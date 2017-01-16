@@ -387,6 +387,7 @@ MACHINES["AT45DBXX"] = true
 MACHINES["ATAFLASH"] = true
 MACHINES["AY31015"] = true
 MACHINES["BANKDEV"] = true
+--MACHINES["BIM68153"] = true
 MACHINES["CDP1852"] = true
 MACHINES["CDP1871"] = true
 MACHINES["CMOS40105"] = true
@@ -505,6 +506,7 @@ MACHINES["PCF8593"] = true
 MACHINES["PCI"] = true
 MACHINES["PCKEYBRD"] = true
 MACHINES["PIC8259"] = true
+--MACHINES["PIT68230"] = true
 MACHINES["PIT8253"] = true
 MACHINES["PLA"] = true
 --MACHINES["PROFILE"] = true
@@ -567,7 +569,7 @@ MACHINES["X76F041"] = true
 MACHINES["X76F100"] = true
 MACHINES["Z80CTC"] = true
 MACHINES["Z80DART"] = true
---MACHINES["Z80SIO"] = true
+MACHINES["Z80SIO"] = true
 MACHINES["Z80SCC"] = true
 MACHINES["Z80DMA"] = true
 MACHINES["Z80PIO"] = true
@@ -676,6 +678,7 @@ BUSES["VECTREX"] = true
 --BUSES["VIC20"] = true
 --BUSES["VIDBRAIN"] = true
 --BUSES["VIP"] = true
+--BUSES["VME"] = true
 --BUSES["VTECH_IOEXP"] = true
 --BUSES["VTECH_MEMEXP"] = true
 --BUSES["WANGPC"] = true
@@ -850,6 +853,8 @@ files {
 	MAME_DIR .. "src/mame/audio/dcs.h",
 	MAME_DIR .. "src/mame/audio/decobsmt.cpp",
 	MAME_DIR .. "src/mame/audio/decobsmt.h",
+	MAME_DIR .. "src/mame/audio/efo_zsu.cpp",
+	MAME_DIR .. "src/mame/audio/efo_zsu.h",
 	MAME_DIR .. "src/mame/audio/segam1audio.cpp",
 	MAME_DIR .. "src/mame/audio/segam1audio.h",
 }
@@ -965,6 +970,8 @@ files {
 	MAME_DIR .. "src/mame/video/atarisy2.cpp",
 	MAME_DIR .. "src/mame/drivers/atarisy4.cpp",
 	MAME_DIR .. "src/mame/drivers/atarittl.cpp",
+	MAME_DIR .. "src/mame/machine/nl_stuntcyc.cpp",
+	MAME_DIR .. "src/mame/machine/nl_stuntcyc.h",
 	MAME_DIR .. "src/mame/drivers/atetris.cpp",
 	MAME_DIR .. "src/mame/includes/atetris.h",
 	MAME_DIR .. "src/mame/video/atetris.cpp",
@@ -2689,12 +2696,18 @@ files {
 	MAME_DIR .. "src/mame/machine/namco62.h",
 	MAME_DIR .. "src/mame/machine/namcomcu.cpp",
 	MAME_DIR .. "src/mame/machine/namcomcu.h",
+	MAME_DIR .. "src/mame/machine/namcoio_gearbox.cpp",
+	MAME_DIR .. "src/mame/machine/namcoio_gearbox.h",
+	MAME_DIR .. "src/mame/machine/namco_c148.cpp",
+	MAME_DIR .. "src/mame/machine/namco_c148.h",
+	MAME_DIR .. "src/mame/machine/namco_c139.cpp",
+	MAME_DIR .. "src/mame/machine/namco_c139.h",
 	MAME_DIR .. "src/mame/audio/namco52.cpp",
 	MAME_DIR .. "src/mame/audio/namco52.h",
 	MAME_DIR .. "src/mame/audio/namco54.cpp",
 	MAME_DIR .. "src/mame/audio/namco54.h",
-	MAME_DIR .. "src/mame/video/c116.cpp",
-	MAME_DIR .. "src/mame/video/c116.h",
+	MAME_DIR .. "src/mame/video/namco_c116.cpp",
+	MAME_DIR .. "src/mame/video/namco_c116.h",
 	MAME_DIR .. "src/mame/video/c45.cpp",
 	MAME_DIR .. "src/mame/video/c45.h",
 }
@@ -2804,6 +2817,8 @@ files {
 	MAME_DIR .. "src/mame/video/dkong.cpp",
 	MAME_DIR .. "src/mame/drivers/mario.cpp",
 	MAME_DIR .. "src/mame/includes/mario.h",
+  MAME_DIR .. "src/mame/audio/nl_mario.cpp",
+  MAME_DIR .. "src/mame/audio/nl_mario.h",
 	MAME_DIR .. "src/mame/audio/mario.cpp",
 	MAME_DIR .. "src/mame/video/mario.cpp",
 	MAME_DIR .. "src/mame/drivers/mmagic.cpp",
@@ -3532,7 +3547,6 @@ files {
 	MAME_DIR .. "src/mame/video/asuka.cpp",
 	MAME_DIR .. "src/mame/drivers/bigevglf.cpp",
 	MAME_DIR .. "src/mame/includes/bigevglf.h",
-	MAME_DIR .. "src/mame/machine/bigevglf.cpp",
 	MAME_DIR .. "src/mame/video/bigevglf.cpp",
 	MAME_DIR .. "src/mame/drivers/bking.cpp",
 	MAME_DIR .. "src/mame/includes/bking.h",
@@ -3543,8 +3557,8 @@ files {
 	MAME_DIR .. "src/mame/video/bublbobl.cpp",
 	MAME_DIR .. "src/mame/drivers/buggychl.cpp",
 	MAME_DIR .. "src/mame/includes/buggychl.h",
-	MAME_DIR .. "src/mame/machine/buggychl.cpp",
-	MAME_DIR .. "src/mame/machine/buggychl.h",
+	MAME_DIR .. "src/mame/machine/taito68705interface.cpp",
+	MAME_DIR .. "src/mame/machine/taito68705interface.h",
 	MAME_DIR .. "src/mame/video/buggychl.cpp",
 	MAME_DIR .. "src/mame/drivers/capr1.cpp",
 	MAME_DIR .. "src/mame/drivers/caprcyc.cpp",
@@ -3605,7 +3619,6 @@ files {
 	MAME_DIR .. "src/mame/drivers/lgp.cpp",
 	MAME_DIR .. "src/mame/drivers/lkage.cpp",
 	MAME_DIR .. "src/mame/includes/lkage.h",
-	MAME_DIR .. "src/mame/machine/lkage.cpp",
 	MAME_DIR .. "src/mame/video/lkage.cpp",
 	MAME_DIR .. "src/mame/drivers/lsasquad.cpp",
 	MAME_DIR .. "src/mame/includes/lsasquad.h",
@@ -3627,7 +3640,6 @@ files {
 	MAME_DIR .. "src/mame/video/ninjaw.cpp",
 	MAME_DIR .. "src/mame/drivers/nycaptor.cpp",
 	MAME_DIR .. "src/mame/includes/nycaptor.h",
-	MAME_DIR .. "src/mame/machine/nycaptor.cpp",
 	MAME_DIR .. "src/mame/video/nycaptor.cpp",
 	MAME_DIR .. "src/mame/drivers/opwolf.cpp",
 	MAME_DIR .. "src/mame/includes/opwolf.h",
@@ -4341,7 +4353,6 @@ files {
 	MAME_DIR .. "src/mame/machine/cdicdic.cpp",
 	MAME_DIR .. "src/mame/machine/cdicdic.h",
 	MAME_DIR .. "src/mame/drivers/cedar_magnet.cpp",
-	MAME_DIR .. "src/mame/machine/cedar_magnet_sound.cpp",
 	MAME_DIR .. "src/mame/machine/cedar_magnet_plane.cpp",
 	MAME_DIR .. "src/mame/machine/cedar_magnet_sprite.cpp",
 	MAME_DIR .. "src/mame/machine/cedar_magnet_board.cpp",
@@ -4440,6 +4451,7 @@ files {
 	MAME_DIR .. "src/mame/includes/gumbo.h",
 	MAME_DIR .. "src/mame/video/gumbo.cpp",
 	MAME_DIR .. "src/mame/drivers/gunpey.cpp",
+	MAME_DIR .. "src/mame/drivers/hapyfish.cpp",
 	MAME_DIR .. "src/mame/drivers/hideseek.cpp",
 	MAME_DIR .. "src/mame/drivers/hazelgr.cpp",
 	MAME_DIR .. "src/mame/drivers/headonb.cpp",

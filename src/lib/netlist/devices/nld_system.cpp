@@ -86,43 +86,16 @@ namespace netlist
 	{
 	}
 
-	// ----------------------------------------------------------------------------------------
-	// nld_d_to_a_proxy
-	// ----------------------------------------------------------------------------------------
-
-	void nld_d_to_a_proxy::reset()
-	{
-		//m_Q.initial(0.0);
-		m_last_state = -1;
-		m_RV.do_reset();
-		m_is_timestep = m_RV.m_P.net().solver()->has_timestep_devices();
-		m_RV.set(NL_FCONST(1.0) / logic_family().m_R_low, logic_family().m_low_V, 0.0);
-	}
-
-	NETLIB_UPDATE(d_to_a_proxy)
-	{
-		const int state = static_cast<int>(m_I());
-		if (state != m_last_state)
-		{
-			m_last_state = state;
-			const nl_double R = state ? logic_family().m_R_high : logic_family().m_R_low;
-			const nl_double V = state ? logic_family().m_high_V : logic_family().m_low_V;
-
-			// We only need to update the net first if this is a time stepping net
-			if (m_is_timestep)
-			{
-				m_RV.update_dev();
-			}
-			m_RV.set(NL_FCONST(1.0) / R, V, 0.0);
-			m_RV.m_P.schedule_after(NLTIME_FROM_NS(1));
-		}
-	}
-
 
 	// -----------------------------------------------------------------------------
 	// nld_res_sw
 	// -----------------------------------------------------------------------------
 
+	NETLIB_RESET(res_sw)
+	{
+		m_last_state = 0;
+		m_R.set_R(m_ROFF());
+	}
 
 	NETLIB_UPDATE(res_sw)
 	{
@@ -185,6 +158,10 @@ namespace netlist
 					ptr--;
 					stack[ptr-1] = stack[ptr-1] / stack[ptr];
 					break;
+				case POW:
+					ptr--;
+					stack[ptr-1] = std::pow(stack[ptr-1], stack[ptr]);
+					break;
 				case PUSH_INPUT:
 					stack[ptr++] = (*m_I[static_cast<unsigned>(rc.m_param)])();
 					break;
@@ -196,6 +173,41 @@ namespace netlist
 		m_Q.push(stack[ptr-1]);
 	}
 
+	void NETLIB_NAME(function)::compile()
+	{
+		plib::pstring_vector_t cmds(m_func(), " ");
+		m_precompiled.clear();
+
+		for (std::size_t i=0; i < cmds.size(); i++)
+		{
+			pstring cmd = cmds[i];
+			rpn_inst rc;
+			if (cmd == "+")
+				rc.m_cmd = ADD;
+			else if (cmd == "-")
+				rc.m_cmd = SUB;
+			else if (cmd == "*")
+				rc.m_cmd = MULT;
+			else if (cmd == "/")
+				rc.m_cmd = DIV;
+			else if (cmd == "pow")
+				rc.m_cmd = POW;
+			else if (cmd.startsWith("A"))
+			{
+				rc.m_cmd = PUSH_INPUT;
+				rc.m_param = cmd.substr(1).as_long();
+			}
+			else
+			{
+				bool err = false;
+				rc.m_cmd = PUSH_CONST;
+				rc.m_param = cmd.as_double(&err);
+				if (err)
+					netlist().log().fatal("nld_function: unknown/misformatted token <{1}> in <{2}>", cmd, m_func());
+			}
+			m_precompiled.push_back(rc);
+		}
+	}
 
 	NETLIB_DEVICE_IMPL(dummy_input)
 	NETLIB_DEVICE_IMPL(frontier)

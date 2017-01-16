@@ -35,6 +35,12 @@
 				netlist_analog_output_delegate(& _class :: _member,                 \
 						# _class "::" # _member, _class_tag, (_class *)nullptr)   );
 
+#define MCFG_NETLIST_LOGIC_OUTPUT(_basetag, _tag, _IN, _class, _member, _class_tag) \
+	MCFG_DEVICE_ADD(_basetag ":" _tag, NETLIST_LOGIC_OUTPUT, 0)                    \
+	netlist_mame_logic_output_t::static_set_params(*device, _IN,                   \
+				netlist_logic_output_delegate(& _class :: _member,                 \
+						# _class "::" # _member, _class_tag, (_class *)nullptr)   );
+
 #define MCFG_NETLIST_LOGIC_INPUT(_basetag, _tag, _name, _shift)             \
 	MCFG_DEVICE_ADD(_basetag ":" _tag, NETLIST_LOGIC_INPUT, 0)              \
 	netlist_mame_logic_input_t::static_set_params(*device, _name, _shift);
@@ -43,9 +49,9 @@
 	MCFG_DEVICE_ADD(_basetag ":" _tag, NETLIST_INT_INPUT, 0)                \
 	netlist_mame_int_input_t::static_set_params(*device, _name, _mask, _shift);
 
-#define MCFG_NETLIST_ROM_REGION(_basetag, _tag, _name, _region) \
+#define MCFG_NETLIST_ROM_REGION(_basetag, _tag, _region, _name, _offset, _size) \
 	MCFG_DEVICE_ADD(_basetag ":" _tag, NETLIST_ROM_REGION, 0) \
-	netlist_mame_rom_t::static_set_params(*device, _name ".m_ROM", ":" _region);
+	netlist_mame_rom_t::static_set_params(*device, _name, ":" _region, _offset, _size);
 
 #define MCFG_NETLIST_RAM_POINTER(_basetag, _tag, _name) \
 	MCFG_DEVICE_ADD(_basetag ":" _tag, NETLIST_RAM_POINTER, 0) \
@@ -70,11 +76,13 @@
 
 
 #define MEMREGION_SOURCE(_name) \
-		setup.register_source(plib::make_unique_base<netlist::source_t, netlist_source_memregion_t>(_name));
+		setup.register_source(plib::make_unique_base<netlist::source_t, netlist_source_memregion_t>(setup, _name));
 
 #define NETDEV_ANALOG_CALLBACK_MEMBER(_name) \
 	void _name(const double data, const attotime &time)
 
+#define NETDEV_LOGIC_CALLBACK_MEMBER(_name) \
+	void _name(const int data, const attotime &time)
 
 
 // ----------------------------------------------------------------------------------------
@@ -84,14 +92,33 @@
 class netlist_source_memregion_t : public netlist::source_t
 {
 public:
-	netlist_source_memregion_t(pstring name)
-	: netlist::source_t(), m_name(name)
+	netlist_source_memregion_t(netlist::setup_t &setup, pstring name)
+	: netlist::source_t(setup), m_name(name)
 	{
 	}
 
-	bool parse(netlist::setup_t &setup, const pstring &name) override;
+	virtual std::unique_ptr<plib::pistream> stream(const pstring &name) override;
 private:
 	pstring m_name;
+};
+
+class netlist_data_memregion_t : public netlist::source_t
+{
+public:
+	netlist_data_memregion_t(netlist::setup_t &setup,
+			pstring name, uint8_t *ptr, std::size_t size)
+	: netlist::source_t(setup, netlist::source_t::DATA)
+	, m_name(name)
+	, m_ptr(ptr)
+	, m_size(size)
+	{
+	}
+
+	virtual std::unique_ptr<plib::pistream> stream(const pstring &name) override;
+private:
+	pstring m_name;
+	uint8_t *m_ptr;
+	std::size_t m_size;
 };
 
 class netlist_mame_device_t;
@@ -133,7 +160,7 @@ public:
 
 	static void static_set_constructor(device_t &device, void (*setup_func)(netlist::setup_t &));
 
-	ATTR_HOT inline netlist::setup_t &setup() { return *m_setup; }
+	ATTR_HOT inline netlist::setup_t &setup() { return m_netlist->setup(); }
 	ATTR_HOT inline netlist_mame_t &netlist() { return *m_netlist; }
 
 	ATTR_HOT inline const netlist::netlist_time last_time_update() { return m_old; }
@@ -168,7 +195,6 @@ private:
 	netlist::netlist_time        m_old;
 
 	netlist_mame_t *    m_netlist;
-	netlist::setup_t *   m_setup;
 
 	void (*m_setup_func)(netlist::setup_t &);
 };
@@ -317,6 +343,7 @@ public:
 	virtual ~netlist_mame_sub_interface() { }
 
 	virtual void custom_netlist_additions(netlist::setup_t &setup) { }
+	virtual void pre_parse_action(netlist::setup_t &setup) { }
 
 	inline netlist_mame_device_t &nl_owner() const { return *m_owner; }
 
@@ -415,6 +442,33 @@ protected:
 private:
 	pstring m_in;
 	netlist_analog_output_delegate m_delegate;
+};
+
+// ----------------------------------------------------------------------------------------
+// netlist_mame_logic_output_t
+// ----------------------------------------------------------------------------------------
+
+typedef device_delegate<void(const int, const attotime &)> netlist_logic_output_delegate;
+
+class netlist_mame_logic_output_t : public device_t,
+	public netlist_mame_sub_interface
+{
+public:
+
+	// construction/destruction
+	netlist_mame_logic_output_t(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock);
+	virtual ~netlist_mame_logic_output_t() { }
+
+	static void static_set_params(device_t &device, const char *in_name, netlist_logic_output_delegate adelegate);
+
+protected:
+	// device-level overrides
+	virtual void device_start() override;
+	virtual void custom_netlist_additions(netlist::setup_t &setup) override;
+
+private:
+	pstring m_in;
+	netlist_logic_output_delegate m_delegate;
 };
 
 // ----------------------------------------------------------------------------------------
@@ -522,21 +576,18 @@ public:
 	netlist_mame_rom_t(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock);
 	virtual ~netlist_mame_rom_t() { }
 
-	static void static_set_params(device_t &device, const char *param_name, const char* region_tag);
+	static void static_set_params(device_t &device, const char *name, const char* region_tag, std::size_t offset, std::size_t size);
 
 protected:
 	// device-level overrides
 	virtual void device_start() override;
-	virtual void device_timer(emu_timer &timer, device_timer_id id, int param, void *ptr) override
-	{
-		m_param->setTo(m_data);
-	}
+	virtual void custom_netlist_additions(netlist::setup_t &setup) override;
 
 private:
-	netlist::param_ptr_t *m_param;
-	pstring m_param_name;
-	const char* m_data_tag;
-	uint8_t* m_data;
+	pstring m_name;
+	const char* m_region_tag;
+	std::size_t m_offset;
+	std::size_t m_size;
 };
 
 // ----------------------------------------------------------------------------------------
@@ -617,8 +668,9 @@ private:
 	uint32_t m_channel;
 	pstring m_out_name;
 };
+
 // ----------------------------------------------------------------------------------------
-// netdev_callback
+// analog_callback
 // ----------------------------------------------------------------------------------------
 
 class NETLIB_NAME(analog_callback) : public netlist::device_t
@@ -666,6 +718,54 @@ private:
 };
 
 // ----------------------------------------------------------------------------------------
+// logic_callback
+// ----------------------------------------------------------------------------------------
+
+class NETLIB_NAME(logic_callback) : public netlist::device_t
+{
+public:
+	NETLIB_NAME(logic_callback)(netlist::netlist_t &anetlist, const pstring &name)
+		: device_t(anetlist, name)
+		, m_in(*this, "IN")
+		, m_cpu_device(nullptr)
+		, m_last(*this, "m_last", 0)
+	{
+		m_cpu_device = downcast<netlist_mame_cpu_device_t *>(&downcast<netlist_mame_t &>(netlist()).parent());
+	}
+
+	ATTR_COLD void reset() override
+	{
+		m_last = 0;
+	}
+
+	ATTR_COLD void register_callback(netlist_logic_output_delegate callback)
+	{
+		m_callback = callback;
+	}
+
+	NETLIB_UPDATEI()
+	{
+		netlist_sig_t cur = m_in();
+
+		// FIXME: make this a parameter
+		// avoid calls due to noise
+		if (cur != m_last)
+		{
+			m_cpu_device->update_time_x();
+			m_callback(cur, m_cpu_device->local_time());
+			m_cpu_device->check_mame_abort_slice();
+			m_last = cur;
+		}
+	}
+
+private:
+	netlist::logic_input_t m_in;
+	netlist_logic_output_delegate m_callback;
+	netlist_mame_cpu_device_t *m_cpu_device;
+	netlist::state_var<netlist_sig_t> m_last;
+};
+
+// ----------------------------------------------------------------------------------------
 // sound_out
 // ----------------------------------------------------------------------------------------
 
@@ -696,7 +796,7 @@ public:
 	{
 		int pos = (upto - m_last_buffer) / m_sample;
 		if (pos >= BUFSIZE)
-			netlist().log().fatal("sound {1}: exceeded BUFSIZE\n", name().cstr());
+			netlist().log().fatal("sound {1}: exceeded BUFSIZE\n", name().c_str());
 		while (m_last_pos < pos )
 		{
 			m_buffer[m_last_pos++] = (stream_sample_t) m_cur;
@@ -750,7 +850,7 @@ public:
 	, m_feedback(*this, "FB") // clock part
 	, m_Q(*this, "Q")
 	{
-		connect_late(m_feedback, m_Q);
+		connect(m_feedback, m_Q);
 		m_inc = netlist::netlist_time::from_nsec(1);
 
 
@@ -832,6 +932,7 @@ extern const device_type NETLIST_INT_INPUT;
 extern const device_type NETLIST_ROM_REGION;
 extern const device_type NETLIST_RAM_POINTER;
 
+extern const device_type NETLIST_LOGIC_OUTPUT;
 extern const device_type NETLIST_ANALOG_OUTPUT;
 extern const device_type NETLIST_STREAM_INPUT;
 extern const device_type NETLIST_STREAM_OUTPUT;

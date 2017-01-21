@@ -80,7 +80,7 @@
  @MP3476   TMS1100   1979, Milton Bradley Super Simon
   MP3479   TMS1100   1980, MicroVision cartridge: Baseball
   MP3481   TMS1100   1979, MicroVision cartridge: Connect Four
- *MP3491   TMS1100   1980, Mattel Horserace Analyzer
+ @MP3491   TMS1100   1979, Mattel Thoroughbred Horse Race Analyzer
   MP3496   TMS1100   1980, MicroVision cartridge: Sea Duel
   M34009   TMS1100   1981, MicroVision cartridge: Alien Raiders (note: MP3498, MP3499, M3400x..)
  @M34012   TMS1100   1980, Mattel Dungeons & Dragons - Computer Labyrinth Game
@@ -122,6 +122,8 @@
     brighter: tc4/h2hfootb(offense), bankshot(cue ball), ...
   - stopthiep: unable to start a game (may be intentional?)
   - tbreakup: some of the leds flicker (rom and PLAs doublechecked)
+  - 7in1ss: in 2-player mode, game select and skill select can be configured
+    after selecting a game?
   - bship discrete sound, netlist is documented
   - finish bshipb SN76477 sound
   - improve elecbowl driver
@@ -158,7 +160,7 @@
 #include "ebball3.lh"
 #include "ebaskb2.lh"
 #include "efootb4.lh"
-#include "einvader.lh" // test-layout(but still playable)
+#include "einvader.lh"
 #include "elecbowl.lh"
 #include "elecdet.lh"
 #include "esbattle.lh"
@@ -250,7 +252,7 @@ void hh_tms1k_state::machine_reset()
 
 void hh_tms1k_state::display_update()
 {
-	uint32_t active_state[0x20];
+	u32 active_state[0x20];
 
 	for (int y = 0; y < m_display_maxy; y++)
 	{
@@ -263,7 +265,7 @@ void hh_tms1k_state::display_update()
 				m_display_decay[y][x] = m_display_wait;
 
 			// determine active state
-			uint32_t ds = (m_display_decay[y][x] != 0) ? 1 : 0;
+			u32 ds = (m_display_decay[y][x] != 0) ? 1 : 0;
 			active_state[y] |= (ds << x);
 		}
 	}
@@ -325,7 +327,7 @@ void hh_tms1k_state::set_display_size(int maxx, int maxy)
 	m_display_maxy = maxy;
 }
 
-void hh_tms1k_state::set_display_segmask(uint32_t digits, uint32_t mask)
+void hh_tms1k_state::set_display_segmask(u32 digits, u32 mask)
 {
 	// set a segment mask per selected digit, but leave unselected ones alone
 	for (int i = 0; i < 0x20; i++)
@@ -336,12 +338,12 @@ void hh_tms1k_state::set_display_segmask(uint32_t digits, uint32_t mask)
 	}
 }
 
-void hh_tms1k_state::display_matrix(int maxx, int maxy, uint32_t setx, uint32_t sety, bool update)
+void hh_tms1k_state::display_matrix(int maxx, int maxy, u32 setx, u32 sety, bool update)
 {
 	set_display_size(maxx, maxy);
 
 	// update current state
-	uint32_t mask = (1 << maxx) - 1;
+	u32 mask = (1 << maxx) - 1;
 	for (int y = 0; y < maxy; y++)
 		m_display_state[y] = (sety >> y & 1) ? ((setx & mask) | (1 << maxx)) : 0;
 
@@ -352,9 +354,9 @@ void hh_tms1k_state::display_matrix(int maxx, int maxy, uint32_t setx, uint32_t 
 
 // generic input handlers
 
-uint8_t hh_tms1k_state::read_inputs(int columns)
+u8 hh_tms1k_state::read_inputs(int columns)
 {
-	uint8_t ret = 0;
+	u8 ret = 0;
 
 	// read selected input rows
 	for (int i = 0; i < columns; i++)
@@ -364,10 +366,10 @@ uint8_t hh_tms1k_state::read_inputs(int columns)
 	return ret;
 }
 
-uint8_t hh_tms1k_state::read_rotated_inputs(int columns, uint8_t rowmask)
+u8 hh_tms1k_state::read_rotated_inputs(int columns, u8 rowmask)
 {
-	uint8_t ret = 0;
-	uint16_t colmask = (1 << columns) - 1;
+	u8 ret = 0;
+	u16 colmask = (1 << columns) - 1;
 
 	// read selected input columns
 	for (int i = 0; i < 8; i++)
@@ -510,7 +512,7 @@ static INPUT_PORTS_START( matchnum )
 	PORT_BIT( 0x08, IP_ACTIVE_HIGH, IPT_KEYPAD ) PORT_NAME("Square 1")
 INPUT_PORTS_END
 
-static const int16_t matchnum_speaker_levels[4] = { 0, 0x7fff, -0x8000, 0 };
+static const s16 matchnum_speaker_levels[4] = { 0, 0x7fff, -0x8000, 0 };
 
 static MACHINE_CONFIG_START( matchnum, matchnum_state )
 
@@ -656,7 +658,7 @@ static INPUT_PORTS_START( mathmagi )
 INPUT_PORTS_END
 
 // output PLA is not decapped
-static const uint16_t mathmagi_output_pla[0x20] =
+static const u16 mathmagi_output_pla[0x20] =
 {
 	lA+lB+lC+lD+lE+lF,      // 0
 	lB+lC,                  // 1
@@ -873,7 +875,7 @@ WRITE16_MEMBER(amaztron_state::write_o)
 READ8_MEMBER(amaztron_state::read_k)
 {
 	// K: multiplexed inputs
-	uint8_t k = read_inputs(6);
+	u8 k = read_inputs(6);
 
 	// the 5th column is tied to K4+K8
 	if (k & 0x10) k |= 0xc;
@@ -1066,7 +1068,7 @@ static INPUT_PORTS_START( zodiac )
 INPUT_PORTS_END
 
 // output PLA is not decapped
-static const uint16_t zodiac_output_pla[0x20] =
+static const u16 zodiac_output_pla[0x20] =
 {
 	0x80,                   // empty/led 1/7
 	lC,                     // i/led 2/8
@@ -1154,7 +1156,7 @@ public:
 void cqback_state::prepare_display()
 {
 	// R9 selects between segments B/C or A'/D'
-	uint16_t seg = m_o;
+	u16 seg = m_o;
 	if (m_r & 0x200)
 		seg = (m_o << 7 & 0x300) | (m_o & 0xf9);
 
@@ -2087,7 +2089,7 @@ static INPUT_PORTS_START( cnfball )
 	PORT_BIT( 0x02, IP_ACTIVE_HIGH, IPT_JOYSTICK_RIGHT ) PORT_16WAY
 INPUT_PORTS_END
 
-static const int16_t cnfball_speaker_levels[4] = { 0, 0x7fff, -0x8000, 0 };
+static const s16 cnfball_speaker_levels[4] = { 0, 0x7fff, -0x8000, 0 };
 
 static MACHINE_CONFIG_START( cnfball, cnfball_state )
 
@@ -2143,7 +2145,7 @@ public:
 void cnfball2_state::prepare_display()
 {
 	// R1 selects between segments B/C or A'/D'
-	uint16_t seg = m_o;
+	u16 seg = m_o;
 	if (~m_r & 2)
 		seg = (m_o << 7 & 0x300) | (m_o & 0xf9);
 
@@ -2205,7 +2207,7 @@ static INPUT_PORTS_START( cnfball2 )
 INPUT_PORTS_END
 
 // output PLA is not decapped
-static const uint16_t cnfball2_output_pla[0x20] =
+static const u16 cnfball2_output_pla[0x20] =
 {
 	// first half was dumped electronically
 	0x3f, 0x06, 0x5b, 0x4f, 0x66, 0x6d, 0x7d, 0x07, 0x7f, 0x6f, 0x40, 0x01, 0x08, 0x02, 0x04, 0x00,
@@ -2901,8 +2903,6 @@ MACHINE_CONFIG_END
   TMS1100, the second more widespread release runs on a COP400. There are
   also differences with the overlay mask.
 
-  NOTE!: MAME external artwork is required
-
 ***************************************************************************/
 
 class einvader_state : public hh_tms1k_state
@@ -2990,6 +2990,11 @@ static MACHINE_CONFIG_START( einvader, einvader_state )
 	MCFG_TMS1XXX_WRITE_R_CB(WRITE16(einvader_state, write_r))
 	MCFG_TMS1XXX_WRITE_O_CB(WRITE16(einvader_state, write_o))
 
+	/* video hardware */
+	MCFG_SCREEN_SVG_ADD("screen", "svg")
+	MCFG_SCREEN_REFRESH_RATE(50)
+	MCFG_SCREEN_SIZE(939, 1080)
+	MCFG_SCREEN_VISIBLE_AREA(0, 939-1, 0, 1080-1)
 	MCFG_TIMER_DRIVER_ADD_PERIODIC("display_decay", hh_tms1k_state, display_decay_tick, attotime::from_msec(1))
 	MCFG_DEFAULT_LAYOUT(layout_einvader)
 
@@ -3258,6 +3263,8 @@ MACHINE_CONFIG_END
     8 = 4.2   18 = 7.3   28 = 8.4   38 = 8.2
     9 = 4.3   19 = -     29 = 9.4   39 = 8.3
 
+  NOTE!: MAME external artwork is required
+
 ***************************************************************************/
 
 class raisedvl_state : public hh_tms1k_state
@@ -3346,7 +3353,7 @@ void raisedvl_state::set_clock()
 	// 0:   R=47K  -> ~350kHz
 	// 2,3: R=35K8 -> ~425kHz (combined)
 	// 4:   R=32K  -> ~465kHz (combined)
-	uint8_t inp = m_inp_matrix[1]->read();
+	u8 inp = m_inp_matrix[1]->read();
 	m_maincpu->set_unscaled_clock((inp & 0x20) ? 465000 : ((inp & 0x10) ? 425000 : 350000));
 }
 
@@ -3665,8 +3672,8 @@ public:
 
 void ginv1000_state::prepare_display()
 {
-	uint16_t grid = BITSWAP16(m_grid,15,14,13,12,11,10,0,1,2,3,4,5,6,9,8,7);
-	uint16_t plate = BITSWAP16(m_plate,15,14,13,12,3,4,7,8,9,10,11,2,6,5,1,0);
+	u16 grid = BITSWAP16(m_grid,15,14,13,12,11,10,0,1,2,3,4,5,6,9,8,7);
+	u16 plate = BITSWAP16(m_plate,15,14,13,12,3,4,7,8,9,10,11,2,6,5,1,0);
 	display_matrix(12, 10, plate, grid);
 }
 
@@ -3721,7 +3728,7 @@ INPUT_PORTS_END
 static MACHINE_CONFIG_START( ginv1000, ginv1000_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", TMS1370, 325000) // approximation
+	MCFG_CPU_ADD("maincpu", TMS1370, 340000) // approximation
 	MCFG_TMS1XXX_READ_K_CB(READ8(ginv1000_state, read_k))
 	MCFG_TMS1XXX_WRITE_R_CB(WRITE16(ginv1000_state, write_r))
 	MCFG_TMS1XXX_WRITE_O_CB(WRITE16(ginv1000_state, write_o))
@@ -3987,7 +3994,7 @@ static INPUT_PORTS_START( elecdet )
 	PORT_BIT( 0x10, IP_ACTIVE_HIGH, IPT_KEYPAD ) PORT_CODE(KEYCODE_PGDN) PORT_NAME("Off") PORT_CHANGED_MEMBER(DEVICE_SELF, hh_tms1k_state, power_button, (void *)false)
 INPUT_PORTS_END
 
-static const int16_t elecdet_speaker_levels[4] = { 0, 0x3fff, 0x3fff, 0x7fff };
+static const s16 elecdet_speaker_levels[4] = { 0, 0x3fff, 0x3fff, 0x7fff };
 
 static MACHINE_CONFIG_START( elecdet, elecdet_state )
 
@@ -4313,8 +4320,8 @@ void elecbowl_state::prepare_display()
 	}
 
 	// lamp muxes
-	uint8_t mask = 1 << (m_o & 7);
-	uint8_t d = (m_r & 2) ? mask : 0;
+	u8 mask = 1 << (m_o & 7);
+	u8 d = (m_r & 2) ? mask : 0;
 	if (~m_r & 1)
 		m_display_state[5] = (m_display_state[5] & ~mask) | d;
 	if (~m_r & 4)
@@ -4391,7 +4398,7 @@ static INPUT_PORTS_START( elecbowl )
 INPUT_PORTS_END
 
 // output PLA is not decapped
-static const uint16_t elecbowl_output_pla[0x20] =
+static const u16 elecbowl_output_pla[0x20] =
 {
 	lA+lB+lC+lD+lE+lF,      // 0
 	lB+lC,                  // 1
@@ -4425,6 +4432,132 @@ static MACHINE_CONFIG_START( elecbowl, elecbowl_state )
 	MCFG_SPEAKER_STANDARD_MONO("mono")
 	MCFG_SOUND_ADD("speaker", SPEAKER_SOUND, 0)
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 0.25)
+MACHINE_CONFIG_END
+
+
+
+
+
+/***************************************************************************
+
+  Mattel Thoroughbred Horse Race Analyzer
+  * PCB label 1670-4619D
+  * TMS1100NLL MP3491-N2 (die label 1100E MP3491)
+  * HLCD0569, 67-segment LCD panel, no sound
+  
+  This handheld is not a toy, read the manual for more information. In short,
+  it is a device for prediciting the winning chance of a gambling horserace.
+
+  known releases:
+  - USA: Thoroughbred Horse Race Analyzer
+  - China/Canada: Thoroughbred Horse Race Analyzer, distributed in 1994 by 
+    Advanced Handicapping Technologies, Inc.
+
+***************************************************************************/
+
+class horseran_state : public hh_tms1k_state
+{
+public:
+	horseran_state(const machine_config &mconfig, device_type type, const char *tag)
+		: hh_tms1k_state(mconfig, type, tag)
+	{ }
+
+	DECLARE_WRITE16_MEMBER(write_r);
+	DECLARE_READ8_MEMBER(read_k);
+};
+
+// handlers
+
+WRITE16_MEMBER(horseran_state::write_r)
+{
+	// R0: HLCD0569 clock
+	// R1: HLCD0569 data in
+	// R2: HLCD0569 _CS
+	
+	// R3-R10: input mux
+	m_inp_mux = data >> 3 & 0xff;
+}
+
+READ8_MEMBER(horseran_state::read_k)
+{
+	// K: multiplexed inputs
+	return read_inputs(8);
+}
+
+
+// config
+
+/* physical button layout and labels is like this:
+
+    [PURSE]      [DIST.]      [P. POSN.]   [DAYS]       [R.S.L.]     [7]     [8]     [9]
+    [RACES]      [WINS]       [PLACES]     [SHOWS]      [EARNINGS]   [4]     [5]     [6]
+    [DISTANCE]   [L.E.B. 1st] [L.E.B. 2nd] [L.E.B. 3rd] [FIN. POSN.] [1]     [2]     [3]
+    [L.E.B. Fin] [SPD. RTG.]  [SPD. RTG.]  [ANALYZE]    [NEXT]       [C/H]   [C/E]   [0]
+
+    R.S.L. = Races Since (Last) Layoff
+    L.E.B. = Last Race / Lengths Back
+*/
+
+static INPUT_PORTS_START( horseran )
+	PORT_START("IN.0") // R3
+	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_KEYPAD ) PORT_CODE(KEYCODE_B) PORT_NAME("Next")
+	PORT_BIT( 0x02, IP_ACTIVE_HIGH, IPT_KEYPAD ) PORT_CODE(KEYCODE_G) PORT_NAME("Final Position")
+	PORT_BIT( 0x04, IP_ACTIVE_HIGH, IPT_KEYPAD ) PORT_CODE(KEYCODE_T) PORT_NAME("Earnings")
+	PORT_BIT( 0x08, IP_ACTIVE_HIGH, IPT_KEYPAD ) PORT_CODE(KEYCODE_5) PORT_NAME("R.S.L.")
+
+	PORT_START("IN.1") // R4
+	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_KEYPAD ) PORT_CODE(KEYCODE_V) PORT_NAME("Analyze")
+	PORT_BIT( 0x02, IP_ACTIVE_HIGH, IPT_KEYPAD ) PORT_CODE(KEYCODE_F) PORT_NAME("L.E.B. 3rd")
+	PORT_BIT( 0x04, IP_ACTIVE_HIGH, IPT_KEYPAD ) PORT_CODE(KEYCODE_R) PORT_NAME("Shows")
+	PORT_BIT( 0x08, IP_ACTIVE_HIGH, IPT_KEYPAD ) PORT_CODE(KEYCODE_4) PORT_NAME("Days")
+
+	PORT_START("IN.2") // R5
+	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_KEYPAD ) PORT_CODE(KEYCODE_C) PORT_NAME("Speed Rating (right)")
+	PORT_BIT( 0x02, IP_ACTIVE_HIGH, IPT_KEYPAD ) PORT_CODE(KEYCODE_D) PORT_NAME("L.E.B. 2nd")
+	PORT_BIT( 0x04, IP_ACTIVE_HIGH, IPT_KEYPAD ) PORT_CODE(KEYCODE_E) PORT_NAME("Places")
+	PORT_BIT( 0x08, IP_ACTIVE_HIGH, IPT_KEYPAD ) PORT_CODE(KEYCODE_3) PORT_NAME("Post Position")
+
+	PORT_START("IN.3") // R6
+	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_KEYPAD ) PORT_CODE(KEYCODE_X) PORT_NAME("Speed Rating (left)")
+	PORT_BIT( 0x02, IP_ACTIVE_HIGH, IPT_KEYPAD ) PORT_CODE(KEYCODE_S) PORT_NAME("L.E.B. 1st")
+	PORT_BIT( 0x04, IP_ACTIVE_HIGH, IPT_KEYPAD ) PORT_CODE(KEYCODE_W) PORT_NAME("Wins")
+	PORT_BIT( 0x08, IP_ACTIVE_HIGH, IPT_KEYPAD ) PORT_CODE(KEYCODE_2) PORT_NAME("Distance (L.E.B.)")
+
+	PORT_START("IN.4") // R7
+	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_KEYPAD ) PORT_CODE(KEYCODE_Z) PORT_NAME("L.E.B. Finish")
+	PORT_BIT( 0x02, IP_ACTIVE_HIGH, IPT_KEYPAD ) PORT_CODE(KEYCODE_A) PORT_NAME("Distance")
+	PORT_BIT( 0x04, IP_ACTIVE_HIGH, IPT_KEYPAD ) PORT_CODE(KEYCODE_Q) PORT_NAME("Races")
+	PORT_BIT( 0x08, IP_ACTIVE_HIGH, IPT_KEYPAD ) PORT_CODE(KEYCODE_1) PORT_NAME("Purse")
+
+	PORT_START("IN.5") // R8
+	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_KEYPAD ) PORT_CODE(KEYCODE_COMMA) PORT_CODE(KEYCODE_0_PAD) PORT_NAME("0")
+	PORT_BIT( 0x02, IP_ACTIVE_HIGH, IPT_KEYPAD ) PORT_CODE(KEYCODE_K) PORT_CODE(KEYCODE_3_PAD) PORT_NAME("3")
+	PORT_BIT( 0x04, IP_ACTIVE_HIGH, IPT_KEYPAD ) PORT_CODE(KEYCODE_I) PORT_CODE(KEYCODE_6_PAD) PORT_NAME("6")
+	PORT_BIT( 0x08, IP_ACTIVE_HIGH, IPT_KEYPAD ) PORT_CODE(KEYCODE_8) PORT_CODE(KEYCODE_9_PAD) PORT_NAME("9")
+
+	PORT_START("IN.6") // R9
+	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_KEYPAD ) PORT_CODE(KEYCODE_M) PORT_NAME("C/E") // Clear Entry
+	PORT_BIT( 0x02, IP_ACTIVE_HIGH, IPT_KEYPAD ) PORT_CODE(KEYCODE_J) PORT_CODE(KEYCODE_2_PAD) PORT_NAME("2")
+	PORT_BIT( 0x04, IP_ACTIVE_HIGH, IPT_KEYPAD ) PORT_CODE(KEYCODE_U) PORT_CODE(KEYCODE_5_PAD) PORT_NAME("5")
+	PORT_BIT( 0x08, IP_ACTIVE_HIGH, IPT_KEYPAD ) PORT_CODE(KEYCODE_7) PORT_CODE(KEYCODE_8_PAD) PORT_NAME("8")
+
+	PORT_START("IN.7") // R10
+	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_KEYPAD ) PORT_CODE(KEYCODE_N) PORT_NAME("C/H") // Clear Horse Information
+	PORT_BIT( 0x02, IP_ACTIVE_HIGH, IPT_KEYPAD ) PORT_CODE(KEYCODE_H) PORT_CODE(KEYCODE_1_PAD) PORT_NAME("1")
+	PORT_BIT( 0x04, IP_ACTIVE_HIGH, IPT_KEYPAD ) PORT_CODE(KEYCODE_Y) PORT_CODE(KEYCODE_4_PAD) PORT_NAME("4")
+	PORT_BIT( 0x08, IP_ACTIVE_HIGH, IPT_KEYPAD ) PORT_CODE(KEYCODE_6) PORT_CODE(KEYCODE_7_PAD) PORT_NAME("7")
+INPUT_PORTS_END
+
+static MACHINE_CONFIG_START( horseran, horseran_state )
+
+	/* basic machine hardware */
+	MCFG_CPU_ADD("maincpu", TMS1100, 300000) // approximation - RC osc. R=56K, C=47pf
+	MCFG_TMS1XXX_READ_K_CB(READ8(horseran_state, read_k))
+	MCFG_TMS1XXX_WRITE_R_CB(WRITE16(horseran_state, write_r))
+
+	//MCFG_DEFAULT_LAYOUT(layout_horseran)
+
+	/* no sound! */
 MACHINE_CONFIG_END
 
 
@@ -5197,7 +5330,7 @@ void ssimon_state::set_clock()
 	// 0 Simple: R=51K -> ~200kHz
 	// 1 Normal: R=37K -> ~275kHz
 	// 2 Super:  R=22K -> ~400kHz
-	uint8_t inp = m_inp_matrix[6]->read();
+	u8 inp = m_inp_matrix[6]->read();
 	m_maincpu->set_unscaled_clock((inp & 2) ? 400000 : ((inp & 1) ? 275000 : 200000));
 }
 
@@ -5385,7 +5518,7 @@ void bigtrak_state::machine_start()
 	save_item(NAME(m_gearbox_pos));
 }
 
-static const int16_t bigtrak_speaker_levels[8] = { 0, 0x7fff/3, 0x7fff/3, 0x7fff/3*2, 0x7fff/3, 0x7fff/3*2, 0x7fff/3*2, 0x7fff };
+static const s16 bigtrak_speaker_levels[8] = { 0, 0x7fff/3, 0x7fff/3, 0x7fff/3*2, 0x7fff/3, 0x7fff/3*2, 0x7fff/3*2, 0x7fff };
 
 static MACHINE_CONFIG_START( bigtrak, bigtrak_state )
 
@@ -5509,7 +5642,7 @@ void mbdtower_state::prepare_display()
 	// update current state
 	if (~m_r & 0x10)
 	{
-		uint8_t o = BITSWAP8(m_o,7,0,4,3,2,1,6,5) & 0x7f;
+		u8 o = BITSWAP8(m_o,7,0,4,3,2,1,6,5) & 0x7f;
 		m_display_state[2] = (m_o & 0x80) ? o : 0;
 		m_display_state[1] = (m_o & 0x80) ? 0 : o;
 		m_display_state[0] = (m_r >> 8 & 1) | (m_r >> 4 & 0xe);
@@ -5851,7 +5984,7 @@ static INPUT_PORTS_START( merlin )
 	PORT_BIT( 0x08, IP_ACTIVE_HIGH, IPT_KEYPAD ) PORT_CODE(KEYCODE_N) PORT_CODE(KEYCODE_ENTER) PORT_CODE(KEYCODE_ENTER_PAD) PORT_NAME("New Game")
 INPUT_PORTS_END
 
-static const int16_t merlin_speaker_levels[8] = { 0, 0x7fff/3, 0x7fff/3, 0x7fff/3*2, 0x7fff/3, 0x7fff/3*2, 0x7fff/3*2, 0x7fff };
+static const s16 merlin_speaker_levels[8] = { 0, 0x7fff/3, 0x7fff/3, 0x7fff/3*2, 0x7fff/3, 0x7fff/3*2, 0x7fff/3*2, 0x7fff };
 
 static MACHINE_CONFIG_START( merlin, merlin_state )
 
@@ -6030,7 +6163,7 @@ static INPUT_PORTS_START( stopthief )
 	PORT_BIT( 0x10, IP_ACTIVE_HIGH, IPT_KEYPAD ) PORT_CODE(KEYCODE_PGDN) PORT_NAME("Off") PORT_CHANGED_MEMBER(DEVICE_SELF, hh_tms1k_state, power_button, (void *)false)
 INPUT_PORTS_END
 
-static const int16_t stopthief_speaker_levels[7] = { 0, 0x7fff/6, 0x7fff/5, 0x7fff/4, 0x7fff/3, 0x7fff/2, 0x7fff };
+static const s16 stopthief_speaker_levels[7] = { 0, 0x7fff/6, 0x7fff/5, 0x7fff/4, 0x7fff/3, 0x7fff/2, 0x7fff };
 
 static MACHINE_CONFIG_START( stopthief, stopthief_state )
 
@@ -6364,7 +6497,7 @@ static INPUT_PORTS_START( lostreas )
 	PORT_BIT( 0x02, IP_ACTIVE_HIGH, IPT_KEYPAD ) PORT_CODE(KEYCODE_U) PORT_NAME("Up")
 INPUT_PORTS_END
 
-static const int16_t lostreas_speaker_levels[16] =
+static const s16 lostreas_speaker_levels[16] =
 {
 	0, 0x7fff/15, 0x7fff/14, 0x7fff/13, 0x7fff/12, 0x7fff/11, 0x7fff/10, 0x7fff/9,
 	0x7fff/8, 0x7fff/7, 0x7fff/6, 0x7fff/5, 0x7fff/4, 0x7fff/3, 0x7fff/2, 0x7fff/1
@@ -6422,8 +6555,8 @@ public:
 void tcfball_state::prepare_display()
 {
 	// R8 enables leds, R9 enables digits
-	uint16_t mask = ((m_r >> 9 & 1) * 0x7f) | ((m_r >> 8 & 1) * 0x780);
-	uint16_t sel = ((m_r & 0x7f) | (m_r << 7 & 0x780)) & mask;
+	u16 mask = ((m_r >> 9 & 1) * 0x7f) | ((m_r >> 8 & 1) * 0x780);
+	u16 sel = ((m_r & 0x7f) | (m_r << 7 & 0x780)) & mask;
 
 	set_display_segmask(0x77, 0x7f);
 	set_display_segmask(0x08, 0xff); // R3 has DP
@@ -6538,7 +6671,7 @@ static INPUT_PORTS_START( tcfballa )
 INPUT_PORTS_END
 
 // output PLA is not decapped, dumped electronically
-static const uint16_t tcfballa_output_pla[0x20] =
+static const u16 tcfballa_output_pla[0x20] =
 {
 	0x3f, 0x06, 0x5b, 0x4f, 0x66, 0x6d, 0x7d, 0x07, 0x7f, 0x6f, 0x00, 0x46, 0x70, 0x00, 0x00, 0x00,
 	0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
@@ -6696,7 +6829,7 @@ static INPUT_PORTS_START( tandy12 )
 INPUT_PORTS_END
 
 // output PLA is not decapped
-static const uint16_t tandy12_output_pla[0x20] =
+static const u16 tandy12_output_pla[0x20] =
 {
 	// these are certain
 	0x00, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40,
@@ -7069,7 +7202,7 @@ static INPUT_PORTS_START( copycat )
 	PORT_BIT( 0x08, IP_ACTIVE_HIGH, IPT_UNUSED )
 INPUT_PORTS_END
 
-static const int16_t copycat_speaker_levels[4] = { 0, 0x7fff, -0x8000, 0 };
+static const s16 copycat_speaker_levels[4] = { 0, 0x7fff, -0x8000, 0 };
 
 static MACHINE_CONFIG_START( copycat, copycat_state )
 
@@ -7398,7 +7531,7 @@ public:
 	{ }
 
 	required_device<tms1024_device> m_expander;
-	uint8_t m_exp_port[7];
+	u8 m_exp_port[7];
 	DECLARE_WRITE8_MEMBER(expander_w);
 
 	void prepare_display();
@@ -7787,7 +7920,7 @@ static INPUT_PORTS_START( ssports4 )
 INPUT_PORTS_END
 
 // output PLA is not decapped, dumped electronically
-static const uint16_t ssports4_output_pla[0x20] =
+static const u16 ssports4_output_pla[0x20] =
 {
 	0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 	0x3f, 0x06, 0x5b, 0x4f, 0x66, 0x6d, 0x7d, 0x07, 0x7f, 0x6f, 0x00, 0x40, 0x40, 0x40, 0x40, 0x40
@@ -8038,6 +8171,9 @@ ROM_START( einvader )
 	ROM_LOAD( "tms1100_common2_micro.pla", 0, 867, CRC(7cc90264) SHA1(c6e1cf1ffb178061da9e31858514f7cd94e86990) )
 	ROM_REGION( 365, "maincpu:opla", 0 )
 	ROM_LOAD( "tms1100_einvader_output.pla", 0, 365, CRC(490158e1) SHA1(61cace1eb09244663de98d8fb04d9459b19668fd) )
+
+	ROM_REGION( 44398, "svg", 0)
+	ROM_LOAD( "einvader.svg", 0, 44398, CRC(48de88fd) SHA1(56a2b9c997a447277b45902ab542eda54e7d5a2f) ) // by hap, ver. 23 mar 2016
 ROM_END
 
 
@@ -8176,6 +8312,17 @@ ROM_START( elecbowl )
 	ROM_LOAD( "tms1100_common3_micro.pla", 0, 867, BAD_DUMP CRC(03574895) SHA1(04407cabfb3adee2ee5e4218612cb06c12c540f4) ) // not verified
 	ROM_REGION( 365, "maincpu:opla", 0 )
 	ROM_LOAD( "tms1100_elecbowl_output.pla", 0, 365, NO_DUMP )
+ROM_END
+
+
+ROM_START( horseran )
+	ROM_REGION( 0x0800, "maincpu", 0 )
+	ROM_LOAD( "mp3491", 0x0000, 0x0800, CRC(a0081671) SHA1(a5a07b502c69d429e5bcd1d313e86b6ee057cda6) )
+
+	ROM_REGION( 867, "maincpu:mpla", 0 )
+	ROM_LOAD( "tms1100_common1_micro.pla", 0, 867, CRC(62445fc9) SHA1(d6297f2a4bc7a870b76cc498d19dbb0ce7d69fec) )
+	ROM_REGION( 365, "maincpu:opla", 0 ) // unused
+	ROM_LOAD( "tms1100_horseran_output.pla", 0, 365, CRC(0fea09b0) SHA1(27a56fcf2b490e9a7dbbc6ad48cc8aaca4cada94) )
 ROM_END
 
 
@@ -8528,10 +8675,10 @@ CONS( 1979, ebball,    0,        0, ebball,    ebball,    driver_device, 0, "Ent
 CONS( 1979, ebball2,   0,        0, ebball2,   ebball2,   driver_device, 0, "Entex", "Electronic Baseball 2 (Entex)", MACHINE_SUPPORTS_SAVE )
 CONS( 1980, ebball3,   0,        0, ebball3,   ebball3,   driver_device, 0, "Entex", "Electronic Baseball 3 (Entex)", MACHINE_SUPPORTS_SAVE )
 CONS( 1979, esbattle,  0,        0, esbattle,  esbattle,  driver_device, 0, "Entex", "Space Battle (Entex)", MACHINE_SUPPORTS_SAVE )
-CONS( 1980, einvader,  0,        0, einvader,  einvader,  driver_device, 0, "Entex", "Space Invader (Entex, TMS1100 version)", MACHINE_SUPPORTS_SAVE | MACHINE_REQUIRES_ARTWORK )
+CONS( 1980, einvader,  0,        0, einvader,  einvader,  driver_device, 0, "Entex", "Space Invader (Entex, TMS1100 version)", MACHINE_SUPPORTS_SAVE )
 CONS( 1980, efootb4 ,  0,        0, efootb4,   efootb4,   driver_device, 0, "Entex", "Color Football 4 (Entex)", MACHINE_SUPPORTS_SAVE )
 CONS( 1980, ebaskb2 ,  0,        0, ebaskb2,   ebaskb2,   driver_device, 0, "Entex", "Electronic Basketball 2 (Entex)", MACHINE_SUPPORTS_SAVE )
-CONS( 1980, raisedvl,  0,        0, raisedvl,  raisedvl,  driver_device, 0, "Entex", "Raise The Devil", MACHINE_SUPPORTS_SAVE )
+CONS( 1980, raisedvl,  0,        0, raisedvl,  raisedvl,  driver_device, 0, "Entex", "Raise The Devil", MACHINE_SUPPORTS_SAVE | MACHINE_REQUIRES_ARTWORK )
 
 CONS( 1979, gpoker,    0,        0, gpoker,    gpoker,    driver_device, 0, "Gakken", "Poker (Gakken, 1979 version)", MACHINE_SUPPORTS_SAVE )
 CONS( 1980, gjackpot,  0,        0, gjackpot,  gjackpot,  driver_device, 0, "Gakken", "Jackpot: Gin Rummy & Black Jack", MACHINE_SUPPORTS_SAVE )
@@ -8547,6 +8694,7 @@ COMP( 1979, astro,     0,        0, astro,     astro,     driver_device, 0, "Kos
 
 CONS( 1978, elecbowl,  0,        0, elecbowl,  elecbowl,  driver_device, 0, "Marx", "Electronic Bowling (Marx)", MACHINE_SUPPORTS_SAVE | MACHINE_IMPERFECT_SOUND | MACHINE_MECHANICAL | MACHINE_NOT_WORKING ) // ***
 
+COMP( 1979, horseran,  0,        0, horseran,  horseran,  driver_device, 0, "Mattel", "Thoroughbred Horse Race Analyzer", MACHINE_SUPPORTS_SAVE | MACHINE_NO_SOUND_HW | MACHINE_NOT_WORKING )
 CONS( 1980, mdndclab,  0,        0, mdndclab,  mdndclab,  driver_device, 0, "Mattel", "Dungeons & Dragons - Computer Labyrinth Game", MACHINE_SUPPORTS_SAVE | MACHINE_CLICKABLE_ARTWORK ) // ***
 
 CONS( 1977, comp4,     0,        0, comp4,     comp4,     driver_device, 0, "Milton Bradley", "Comp IV", MACHINE_SUPPORTS_SAVE | MACHINE_CLICKABLE_ARTWORK | MACHINE_NO_SOUND_HW )

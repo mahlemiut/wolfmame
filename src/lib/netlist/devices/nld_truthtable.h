@@ -26,7 +26,7 @@
 		: nld_truthtable_t<nIN, nOUT>(owner, name, family_TTL(), &m_ttbl, m_desc) { }   \
 	private:                                                                    \
 		static truthtable_t m_ttbl;                                             \
-		static const char *m_desc[];                                            \
+		static const pstring m_desc[];                                         \
 	}
 
 
@@ -159,14 +159,14 @@ namespace netlist
 
 		template <class C>
 		nld_truthtable_t(C &owner, const pstring &name, const logic_family_desc_t *fam,
-				truthtable_t *ttp, const char *desc[])
+				truthtable_t *ttp, const pstring *desc)
 		: device_t(owner, name)
 		, m_fam(*this, fam)
 		, m_ign(*this, "m_ign", 0)
 		, m_active(*this, "m_active", 1)
 		, m_ttp(ttp)
 		{
-			while (*desc != nullptr && **desc != 0 )
+			while (*desc != "" )
 				{
 					m_desc.push_back(*desc);
 					desc++;
@@ -371,7 +371,7 @@ namespace netlist
 		P_PREVENT_COPYING(netlist_base_factory_truthtable_t)
 	public:
 		netlist_base_factory_truthtable_t(const pstring &name, const pstring &classname,
-				const pstring &def_param);
+				const pstring &def_param, const pstring &sourcefile);
 
 		virtual ~netlist_base_factory_truthtable_t();
 
@@ -379,7 +379,7 @@ namespace netlist
 		const logic_family_desc_t *m_family;
 	};
 
-	void tt_factory_create(setup_t &setup, tt_desc &desc);
+	void tt_factory_create(setup_t &setup, tt_desc &desc, const pstring &sourcefile);
 
 	} //namespace devices
 } // namespace netlist

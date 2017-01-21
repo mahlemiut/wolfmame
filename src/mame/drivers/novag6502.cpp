@@ -51,14 +51,12 @@ instead of magnet sensors.
 
 ******************************************************************************/
 
-#include "emu.h"
+#include "includes/novagbase.h"
 #include "cpu/m6502/m6502.h"
 #include "cpu/m6502/m65c02.h"
 #include "bus/rs232/rs232.h"
 #include "machine/mos6551.h"
 #include "machine/nvram.h"
-#include "sound/beep.h"
-#include "video/hd44780.h"
 
 // internal artwork
 #include "novag_sexpert.lh" // clickable
@@ -66,53 +64,15 @@ instead of magnet sensors.
 #include "novag_supercon.lh" // clickable
 
 
-class novag6502_state : public driver_device
+class novag6502_state : public novagbase_state
 {
 public:
 	novag6502_state(const machine_config &mconfig, device_type type, const char *tag)
-		: driver_device(mconfig, type, tag),
-		m_maincpu(*this, "maincpu"),
-		m_beeper(*this, "beeper"),
-		m_lcd(*this, "hd44780"),
-		m_inp_matrix(*this, "IN.%u", 0),
-		m_display_wait(33),
-		m_display_maxy(1),
-		m_display_maxx(0)
+		: novagbase_state(mconfig, type, tag)
 	{ }
-
-	// devices/pointers
-	required_device<cpu_device> m_maincpu;
-	optional_device<beep_device> m_beeper;
-	optional_device<hd44780_device> m_lcd;
-	optional_ioport_array<8> m_inp_matrix;
 
 	TIMER_DEVICE_CALLBACK_MEMBER(irq_on) { m_maincpu->set_input_line(M6502_IRQ_LINE, ASSERT_LINE); }
 	TIMER_DEVICE_CALLBACK_MEMBER(irq_off) { m_maincpu->set_input_line(M6502_IRQ_LINE, CLEAR_LINE); }
-
-	// misc common
-	uint16_t m_inp_mux;                   // multiplexed keypad mask
-	uint16_t m_led_select;
-	uint16_t m_led_data;
-
-	uint16_t read_inputs(int columns);
-
-	// display common
-	int m_display_wait;                   // led/lamp off-delay in microseconds (default 33ms)
-	int m_display_maxy;                   // display matrix number of rows
-	int m_display_maxx;                   // display matrix number of columns (max 31 for now)
-
-	uint32_t m_display_state[0x20];       // display matrix rows data (last bit is used for always-on)
-	uint16_t m_display_segmask[0x20];     // if not 0, display matrix row is a digit, mask indicates connected segments
-	uint32_t m_display_cache[0x20];       // (internal use)
-	uint8_t m_display_decay[0x20][0x20];  // (internal use)
-	
-	uint8_t m_lcd_control;
-
-	TIMER_DEVICE_CALLBACK_MEMBER(display_decay_tick);
-	void display_update();
-	void set_display_size(int maxx, int maxy);
-	void set_display_segmask(uint32_t digits, uint32_t mask);
-	void display_matrix(int maxx, int maxy, uint32_t setx, uint32_t sety, bool update = true);
 
 	// Super Constellation	
 	DECLARE_WRITE8_MEMBER(supercon_mux_w);
@@ -127,8 +87,6 @@ public:
 	DECLARE_WRITE8_MEMBER(sexpert_lcd_data_w);
 	DECLARE_READ8_MEMBER(sexpert_input1_r);
 	DECLARE_READ8_MEMBER(sexpert_input2_r);
-	DECLARE_PALETTE_INIT(sexpert);
-	HD44780_PIXEL_UPDATE(sexpert_pixel_update);
 	DECLARE_MACHINE_RESET(sexpert);
 	DECLARE_DRIVER_INIT(sexpert);
 	DECLARE_INPUT_CHANGED_MEMBER(sexpert_cpu_freq);
@@ -137,16 +95,12 @@ public:
 	// Super Forte
 	DECLARE_WRITE8_MEMBER(sforte_lcd_control_w);
 	DECLARE_WRITE8_MEMBER(sforte_lcd_data_w);
-
-protected:
-	virtual void machine_start() override;
-	virtual void machine_reset() override;
 };
 
 
 // machine start/reset
 
-void novag6502_state::machine_start()
+void novagbase_state::machine_start()
 {
 	// zerofill
 	memset(m_display_state, 0, sizeof(m_display_state));
@@ -175,7 +129,7 @@ void novag6502_state::machine_start()
 	save_item(NAME(m_lcd_control));
 }
 
-void novag6502_state::machine_reset()
+void novagbase_state::machine_reset()
 {
 }
 
@@ -190,9 +144,9 @@ void novag6502_state::machine_reset()
 // The device may strobe the outputs very fast, it is unnoticeable to the user.
 // To prevent flickering here, we need to simulate a decay.
 
-void novag6502_state::display_update()
+void novagbase_state::display_update()
 {
-	uint32_t active_state[0x20];
+	u32 active_state[0x20];
 
 	for (int y = 0; y < m_display_maxy; y++)
 	{
@@ -205,7 +159,7 @@ void novag6502_state::display_update()
 				m_display_decay[y][x] = m_display_wait;
 
 			// determine active state
-			uint32_t ds = (m_display_decay[y][x] != 0) ? 1 : 0;
+			u32 ds = (m_display_decay[y][x] != 0) ? 1 : 0;
 			active_state[y] |= (ds << x);
 		}
 	}
@@ -243,7 +197,7 @@ void novag6502_state::display_update()
 	memcpy(m_display_cache, active_state, sizeof(m_display_cache));
 }
 
-TIMER_DEVICE_CALLBACK_MEMBER(novag6502_state::display_decay_tick)
+TIMER_DEVICE_CALLBACK_MEMBER(novagbase_state::display_decay_tick)
 {
 	// slowly turn off unpowered segments
 	for (int y = 0; y < m_display_maxy; y++)
@@ -254,13 +208,13 @@ TIMER_DEVICE_CALLBACK_MEMBER(novag6502_state::display_decay_tick)
 	display_update();
 }
 
-void novag6502_state::set_display_size(int maxx, int maxy)
+void novagbase_state::set_display_size(int maxx, int maxy)
 {
 	m_display_maxx = maxx;
 	m_display_maxy = maxy;
 }
 
-void novag6502_state::set_display_segmask(uint32_t digits, uint32_t mask)
+void novagbase_state::set_display_segmask(u32 digits, u32 mask)
 {
 	// set a segment mask per selected digit, but leave unselected ones alone
 	for (int i = 0; i < 0x20; i++)
@@ -271,12 +225,12 @@ void novag6502_state::set_display_segmask(uint32_t digits, uint32_t mask)
 	}
 }
 
-void novag6502_state::display_matrix(int maxx, int maxy, uint32_t setx, uint32_t sety, bool update)
+void novagbase_state::display_matrix(int maxx, int maxy, u32 setx, u32 sety, bool update)
 {
 	set_display_size(maxx, maxy);
 
 	// update current state
-	uint32_t mask = (1 << maxx) - 1;
+	u32 mask = (1 << maxx) - 1;
 	for (int y = 0; y < maxy; y++)
 		m_display_state[y] = (sety >> y & 1) ? ((setx & mask) | (1 << maxx)) : 0;
 
@@ -285,11 +239,34 @@ void novag6502_state::display_matrix(int maxx, int maxy, uint32_t setx, uint32_t
 }
 
 
+// LCD
+
+PALETTE_INIT_MEMBER(novagbase_state, novag_lcd)
+{
+	palette.set_pen_color(0, rgb_t(138, 146, 148)); // background
+	palette.set_pen_color(1, rgb_t(92, 83, 88)); // lcd pixel on
+	palette.set_pen_color(2, rgb_t(131, 136, 139)); // lcd pixel off
+}
+
+HD44780_PIXEL_UPDATE(novagbase_state::novag_lcd_pixel_update)
+{
+	// char size is 5x8
+	if (x > 4 || y > 7)
+		return;
+
+	if (line < 2 && pos < 8)
+	{
+		// internal: (8+8)*1, external: 1*16
+		bitmap.pix16(1 + y, 1 + line*8*6 + pos*6 + x) = state ? 1 : 2;
+	}
+}
+
+
 // generic input handlers
 
-uint16_t novag6502_state::read_inputs(int columns)
+u16 novagbase_state::read_inputs(int columns)
 {
-	uint16_t ret = 0;
+	u16 ret = 0;
 
 	// read selected input rows
 	for (int i = 0; i < columns; i++)
@@ -346,34 +323,14 @@ READ8_MEMBER(novag6502_state::supercon_input2_r)
     Super Expert
 ******************************************************************************/
 
-// LCD
-
-PALETTE_INIT_MEMBER(novag6502_state, sexpert)
-{
-	palette.set_pen_color(0, rgb_t(138, 146, 148)); // background
-	palette.set_pen_color(1, rgb_t(92, 83, 88)); // lcd pixel on
-	palette.set_pen_color(2, rgb_t(131, 136, 139)); // lcd pixel off
-}
-
-HD44780_PIXEL_UPDATE(novag6502_state::sexpert_pixel_update)
-{
-	// char size is 5x8
-	if (x > 4 || y > 7)
-		return;
-
-	if (line < 2 && pos < 8)
-	{
-		// internal: (8+8)*1, external: 1*16
-		bitmap.pix16(1 + y, 1 + line*8*6 + pos*6 + x) = state ? 1 : 2;
-	}
-}
+// TTL/generic
 
 WRITE8_MEMBER(novag6502_state::sexpert_lcd_control_w)
 {
 	// d0: HD44780 RS
 	// d1: HD44780 R/W
 	// d2: HD44780 E
-	m_lcd_control = data;
+	m_lcd_control = data & 7;
 }
 
 WRITE8_MEMBER(novag6502_state::sexpert_lcd_data_w)
@@ -382,8 +339,6 @@ WRITE8_MEMBER(novag6502_state::sexpert_lcd_data_w)
 	if (m_lcd_control & 4 && ~m_lcd_control & 2)
 		m_lcd->write(space, m_lcd_control & 1, data);
 }
-
-// TTL/generic
 
 WRITE8_MEMBER(novag6502_state::sexpert_leds_w)
 {
@@ -427,7 +382,7 @@ void novag6502_state::sexpert_set_cpu_freq()
 MACHINE_RESET_MEMBER(novag6502_state, sexpert)
 {
 	membank("bank1")->set_entry(0);
-	novag6502_state::machine_reset();
+	novagbase_state::machine_reset();
 }
 
 DRIVER_INIT_MEMBER(novag6502_state, sexpert)
@@ -804,7 +759,7 @@ static MACHINE_CONFIG_START( supercon, novag6502_state )
 
 	MCFG_NVRAM_ADD_1FILL("nvram")
 
-	MCFG_TIMER_DRIVER_ADD_PERIODIC("display_decay", novag6502_state, display_decay_tick, attotime::from_msec(1))
+	MCFG_TIMER_DRIVER_ADD_PERIODIC("display_decay", novagbase_state, display_decay_tick, attotime::from_msec(1))
 	MCFG_DEFAULT_LAYOUT(layout_novag_supercon)
 
 	/* sound hardware */
@@ -822,7 +777,7 @@ static MACHINE_CONFIG_START( cforte, novag6502_state )
 
 	//MCFG_NVRAM_ADD_1FILL("nvram")
 
-	MCFG_TIMER_DRIVER_ADD_PERIODIC("display_decay", novag6502_state, display_decay_tick, attotime::from_msec(1))
+	MCFG_TIMER_DRIVER_ADD_PERIODIC("display_decay", novagbase_state, display_decay_tick, attotime::from_msec(1))
 	//MCFG_DEFAULT_LAYOUT(layout_novag_cforte)
 
 	/* sound hardware */
@@ -863,13 +818,13 @@ static MACHINE_CONFIG_START( sexpert, novag6502_state )
 	MCFG_SCREEN_UPDATE_DEVICE("hd44780", hd44780_device, screen_update)
 	MCFG_SCREEN_PALETTE("palette")
 	MCFG_PALETTE_ADD("palette", 3)
-	MCFG_PALETTE_INIT_OWNER(novag6502_state, sexpert)
+	MCFG_PALETTE_INIT_OWNER(novagbase_state, novag_lcd)
 
 	MCFG_HD44780_ADD("hd44780")
 	MCFG_HD44780_LCD_SIZE(2, 8)
-	MCFG_HD44780_PIXEL_UPDATE_CB(novag6502_state, sexpert_pixel_update)
+	MCFG_HD44780_PIXEL_UPDATE_CB(novagbase_state, novag_lcd_pixel_update)
 
-	MCFG_TIMER_DRIVER_ADD_PERIODIC("display_decay", novag6502_state, display_decay_tick, attotime::from_msec(1))
+	MCFG_TIMER_DRIVER_ADD_PERIODIC("display_decay", novagbase_state, display_decay_tick, attotime::from_msec(1))
 	MCFG_DEFAULT_LAYOUT(layout_novag_sexpert)
 
 	/* sound hardware */
@@ -902,8 +857,8 @@ ROM_END
 
 ROM_START( cforteb )
 	ROM_REGION( 0x18000, "maincpu", 0 )
-	ROM_LOAD("forte_b_l.u3", 0x0000, 0x8000, CRC(e3d194a1) SHA1(80457580d7c57e07895fd14bfdaf14b30952afca) )
-	ROM_LOAD("forte_b_h.u1", 0x8000, 0x8000, CRC(dd824be8) SHA1(cd8666b6b525887f9fc48a730b71ceabcf07f3b9) )
+	ROM_LOAD("forte_b_l.bin", 0x0000, 0x8000, CRC(e3d194a1) SHA1(80457580d7c57e07895fd14bfdaf14b30952afca) )
+	ROM_LOAD("forte_b_h.bin", 0x8000, 0x8000, CRC(dd824be8) SHA1(cd8666b6b525887f9fc48a730b71ceabcf07f3b9) )
 ROM_END
 
 

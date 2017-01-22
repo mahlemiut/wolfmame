@@ -193,7 +193,7 @@
 
 #define OPTION_LANGUAGE             "language"
 
-#define OPTION_HTTP			        "http"
+#define OPTION_HTTP                 "http"
 #define OPTION_HTTP_PORT            "http_port"
 #define OPTION_HTTP_ROOT            "http_root"
 

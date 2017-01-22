@@ -132,6 +132,7 @@
 
 #include "includes/hh_tms1k.h"
 #include "machine/tms1024.h"
+#include "video/hlcd0515.h"
 #include "sound/beep.h"
 #include "sound/sn76477.h"
 #include "sound/s14001a.h"
@@ -171,6 +172,7 @@
 #include "h2hbaseb.lh"
 #include "h2hboxing.lh"
 #include "h2hfootb.lh"
+#include "horseran.lh"
 #include "lostreas.lh" // clickable
 #include "matchnum.lh" // clickable
 #include "mathmagi.lh"
@@ -517,7 +519,7 @@ static const s16 matchnum_speaker_levels[4] = { 0, 0x7fff, -0x8000, 0 };
 static MACHINE_CONFIG_START( matchnum, matchnum_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", TMS1000, 325000) // approximation - RC osc. R=47K, C=47pf
+	MCFG_CPU_ADD("maincpu", TMS1000, 325000) // approximation - RC osc. R=47K, C=47pF
 	MCFG_TMS1XXX_READ_K_CB(READ8(matchnum_state, read_k))
 	MCFG_TMS1XXX_WRITE_R_CB(WRITE16(matchnum_state, write_r))
 	MCFG_TMS1XXX_WRITE_O_CB(WRITE16(matchnum_state, write_o))
@@ -697,7 +699,7 @@ static const u16 mathmagi_output_pla[0x20] =
 static MACHINE_CONFIG_START( mathmagi, mathmagi_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", TMS1100, 175000) // approximation - RC osc. R=68K, C=82pf
+	MCFG_CPU_ADD("maincpu", TMS1100, 175000) // approximation - RC osc. R=68K, C=82pF
 	MCFG_TMS1XXX_OUTPUT_PLA(mathmagi_output_pla)
 	MCFG_TMS1XXX_READ_K_CB(READ8(mathmagi_state, read_k))
 	MCFG_TMS1XXX_WRITE_R_CB(WRITE16(mathmagi_state, write_r))
@@ -803,7 +805,7 @@ INPUT_PORTS_END
 static MACHINE_CONFIG_START( bcheetah, bcheetah_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", TMS1000, 100000) // approximation - RC osc. R=47K, C=47pf
+	MCFG_CPU_ADD("maincpu", TMS1000, 100000) // approximation - RC osc. R=47K, C=47pF
 	MCFG_TMS1XXX_READ_K_CB(READ8(bcheetah_state, read_k))
 	MCFG_TMS1XXX_WRITE_R_CB(WRITE16(bcheetah_state, write_r))
 	MCFG_TMS1XXX_WRITE_O_CB(WRITE16(bcheetah_state, write_o))
@@ -930,7 +932,7 @@ INPUT_PORTS_END
 static MACHINE_CONFIG_START( amaztron, amaztron_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", TMS1100, 300000) // approximation - RC osc. R=33K?, C=100pf
+	MCFG_CPU_ADD("maincpu", TMS1100, 300000) // approximation - RC osc. R=33K?, C=100pF
 	MCFG_TMS1XXX_READ_K_CB(READ8(amaztron_state, read_k))
 	MCFG_TMS1XXX_WRITE_R_CB(WRITE16(amaztron_state, write_r))
 	MCFG_TMS1XXX_WRITE_O_CB(WRITE16(amaztron_state, write_o))
@@ -1107,7 +1109,7 @@ static const u16 zodiac_output_pla[0x20] =
 static MACHINE_CONFIG_START( zodiac, zodiac_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", TMS1100, 500000) // approximation - RC osc. R=18K, C=100pf
+	MCFG_CPU_ADD("maincpu", TMS1100, 500000) // approximation - RC osc. R=18K, C=100pF
 	MCFG_TMS1XXX_OUTPUT_PLA(zodiac_output_pla)
 	MCFG_TMS1XXX_READ_K_CB(READ8(zodiac_state, read_k))
 	MCFG_TMS1XXX_WRITE_R_CB(WRITE16(zodiac_state, write_r))
@@ -1223,7 +1225,7 @@ INPUT_PORTS_END
 static MACHINE_CONFIG_START( cqback, cqback_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", TMS1100, 310000) // approximation - RC osc. R=33K, C=100pf
+	MCFG_CPU_ADD("maincpu", TMS1100, 310000) // approximation - RC osc. R=33K, C=100pF
 	MCFG_TMS1XXX_READ_K_CB(READ8(cqback_state, read_k))
 	MCFG_TMS1XXX_WRITE_R_CB(WRITE16(cqback_state, write_r))
 	MCFG_TMS1XXX_WRITE_O_CB(WRITE16(cqback_state, write_o))
@@ -1341,7 +1343,7 @@ INPUT_PORTS_END
 static MACHINE_CONFIG_START( h2hfootb, h2hfootb_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", TMS1100, 310000) // approximation - RC osc. R=39K, C=100pf
+	MCFG_CPU_ADD("maincpu", TMS1100, 310000) // approximation - RC osc. R=39K, C=100pF
 	MCFG_TMS1XXX_READ_K_CB(READ8(h2hfootb_state, read_k))
 	MCFG_TMS1XXX_WRITE_R_CB(WRITE16(h2hfootb_state, write_r))
 	MCFG_TMS1XXX_WRITE_O_CB(WRITE16(h2hfootb_state, write_o))
@@ -1467,7 +1469,7 @@ INPUT_CHANGED_MEMBER(h2hbaseb_state::skill_switch)
 
 void h2hbaseb_state::set_clock()
 {
-	// MCU clock is from an RC circuit with C=47pf, and R value is depending on
+	// MCU clock is from an RC circuit with C=47pF, and R value is depending on
 	// skill switch: R=51K(1) or 43K(2)
 	m_maincpu->set_unscaled_clock((m_inp_matrix[5]->read() & 1) ? 400000 : 350000);
 }
@@ -1593,7 +1595,7 @@ INPUT_PORTS_END
 static MACHINE_CONFIG_START( h2hboxing, h2hboxing_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", TMS1100, 350000) // approximation - RC osc. R=39K, C=100pf
+	MCFG_CPU_ADD("maincpu", TMS1100, 350000) // approximation - RC osc. R=39K, C=100pF
 	MCFG_TMS1XXX_READ_K_CB(READ8(h2hboxing_state, read_k))
 	MCFG_TMS1XXX_WRITE_R_CB(WRITE16(h2hboxing_state, write_r))
 	MCFG_TMS1XXX_WRITE_O_CB(WRITE16(h2hboxing_state, write_o))
@@ -1746,7 +1748,7 @@ INPUT_PORTS_END
 static MACHINE_CONFIG_START( tc4, tc4_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", TMS1400, 450000) // approximation - RC osc. R=27.3K, C=100pf
+	MCFG_CPU_ADD("maincpu", TMS1400, 450000) // approximation - RC osc. R=27.3K, C=100pF
 	MCFG_TMS1XXX_READ_K_CB(READ8(tc4_state, read_k))
 	MCFG_TMS1XXX_WRITE_R_CB(WRITE16(tc4_state, write_r))
 	MCFG_TMS1XXX_WRITE_O_CB(WRITE16(tc4_state, write_o))
@@ -1855,7 +1857,7 @@ INPUT_PORTS_END
 static MACHINE_CONFIG_START( cnbaskb, cnbaskb_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", TMS1000, 400000) // approximation - RC osc. R=39K, C=47pf
+	MCFG_CPU_ADD("maincpu", TMS1000, 400000) // approximation - RC osc. R=39K, C=47pF
 	MCFG_TMS1XXX_READ_K_CB(READ8(cnbaskb_state, read_k))
 	MCFG_TMS1XXX_WRITE_R_CB(WRITE16(cnbaskb_state, write_r))
 	MCFG_TMS1XXX_WRITE_O_CB(WRITE16(cnbaskb_state, write_o))
@@ -1968,7 +1970,7 @@ INPUT_PORTS_END
 static MACHINE_CONFIG_START( cmsport, cmsport_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", TMS1000, 375000) // approximation - RC osc. R=47K, C=47pf
+	MCFG_CPU_ADD("maincpu", TMS1000, 375000) // approximation - RC osc. R=47K, C=47pF
 	MCFG_TMS1XXX_READ_K_CB(READ8(cmsport_state, read_k))
 	MCFG_TMS1XXX_WRITE_R_CB(WRITE16(cmsport_state, write_r))
 	MCFG_TMS1XXX_WRITE_O_CB(WRITE16(cmsport_state, write_o))
@@ -2094,7 +2096,7 @@ static const s16 cnfball_speaker_levels[4] = { 0, 0x7fff, -0x8000, 0 };
 static MACHINE_CONFIG_START( cnfball, cnfball_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", TMS1000, 400000) // approximation - RC osc. R=39K, C=47pf
+	MCFG_CPU_ADD("maincpu", TMS1000, 400000) // approximation - RC osc. R=39K, C=47pF
 	MCFG_TMS1XXX_READ_K_CB(READ8(cnfball_state, read_k))
 	MCFG_TMS1XXX_WRITE_R_CB(WRITE16(cnfball_state, write_r))
 	MCFG_TMS1XXX_WRITE_O_CB(WRITE16(cnfball_state, write_o))
@@ -2220,7 +2222,7 @@ static const u16 cnfball2_output_pla[0x20] =
 static MACHINE_CONFIG_START( cnfball2, cnfball2_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", TMS1100, 375000) // approximation - RC osc. R=47K, C=47pf
+	MCFG_CPU_ADD("maincpu", TMS1100, 375000) // approximation - RC osc. R=47K, C=47pF
 	MCFG_TMS1XXX_OUTPUT_PLA(cnfball2_output_pla)
 	MCFG_TMS1XXX_READ_K_CB(READ8(cnfball2_state, read_k))
 	MCFG_TMS1XXX_WRITE_R_CB(WRITE16(cnfball2_state, write_r))
@@ -2326,7 +2328,7 @@ INPUT_PORTS_END
 static MACHINE_CONFIG_START( esoccer, esoccer_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", TMS1000, 350000) // approximation - RC osc. R=47K, C=33pf
+	MCFG_CPU_ADD("maincpu", TMS1000, 350000) // approximation - RC osc. R=47K, C=33pF
 	MCFG_TMS1XXX_READ_K_CB(READ8(esoccer_state, read_k))
 	MCFG_TMS1XXX_WRITE_R_CB(WRITE16(esoccer_state, write_r))
 	MCFG_TMS1XXX_WRITE_O_CB(WRITE16(esoccer_state, write_o))
@@ -2460,7 +2462,7 @@ INPUT_PORTS_END
 static MACHINE_CONFIG_START( ebball, ebball_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", TMS1000, 375000) // approximation - RC osc. R=43K, C=47pf
+	MCFG_CPU_ADD("maincpu", TMS1000, 375000) // approximation - RC osc. R=43K, C=47pF
 	MCFG_TMS1XXX_READ_K_CB(READ8(ebball_state, read_k))
 	MCFG_TMS1XXX_WRITE_R_CB(WRITE16(ebball_state, write_r))
 	MCFG_TMS1XXX_WRITE_O_CB(WRITE16(ebball_state, write_o))
@@ -2583,7 +2585,7 @@ INPUT_PORTS_END
 static MACHINE_CONFIG_START( ebball2, ebball2_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", TMS1000, 350000) // approximation - RC osc. R=47K, C=47pf
+	MCFG_CPU_ADD("maincpu", TMS1000, 350000) // approximation - RC osc. R=47K, C=47pF
 	MCFG_TMS1XXX_READ_K_CB(READ8(ebball2_state, read_k))
 	MCFG_TMS1XXX_WRITE_R_CB(WRITE16(ebball2_state, write_r))
 	MCFG_TMS1XXX_WRITE_O_CB(WRITE16(ebball2_state, write_o))
@@ -2749,7 +2751,7 @@ INPUT_CHANGED_MEMBER(ebball3_state::skill_switch)
 
 void ebball3_state::set_clock()
 {
-	// MCU clock is from an RC circuit(R=47K, C=33pf) oscillating by default at ~340kHz,
+	// MCU clock is from an RC circuit(R=47K, C=33pF) oscillating by default at ~340kHz,
 	// but on PRO, the difficulty switch adds an extra 150K resistor to Vdd to speed
 	// it up to around ~440kHz.
 	m_maincpu->set_unscaled_clock((m_inp_matrix[3]->read() & 1) ? 440000 : 340000);
@@ -2875,7 +2877,7 @@ INPUT_PORTS_END
 static MACHINE_CONFIG_START( esbattle, esbattle_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", TMS1000, 425000) // approximation - RC osc. R=47K, C=33pf
+	MCFG_CPU_ADD("maincpu", TMS1000, 425000) // approximation - RC osc. R=47K, C=33pF
 	MCFG_TMS1XXX_READ_K_CB(READ8(esbattle_state, read_k))
 	MCFG_TMS1XXX_WRITE_R_CB(WRITE16(esbattle_state, write_r))
 	MCFG_TMS1XXX_WRITE_O_CB(WRITE16(esbattle_state, write_o))
@@ -2970,7 +2972,7 @@ INPUT_CHANGED_MEMBER(einvader_state::skill_switch)
 
 void einvader_state::set_clock()
 {
-	// MCU clock is from an RC circuit(R=47K, C=56pf) oscillating by default at ~320kHz,
+	// MCU clock is from an RC circuit(R=47K, C=56pF) oscillating by default at ~320kHz,
 	// but on PRO, the difficulty switch adds an extra 180K resistor to Vdd to speed
 	// it up to around ~400kHz.
 	m_maincpu->set_unscaled_clock((m_inp_matrix[0]->read() & 8) ? 400000 : 320000);
@@ -3105,7 +3107,7 @@ INPUT_PORTS_END
 static MACHINE_CONFIG_START( efootb4, efootb4_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", TMS1670, 475000) // approximation - RC osc. R=42K, C=47pf
+	MCFG_CPU_ADD("maincpu", TMS1670, 475000) // approximation - RC osc. R=42K, C=47pF
 	MCFG_TMS1XXX_READ_K_CB(READ8(efootb4_state, read_k))
 	MCFG_TMS1XXX_WRITE_R_CB(WRITE16(efootb4_state, write_r))
 	MCFG_TMS1XXX_WRITE_O_CB(WRITE16(efootb4_state, write_o))
@@ -3226,7 +3228,7 @@ INPUT_PORTS_END
 static MACHINE_CONFIG_START( ebaskb2, ebaskb2_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", TMS1100, 360000) // approximation - RC osc. R=33K, C=82pf
+	MCFG_CPU_ADD("maincpu", TMS1100, 360000) // approximation - RC osc. R=33K, C=82pF
 	MCFG_TMS1XXX_READ_K_CB(READ8(ebaskb2_state, read_k))
 	MCFG_TMS1XXX_WRITE_R_CB(WRITE16(ebaskb2_state, write_r))
 	MCFG_TMS1XXX_WRITE_O_CB(WRITE16(ebaskb2_state, write_o))
@@ -3348,7 +3350,7 @@ INPUT_CHANGED_MEMBER(raisedvl_state::skill_switch)
 
 void raisedvl_state::set_clock()
 {
-	// MCU clock is from an RC circuit with C=47pf, R=47K by default. Skills
+	// MCU clock is from an RC circuit with C=47pF, R=47K by default. Skills
 	// 2 and 3 add a 150K resistor in parallel, and skill 4 adds a 100K one.
 	// 0:   R=47K  -> ~350kHz
 	// 2,3: R=35K8 -> ~425kHz (combined)
@@ -3510,7 +3512,7 @@ void gpoker_state::machine_reset()
 static MACHINE_CONFIG_START( gpoker, gpoker_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", TMS1370, 350000) // approximation - RC osc. R=47K, C=47pf
+	MCFG_CPU_ADD("maincpu", TMS1370, 350000) // approximation - RC osc. R=47K, C=47pF
 	MCFG_TMS1XXX_READ_K_CB(READ8(gpoker_state, read_k))
 	MCFG_TMS1XXX_WRITE_R_CB(WRITE16(gpoker_state, write_r))
 	MCFG_TMS1XXX_WRITE_O_CB(WRITE16(gpoker_state, write_o))
@@ -3623,7 +3625,7 @@ INPUT_PORTS_END
 static MACHINE_CONFIG_START( gjackpot, gjackpot_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", TMS1670, 450000) // approximation - RC osc. R=47K, C=47pf
+	MCFG_CPU_ADD("maincpu", TMS1670, 450000) // approximation - RC osc. R=47K, C=47pF
 	MCFG_TMS1XXX_READ_K_CB(READ8(gpoker_state, read_k))
 	MCFG_TMS1XXX_WRITE_R_CB(WRITE16(gjackpot_state, write_r))
 	MCFG_TMS1XXX_WRITE_O_CB(WRITE16(gpoker_state, write_o))
@@ -3684,7 +3686,7 @@ WRITE16_MEMBER(ginv1000_state::write_r)
 
 	// R8,R15: input mux
 	m_inp_mux = (data >> 8 & 1) | (data >> 14 & 2);
-	
+
 	// R1-R10: VFD matrix grid
 	// R11-R14: VFD matrix plate
 	m_grid = data >> 1 & 0x3ff;
@@ -4127,7 +4129,7 @@ INPUT_PORTS_END
 static MACHINE_CONFIG_START( starwbc, starwbc_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", TMS1100, 325000) // approximation - RC osc. R=51K, C=47pf
+	MCFG_CPU_ADD("maincpu", TMS1100, 325000) // approximation - RC osc. R=51K, C=47pF
 	MCFG_TMS1XXX_READ_K_CB(READ8(starwbc_state, read_k))
 	MCFG_TMS1XXX_WRITE_R_CB(WRITE16(starwbc_state, write_r))
 	MCFG_TMS1XXX_WRITE_O_CB(WRITE16(starwbc_state, write_o))
@@ -4254,7 +4256,7 @@ INPUT_PORTS_END
 static MACHINE_CONFIG_START( astro, astro_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", TMS1470, 450000) // approximation - RC osc. R=4.7K, C=33pf
+	MCFG_CPU_ADD("maincpu", TMS1470, 450000) // approximation - RC osc. R=4.7K, C=33pF
 	MCFG_TMS1XXX_READ_K_CB(READ8(astro_state, read_k))
 	MCFG_TMS1XXX_WRITE_R_CB(WRITE16(astro_state, write_r))
 	MCFG_TMS1XXX_WRITE_O_CB(WRITE16(astro_state, write_o))
@@ -4419,7 +4421,7 @@ static const u16 elecbowl_output_pla[0x20] =
 static MACHINE_CONFIG_START( elecbowl, elecbowl_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", TMS1100, 350000) // approximation - RC osc. R=33K, C=100pf
+	MCFG_CPU_ADD("maincpu", TMS1100, 350000) // approximation - RC osc. R=33K, C=100pF
 	MCFG_TMS1XXX_OUTPUT_PLA(elecbowl_output_pla)
 	MCFG_TMS1XXX_READ_K_CB(READ8(elecbowl_state, read_k))
 	MCFG_TMS1XXX_WRITE_R_CB(WRITE16(elecbowl_state, write_r))
@@ -4444,13 +4446,13 @@ MACHINE_CONFIG_END
   * PCB label 1670-4619D
   * TMS1100NLL MP3491-N2 (die label 1100E MP3491)
   * HLCD0569, 67-segment LCD panel, no sound
-  
+
   This handheld is not a toy, read the manual for more information. In short,
   it is a device for prediciting the winning chance of a gambling horserace.
 
   known releases:
   - USA: Thoroughbred Horse Race Analyzer
-  - China/Canada: Thoroughbred Horse Race Analyzer, distributed in 1994 by 
+  - China/Canada: Thoroughbred Horse Race Analyzer, distributed in 1994 by
     Advanced Handicapping Technologies, Inc.
 
 ***************************************************************************/
@@ -4459,21 +4461,43 @@ class horseran_state : public hh_tms1k_state
 {
 public:
 	horseran_state(const machine_config &mconfig, device_type type, const char *tag)
-		: hh_tms1k_state(mconfig, type, tag)
+		: hh_tms1k_state(mconfig, type, tag),
+		m_lcd(*this, "lcd")
 	{ }
 
+	required_device<hlcd0569_device> m_lcd;
+
+	DECLARE_WRITE32_MEMBER(lcd_output_w);
 	DECLARE_WRITE16_MEMBER(write_r);
 	DECLARE_READ8_MEMBER(read_k);
 };
 
 // handlers
 
+WRITE32_MEMBER(horseran_state::lcd_output_w)
+{
+	// only 3 rows used
+	if (offset > 2)
+		return;
+
+	// output segments (lamp row*100 + col)
+	for (int i = 0; i < 24; i++)
+		output().set_lamp_value(offset*100 + i+1, data >> i & 1);
+
+	// col5-11 and col13-19 are 7segs
+	for (int i = 0; i < 2; i++)
+		output().set_digit_value(offset << 1 | i, BITSWAP8(data >> (4+8*i),7,3,5,2,0,1,4,6) & 0x7f);
+}
+
 WRITE16_MEMBER(horseran_state::write_r)
 {
 	// R0: HLCD0569 clock
 	// R1: HLCD0569 data in
 	// R2: HLCD0569 _CS
-	
+	m_lcd->write_cs(data >> 2 & 1);
+	m_lcd->write_data(data >> 1 & 1);
+	m_lcd->write_clock(data & 1);
+
 	// R3-R10: input mux
 	m_inp_mux = data >> 3 & 0xff;
 }
@@ -4551,11 +4575,14 @@ INPUT_PORTS_END
 static MACHINE_CONFIG_START( horseran, horseran_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", TMS1100, 300000) // approximation - RC osc. R=56K, C=47pf
+	MCFG_CPU_ADD("maincpu", TMS1100, 300000) // approximation - RC osc. R=56K, C=47pF
 	MCFG_TMS1XXX_READ_K_CB(READ8(horseran_state, read_k))
 	MCFG_TMS1XXX_WRITE_R_CB(WRITE16(horseran_state, write_r))
 
-	//MCFG_DEFAULT_LAYOUT(layout_horseran)
+	/* video hardware */
+	MCFG_DEVICE_ADD("lcd", HLCD0569, 1100) // C=0.022uF
+	MCFG_HLCD0515_WRITE_COLS_CB(WRITE32(horseran_state, lcd_output_w))
+	MCFG_DEFAULT_LAYOUT(layout_horseran)
 
 	/* no sound! */
 MACHINE_CONFIG_END
@@ -4726,7 +4753,7 @@ INPUT_PORTS_END
 static MACHINE_CONFIG_START( mdndclab, mdndclab_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", TMS1100, 475000) // approximation - RC osc. R=27K, C=100pf
+	MCFG_CPU_ADD("maincpu", TMS1100, 475000) // approximation - RC osc. R=27K, C=100pF
 	MCFG_TMS1XXX_READ_K_CB(READ8(mdndclab_state, read_k))
 	MCFG_TMS1XXX_WRITE_R_CB(WRITE16(mdndclab_state, write_r))
 	MCFG_TMS1XXX_WRITE_O_CB(WRITE16(mdndclab_state, write_o))
@@ -4981,7 +5008,7 @@ INPUT_PORTS_END
 static MACHINE_CONFIG_START( bship, bship_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", TMS1000, 200000) // approximation - RC osc. R=100K, C=47pf
+	MCFG_CPU_ADD("maincpu", TMS1000, 200000) // approximation - RC osc. R=100K, C=47pF
 	MCFG_TMS1XXX_READ_K_CB(READ8(bship_state, read_k))
 	MCFG_TMS1XXX_WRITE_R_CB(WRITE16(bship_state, write_r))
 	MCFG_TMS1XXX_WRITE_O_CB(WRITE16(bship_state, write_o))
@@ -5084,7 +5111,7 @@ READ8_MEMBER(bshipb_state::read_k)
 static MACHINE_CONFIG_START( bshipb, bshipb_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", TMS1000, 200000) // approximation - RC osc. R=100K, C=47pf
+	MCFG_CPU_ADD("maincpu", TMS1000, 200000) // approximation - RC osc. R=100K, C=47pF
 	MCFG_TMS1XXX_READ_K_CB(READ8(bshipb_state, read_k))
 	MCFG_TMS1XXX_WRITE_R_CB(WRITE16(bshipb_state, write_r))
 	MCFG_TMS1XXX_WRITE_O_CB(WRITE16(bshipb_state, write_o))
@@ -5201,7 +5228,7 @@ INPUT_PORTS_END
 static MACHINE_CONFIG_START( simon, simon_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", TMS1000, 350000) // approximation - RC osc. R=33K, C=100pf
+	MCFG_CPU_ADD("maincpu", TMS1000, 350000) // approximation - RC osc. R=33K, C=100pF
 	MCFG_TMS1XXX_READ_K_CB(READ8(simon_state, read_k))
 	MCFG_TMS1XXX_WRITE_R_CB(WRITE16(simon_state, write_r))
 
@@ -5326,7 +5353,7 @@ INPUT_CHANGED_MEMBER(ssimon_state::speed_switch)
 
 void ssimon_state::set_clock()
 {
-	// MCU clock is from an RC circuit with C=100pf, R=x depending on speed switch:
+	// MCU clock is from an RC circuit with C=100pF, R=x depending on speed switch:
 	// 0 Simple: R=51K -> ~200kHz
 	// 1 Normal: R=37K -> ~275kHz
 	// 2 Super:  R=22K -> ~400kHz
@@ -5523,7 +5550,7 @@ static const s16 bigtrak_speaker_levels[8] = { 0, 0x7fff/3, 0x7fff/3, 0x7fff/3*2
 static MACHINE_CONFIG_START( bigtrak, bigtrak_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", TMS1000, 200000) // approximation - RC osc. R=83K, C=100pf
+	MCFG_CPU_ADD("maincpu", TMS1000, 200000) // approximation - RC osc. R=83K, C=100pF
 	MCFG_TMS1XXX_READ_K_CB(READ8(bigtrak_state, read_k))
 	MCFG_TMS1XXX_WRITE_R_CB(WRITE16(bigtrak_state, write_r))
 	MCFG_TMS1XXX_WRITE_O_CB(WRITE16(bigtrak_state, write_o))
@@ -5756,7 +5783,7 @@ void mbdtower_state::machine_start()
 static MACHINE_CONFIG_START( mbdtower, mbdtower_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", TMS1400, 425000) // approximation - RC osc. R=43K, C=56pf
+	MCFG_CPU_ADD("maincpu", TMS1400, 425000) // approximation - RC osc. R=43K, C=56pF
 	MCFG_TMS1XXX_READ_K_CB(READ8(mbdtower_state, read_k))
 	MCFG_TMS1XXX_WRITE_R_CB(WRITE16(mbdtower_state, write_r))
 	MCFG_TMS1XXX_WRITE_O_CB(WRITE16(mbdtower_state, write_o))
@@ -5989,7 +6016,7 @@ static const s16 merlin_speaker_levels[8] = { 0, 0x7fff/3, 0x7fff/3, 0x7fff/3*2,
 static MACHINE_CONFIG_START( merlin, merlin_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", TMS1100, 350000) // approximation - RC osc. R=33K, C=100pf
+	MCFG_CPU_ADD("maincpu", TMS1100, 350000) // approximation - RC osc. R=33K, C=100pF
 	MCFG_TMS1XXX_READ_K_CB(READ8(merlin_state, read_k))
 	MCFG_TMS1XXX_WRITE_R_CB(WRITE16(merlin_state, write_r))
 	MCFG_TMS1XXX_WRITE_O_CB(WRITE16(merlin_state, write_o))
@@ -6053,7 +6080,7 @@ INPUT_PORTS_END
 static MACHINE_CONFIG_START( mmerlin, mmerlin_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", TMS1400, 425000) // approximation - RC osc. R=30K, C=100pf
+	MCFG_CPU_ADD("maincpu", TMS1400, 425000) // approximation - RC osc. R=30K, C=100pF
 	MCFG_TMS1XXX_READ_K_CB(READ8(mmerlin_state, read_k))
 	MCFG_TMS1XXX_WRITE_R_CB(WRITE16(mmerlin_state, write_r))
 	MCFG_TMS1XXX_WRITE_O_CB(WRITE16(mmerlin_state, write_o))
@@ -6277,7 +6304,7 @@ INPUT_PORTS_END
 static MACHINE_CONFIG_START( bankshot, bankshot_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", TMS1400, 475000) // approximation - RC osc. R=24K, C=100pf
+	MCFG_CPU_ADD("maincpu", TMS1400, 475000) // approximation - RC osc. R=24K, C=100pF
 	MCFG_TMS1XXX_READ_K_CB(READ8(bankshot_state, read_k))
 	MCFG_TMS1XXX_WRITE_R_CB(WRITE16(bankshot_state, write_r))
 	MCFG_TMS1XXX_WRITE_O_CB(WRITE16(bankshot_state, write_o))
@@ -6388,7 +6415,7 @@ INPUT_PORTS_END
 static MACHINE_CONFIG_START( splitsec, splitsec_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", TMS1400, 475000) // approximation - RC osc. R=24K, C=100pf
+	MCFG_CPU_ADD("maincpu", TMS1400, 475000) // approximation - RC osc. R=24K, C=100pF
 	MCFG_TMS1XXX_READ_K_CB(READ8(splitsec_state, read_k))
 	MCFG_TMS1XXX_WRITE_R_CB(WRITE16(splitsec_state, write_r))
 	MCFG_TMS1XXX_WRITE_O_CB(WRITE16(splitsec_state, write_o))
@@ -6506,7 +6533,7 @@ static const s16 lostreas_speaker_levels[16] =
 static MACHINE_CONFIG_START( lostreas, lostreas_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", TMS1100, 425000) // approximation - RC osc. R=39K, C=47pf
+	MCFG_CPU_ADD("maincpu", TMS1100, 425000) // approximation - RC osc. R=39K, C=47pF
 	MCFG_TMS1XXX_READ_K_CB(READ8(lostreas_state, read_k))
 	MCFG_TMS1XXX_WRITE_R_CB(WRITE16(lostreas_state, write_r))
 	MCFG_TMS1XXX_WRITE_O_CB(WRITE16(lostreas_state, write_o))
@@ -6616,7 +6643,7 @@ INPUT_PORTS_END
 static MACHINE_CONFIG_START( tcfball, tcfball_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", TMS1100, 375000) // approximation - RC osc. R=56K, C=24pf
+	MCFG_CPU_ADD("maincpu", TMS1100, 375000) // approximation - RC osc. R=56K, C=24pF
 	MCFG_TMS1XXX_READ_K_CB(READ8(tcfball_state, read_k))
 	MCFG_TMS1XXX_WRITE_R_CB(WRITE16(tcfball_state, write_r))
 	MCFG_TMS1XXX_WRITE_O_CB(WRITE16(tcfball_state, write_o))
@@ -6680,7 +6707,7 @@ static const u16 tcfballa_output_pla[0x20] =
 static MACHINE_CONFIG_START( tcfballa, tcfballa_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", TMS1100, 375000) // approximation - RC osc. R=47K, C=50pf
+	MCFG_CPU_ADD("maincpu", TMS1100, 375000) // approximation - RC osc. R=47K, C=50pF
 	MCFG_TMS1XXX_OUTPUT_PLA(tcfballa_output_pla)
 	MCFG_TMS1XXX_READ_K_CB(READ8(tcfballa_state, read_k))
 	MCFG_TMS1XXX_WRITE_R_CB(WRITE16(tcfballa_state, write_r))
@@ -6844,7 +6871,7 @@ static const u16 tandy12_output_pla[0x20] =
 static MACHINE_CONFIG_START( tandy12, tandy12_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", TMS1100, 400000) // approximation - RC osc. R=39K, C=47pf
+	MCFG_CPU_ADD("maincpu", TMS1100, 400000) // approximation - RC osc. R=39K, C=47pF
 	MCFG_TMS1XXX_OUTPUT_PLA(tandy12_output_pla)
 	MCFG_TMS1XXX_READ_K_CB(READ8(tandy12_state, read_k))
 	MCFG_TMS1XXX_WRITE_R_CB(WRITE16(tandy12_state, write_r))
@@ -6953,7 +6980,7 @@ INPUT_PORTS_END
 static MACHINE_CONFIG_START( monkeysee, monkeysee_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", TMS1000, 250000) // approximation - RC osc. R=68K, C=47pf
+	MCFG_CPU_ADD("maincpu", TMS1000, 250000) // approximation - RC osc. R=68K, C=47pF
 	MCFG_TMS1XXX_READ_K_CB(READ8(monkeysee_state, read_k))
 	MCFG_TMS1XXX_WRITE_R_CB(WRITE16(monkeysee_state, write_r))
 	MCFG_TMS1XXX_WRITE_O_CB(WRITE16(monkeysee_state, write_o))
@@ -7102,7 +7129,7 @@ INPUT_PORTS_END
 static MACHINE_CONFIG_START( speechp, speechp_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", TMS1000, 400000) // approximation - RC osc. R=39K, C=47pf
+	MCFG_CPU_ADD("maincpu", TMS1000, 400000) // approximation - RC osc. R=39K, C=47pF
 	MCFG_TMS1XXX_READ_K_CB(READ8(speechp_state, read_k))
 	MCFG_TMS1XXX_WRITE_R_CB(WRITE16(speechp_state, write_r))
 	MCFG_TMS1XXX_WRITE_O_CB(WRITE16(speechp_state, write_o))
@@ -7207,7 +7234,7 @@ static const s16 copycat_speaker_levels[4] = { 0, 0x7fff, -0x8000, 0 };
 static MACHINE_CONFIG_START( copycat, copycat_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", TMS1000, 320000) // approximation - RC osc. R=47K, C=47pf
+	MCFG_CPU_ADD("maincpu", TMS1000, 320000) // approximation - RC osc. R=47K, C=47pF
 	MCFG_TMS1XXX_READ_K_CB(READ8(copycat_state, read_k))
 	MCFG_TMS1XXX_WRITE_R_CB(WRITE16(copycat_state, write_r))
 	MCFG_TMS1XXX_WRITE_O_CB(WRITE16(copycat_state, write_o))
@@ -7283,7 +7310,7 @@ INPUT_PORTS_END
 static MACHINE_CONFIG_START( copycatm2, copycatm2_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", TMS1730, 275000) // approximation - RC osc. R=100K, C=47pf
+	MCFG_CPU_ADD("maincpu", TMS1730, 275000) // approximation - RC osc. R=100K, C=47pF
 	MCFG_TMS1XXX_READ_K_CB(IOPORT("IN.0"))
 	MCFG_TMS1XXX_WRITE_R_CB(WRITE16(copycatm2_state, write_r))
 	MCFG_TMS1XXX_WRITE_O_CB(WRITE16(copycatm2_state, write_o))
@@ -7354,7 +7381,7 @@ INPUT_PORTS_END
 static MACHINE_CONFIG_START( ditto, ditto_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", TMS1730, 275000) // approximation - RC osc. R=100K, C=47pf
+	MCFG_CPU_ADD("maincpu", TMS1730, 275000) // approximation - RC osc. R=100K, C=47pF
 	MCFG_TMS1XXX_READ_K_CB(IOPORT("IN.0"))
 	MCFG_TMS1XXX_WRITE_R_CB(WRITE16(ditto_state, write_r))
 	MCFG_TMS1XXX_WRITE_O_CB(WRITE16(ditto_state, write_o))
@@ -7469,7 +7496,7 @@ INPUT_PORTS_END
 static MACHINE_CONFIG_START( ss7in1, ss7in1_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", TMS1400, 450000) // approximation - RC osc. R=47K, C=47pf
+	MCFG_CPU_ADD("maincpu", TMS1400, 450000) // approximation - RC osc. R=47K, C=47pF
 	MCFG_TMS1XXX_READ_K_CB(READ8(ss7in1_state, read_k))
 	MCFG_TMS1XXX_WRITE_R_CB(WRITE16(ss7in1_state, write_r))
 	MCFG_TMS1XXX_WRITE_O_CB(WRITE16(ss7in1_state, write_o))
@@ -7794,7 +7821,7 @@ INPUT_CHANGED_MEMBER(phpball_state::flipper_button)
 static MACHINE_CONFIG_START( phpball, phpball_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", TMS1100, 375000) // approximation - RC osc. R=47K, C=47pf
+	MCFG_CPU_ADD("maincpu", TMS1100, 375000) // approximation - RC osc. R=47K, C=47pF
 	MCFG_TMS1XXX_READ_K_CB(READ8(phpball_state, read_k))
 	MCFG_TMS1XXX_WRITE_R_CB(WRITE16(phpball_state, write_r))
 	MCFG_TMS1XXX_WRITE_O_CB(WRITE16(phpball_state, write_o))
@@ -7929,7 +7956,7 @@ static const u16 ssports4_output_pla[0x20] =
 static MACHINE_CONFIG_START( ssports4, ssports4_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", TMS1100, 375000) // approximation - RC osc. R=47K, C=47pf
+	MCFG_CPU_ADD("maincpu", TMS1100, 375000) // approximation - RC osc. R=47K, C=47pF
 	MCFG_TMS1XXX_OUTPUT_PLA(ssports4_output_pla)
 	MCFG_TMS1XXX_READ_K_CB(READ8(ssports4_state, read_k))
 	MCFG_TMS1XXX_WRITE_R_CB(WRITE16(ssports4_state, write_r))
@@ -8259,7 +8286,7 @@ ROM_END
 
 ROM_START( elecdet )
 	ROM_REGION( 0x1000, "maincpu", 0 )
-	ROM_LOAD( "mp6100a", 0x0000, 0x1000, CRC(6f396bb8) SHA1(1f104d4ca9bee0d4572be4779b7551dfe20c4f04) )
+	ROM_LOAD( "mp6100a", 0x0000, 0x1000, CRC(9522fb2d) SHA1(240bdb44b7d67d3b13ebf75851635ac4b4ca2bfd) )
 
 	ROM_REGION( 1246, "maincpu:ipla", 0 )
 	ROM_LOAD( "tms0980_common1_instr.pla", 0, 1246, CRC(42db9a38) SHA1(2d127d98028ec8ec6ea10c179c25e447b14ba4d0) )
@@ -8694,7 +8721,7 @@ COMP( 1979, astro,     0,        0, astro,     astro,     driver_device, 0, "Kos
 
 CONS( 1978, elecbowl,  0,        0, elecbowl,  elecbowl,  driver_device, 0, "Marx", "Electronic Bowling (Marx)", MACHINE_SUPPORTS_SAVE | MACHINE_IMPERFECT_SOUND | MACHINE_MECHANICAL | MACHINE_NOT_WORKING ) // ***
 
-COMP( 1979, horseran,  0,        0, horseran,  horseran,  driver_device, 0, "Mattel", "Thoroughbred Horse Race Analyzer", MACHINE_SUPPORTS_SAVE | MACHINE_NO_SOUND_HW | MACHINE_NOT_WORKING )
+COMP( 1979, horseran,  0,        0, horseran,  horseran,  driver_device, 0, "Mattel", "Thoroughbred Horse Race Analyzer", MACHINE_SUPPORTS_SAVE | MACHINE_NO_SOUND_HW )
 CONS( 1980, mdndclab,  0,        0, mdndclab,  mdndclab,  driver_device, 0, "Mattel", "Dungeons & Dragons - Computer Labyrinth Game", MACHINE_SUPPORTS_SAVE | MACHINE_CLICKABLE_ARTWORK ) // ***
 
 CONS( 1977, comp4,     0,        0, comp4,     comp4,     driver_device, 0, "Milton Bradley", "Comp IV", MACHINE_SUPPORTS_SAVE | MACHINE_CLICKABLE_ARTWORK | MACHINE_NO_SOUND_HW )

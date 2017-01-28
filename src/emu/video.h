@@ -63,7 +63,7 @@ public:
 	bool skip_this_frame() const { return m_skipping_this_frame; }
 	int speed_factor() const { return m_speed; }
 	int frameskip() const { return m_auto_frameskip ? -1 : m_frameskip_level; }
-	bool throttled() const { return m_throttled; }
+	bool throttled() const { return (m_machine.ioport().get_record_file()->is_open()) ? true : m_throttled; }
 	float throttle_rate() const { return m_throttle_rate; }
 	bool fastforward() const { return m_fastforward; }
 	bool is_recording() const { return (m_mng_file || m_avi_file); }

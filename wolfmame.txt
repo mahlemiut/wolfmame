@@ -1,8 +1,14 @@
 ------------------------------------------------------------------------------------------------
-WolfMAME 0.179                                                                       26/Oct//2016
-Based on the MAME(tm) 0.179 source, modified by Barry Rodewald
+WolfMAME 0.182                                                                       25/Jan/2017
+Based on the MAME(tm) 0.182 source, modified by Barry Rodewald
 ------------------------------------------------------------------------------------------------
 
+
+New in 0.183
+------------
+
+ - Forced speed throttling on during recording
+ 
 
 New in 0.172
 ------------

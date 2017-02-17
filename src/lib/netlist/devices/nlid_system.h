@@ -11,9 +11,10 @@
 #ifndef NLID_SYSTEM_H_
 #define NLID_SYSTEM_H_
 
-#include "nl_setup.h"
-#include "analog/nld_twoterm.h"
-#include "plib/putil.h"
+#include "../nl_base.h"
+#include "../nl_setup.h"
+#include "../analog/nlid_twoterm.h"
+#include "../plib/putil.h"
 
 namespace netlist
 {
@@ -302,8 +303,8 @@ namespace netlist
 	NETLIB_OBJECT(function)
 	{
 		NETLIB_CONSTRUCTOR(function)
-		, m_N(*this, "N", 2)
-		, m_func(*this, "FUNC", "")
+		, m_N(*this, "N", 1)
+		, m_func(*this, "FUNC", "A0")
 		, m_Q(*this, "Q")
 		{
 			std::vector<pstring> inps;

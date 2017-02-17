@@ -48,12 +48,13 @@
 	Hardware Maintenance Manual
 
 	TODO/Issues:
-	* floppy_image_device sometimes reports the wrong state for ready &
-	  wpt signals
+	* floppy_image_device sometimes reports the wrong state for wpt
+	  signal
 	* IBM mode hasn't been tested yet
 
 *********************************************************************/
 
+#include "emu.h"
 #include "hp9895.h"
 
 // Debugging
@@ -232,10 +233,6 @@ void hp9895_device::device_reset()
 	m_timeout_timer->reset();
 	m_byte_timer->reset();
 	m_half_bit_timer->reset();
-#if 0
-	// DEBUG DEBUG DEBUG DEBUG
-	for (auto& r : m_ready) r = 2;
-#endif
 }
 
 void hp9895_device::device_timer(emu_timer &timer, device_timer_id id, int param, void *ptr)
@@ -705,19 +702,6 @@ READ8_MEMBER(hp9895_device::switches2_r)
 
 void hp9895_device::floppy_ready_cb(floppy_image_device *floppy , int state)
 {
-#if 0
-	// DEBUG DEBUG DEBUG DEBUG
-	for (unsigned i = 0; i < 2; i++) {
-		if (floppy == m_drives[ i ]->get_device()) {
-			if (m_ready[ i ] != state) {
-				LOG(("Ready %u=%d\n" , i , state));
-				m_ready[ i ] = state;
-			}
-			break;
-		}
-	}
-#endif
-
 	if (state) {
 		// Set Disk Changed flag when a drive is not ready
 		for (unsigned i = 0; i < 2; i++) {

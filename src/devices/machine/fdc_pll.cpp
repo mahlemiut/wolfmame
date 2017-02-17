@@ -1,5 +1,6 @@
 // license:BSD-3-Clause
 // copyright-holders:Olivier Galibert
+#include "emu.h"
 #include "fdc_pll.h"
 
 std::string fdc_pll_t::tts(attotime t)
@@ -80,7 +81,7 @@ int fdc_pll_t::feed_read_data(attotime &tm, const attotime& edge, const attotime
 	ctime = next;
 	tm = next;
 
-	if(edge.is_never() || edge >= next) {
+	if(edge.is_never() || edge > next) {
 		// No transition in the window means 0 and pll in free run mode
 		phase_adjust = attotime::zero;
 		return 0;

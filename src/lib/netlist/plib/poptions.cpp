@@ -31,7 +31,8 @@ namespace plib {
 	}
 
 	option::option(options &parent, pstring ashort, pstring along, pstring help, bool has_argument)
-	: option_base(parent, help), m_short(ashort), m_long(along),  m_has_argument(has_argument)
+	: option_base(parent, help), m_short(ashort), m_long(along),
+	  m_has_argument(has_argument), m_specified(false)
 	{
 	}
 
@@ -66,6 +67,13 @@ namespace plib {
 	{
 		bool err = false;
 		m_val = argument.as_double(&err);
+		return (err ? 1 : 0);
+	}
+
+	int option_long::parse(const pstring &argument)
+	{
+		bool err = false;
+		m_val = argument.as_long(&err);
 		return (err ? 1 : 0);
 	}
 
@@ -142,13 +150,13 @@ namespace plib {
 			{
 				if (has_equal_arg)
 				{
-					if (opt->parse(opt_arg) != 0)
+					if (opt->do_parse(opt_arg) != 0)
 						return i;
 				}
 				else
 				{
 					i++; // FIXME: are there more arguments?
-					if (opt->parse(pstring(argv[i], pstring::UTF8)) != 0)
+					if (opt->do_parse(pstring(argv[i], pstring::UTF8)) != 0)
 						return i - 1;
 				}
 			}
@@ -156,7 +164,7 @@ namespace plib {
 			{
 				if (has_equal_arg)
 					return i;
-				opt->parse("");
+				opt->do_parse("");
 			}
 			i++;
 		}
@@ -278,3 +286,4 @@ namespace plib {
 	}
 
 } // namespace plib
+

@@ -13,7 +13,6 @@
 #ifndef _HP9895_H_
 #define _HP9895_H_
 
-#include "emu.h"
 #include "ieee488.h"
 #include "cpu/z80/z80.h"
 #include "machine/phi.h"
@@ -109,10 +108,6 @@ private:
 	uint8_t m_sync_cnt;	// U28 & U73
 	bool m_hiden;
 	bool m_mgnena;
-#if 0
-	// DEBUG DEBUG DEBUG DEBUG
-	int m_ready[ 2 ];
-#endif
 
 	// Timers
 	emu_timer *m_timeout_timer;

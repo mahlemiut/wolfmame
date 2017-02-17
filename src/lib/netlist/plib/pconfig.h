@@ -56,7 +56,7 @@ typedef __int128_t INT128;
 //============================================================
 
 // This will be autodetected
-// #define PPMF_TYPE 1
+// #define PPMF_TYPE 0
 
 #define PPMF_TYPE_PMF             0
 #define PPMF_TYPE_GNUC_PMF_CONV   1
@@ -71,13 +71,13 @@ typedef __int128_t INT128;
 		#define MEMBER_ABI _thiscall
 	#elif defined(__clang__) && defined(__i386__) && defined(_WIN32)
 		#define PHAS_PMF_INTERNAL 0
-	#elif defined(EMSCRIPTEN)
-		#define PHAS_PMF_INTERNAL 0
-	#elif defined(__arm__) || defined(__ARMEL__)
-		#define PHAS_PMF_INTERNAL 0
+	#elif defined(__arm__) || defined(__ARMEL__) || defined(__aarch64__) || defined(__MIPSEL__) || defined(__mips_isa_rev) || defined(__mips64) || defined(EMSCRIPTEN)
+		#define PHAS_PMF_INTERNAL 2
 	#else
 		#define PHAS_PMF_INTERNAL 1
 	#endif
+#elif defined(_MSC_VER) && defined (_M_X64)
+	#define PHAS_PMF_INTERNAL 3
 #else
 	#define PHAS_PMF_INTERNAL 0
 #endif
@@ -87,7 +87,7 @@ typedef __int128_t INT128;
 #endif
 
 #ifndef PPMF_TYPE
-	#if PHAS_PMF_INTERNAL
+	#if (PHAS_PMF_INTERNAL > 0)
 		#define PPMF_TYPE PPMF_TYPE_INTERNAL
 	#else
 		#define PPMF_TYPE PPMF_TYPE_PMF

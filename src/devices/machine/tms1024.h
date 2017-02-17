@@ -9,7 +9,6 @@
 #ifndef _TMS1024_H_
 #define _TMS1024_H_
 
-#include "emu.h"
 
 
 // ports setup
@@ -17,7 +16,7 @@
 // 4-bit ports (3210 = DCBA)
 // valid ports: 4-7 for TMS1024, 1-7 for TMS1025
 #define MCFG_TMS1024_WRITE_PORT_CB(X, _devcb) \
-	tms1024_device::set_write_port##X##_callback(*device, DEVCB_##_devcb);
+	devcb = &tms1024_device::set_write_port##X##_callback(*device, DEVCB_##_devcb);
 
 enum
 {

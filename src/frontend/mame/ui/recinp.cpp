@@ -194,7 +194,7 @@ void ui_menu_record_inp::start_inp()
 	{
 		if ((m_driver->flags & MACHINE_TYPE_ARCADE) == 0)
 		{
-			for (software_list_device &swlistdev : software_list_device_iterator(enumerator.config().root_device()))
+			for (software_list_device &swlistdev : software_list_device_iterator(enumerator.config()->root_device()))
 				if (!swlistdev.get_info().empty())
 				{
 					menu::stack_push<menu_select_software>(ui(), container(), m_driver);
@@ -363,7 +363,7 @@ void ui_menu_playback_inp::start_inp()
 	{
 		if ((m_driver->flags & MACHINE_TYPE_ARCADE) == 0)
 		{
-			for (software_list_device &swlistdev : software_list_device_iterator(enumerator.config().root_device()))
+			for (software_list_device &swlistdev : software_list_device_iterator(enumerator.config()->root_device()))
 				if (!swlistdev.get_info().empty())
 				{
 					menu::stack_push<menu_select_software>(ui(), container(), m_driver);

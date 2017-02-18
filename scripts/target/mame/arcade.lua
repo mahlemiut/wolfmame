@@ -369,6 +369,7 @@ MACHINES["TTL74148"] = true
 MACHINES["TTL74153"] = true
 MACHINES["TTL74157"] = true
 --MACHINES["TTL74161"] = true
+--MACHINES["TTL74164"] = true
 --MACHINES["TTL74175"] = true
 MACHINES["TTL74181"] = true
 MACHINES["TTL7474"] = true
@@ -3851,8 +3852,6 @@ files {
 createMAMEProjects(_target, _subtarget, "tecfri")
 files {
 	MAME_DIR .. "src/mame/drivers/ambush.cpp",
-	MAME_DIR .. "src/mame/includes/ambush.h",
-	MAME_DIR .. "src/mame/video/ambush.cpp",
 	MAME_DIR .. "src/mame/drivers/holeland.cpp",
 	MAME_DIR .. "src/mame/includes/holeland.h",
 	MAME_DIR .. "src/mame/video/holeland.cpp",

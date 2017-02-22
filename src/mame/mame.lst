@@ -10488,6 +10488,9 @@ spacefrt                        // (c) 1981 Century
 superbik                        // (c) 1983 Century
 wallst                          // (c) 1982 Century
 
+@source:cxgz80.cpp
+ch2001                          //
+
 @source:cxhumax.cpp
 hxhdci2k                        //
 
@@ -31644,6 +31647,7 @@ raiden2                         // (c) 1993 Seibu Kaihatsu + Fabtek license
 raiden2dx                       // (c) 1993 Seibu Kaihatsu
 raiden2e                        // (c) 1993 Seibu Kaihatsu
 raiden2ea                       // (c) 1993 Seibu Kaihatsu
+raiden2eg                       // (c) 1993 Seibu Kaihatsu + Tuning license
 raiden2eu                       // (c) 1993 Seibu Kaihatsu + Fabtek license
 raiden2eua                      // (c) 1993 Seibu Kaihatsu + Fabtek license
 raiden2f                        // (c) 1993 Seibu Kaihatsu

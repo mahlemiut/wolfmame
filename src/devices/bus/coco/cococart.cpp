@@ -23,7 +23,7 @@
 //  GLOBAL VARIABLES
 //**************************************************************************
 
-const device_type COCOCART_SLOT = &device_creator<cococart_slot_device>;
+const device_type COCOCART_SLOT = device_creator<cococart_slot_device>;
 
 
 
@@ -86,20 +86,6 @@ void cococart_slot_device::device_start()
 	m_halt_line.callback = &m_halt_callback;
 
 	m_cart = dynamic_cast<device_cococart_interface *>(get_card_device());
-}
-
-
-
-//-------------------------------------------------
-//  device_config_complete - perform any
-//  operations now that the configuration is
-//  complete
-//-------------------------------------------------
-
-void cococart_slot_device::device_config_complete()
-{
-	// set brief and instance name
-	update_names();
 }
 
 
@@ -327,7 +313,7 @@ image_init_result cococart_slot_device::call_load()
 	if (m_cart)
 	{
 		offs_t read_length;
-		if (software_entry() == nullptr)
+		if (!loaded_through_softlist())
 		{
 			read_length = fread(m_cart->get_cart_base(), 0x8000);
 		}

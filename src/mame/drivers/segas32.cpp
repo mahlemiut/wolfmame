@@ -524,21 +524,30 @@ orunners:  Interleaved with the dj and << >> buttons is the data the drives the 
 ****************************************************************************/
 
 #include "emu.h"
+#include "includes/segas32.h"
+
 #include "cpu/z80/z80.h"
 #include "cpu/v60/v60.h"
 #include "cpu/nec/v25.h"
-#include "rendlay.h"
-#include "includes/segas32.h"
 #include "machine/eepromser.h"
 #include "sound/2612intf.h"
 #include "sound/rf5c68.h"
 
+#include "rendlay.h"
+#include "speaker.h"
+
 #include "radr.lh"
 
-const device_type SEGA_S32_PCB = &device_creator<segas32_state>;
+
+const device_type SEGA_S32_PCB = device_creator<segas32_state>;
 
 segas32_state::segas32_state(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock)
-		: device_t(mconfig, SEGA_S32_PCB, "Sega System 32 PCB", tag, owner, clock, "segas32_pcb", __FILE__),
+		: segas32_state(mconfig, SEGA_S32_PCB, "Sega System 32 PCB", tag, owner, clock, "segas32_pcb", __FILE__)
+{
+}
+
+segas32_state::segas32_state(const machine_config &mconfig, device_type type, const char *name, const char *tag, device_t *owner, uint32_t clock, const char *shortname, const char *source)
+		: device_t(mconfig, type, name, tag, owner, clock, shortname, source),
 		m_z80_shared_ram(*this,"z80_shared_ram"),
 		m_ga2_dpram(*this,"ga2_dpram"),
 		m_system32_workram(*this,"workram"),
@@ -2512,10 +2521,10 @@ static MACHINE_CONFIG_FRAGMENT( system32 )
 	MCFG_S32COMM_ADD("s32comm")
 MACHINE_CONFIG_END
 
-const device_type SEGA_S32_REGULAR_DEVICE = &device_creator<segas32_regular_state>;
+const device_type SEGA_S32_REGULAR_DEVICE = device_creator<segas32_regular_state>;
 
 segas32_regular_state::segas32_regular_state(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock)
-	: segas32_state(mconfig, tag, owner, clock)
+	: segas32_state(mconfig, SEGA_S32_REGULAR_DEVICE, "Sega System 32 regular PCB", tag, owner, clock, "sega32_pcb_regular", __FILE__)
 {
 }
 
@@ -2536,10 +2545,10 @@ static MACHINE_CONFIG_FRAGMENT( system32_v25 )
 	MCFG_V25_CONFIG(ga2_v25_opcode_table)
 MACHINE_CONFIG_END
 
-const device_type SEGA_S32_V25_DEVICE = &device_creator<segas32_v25_state>;
+const device_type SEGA_S32_V25_DEVICE = device_creator<segas32_v25_state>;
 
 segas32_v25_state::segas32_v25_state(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock)
-	: segas32_state(mconfig, tag, owner, clock)
+	: segas32_state(mconfig, SEGA_S32_V25_DEVICE, "Sega System 32 V25 PCB", tag, owner, clock, "sega32_pcb_v25", __FILE__)
 {
 }
 
@@ -2599,10 +2608,10 @@ static MACHINE_CONFIG_FRAGMENT( multi32 )
 MACHINE_CONFIG_END
 
 
-const device_type SEGA_MULTI32_DEVICE = &device_creator<sega_multi32_state>;
+const device_type SEGA_MULTI32_DEVICE = device_creator<sega_multi32_state>;
 
 sega_multi32_state::sega_multi32_state(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock)
-	: segas32_state(mconfig, tag, owner, clock)
+	: segas32_state(mconfig, SEGA_MULTI32_DEVICE, "Sega Multi 32 PCB", tag, owner, clock, "sega32_pcb_multi", __FILE__)
 {
 }
 

@@ -14,7 +14,7 @@
 
 // DPC device
 
-const device_type ATARI_DPC = &device_creator<dpc_device>;
+const device_type ATARI_DPC = device_creator<dpc_device>;
 
 
 dpc_device::dpc_device(const machine_config& mconfig, const char* tag, device_t* owner, uint32_t clock) :
@@ -237,7 +237,7 @@ WRITE8_MEMBER(dpc_device::write)
 
 // cart device
 
-const device_type A26_ROM_DPC = &device_creator<a26_rom_dpc_device>;
+const device_type A26_ROM_DPC = device_creator<a26_rom_dpc_device>;
 
 
 a26_rom_dpc_device::a26_rom_dpc_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock)
@@ -294,7 +294,7 @@ WRITE8_MEMBER(a26_rom_dpc_device::write_bank)
 
 DIRECT_UPDATE_MEMBER(a26_rom_dpc_device::cart_opbase)
 {
-	if (!direct.space().debugger_access())
+	if (!machine().side_effect_disabled())
 	{
 		uint8_t new_bit;
 		new_bit = (m_dpc->m_shift_reg & 0x80) ^ ((m_dpc->m_shift_reg & 0x20) << 2);

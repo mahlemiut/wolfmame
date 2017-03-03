@@ -2020,7 +2020,7 @@ WRITE8_MEMBER( tms5220_device::combined_rsq_wsq_w )
 WRITE8_MEMBER( tms5220_device::data_w )
 {
 	// prevent debugger from changing the internal state
-	if (space.debugger_access()) return;
+	if (machine().side_effect_disabled()) return;
 
 #ifdef DEBUG_RS_WS
 	logerror("tms5220_data_w: data %02x\n", data);
@@ -2053,7 +2053,7 @@ WRITE8_MEMBER( tms5220_device::data_w )
 READ8_MEMBER( tms5220_device::status_r )
 {
 	// prevent debugger from changing the internal state
-	if (space.debugger_access()) return 0;
+	if (machine().side_effect_disabled()) return 0;
 
 	if (!m_true_timing)
 	{
@@ -2169,7 +2169,7 @@ void tms5220_device::set_frequency(int frequency)
 	m_clock = frequency;
 }
 
-const device_type TMS5220C = &device_creator<tms5220c_device>;
+const device_type TMS5220C = device_creator<tms5220c_device>;
 
 tms5220c_device::tms5220c_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock)
 	: tms5220_device(mconfig, TMS5220C, "TMS5220C", tag, owner, clock, "tms5220c", __FILE__)
@@ -2177,7 +2177,7 @@ tms5220c_device::tms5220c_device(const machine_config &mconfig, const char *tag,
 }
 
 
-const device_type TMS5220 = &device_creator<tms5220_device>;
+const device_type TMS5220 = device_creator<tms5220_device>;
 
 tms5220_device::tms5220_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock)
 	: device_t(mconfig, TMS5220, "TMS5220", tag, owner, clock, "tms5220", __FILE__),
@@ -2208,7 +2208,7 @@ tms5220_device::tms5220_device(const machine_config &mconfig, device_type type, 
 }
 
 
-const device_type CD2501E = &device_creator<cd2501e_device>;
+const device_type CD2501E = device_creator<cd2501e_device>;
 
 cd2501e_device::cd2501e_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock)
 	: tms5220_device(mconfig, CD2501E, "CD2501E", tag, owner, clock, "cd2501e", __FILE__)
@@ -2216,7 +2216,7 @@ cd2501e_device::cd2501e_device(const machine_config &mconfig, const char *tag, d
 }
 
 
-const device_type TMS5200 = &device_creator<tms5200_device>;
+const device_type TMS5200 = device_creator<tms5200_device>;
 
 tms5200_device::tms5200_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock)
 	: tms5220_device(mconfig, TMS5200, "TMS5200", tag, owner, clock, "tms5200", __FILE__)
@@ -2224,7 +2224,7 @@ tms5200_device::tms5200_device(const machine_config &mconfig, const char *tag, d
 }
 
 
-const device_type CD2501ECD = &device_creator<cd2501ecd_device>;
+const device_type CD2501ECD = device_creator<cd2501ecd_device>;
 
 cd2501ecd_device::cd2501ecd_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock)
 	: tms5220_device(mconfig, CD2501ECD, "CD2501ECD", tag, owner, clock, "cd2501ecd", __FILE__)

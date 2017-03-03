@@ -105,23 +105,16 @@ void midway_serial_pic_device::serial_register_state()
 	save_item(NAME(m_ormask));
 }
 
-const device_type MIDWAY_SERIAL_PIC = &device_creator<midway_serial_pic_device>;
+const device_type MIDWAY_SERIAL_PIC = device_creator<midway_serial_pic_device>;
 
 
 //-------------------------------------------------
-//  midway_serial_pic2_device - constructor
+//  midway_serial_pic_device - constructor
 //-------------------------------------------------
 
 midway_serial_pic_device::midway_serial_pic_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock) :
-	device_t(mconfig, MIDWAY_SERIAL_PIC2, "Midway Serial Pic Simulation", tag, owner, clock, "midway_serial_pic_sim", __FILE__),
-	m_upper(0),
-	m_buff(0),
-	m_idx(0),
-	m_status(0),
-	m_bits(0),
-	m_ormask(0)
+	midway_serial_pic_device(mconfig, MIDWAY_SERIAL_PIC, "Midway Serial Pic Simulation", tag, owner, clock, "midway_serial_pic_sim", __FILE__)
 {
-	memset(m_data,0,sizeof(m_data));
 }
 
 midway_serial_pic_device::midway_serial_pic_device(const machine_config &mconfig, device_type type, const char *name, const char *tag, device_t *owner, uint32_t clock, const char *shortname, const char *source) :
@@ -200,7 +193,7 @@ WRITE8_MEMBER(midway_serial_pic_device::write)
  *************************************/
 
 
-const device_type MIDWAY_SERIAL_PIC_EMU = &device_creator<midway_serial_pic_emu_device>;
+const device_type MIDWAY_SERIAL_PIC_EMU = device_creator<midway_serial_pic_emu_device>;
 
 
 //-------------------------------------------------
@@ -285,7 +278,7 @@ static inline uint8_t make_bcd(uint8_t data)
 	return ((data / 10) << 4) | (data % 10);
 }
 
-const device_type MIDWAY_SERIAL_PIC2 = &device_creator<midway_serial_pic2_device>;
+const device_type MIDWAY_SERIAL_PIC2 = device_creator<midway_serial_pic2_device>;
 
 
 //-------------------------------------------------
@@ -662,7 +655,7 @@ void midway_ioasic_device::ioasic_register_state()
 	save_item(NAME(m_fifo_force_buffer_empty_pc));
 }
 
-const device_type MIDWAY_IOASIC = &device_creator<midway_ioasic_device>;
+const device_type MIDWAY_IOASIC = device_creator<midway_ioasic_device>;
 
 
 //-------------------------------------------------

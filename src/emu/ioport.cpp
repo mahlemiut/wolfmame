@@ -2540,8 +2540,6 @@ bool ioport_manager::playback_read<bool>(bool &result)
 
 time_t ioport_manager::playback_init()
 {
-	char timearray[]="100d 00:00:00.00:";
-
 	// if no file, nothing to do
 	const char *filename = machine().options().playback();
 	if (filename[0] == 0)
@@ -2559,11 +2557,6 @@ time_t ioport_manager::playback_init()
 		fatalerror("Input file invalid or in an older, unsupported format\n");
 	if (header.get_majversion() != inp_header::MAJVERSION)
 		fatalerror("Input file format version mismatch\n");
-
-	// must be called once at playback to initialize fps value,
-	// when playback_end is called the machine screen has already been destroyed
-	// making it impossible to get the refresh rate
-	sprintframetime(timearray);
 
 	// output info to console
 	osd_printf_info("Input file: %s\n", filename);
@@ -2592,7 +2585,7 @@ void ioport_manager::playback_end(const char *message)
 	// only applies if we have a live file
 	if (m_playback_file.is_open())
 	{
-		char timearray[]="100d 00:00:00.00:";
+		char timearray[]="100d 00:00:00:";
 		double avg;
 		std::string error;
 
@@ -3805,8 +3798,7 @@ int ioport_manager::sprintframetime(char *timearray)
 	char *tptr=timearray;
 	int seconds;
 	int minutes;
-	double fps=ATTOSECONDS_TO_HZ((machine().first_screen()->frame_period().attoseconds()));
-	seconds = (fps) ? m_playback_accumulated_frames/fps : 0;
+	seconds = machine().time().seconds();
 	if (seconds >= 24*60*60)
 	{
 		int days = seconds/(24*60*60);
@@ -3827,10 +3819,6 @@ int ioport_manager::sprintframetime(char *timearray)
 	*tptr++ = '0'+minutes/10;
 	*tptr++ = '0'+minutes%10;
 	*tptr++ = ':';
-	*tptr++ = '0'+seconds/10;
-	*tptr++ = '0'+seconds%10;
-	seconds = 100*fmod(m_playback_accumulated_frames,fps)/fps;
-	*tptr++ = '.';
 	*tptr++ = '0'+seconds/10;
 	*tptr++ = '0'+seconds%10;
 	*tptr=0;

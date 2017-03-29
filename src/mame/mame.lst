@@ -9626,6 +9626,9 @@ firebeas                        // (proto)          (c) 1983
 @source:clowndwn.cpp
 clowndwn                        // Elwood Clown Roll Down
 
+@source:clpoker.cpp
+clpoker                         // Chain Leisure
+
 @source:clshroad.cpp
 clshroad                        // (c) 1986 Wood Place Inc.
 clshroadd                       // (c) 1986 Wood Place Inc. (Data East license)
@@ -12405,6 +12408,7 @@ fexcel68k                       //
 bridgec3                        //
 cc10                            //
 cc7                             //
+damesc                          //
 uvc                             // UVC: Advanced Voice Chess Challenger (English)
 uvcfr                           // * French
 uvcg                            // * German
@@ -13048,6 +13052,7 @@ galgame                         // (c) 1971 Computer Recreations, Inc
 @source:galgames.cpp
 galgame2                        // (c) 1998 Creative Electronics & Software (CES) / Namco
 galgame3                        // (c) 1998 Creative Electronics & Software (CES) / Atari
+galgame4                        // (c) 1998 Creative Electronics & Software (CES) / Atari
 galgbios                        // (c) 1998 Creative Electronics & Software (CES)
 
 @source:galivan.cpp
@@ -30715,6 +30720,7 @@ kovshxas                        // bootleg
 kovytzy                         // (c) 1999 Knights of Valour: Yi Tong Zhong Yuan
 martmast                        // (c) 2001 Martial Masters
 martmastc                       //
+martmastc103                    //
 martmastc102                    //
 olds                            // (c) 1999 Oriental Legend Super / Special
 olds100                         //
@@ -31809,6 +31815,7 @@ wipeormt                        // (c) 1974 Ramtek
 @source:rastan.cpp
 rastan                          // B04 (c) 1987 Taito Corporation Japan (World)
 rastana                         // B04 (c) 1987 Taito Corporation Japan (World)
+rastanb                         // B04 (c) 1987 Taito Corporation Japan (World)
 rastanu                         // B04 (c) 1987 Taito America Corporation (US)
 rastanua                        // B04 (c) 1987 Taito America Corporation (US)
 rastanub                        // B04 (c) 1987 Taito America Corporation (US)

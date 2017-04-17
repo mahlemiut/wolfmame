@@ -200,8 +200,8 @@ const options_entry emu_options::s_option_entries[] =
 	{ OPTION_PLUGIN,                                     nullptr,     OPTION_STRING,     "list of plugins to enable" },
 	{ OPTION_NO_PLUGIN,                                  nullptr,     OPTION_STRING,     "list of plugins to disable" },
 	{ OPTION_LANGUAGE ";lang",                           "English",   OPTION_STRING,     "display language" },
-	{ OPTION_INPVIEW ";iv",                              NULL,        OPTION_INTEGER,    "displays the input of the specified player on-screen" },
-	{ OPTION_INPLAYOUT ";il",                            NULL,        OPTION_STRING,     "sets the layout for -inpview (standard, mahjong, dualstick, neogeo, 6button)" },
+	{ OPTION_INPVIEW ";iv",                              "0",         OPTION_INTEGER,    "displays the input of the specified player on-screen" },
+	{ OPTION_INPLAYOUT ";il",                            "standard",  OPTION_STRING,     "sets the layout for -inpview (standard, mahjong, dualstick, neogeo, 6button)" },
 
 	{ nullptr,                                           nullptr,     OPTION_HEADER,     "HTTP SERVER OPTIONS" },
 	{ OPTION_HTTP,                                       "0",         OPTION_BOOLEAN,    "HTTP server enable" },

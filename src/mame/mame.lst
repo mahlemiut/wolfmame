@@ -8613,6 +8613,7 @@ bionicc                         // 3/1987 (c) 1987 (Euro)
 bionicc1                        // 3/1987 (c) 1987 (US)
 bionicc2                        // 3/1987 (c) 1987 (US)
 bioniccbl                       // bootleg
+bioniccbl2                      // bootleg
 topsecrt                        // 3/1987 (c) 1987 (Japan)
 
 @source:bishi.cpp
@@ -10939,6 +10940,7 @@ garyoret                        // (c) 1987 Data East Corporation (Japan)
 ghostb                          // (c) 1987 Data East USA (US)
 ghostb2a                        // (c) 1987 Data East USA (US)
 ghostb3                         // (c) 1987 Data East USA (US)
+ghostb3a                        // (c) 1987 Data East USA (US)
 gondo                           // (c) 1987 Data East USA (US)
 lastmisn                        // (c) 1986 Data East USA (US)
 lastmisnj                       // (c) 1986 Data East Corporation (Japan)
@@ -11188,6 +11190,7 @@ herodk                          // (c) 1984 Seatongrove + Crown license
 herodku                         // (c) 1984 Seatongrove + Crown license
 hunchbkd                        // (c) 1983 Century
 jrking                          // bootleg
+maguila                         // bootleg
 pestplce                        // bootleg on donkey kong hw
 radarscp                        // (c) 1980 Nintendo
 radarscp1                       // (c) 1980 Nintendo
@@ -13132,6 +13135,7 @@ killcom                         // (c) 1980 Centuri
 leprechn                        // (c) 1982
 leprechp                        // (c) 1982
 megatack                        // (c) 1980 Centuri
+megatacka                       // (c) 1980 Centuri
 piratetr                        // (c) 1982
 potogold                        // (c) 1982
 
@@ -14420,6 +14424,7 @@ uspbball                        // US Games
 @source:hh_sm510.cpp
 gnw_bx301                       // Nintendo
 gnw_dm53                        // Nintendo
+gnw_jr55                        // Nintendo
 kcontra                         // Konami
 kgradius                        // Konami
 kloneran                        // Konami
@@ -34891,6 +34896,7 @@ cyvern                          // 1998.02 (c) 1998 Kaneko (US)
 cyvernj                         // 1998.02 (c) 1998 Kaneko (Japan)
 galpani4                        // 1996.09 (c) 1996 Kaneko (Japan)
 galpani4k                       // 1996.09 (c) 1996 Kaneko (Korea)
+galpanidx                       // 1996.09 (c) 1996 Kaneko (Asia)
 galpanis                        // 1997.04 (c) 1997 Kaneko (Europe)
 galpanise                       // 1997.04 (c) 1997 Kaneko (Europe)
 galpanisj                       // 1997.04 (c) 1997 Kaneko (Japan)
@@ -35884,6 +35890,7 @@ ti1000                          //
 ti1250                          //
 ti125076                        //
 ti1270                          //
+ti25503                         //
 ti30                            //
 tibusan                         //
 tiprog                          //
@@ -36624,6 +36631,9 @@ unkhorse                        //
 
 @source:upscope.cpp
 upscope                         // (c) 1986 Grand products
+
+@source:usbilliards.cpp
+sharkusb                        // (c) 1975 US Billiards
 
 @source:usgames.cpp
 superten                        // (c) 1988

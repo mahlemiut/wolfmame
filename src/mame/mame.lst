@@ -288,6 +288,9 @@ ac1                             // 1984 Amateurcomputer AC1
 ac1_32                          // 1984 Amateurcomputer AC1 (32 lines)
 ac1scch                         // 1984 Amateurcomputer AC1 SCCH
 
+@source:acchi.cpp
+acchi                           // 1993 NTC / NMK
+
 @source:aceex.cpp
 aceex2814
 
@@ -8607,6 +8610,7 @@ bingor2                         // (c) 2002 Unknown
 bingor3                         // (c) 2002 Unknown
 bingor4                         // (c) 2002 Unknown
 bingor5                         // (c) 2002 Unknown
+vip2000                         // (c) Paloma-Elektronik
 
 @source:bionicc.cpp
 bionicc                         // 3/1987 (c) 1987 (Euro)
@@ -29455,6 +29459,10 @@ supercon                        //
 
 @source:novag68k.cpp
 diablo68                        //
+
+@source:novagmcs48.cpp
+nocto                           //
+npresto                         //
 
 @source:nsm.cpp
 firebird                        //

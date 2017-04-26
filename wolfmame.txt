@@ -4,6 +4,12 @@ Based on the MAME(tm) source, modified by Barry Rodewald
 ------------------------------------------------------------------------------------------------
 
 
+New in 0.185
+------------
+
+ - Fixed default settings for -inpview and -inplayout options.
+
+
 New in 0.183
 ------------
 

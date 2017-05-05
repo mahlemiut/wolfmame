@@ -1082,6 +1082,13 @@ image_init_result device_image_interface::load(const std::string &path)
 
 image_init_result device_image_interface::load_software(const std::string &software_identifier)
 {
+	// Is this a software part that forces a reset and we're at runtime?  If so, get this loaded through reset_and_load
+	if (is_reset_on_load() && !init_phase())
+	{
+		reset_and_load(software_identifier);
+		return image_init_result::PASS;
+	}
+
 	// Prepare to load
 	unload();
 	clear_error();
@@ -1219,7 +1226,7 @@ void device_image_interface::reset_and_load(const std::string &path)
 	device().machine().schedule_hard_reset();
 
 	// and record the new load
-	device().machine().options().image_options()[instance_name()] = path;
+	device().machine().options().image_option(instance_name()).specify(path);
 }
 
 
@@ -1303,9 +1310,10 @@ void device_image_interface::update_names()
 	if (brief_name == nullptr)
 		brief_name = device_brieftypename(image_type());
 
+	m_cannonical_instance_name = string_format("%s%d", inst_name, index + 1);
 	if (count > 1)
 	{
-		m_instance_name = string_format("%s%d", inst_name, index + 1);
+		m_instance_name = m_cannonical_instance_name;
 		m_brief_instance_name = string_format("%s%d", brief_name, index + 1);
 	}
 	else
@@ -1410,13 +1418,6 @@ bool device_image_interface::load_software_part(const std::string &identifier)
 		return false;
 	}
 
-	// Is this a software part that forces a reset and we're at runtime?  If so, get this loaded through reset_and_load
-	if (is_reset_on_load() && !init_phase())
-	{
-		reset_and_load(identifier);
-		return true;
-	}
-
 	// Load the software part
 	const char *swname = m_software_part_ptr->info().shortname().c_str();
 	const rom_entry *start_entry = m_software_part_ptr->romdata().data();
@@ -1463,11 +1464,11 @@ std::string device_image_interface::software_get_default_slot(const char *defaul
 {
 	std::string result;
 
-	auto iter = device().mconfig().options().image_options().find(instance_name());
-	if (iter != device().mconfig().options().image_options().end() && !iter->second.empty())
+	const std::string &image_name(device().mconfig().options().image_option(instance_name()).value());
+	if (!image_name.empty())
 	{
 		result.assign(default_card_slot);
-		const software_part *swpart = find_software_item(iter->second, true);
+		const software_part *swpart = find_software_item(image_name, true);
 		if (swpart != nullptr)
 		{
 			const char *slot = swpart->feature("slot");

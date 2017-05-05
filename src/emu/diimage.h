@@ -225,6 +225,7 @@ public:
 
 	const std::string &instance_name() const { return m_instance_name; }
 	const std::string &brief_instance_name() const { return m_brief_instance_name; }
+	const std::string &cannonical_instance_name() const { return m_cannonical_instance_name; }
 	bool uses_file_extension(const char *file_extension) const;
 	const formatlist_type &formatlist() const { return m_formatlist; }
 
@@ -278,7 +279,6 @@ protected:
 	void image_checkhash();
 
 	const software_part *find_software_item(const std::string &identifier, bool restrict_to_interface, software_list_device **device = nullptr) const;
-	bool load_software_part(const std::string &identifier);
 	std::string software_get_default_slot(const char *default_card_slot) const;
 
 	void add_format(std::unique_ptr<image_device_format> &&format);
@@ -311,6 +311,7 @@ private:
 	static image_error_t image_error_from_file_error(osd_file::error filerr);
 	std::vector<u32> determine_open_plan(bool is_create);
 	void update_names();
+	bool load_software_part(const std::string &identifier);
 
 	bool init_phase() const;
 	static void run_hash(util::core_file &file, void(*partialhash)(util::hash_collection &, const unsigned char *, unsigned long, const char *), util::hash_collection &hashes, const char *types);
@@ -341,8 +342,9 @@ private:
 
 	util::hash_collection m_hash;
 
-	std::string m_brief_instance_name;
-	std::string m_instance_name;
+	std::string m_instance_name;                // e.g. - "cartridge", "floppydisk2"
+	std::string m_brief_instance_name;          // e.g. - "cart", "flop2"
+	std::string m_cannonical_instance_name;     // e.g. - "cartridge1", "floppydisk2" - only used internally in emuopts.cpp
 
 	// in the case of arcade cabinet with fixed carts inserted,
 	// we want to disable command line cart loading...

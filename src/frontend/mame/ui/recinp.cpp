@@ -183,7 +183,6 @@ void ui_menu_record_inp::custom_render(void *selectedref, float top, float botto
 void ui_menu_record_inp::start_inp()
 {
 	// audit the game first to see if we're going to work
-	std::string error;
 	driver_enumerator enumerator(machine().options(), *m_driver);
 	enumerator.next();
 	media_auditor auditor(enumerator);
@@ -203,7 +202,7 @@ void ui_menu_record_inp::start_inp()
 		}
 
 		s_bios biosname;
-		machine().options().set_value(OPTION_RECORD,m_filename_entry,OPTION_PRIORITY_HIGH,error);
+		machine().options().set_value(OPTION_RECORD,m_filename_entry,OPTION_PRIORITY_HIGH);
 		if (!mame_machine_manager::instance()->ui().options().skip_bios_menu() && has_multiple_bios(m_driver, biosname))
 			menu::stack_push<bios_selection>(ui(), container(), biosname, (void *)m_driver, false, false);
 		else
@@ -327,7 +326,6 @@ void ui_menu_playback_inp::handle()
 void ui_menu_playback_inp::start_inp()
 {
 	// audit the game first to see if we're going to work
-	std::string error;
 	std::string fname;
 	inp_header hdr;
 	emu_file f(OPEN_FLAG_READ);
@@ -372,7 +370,7 @@ void ui_menu_playback_inp::start_inp()
 		}
 
 		s_bios biosname;
-		machine().options().set_value(OPTION_PLAYBACK,m_filename_entry,OPTION_PRIORITY_HIGH,error);
+		machine().options().set_value(OPTION_PLAYBACK,m_filename_entry,OPTION_PRIORITY_HIGH);
 		if (!mame_machine_manager::instance()->ui().options().skip_bios_menu() && has_multiple_bios(m_driver, biosname))
 			menu::stack_push<bios_selection>(ui(), container(), biosname, (void *)m_driver, false, false);
 		else

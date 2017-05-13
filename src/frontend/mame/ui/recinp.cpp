@@ -187,7 +187,8 @@ void ui_menu_record_inp::start_inp()
 	enumerator.next();
 	media_auditor auditor(enumerator);
 	media_auditor::summary summary = auditor.audit_media(AUDIT_VALIDATE_FAST);
-
+    std::string error;
+    
 	// if everything looks good, schedule the new driver
 	if (summary == media_auditor::CORRECT || summary == media_auditor::BEST_AVAILABLE || summary == media_auditor::NONE_NEEDED)
 	{
@@ -202,7 +203,7 @@ void ui_menu_record_inp::start_inp()
 		}
 
 		s_bios biosname;
-		machine().options().set_value(OPTION_RECORD,m_filename_entry,OPTION_PRIORITY_HIGH);
+		machine().options().set_value(OPTION_RECORD,m_filename_entry,OPTION_PRIORITY_HIGH, error);
 		if (!mame_machine_manager::instance()->ui().options().skip_bios_menu() && has_multiple_bios(m_driver, biosname))
 			menu::stack_push<bios_selection>(ui(), container(), biosname, (void *)m_driver, false, false);
 		else
@@ -333,6 +334,7 @@ void ui_menu_playback_inp::start_inp()
 	enumerator.next();
 	media_auditor auditor(enumerator);
 	media_auditor::summary summary = auditor.audit_media(AUDIT_VALIDATE_FAST);
+    std::string error;
 
 	// check if INP file exists
 	fname = machine().options().input_directory();
@@ -370,7 +372,7 @@ void ui_menu_playback_inp::start_inp()
 		}
 
 		s_bios biosname;
-		machine().options().set_value(OPTION_PLAYBACK,m_filename_entry,OPTION_PRIORITY_HIGH);
+		machine().options().set_value(OPTION_PLAYBACK,m_filename_entry,OPTION_PRIORITY_HIGH, error);
 		if (!mame_machine_manager::instance()->ui().options().skip_bios_menu() && has_multiple_bios(m_driver, biosname))
 			menu::stack_push<bios_selection>(ui(), container(), biosname, (void *)m_driver, false, false);
 		else

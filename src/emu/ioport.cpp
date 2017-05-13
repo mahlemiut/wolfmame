@@ -2582,7 +2582,9 @@ time_t ioport_manager::playback_init()
 
 void ioport_manager::playback_end(const char *message)
 {
-	// only applies if we have a live file
+    std::string error;
+    
+    // only applies if we have a live file
 	if (m_playback_file.is_open())
 	{
 		char timearray[]="100d 00:00:00:";
@@ -2611,7 +2613,7 @@ void ioport_manager::playback_end(const char *message)
 		osd_printf_info("Average recorded speed: %d%%\n", u32((m_playback_accumulated_speed * 200 + 1) >> 21));
 
 		// clear record filename so that INP is not overwritten if returning to the select game menu (aka the __empty driver)
-		machine().options().set_value(OPTION_PLAYBACK,"",OPTION_PRIORITY_HIGH);
+		machine().options().set_value(OPTION_PLAYBACK,"",OPTION_PRIORITY_HIGH, error);
 
 		// close the program at the end of inp file playback
 		if (machine().options().exit_after_playback()) {
@@ -2734,6 +2736,8 @@ void ioport_manager::timecode_write<std::string>(std::string value) {
 
 void ioport_manager::record_init()
 {
+    std::string error;
+    
 	// if no file, nothing to do
 	const char *filename = machine().options().record();
 	if (filename[0] == 0)
@@ -2744,10 +2748,10 @@ void ioport_manager::record_init()
 		return;
 
 	// disable cheats
-	machine().options().set_value(OPTION_CHEAT, 0, OPTION_PRIORITY_HIGH);
+	machine().options().set_value(OPTION_CHEAT, 0, OPTION_PRIORITY_HIGH, error);
 	
 	// disable LUA boot script
-	machine().options().set_value(OPTION_AUTOBOOT_SCRIPT, "", OPTION_PRIORITY_HIGH);
+	machine().options().set_value(OPTION_AUTOBOOT_SCRIPT, "", OPTION_PRIORITY_HIGH, error);
 
 	// open the record file
 	osd_file::error filerr = m_record_file.open(filename);
@@ -2817,6 +2821,8 @@ void ioport_manager::timecode_init() {
 
 void ioport_manager::record_end(const char *message)
 {
+    std::string error;
+    
 	// only applies if we have a live file
 	if (m_record_file.is_open())
 	{
@@ -2844,7 +2850,7 @@ void ioport_manager::record_end(const char *message)
 			machine().popmessage("Recording Ended\nReason: %s", message);
 			
 		// clear record filename so that INP is not overwritten if returning to the select game menu (aka the __empty driver)
-		machine().options().set_value(OPTION_RECORD,"",OPTION_PRIORITY_HIGH);
+		machine().options().set_value(OPTION_RECORD,"",OPTION_PRIORITY_HIGH, error);
 	}
 }
 

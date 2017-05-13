@@ -91,7 +91,7 @@
            Came from factory with one of the 6x 0x400 or 4x 0x800 romsets
            Capable of running TV, SV or CV romsets.
            This is probably the second-oldest pcb set and may have been made to
-           allow closer physical interchangability with Midway's m8080bw hardware,
+           allow closer physical interchangeability with Midway's m8080bw hardware,
            which had a similar board shape?
          * CVNxxxxx (3 layer pcbset) - Color, used on "T.T Space Invaders Color"
            cocktail with electronic color overlay.
@@ -3697,7 +3697,7 @@ ROM_START( sisv ) // rev 4, with 5-digit scoring
 	ROM_LOAD( "sv14.41",     0x1c00, 0x0400, CRC(58730370) SHA1(13dc806bcecd2d6089a85dd710ac2869413f7475) )
 ROM_END
 
-ROM_START( spacerng )
+ROM_START( spacerng ) // 2017/05 update: a PCB set (CVN 3-layer) was found with a 'Shinnihon Kikaku' sticker on the top board. Sold by SNK?
 	ROM_REGION( 0x10000, "maincpu", 0 )
 	ROM_LOAD( "sr1.u36",    0x0000, 0x0800, CRC(b984f52d) SHA1(fdc8b249c0b65339977f91b674bdcb435aa99474) )
 	ROM_LOAD( "sr2.u35",    0x0800, 0x0800, CRC(4b4f07e6) SHA1(408dcdae3e80a09584d8ebd6491bc90c4def1fcf) )
@@ -3705,10 +3705,8 @@ ROM_START( spacerng )
 	ROM_LOAD( "sr4.u33",    0x1800, 0x0800, CRC(a95f559f) SHA1(f597c7af96a9d039fd8e54d976d68a065f6bf0c8) )
 
 	ROM_REGION( 0x0800, "proms", 0 )        /* color maps player 1/player 2 */
-	/* !! not dumped yet, these were taken from sisv */
-	// NOTE: SISV (L-shaped boardset) was not supposed to HAVE color proms and hence they are removed. Maybe this is the correct set for these?
-	ROM_LOAD( "cv01.1",     0x0000, 0x0400, BAD_DUMP CRC(aac24f34) SHA1(ad110e776547fb48baac568bb50d61854537ca34) ) // sldh
-	ROM_LOAD( "cv02.2",     0x0400, 0x0400, BAD_DUMP CRC(2bdf83a0) SHA1(01ffbd43964c41987e7d44816271308f9a70802b) ) // sldh
+	ROM_LOAD( "cv01.1",      0x0000, 0x0400, CRC(037e16ac) SHA1(d585030aaff428330c91ae94d7cd5c96ebdd67dd) )
+	ROM_LOAD( "cv02.2",      0x0400, 0x0400, CRC(8263da38) SHA1(2e7c769d129e6f8a1a31eba1e02777bb94ac32b2) )
 ROM_END
 
 ROM_START( spceking )
@@ -3744,8 +3742,8 @@ ROM_START( spcewarla ) // PCB was in a Space Invarders Part II cabinet
 	ROM_LOAD( "ps9.bin",   0x4000, 0x0400, CRC(b2f29601) SHA1(ce855e312f50df7a74682974803cb4f9b2d184f3) )
 
 	ROM_REGION( 0x0800, "proms", 0 )        /* color map */
-	ROM_LOAD( "cv01_1.bin",   0x0000, 0x0400, BAD_DUMP CRC(aac24f34) SHA1(ad110e776547fb48baac568bb50d61854537ca34) ) // the dumper didn't actually dumped this yet
-	ROM_LOAD( "cv02_2.bin",   0x0400, 0x0400, BAD_DUMP CRC(2bdf83a0) SHA1(01ffbd43964c41987e7d44816271308f9a70802b) ) // the dumper didn't actually dumped this yet 
+	ROM_LOAD( "cv01_1.bin",   0x0000, 0x0400, BAD_DUMP CRC(aac24f34) SHA1(ad110e776547fb48baac568bb50d61854537ca34) ) // the dumper didn't actually dump this yet
+	ROM_LOAD( "cv02_2.bin",   0x0400, 0x0400, BAD_DUMP CRC(2bdf83a0) SHA1(01ffbd43964c41987e7d44816271308f9a70802b) ) // the dumper didn't actually dump this yet 
 ROM_END
 
 ROM_START( spacewr3 )
@@ -3755,6 +3753,15 @@ ROM_START( spacewr3 )
 	ROM_LOAD( "ic34.bin",     0x1000, 0x0800, CRC(b435f021) SHA1(2d0d813b99d571b53770fa878a1f82ca67827caa) )
 	ROM_LOAD( "ic33.bin",     0x1800, 0x0800, CRC(cbdc6fe8) SHA1(63038ea09d320c54e3d1cf7f043c17bba71bf13c) )
 	ROM_LOAD( "ic32.bin",     0x4000, 0x0800, CRC(1e5a753c) SHA1(5b7cd7b347203f4edf816f02c366bd3b1b9517c4) )
+ROM_END
+
+ROM_START( swipeout )
+	ROM_REGION( 0x10000, "maincpu", 0 )
+	ROM_LOAD( "sw1.bin",     0x0000, 0x0800, CRC(576b5897) SHA1(aa749f745560f33b9bbdf0f3a56b947130862bb2) ) // 2516
+	ROM_LOAD( "sw2.bin",     0x0800, 0x0800, CRC(40c2d55b) SHA1(b641b63046d242ad23911143ed840011fc98eaff) ) // 2516
+	ROM_LOAD( "sw3.bin",     0x1000, 0x0800, CRC(65e8ce64) SHA1(8da1836d710e06cd0ac566ba13049326b6295f0b) ) // 2516
+	ROM_LOAD( "sw4.bin",     0x1800, 0x0800, CRC(ddf1fb9c) SHA1(25184fe9126054f6b5907d8a6a9e95e43126f4e3) ) // 2516
+	ROM_LOAD( "sw5.bin",     0x4000, 0x0800, CRC(1e5a753c) SHA1(5b7cd7b347203f4edf816f02c366bd3b1b9517c4) ) // 2516
 ROM_END
 
 ROM_START( invaderl )
@@ -5015,7 +5022,7 @@ GAMEL(1978, cosmicin,   invaders, invaders,  sicv,      driver_device, 0, ROT270
 GAMEL(1978, galmonst,   invaders, invaders,  sicv,      driver_device, 0, ROT270, "bootleg (Laguna S.A.)", "Galaxy Monsters (Laguna S.A. Spanish bootleg of Space Invaders)", MACHINE_SUPPORTS_SAVE, layout_invaders )
 GAMEL(1980, spaceat2,   invaders, invaders,  spaceat2,  driver_device, 0, ROT270, "bootleg (Video Games UK)", "Space Attack II (bootleg of Super Invaders)", MACHINE_SUPPORTS_SAVE, layout_invaders ) // bootleg of Zenitone-Microsec Super Invaders
 GAMEL(1979, spacecom,   invaders, spacecom,  spacecom,  _8080bw_state, spacecom, ROT270, "bootleg", "Space Combat (bootleg of Space Invaders)", MACHINE_IMPERFECT_SOUND | MACHINE_SUPPORTS_SAVE, layout_spacecom )
-GAME( 1978, spacerng,   invaders, spacerng,  sitv,      driver_device, 0, ROT90,  "bootleg (Leisure Time Electronics)", "Space Ranger (bootleg of Space Invaders)", MACHINE_WRONG_COLORS | MACHINE_SUPPORTS_SAVE | MACHINE_IMPERFECT_SOUND ) // many modifications
+GAME( 1978, spacerng,   invaders, spacerng,  sitv,      driver_device, 0, ROT90,  "bootleg (Leisure Time Electronics)", "Space Ranger", MACHINE_WRONG_COLORS | MACHINE_SUPPORTS_SAVE | MACHINE_IMPERFECT_SOUND ) // many modifications
 GAMEL(19??, invasion,   invaders, invaders,  invasion,  driver_device, 0, ROT270, "bootleg (Sidam)", "Invasion (Sidam)", MACHINE_SUPPORTS_SAVE, layout_invaders )
 GAMEL(19??, invasiona,  invaders, invaders,  invasion,  driver_device, 0, ROT270, "bootleg", "Invasion (bootleg set 1, normal graphics)", MACHINE_SUPPORTS_SAVE, layout_invaders ) // has Sidam replaced with 'Ufo Monster Attack' and standard GFX
 GAMEL(19??, invasionb,  invaders, invaders,  invasion,  driver_device, 0, ROT270, "bootleg", "Invasion (bootleg set 2, no copyright)", MACHINE_SUPPORTS_SAVE, layout_invaders )
@@ -5032,6 +5039,7 @@ GAMEL(19??, alieninvp2, invaders, invaders,  searthin,  driver_device, 0, ROT270
 GAMEL(1979, jspecter,   invaders, invaders,  jspecter,  driver_device, 0, ROT270, "bootleg (Jatre)", "Jatre Specter (set 1)", MACHINE_SUPPORTS_SAVE, layout_invaders )
 GAMEL(1979, jspecter2,  invaders, invaders,  jspecter,  driver_device, 0, ROT270, "bootleg (Jatre)", "Jatre Specter (set 2)", MACHINE_SUPPORTS_SAVE, layout_invaders )
 GAMEL(1978, spacewr3,   invaders, spcewars,  sicv,      driver_device, 0, ROT270, "bootleg", "Space War Part 3", MACHINE_IMPERFECT_SOUND | MACHINE_SUPPORTS_SAVE, layout_invaders ) // unrelated to Sanritsu's version?
+GAMEL(1978, swipeout,   invaders, spcewars,  sicv,      driver_device, 0, ROT270, "bootleg (Beyer and Brown)", "Space Wipeout", MACHINE_IMPERFECT_SOUND | MACHINE_SUPPORTS_SAVE, layout_invaders )
 GAMEL(1978, invader4,   invaders, invaders,  sicv,      driver_device, 0, ROT270, "bootleg", "Space Invaders Part Four", MACHINE_SUPPORTS_SAVE, layout_invaders )
 GAME( 1978, darthvdr,   invaders, darthvdr,  darthvdr,  driver_device, 0, ROT270, "bootleg", "Darth Vader (bootleg of Space Invaders)", MACHINE_SUPPORTS_SAVE | MACHINE_IMPERFECT_SOUND )
 GAMEL(19??, tst_invd,   invaders, invaders,  sicv,      driver_device, 0, ROT0,   "<unknown>", "Space Invaders Test ROM", MACHINE_SUPPORTS_SAVE, layout_invaders )

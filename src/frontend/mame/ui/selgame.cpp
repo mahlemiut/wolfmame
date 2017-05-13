@@ -117,7 +117,8 @@ menu_select_game::menu_select_game(mame_ui_manager &mui, render_container &conta
 	if (!moptions.remember_last())
 		reselect_last::reset();
 
-	mui.machine().options().set_value(OPTION_SNAPNAME, "%g/%i", OPTION_PRIORITY_CMDLINE);
+	mui.machine().options().set_value(OPTION_SNAPNAME, "%g/%i", OPTION_PRIORITY_CMDLINE, error_string);
+	mui.machine().options().set_value(OPTION_SOFTWARENAME, "", OPTION_PRIORITY_CMDLINE, error_string);
 
 	ui_globals::curimage_view = FIRST_VIEW;
 	ui_globals::curdats_view = 0;
@@ -155,9 +156,9 @@ menu_select_game::~menu_select_game()
 		filter.append(",").append(c_year::ui[c_year::actual]);
 
 	ui_options &mopt = ui().options();
-	mopt.set_value(OPTION_LAST_USED_FILTER, filter.c_str(), OPTION_PRIORITY_CMDLINE);
-	mopt.set_value(OPTION_LAST_USED_MACHINE, last_driver.c_str(), OPTION_PRIORITY_CMDLINE);
-	mopt.set_value(OPTION_HIDE_PANELS, ui_globals::panels_status, OPTION_PRIORITY_CMDLINE);
+	mopt.set_value(OPTION_LAST_USED_FILTER, filter.c_str(), OPTION_PRIORITY_CMDLINE, error_string);
+	mopt.set_value(OPTION_LAST_USED_MACHINE, last_driver.c_str(), OPTION_PRIORITY_CMDLINE, error_string);
+	mopt.set_value(OPTION_HIDE_PANELS, ui_globals::panels_status, OPTION_PRIORITY_CMDLINE, error_string);
 	ui().save_ui_options();
 }
 
@@ -335,10 +336,10 @@ void menu_select_game::handle()
 			// handle UI_RIGHT_PANEL
 			ui_globals::rpanel = RP_INFOS;
 		}
-		else if (menu_event->iptkey == IPT_UI_CANCEL && m_search[0] != 0)
+		else if (menu_event->iptkey == IPT_UI_CANCEL && !m_search.empty())
 		{
 			// escape pressed with non-empty text clears the text
-			m_search[0] = '\0';
+			m_search.clear();
 			reset(reset_options::SELECT_FIRST);
 		}
 		else if (menu_event->iptkey == IPT_UI_DATS)
@@ -507,7 +508,7 @@ void menu_select_game::handle()
 	// handle filters selection from key shortcuts
 	if (check_filter)
 	{
-		m_search[0] = '\0';
+		m_search.clear();
 		if (l_hover == FILTER_CATEGORY)
 		{
 			main_filters::actual = l_hover;
@@ -545,12 +546,12 @@ void menu_select_game::populate(float &customtop, float &custombottom)
 	if (!isfavorite())
 	{
 		// if search is not empty, find approximate matches
-		if (m_search[0] != 0)
+		if (!m_search.empty())
 			populate_search();
 		else
 		{
 			// reset search string
-			m_search[0] = '\0';
+			m_search.clear();
 			m_displaylist.clear();
 
 			// if filter is set on category, build category list
@@ -596,7 +597,7 @@ void menu_select_game::populate(float &customtop, float &custombottom)
 	else
 	{
 		// populate favorites list
-		m_search[0] = '\0';
+		m_search.clear();
 		int curitem = 0;
 
 		// iterate over entries
@@ -972,10 +973,11 @@ void menu_select_game::inkey_select_favorite(const event *menu_event)
 				return;
 			}
 
+			std::string error_string;
 			std::string string_list = std::string(ui_swinfo->listname).append(":").append(ui_swinfo->shortname).append(":").append(ui_swinfo->part).append(":").append(ui_swinfo->instance);
-			mopt.set_value(OPTION_SOFTWARENAME, string_list.c_str(), OPTION_PRIORITY_CMDLINE);
+			mopt.set_value(OPTION_SOFTWARENAME, string_list.c_str(), OPTION_PRIORITY_CMDLINE, error_string);
 			std::string snap_list = std::string(ui_swinfo->listname).append(PATH_SEPARATOR).append(ui_swinfo->shortname);
-			mopt.set_value(OPTION_SNAPNAME, snap_list.c_str(), OPTION_PRIORITY_CMDLINE);
+			mopt.set_value(OPTION_SNAPNAME, snap_list.c_str(), OPTION_PRIORITY_CMDLINE, error_string);
 			reselect_last::driver = drv.driver().name;
 			reselect_last::software = ui_swinfo->shortname;
 			reselect_last::swlist = ui_swinfo->listname;
@@ -1373,7 +1375,7 @@ void menu_select_game::general_info(const game_driver *driver, std::string &buff
 void menu_select_game::inkey_export()
 {
 	std::vector<game_driver const *> list;
-	if (m_search[0] != 0)
+	if (!m_search.empty())
 	{
 		for (int curitem = 0; m_searchlist[curitem]; ++curitem)
 			list.push_back(m_searchlist[curitem]);

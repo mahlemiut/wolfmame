@@ -470,7 +470,7 @@ MACHINES["MB3773"] = true
 MACHINES["MB8421"] = true
 MACHINES["MB87078"] = true
 --MACHINES["MB8795"] = true
---MACHINES["MB89352"] = true
+MACHINES["MB89352"] = true
 MACHINES["MB89371"] = true
 MACHINES["MC146818"] = true
 MACHINES["MC2661"] = true
@@ -4066,6 +4066,7 @@ files {
 	MAME_DIR .. "src/mame/drivers/silkroad.cpp",
 	MAME_DIR .. "src/mame/includes/silkroad.h",
 	MAME_DIR .. "src/mame/video/silkroad.cpp",
+	MAME_DIR .. "src/mame/drivers/unianapc.cpp",
 	MAME_DIR .. "src/mame/drivers/unico.cpp",
 	MAME_DIR .. "src/mame/includes/unico.h",
 	MAME_DIR .. "src/mame/video/unico.cpp",

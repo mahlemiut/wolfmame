@@ -9543,6 +9543,7 @@ mj3d                            // 2005.12 Sega Network Taisen Mahjong MJ 3 (Rev
 mj3evo                          // 2007.06 Sega Network Taisen Mahjong MJ 3 Evolution (Rev B)
 ollie                           // 2004.03 Ollie King
 outr2                           // 2003.12 Outrun 2 (Rev A)
+outr2stjo                       // 2004.09 Outrun 2 Special Tours (Japan)
 outr2sto                        // 2004.09 Outrun 2 Special Tours
 outr2st                         // 2004.12 Outrun 2 Special Tours (Rev A)
 outr2stj                        // 2004.12 Outrun 2 Special Tours (Japan) (Rev A)
@@ -12966,9 +12967,10 @@ galemp                          // (c) Taito do Brasil
 galturbo                        // hack
 ghostmun                        //
 gmgalax                         // bootleg
-gteikob2                        // bootleg
-gteikokb                        // bootleg
 gteikoku                        // (c) Irem
+gteikokub                       // bootleg
+gteikokub2                      // bootleg
+gteikokub3                      // bootleg (Honly Enterprises)
 jumpbug                         // (c) 1981 Rock-ola
 jumpbugb                        // (c) 1981 Sega
 jungsub                         // bootleg
@@ -13084,6 +13086,8 @@ turpins                         // (c) 1981 bootleg
 turtles                         // (c) 1981 Stern
 uniwars                         // (c) Irem
 uniwarsa                        // (c) Karateco
+victoryc						// (c) Comsoft
+victorycb						// (c) Comsoft (bootleg)
 warofbug                        // (c) 1981 Armenia
 warofbugg                       // German Version
 warofbugu                       // (c) 1981 Armenia
@@ -14023,6 +14027,14 @@ grchamp                         // GM  (c) 1981 Taito Corporation
 @source:grfd2301.cpp
 grfd2301                        //
 
+@source:gridcomp.cpp
+grid1101                        //
+grid1109                        //
+grid1121                        //
+grid1129                        //
+grid1131                        //
+grid1139                        //
+
 @source:gridlee.cpp
 gridlee                         // [1983 Videa] prototype - no copyright notice
 
@@ -14503,6 +14515,7 @@ nupogodi                        //
 
 @source:hh_sm510.cpp
 gnw_bx301                       // Nintendo
+gnw_dj101                       // Nintendo
 gnw_dm53                        // Nintendo
 gnw_jr55                        // Nintendo
 gnw_ml102                       // Nintendo
@@ -14769,6 +14782,9 @@ hp9845b                         //
 hp9845c                         //
 hp9845s                         //
 hp9845t                         //
+hp9845b_de                      //
+hp9845c_de                      //
+hp9845t_de                      //
 
 @source:hp9k.cpp
 hp9816                          //
@@ -17936,7 +17952,8 @@ magicarda                       // (c) 199? Impera
 magicardb                       // (c) 199? Impera
 magicarde                       // (c) 1994 Impera
 magicardj                       // (c) 1998 Impera
-magicle                         // (c) 1998 Impera
+magicle                         // (c) 2001 Impera
+quingo                          // (c) 1999 Impera
 
 @source:magicfly.cpp
 7mezzo                          // 198? Unknown
@@ -28271,6 +28288,7 @@ galaga88                        // (c) 1987
 galaga88a                       // (c) 1987
 galaga88j                       // (c) 1987 (Japan)
 mmaze                           // (c) 1988 (Japan)
+mmaze2                          // (c) 1988 (Japan)
 pacmania                        // (c) 1987
 pacmaniaj                       // (c) 1987 (Japan)
 pacmaniao                       // (c) 1987
@@ -29720,6 +29738,7 @@ othello                         // (c) 1984 Success.
 @source:othunder.cpp
 othunder                        // B67 (c) 1988 Taito Corporation Japan (World, rev 1)
 othunderj                       // B67 (c) 1988 Taito Corporation (Japan)
+othunderjsc                     // B67 (c) 1988 Taito Corporation (Japan)
 othundero                       // B67 (c) 1988 Taito Corporation Japan (World)
 othunderu                       // B67 (c) 1988 Taito America Corporation (US, rev 1)
 othunderuo                      // B67 (c) 1988 Taito America Corporation (US)
@@ -30169,6 +30188,7 @@ pengo2                          // 834-0386 (c) 1982 Sega
 pengo2u                         // 834-0386 (c) 1982 Sega
 pengo3u                         // 834-0386 (c) 1982 Sega
 pengo4                          // 834-0386 (c) 1982 Sega
+pengo5                          // 834-0386 (c) 1982 Sega
 pengob                          // bootleg
 penta                           // bootleg
 
@@ -37266,6 +37286,7 @@ laser500                        // 1984? Laser 500
 laser700                        // 1984? Laser 700
 
 @source:vulgus.cpp
+mach9                           // bootleg (ITISA)
 vulgus                          // 5/1984 (c) 1984
 vulgusa                         // 5/1984 (c) 1984
 vulgusj                         // 5/1984 (c) 1984
@@ -38315,6 +38336,7 @@ jackrabt                        // (c) 1984
 jackrabt2                       // (c) 1984
 jackrabts                       // (c) 1984
 monymony                        // (c) 1983
+monymony2                       // (c) 1983
 
 @source:zapcomputer.cpp
 zapcomp                         // (1981) ZAP computer - Z80 Applications Processor
@@ -38456,6 +38478,7 @@ ts2j                            // Battle Arena Toshinden 2 (JAPAN 951124)
 
 @source:zodiack.cpp
 bounty                          // (c) 1982 Orca
+bounty2                         // (c) 1982 Orca
 dogfight                        // (c) 1983 Thunderbolt
 moguchan                        // (c) 1982 Orca + Eastern Commerce Inc. license (doesn't appear on screen)
 percuss                         // (c) 1981 Orca

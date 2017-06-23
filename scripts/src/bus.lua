@@ -735,6 +735,19 @@ if (BUSES["HPHIL"]~=null) then
 	}
 end
 
+---------------------------------------------------
+--
+--@src/devices/bus/hp_dio/hp_dio.h,BUSES["HPDIO"] = true
+---------------------------------------------------
+
+if (BUSES["HPDIO"]~=null) then
+	files {
+		MAME_DIR .. "src/devices/bus/hp_dio/hp_dio.cpp",
+		MAME_DIR .. "src/devices/bus/hp_dio/hp_dio.h",
+		MAME_DIR .. "src/devices/bus/hp_dio/hp98544.cpp",
+		MAME_DIR .. "src/devices/bus/hp_dio/hp98544.h",
+	}
+end
 
 ---------------------------------------------------
 --
@@ -2518,8 +2531,9 @@ if (BUSES["COCO"]~=null) then
 		MAME_DIR .. "src/devices/bus/coco/coco_multi.cpp",
 		MAME_DIR .. "src/devices/bus/coco/coco_dwsock.cpp",
 		MAME_DIR .. "src/devices/bus/coco/coco_dwsock.h",
-		MAME_DIR .. "src/devices/bus/coco/dragon_fdc.cpp",
 		MAME_DIR .. "src/devices/bus/coco/coco_t4426.cpp",
+		MAME_DIR .. "src/devices/bus/coco/dragon_fdc.cpp",
+		MAME_DIR .. "src/devices/bus/coco/dragon_jcbsnd.cpp",
 	}
 end
 
@@ -2617,6 +2631,8 @@ if (BUSES["X68K"]~=null) then
 		MAME_DIR .. "src/devices/bus/x68k/x68k_neptunex.h",
 		MAME_DIR .. "src/devices/bus/x68k/x68k_scsiext.cpp",
 		MAME_DIR .. "src/devices/bus/x68k/x68k_scsiext.h",
+		MAME_DIR .. "src/devices/bus/x68k/x68k_midi.cpp",
+		MAME_DIR .. "src/devices/bus/x68k/x68k_midi.h",
 	}
 end
 

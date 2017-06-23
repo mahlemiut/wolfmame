@@ -39,8 +39,8 @@
 //  DEVICE DEFINITIONS
 //**************************************************************************
 
-DEFINE_DEVICE_TYPE(FD2000, fd2000_device, "fd2000", "FD-2000")
-DEFINE_DEVICE_TYPE(FD4000, fd4000_device, "fd4000", "FD-4000")
+DEFINE_DEVICE_TYPE(FD2000, fd2000_device, "fd2000", "FD-2000 Disk Drive")
+DEFINE_DEVICE_TYPE(FD4000, fd4000_device, "fd4000", "FD-4000 Disk Drive")
 
 
 //-------------------------------------------------
@@ -223,7 +223,7 @@ MACHINE_CONFIG_MEMBER( fd2000_device::device_add_mconfig )
 
 	MCFG_DP8473_ADD(DP8473V_TAG)
 
-	MCFG_FLOPPY_DRIVE_ADD(DP8473V_TAG":0", fd2000_floppies, "35hd", floppy_image_device::default_floppy_formats)//fd2000_device::floppy_formats)
+	MCFG_FLOPPY_DRIVE_ADD_FIXED(DP8473V_TAG":0", fd2000_floppies, "35hd", floppy_image_device::default_floppy_formats)//fd2000_device::floppy_formats)
 MACHINE_CONFIG_END
 
 
@@ -239,7 +239,7 @@ MACHINE_CONFIG_MEMBER( fd4000_device::device_add_mconfig )
 
 	MCFG_PC8477A_ADD(PC8477AV1_TAG)
 
-	MCFG_FLOPPY_DRIVE_ADD(PC8477AV1_TAG":0", fd4000_floppies, "35ed", floppy_image_device::default_floppy_formats)//fd2000_device::floppy_formats)
+	MCFG_FLOPPY_DRIVE_ADD_FIXED(PC8477AV1_TAG":0", fd4000_floppies, "35ed", floppy_image_device::default_floppy_formats)//fd2000_device::floppy_formats)
 MACHINE_CONFIG_END
 
 

@@ -12,7 +12,7 @@
 void sm500_device::shift_w()
 {
 	// shifts internal W' latches
-	for (int i = 0; i < m_o_mask; i++)
+	for (int i = 0; i < (m_o_pins-1); i++)
 		m_ox[i] = m_ox[i + 1];
 }
 
@@ -24,7 +24,7 @@ u8 sm500_device::get_digit()
 		0xe, 0x0, 0xc, 0x8, 0x2, 0xa, 0xe, 0x2, 0xe, 0xa, 0x0, 0x0, 0x2, 0xa, 0x2, 0x2,
 		0xb, 0x9, 0x7, 0xf, 0xd, 0xe, 0xe, 0xb, 0xf, 0xf, 0x4, 0x0, 0xd, 0xe, 0x4, 0x0
 	};
-	
+
 	return lut_digits[m_cn << 4 | m_acc] | (~m_cn & m_mx);
 }
 
@@ -37,9 +37,8 @@ u8 sm500_device::get_digit()
 void sm500_device::op_lb()
 {
 	// LB x: load BM/BL with 4-bit immediate value (partial)
-	// BL bit 2 is clearned, bit 3 is param bit 2|3
-	m_bm = (m_op & 3);
-	m_bl = ((m_op << 1 | m_op) & 8) | (m_op >> 2 & 3);
+	m_bm = m_op & 3;
+	m_bl = (m_op >> 2 & 3) | ((m_op & 0xc) ? 8 : 0);
 }
 
 void sm500_device::op_incb()
@@ -100,7 +99,7 @@ void sm500_device::op_trs()
 		u8 su = get_su();
 		push_stack();
 		do_branch(get_trs_field(), 0, m_op & 0x3f);
-		
+
 		// E flag was set?
 		if ((m_prev_op & 0xf0) == 0x70)
 			do_branch(m_cb, su, m_pc & 0x3f);
@@ -122,43 +121,43 @@ void sm500_device::op_atbp()
 void sm500_device::op_ptw()
 {
 	// PTW: partial transfer W' to W
-	m_o[m_o_mask] = m_ox[m_o_mask];
-	m_o[m_o_mask-1] = m_ox[m_o_mask-1];
+	m_o[m_o_pins-1] = m_ox[m_o_pins-1];
+	m_o[m_o_pins-2] = m_ox[m_o_pins-2];
 }
 
 void sm500_device::op_tw()
 {
 	// TW: transfer W' to W
-	for (int i = 0; i <= m_o_mask; i++)
+	for (int i = 0; i < m_o_pins; i++)
 		m_o[i] = m_ox[i];
 }
 
 void sm500_device::op_pdtw()
 {
 	// PDTW: partial shift digit into W'
-	m_ox[m_o_mask-1] = m_ox[m_o_mask];
-	m_ox[m_o_mask] = get_digit();
+	m_ox[m_o_pins-2] = m_ox[m_o_pins-1];
+	m_ox[m_o_pins-1] = get_digit();
 }
 
 void sm500_device::op_dtw()
 {
 	// DTW: shift digit into W'
 	shift_w();
-	m_ox[m_o_mask] = get_digit();
+	m_ox[m_o_pins-1] = get_digit();
 }
 
 void sm500_device::op_wr()
 {
 	// WR: shift ACC into W', reset last bit
 	shift_w();
-	m_ox[m_o_mask] = m_acc & 7;
+	m_ox[m_o_pins-1] = m_acc & 7;
 }
 
 void sm500_device::op_ws()
 {
 	// WR: shift ACC into W', set last bit
 	shift_w();
-	m_ox[m_o_mask] = m_acc | 8;
+	m_ox[m_o_pins-1] = m_acc | 8;
 }
 
 

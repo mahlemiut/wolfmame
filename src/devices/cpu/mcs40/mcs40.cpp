@@ -111,9 +111,9 @@ mcs40_cpu_device_base::mcs40_cpu_device_base(
 	, m_extended_cm(extended_cm)
 	, m_stack_ptr_mask(stack_ptr_mask), m_index_reg_cnt(index_reg_cnt), m_cr_mask(cr_mask)
 	, m_pc_mask((1U << rom_width) - 1)
-	, m_phase(phase::A1), m_cycle(cycle::OP), m_io_pending(false), m_program_op(pmem::NONE)
+	, m_icount(0), m_phase(phase::A1), m_cycle(cycle::OP), m_io_pending(false), m_program_op(pmem::NONE)
 	, m_stop_latch(false), m_stop_ff(false), m_decoded_halt(false), m_resume(false)
-	, m_rom_addr(0U), m_opr(0U), m_opa(0U), m_arg(0U), m_4289_first(false)
+	, m_rom_bank(0U), m_rom_addr(0U), m_opr(0U), m_opa(0U), m_arg(0U), m_4289_first(false)
 	, m_a(0U), m_c(0U)
 	, m_addr_stack(), m_stack_ptr(0U)
 	, m_index_regs(), m_index_reg_bank(0U)
@@ -331,9 +331,9 @@ void mcs40_cpu_device_base::execute_run()
     device_memory_interface implementation
 ***********************************************************************/
 
-std::vector<std::pair<int, const address_space_config *>> mcs40_cpu_device_base::memory_space_config() const
+device_memory_interface::space_config_vector mcs40_cpu_device_base::memory_space_config() const
 {
-	return std::vector<std::pair<int, const address_space_config *>> {
+	return space_config_vector {
 			std::make_pair(AS_ROM,            &m_space_config[AS_ROM]),
 			std::make_pair(AS_RAM_MEMORY,     &m_space_config[AS_RAM_MEMORY]),
 			std::make_pair(AS_ROM_PORTS,      &m_space_config[AS_ROM_PORTS]),

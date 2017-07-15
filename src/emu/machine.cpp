@@ -139,6 +139,7 @@ running_machine::running_machine(const machine_config &_config, machine_manager 
 	memset(&m_base_time, 0, sizeof(m_base_time));
 
 	m_dummy_space.set_machine(*this);
+	m_dummy_space.config_complete();
 
 	// set the machine on all devices
 	device_iterator iter(root_device());
@@ -175,7 +176,7 @@ running_machine::~running_machine()
 //  PC
 //-------------------------------------------------
 
-const char *running_machine::describe_context()
+std::string running_machine::describe_context() const
 {
 	device_execute_interface *executing = m_scheduler.currently_executing();
 	if (executing != nullptr)
@@ -184,13 +185,11 @@ const char *running_machine::describe_context()
 		if (cpu != nullptr)
 		{
 			address_space &prg = cpu->space(AS_PROGRAM);
-			m_context = string_format(prg.is_octal() ? "'%s' (%0*o)" :  "'%s' (%0*X)", cpu->tag(), prg.logaddrchars(), cpu->pc());
+			return string_format(prg.is_octal() ? "'%s' (%0*o)" :  "'%s' (%0*X)", cpu->tag(), prg.logaddrchars(), cpu->pc());
 		}
 	}
-	else
-		m_context.assign("(no context)");
 
-	return m_context.c_str();
+	return std::string("(no context)");
 }
 
 
@@ -238,7 +237,6 @@ void running_machine::start()
 	// needs rom bases), and finally initialize CPUs (which needs
 	// complete address spaces).  These operations must proceed in this
 	// order
-	m_memory.configure();
 	m_rom_load = make_unique_clear<rom_load_manager>(*this);
 	m_memory.initialize();
 
@@ -880,7 +878,7 @@ void running_machine::handle_saveload()
 
 			// open the file
 			emu_file file(m_saveload_searchpath, openflags);
-			auto const filerr = file.open(m_saveload_pending_file.c_str());
+			auto const filerr = file.open(m_saveload_pending_file);
 			if (filerr == osd_file::error::NONE)
 			{
 				const char *const opnamed = (m_saveload_schedule == saveload_schedule::LOAD) ? "loaded" : "saved";
@@ -1121,7 +1119,7 @@ void running_machine::nvram_load()
 	for (device_nvram_interface &nvram : nvram_interface_iterator(root_device()))
 	{
 		emu_file file(options().nvram_directory(), OPEN_FLAG_READ);
-		if (file.open(nvram_filename(nvram.device()).c_str()) == osd_file::error::NONE)
+		if (file.open(nvram_filename(nvram.device())) == osd_file::error::NONE)
 		{
 			nvram.nvram_load(file);
 			file.close();
@@ -1141,7 +1139,7 @@ void running_machine::nvram_save()
 	for (device_nvram_interface &nvram : nvram_interface_iterator(root_device()))
 	{
 		emu_file file(options().nvram_directory(), OPEN_FLAG_WRITE | OPEN_FLAG_CREATE | OPEN_FLAG_CREATE_PATHS);
-		if (file.open(nvram_filename(nvram.device()).c_str()) == osd_file::error::NONE)
+		if (file.open(nvram_filename(nvram.device())) == osd_file::error::NONE)
 		{
 			nvram.nvram_save(file);
 			file.close();
@@ -1209,7 +1207,7 @@ void running_machine::export_http_api()
 
 			writer.EndArray();
 			writer.EndObject();
-		
+
 			response->set_status(200);
 			response->set_content_type("application/json");
 			response->set_body(s.GetString());
@@ -1304,9 +1302,9 @@ void dummy_space_device::device_start()
 //  any address spaces owned by this device
 //-------------------------------------------------
 
-std::vector<std::pair<int, const address_space_config *>> dummy_space_device::memory_space_config() const
+device_memory_interface::space_config_vector dummy_space_device::memory_space_config() const
 {
-	return std::vector<std::pair<int, const address_space_config *>> {
+	return space_config_vector {
 		std::make_pair(0, &m_space_config)
 	};
 }

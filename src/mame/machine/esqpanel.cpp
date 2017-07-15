@@ -126,7 +126,7 @@ public:
 	{
 		using namespace std::placeholders;
 		if (m_server->is_active()) {
-			m_server->add_endpoint("/esqpanel/socket", 
+			m_server->add_endpoint("/esqpanel/socket",
 					std::bind(&esqpanel_external_panel_server::on_open, this, _1),
 					std::bind(&esqpanel_external_panel_server::on_message, this, _1, _2, _3),
 					std::bind(&esqpanel_external_panel_server::on_close, this, _1, _2, _3),
@@ -320,7 +320,7 @@ public:
 	{
 		return m_version;
 	}
-	
+
 	bool get_template_value(std::string &s)
 	{
 		if (s == "keyboard")
@@ -422,7 +422,7 @@ void esqpanel_device::device_start()
 {
 	m_write_tx.resolve_safe();
 	m_write_analog.resolve_safe();
-	
+
 	m_external_panel_server = new esqpanel_external_panel_server(machine().manager().http());
 	if (machine().manager().http()->is_active()) {
 		m_external_panel_server->set_keyboard(owner()->shortname());
@@ -483,10 +483,6 @@ void esqpanel_device::device_timer(emu_timer &timer, device_timer_id id, int par
 	{
 		check_external_panel_server();
 	}
-	else
-	{
-		device_serial_interface::device_timer(timer, id, param, ptr);
-	}
 }
 
 void esqpanel_device::rcv_complete()    // Rx completed receiving byte
@@ -536,7 +532,7 @@ void esqpanel_device::rcv_complete()    // Rx completed receiving byte
 		// 2 = On
 		// 3 = Blinking
 		m_light_states[lightNumber] = (data & 0xc0) >> 6;
-		
+
 		// TODO: do something with the button information!
 		// printf("Setting light %d to %s\n", lightNumber, lightState == 3 ? "Blink" : lightState == 2 ? "On" : "Off");
 		m_bButtonLightSecondByte = false;
@@ -688,7 +684,7 @@ MACHINE_CONFIG_MEMBER(esqpanel2x40_vfx_device::device_add_mconfig)
 MACHINE_CONFIG_END
 
 esqpanel2x40_vfx_device::esqpanel2x40_vfx_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock) :
-	esqpanel_device(mconfig, ESQPANEL2X40, tag, owner, clock),
+	esqpanel_device(mconfig, ESQPANEL2X40_VFX, tag, owner, clock),
 	m_vfd(*this, "vfd")
 {
 	m_eps_mode = false;
@@ -699,7 +695,7 @@ bool esqpanel2x40_vfx_device::write_contents(std::ostream &o)
 	m_vfd->write_contents(o);
 	for (int i = 0; i < m_light_states.size(); i++)
 	{
-		o.put(0xff);
+		o.put(char(0xff));
 		o.put((m_light_states[i] << 6) | i);
 	}
 	return true;

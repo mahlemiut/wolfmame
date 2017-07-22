@@ -421,48 +421,6 @@ void menu_select_game::handle()
 		{
 			inkey_navigation();
 		}
-		// handle UI_RECORD_INP
-		else if (menu_event->iptkey == IPT_UI_RECORD_INP)
-		{
-			if (!isfavorite())
-			{
-				const game_driver *driver = (const game_driver *)menu_event->itemref;
-				if ((uintptr_t)driver > 3)
-					menu::stack_push<ui_menu_record_inp>(ui(), container(), driver);
-			}
-			else
-			{
-//				ui_software_info *swinfo  = (ui_software_info *)menu_event->itemref;
-//				if ((uintptr_t)swinfo > 3 && machine().datfile().has_data(swinfo->driver))
-//				{
-//					if (swinfo->startempty == 1)
-//						menu::stack_push<ui_menu_record_inp>(ui(), container, swinfo->driver);
-//					else
-//						menu::stack_push<ui_menu_record_inp>(ui(), container, swinfo);
-//				}
-			}
-		}
-		// handle UI_PLAY_INP
-		else if (menu_event->iptkey == IPT_UI_PLAY_INP)
-		{
-			if (!isfavorite())
-			{
-				const game_driver *driver = (const game_driver *)menu_event->itemref;
-				if ((uintptr_t)driver > 3)
-					menu::stack_push<ui_menu_playback_inp>(ui(), container(), driver);
-			}
-			else
-			{
-//				ui_software_info *swinfo  = (ui_software_info *)m_event->itemref;
-//				if ((uintptr_t)swinfo > 3 && machine().datfile().has_data(swinfo->driver))
-//				{
-//					if (swinfo->startempty == 1)
-//						menu::stack_push<ui_menu_playback_inp>(ui(), container, swinfo->driver);
-//					else
-//						menu::stack_push<ui_menu_playback_inp>(ui(), container, swinfo);
-//				}
-			}
-		}
 		else if (menu_event->iptkey == IPT_OTHER)
 		{
 			m_prev_selected = nullptr;

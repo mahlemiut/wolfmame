@@ -14,12 +14,13 @@
 #define __UI_RECINP_H__
 
 #include "ui/filesel.h"
+#include "ui/selgame.h"
 
 #define TOTAL_WARNINGS 3
 
 namespace ui {
 
-class ui_menu_record_inp : public menu
+class ui_menu_record_inp : public menu_select_launch
 {
 public:
 	ui_menu_record_inp(mame_ui_manager &mui, render_container &container, const game_driver *driver = nullptr);
@@ -31,6 +32,7 @@ protected:
 	char m_filename_entry[100];
 	const game_driver *m_driver;
 private:
+	//using s_bios = std::vector<std::pair<std::string, int>>;
 	virtual void start_inp();
 
 	int m_warning_count;

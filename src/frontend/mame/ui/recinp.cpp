@@ -23,7 +23,7 @@ namespace ui {
 
 // INP recording class
 
-ui_menu_record_inp::ui_menu_record_inp(mame_ui_manager &mui, render_container &container, const game_driver *driver) : menu(mui, container)
+ui_menu_record_inp::ui_menu_record_inp(mame_ui_manager &mui, render_container &container, const game_driver *driver) : menu_select_launch(mui, container, false)
 {
 	std::string path;
 	m_driver = (driver == nullptr) ? mame_options::system(mui.machine().options()) : driver;
@@ -183,13 +183,13 @@ void ui_menu_record_inp::custom_render(void *selectedref, float top, float botto
 void ui_menu_record_inp::start_inp()
 {
 	// audit the game first to see if we're going to work
-	driver_enumerator enumerator(machine().options(), *m_driver);
-	enumerator.next();
-	media_auditor auditor(enumerator);
-	media_auditor::summary summary = auditor.audit_media(AUDIT_VALIDATE_FAST);
+//	driver_enumerator enumerator(machine().options(), *m_driver);
+//	enumerator.next();
+//	media_auditor auditor(enumerator);
+//	media_auditor::summary summary = auditor.audit_media(AUDIT_VALIDATE_FAST);
 
 	// if everything looks good, schedule the new driver
-	if (summary == media_auditor::CORRECT || summary == media_auditor::BEST_AVAILABLE || summary == media_auditor::NONE_NEEDED)
+/*	if (summary == media_auditor::CORRECT || summary == media_auditor::BEST_AVAILABLE || summary == media_auditor::NONE_NEEDED)
 	{
 		if ((m_driver->flags & MACHINE_TYPE_ARCADE) == 0)
 		{
@@ -203,13 +203,12 @@ void ui_menu_record_inp::start_inp()
 
 		s_bios biosname;
 		machine().options().set_value(OPTION_RECORD,m_filename_entry,OPTION_PRIORITY_HIGH);
-		if (!mame_machine_manager::instance()->ui().options().skip_bios_menu() && has_multiple_bios(m_driver, biosname))
+		if (!mame_machine_manager::instance()->ui().options().skip_bios_menu()) && has_multiple_bios(m_driver, biosname))
 			menu::stack_push<bios_selection>(ui(), container(), biosname, (void *)m_driver, false, false);
 		else
 		{
-			reselect_last::driver = m_driver->name;
-			reselect_last::software.clear();
-			reselect_last::swlist.clear();
+			reselect_last::reset();
+			reselect_last::set_driver(m_driver);
 			mame_machine_manager::instance()->schedule_new_driver(*m_driver);
 			machine().schedule_hard_reset();
 			menu::stack_reset(machine());
@@ -219,7 +218,7 @@ void ui_menu_record_inp::start_inp()
 	else
 	{
 		machine().popmessage(_("ROM audit failed.  Cannot start system.  Please check your ROMset is correct and up to date."));
-	}
+	}*/
 }
 
 
@@ -329,10 +328,10 @@ void ui_menu_playback_inp::start_inp()
 	std::string fname;
 	inp_header hdr;
 	emu_file f(OPEN_FLAG_READ);
-	driver_enumerator enumerator(machine().options(), *m_driver);
-	enumerator.next();
-	media_auditor auditor(enumerator);
-	media_auditor::summary summary = auditor.audit_media(AUDIT_VALIDATE_FAST);
+//	driver_enumerator enumerator(machine().options(), *m_driver);
+//	enumerator.next();
+//	media_auditor auditor(enumerator);
+//	media_auditor::summary summary = auditor.audit_media(AUDIT_VALIDATE_FAST);
 
 	// check if INP file exists
 	fname = machine().options().input_directory();
@@ -357,7 +356,7 @@ void ui_menu_playback_inp::start_inp()
 	f.close();
 	
 	// if everything looks good, schedule the new driver
-	if (summary == media_auditor::CORRECT || summary == media_auditor::BEST_AVAILABLE || summary == media_auditor::NONE_NEEDED)
+/*	if (summary == media_auditor::CORRECT || summary == media_auditor::BEST_AVAILABLE || summary == media_auditor::NONE_NEEDED)
 	{
 		if ((m_driver->flags & MACHINE_TYPE_ARCADE) == 0)
 		{
@@ -387,7 +386,7 @@ void ui_menu_playback_inp::start_inp()
 	else
 	{
 		machine().popmessage(_("ROM audit failed.  Cannot start system.  Please check your ROMset is correct and up to date."));
-	}
+	}*/
 }
 
 } // namespace ui

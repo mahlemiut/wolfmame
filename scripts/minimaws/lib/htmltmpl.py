@@ -50,11 +50,15 @@ MACHINE_PROLOGUE = string.Template(
 
 MACHINE_OPTIONS_HEADING = string.Template(
         '<h2>Options</h2>\n' \
+        '<p>\n' \
+        '    Format: <select id="select-options-format" onchange="update_cmd_preview()"><option value="cmd">Command line</option><option value="ini">INI file</option></select>\n' \
+        '    <input type="checkbox" id="check-explicit-defaults" onchange="update_cmd_preview()"><label for="check-explicit-defaults">Explicit defaults</label>\n' \
+        '</p>\n' \
         '<p id="para-cmd-preview"></p>\n')
 
 MACHINE_BIOS_PROLOGUE = string.Template(
         '<h3>System BIOS</h3>' \
-        '<select id="select-system-bios" onchange="update_cmd_preview()">')
+        '<div><select id="select-system-bios" onchange="update_cmd_preview()"></div>')
 
 MACHINE_BIOS_OPTION = string.Template(
         '    <option value="${name}" data-isdefault="${isdefault}">${name} - ${description}</option>\n')

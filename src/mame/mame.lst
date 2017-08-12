@@ -1085,6 +1085,9 @@ altos5                          //
 @source:altos486.cpp
 altos486
 
+@source:altos8600.cpp
+altos8600
+
 @source:alvg.cpp
 agsoccer                        //
 dinoeggs                        //
@@ -1271,6 +1274,7 @@ mprof3                          // Microprofessor III
 prav8c                          // Pravetz 8C
 tk3000                          // Microdigital TK3000
 spectred
+ceci							// China Education Computer-I
 
 @source:apple2gs.cpp
 apple2gs                        // Aug 1989 Apple IIgs ROM03
@@ -9931,7 +9935,8 @@ captcommu                       // 28/09/1991 (c) 1991 (USA)
 cawing                          // 12/10/1990 (c) 1990 (World)
 cawingj                         // 12/10/1990 (c) 1990 (Japan)
 cawingr1                        // 09/10/1990 (c) 1990 (World)
-cawingu                         // 12/10/1990 (c) 1990 (USA)
+cawingu                         // 30/11/1990 (c) 1990 (USA)
+cawingur1                       // 12/10/1990 (c) 1990 (USA)
 chikij                          // 19/06/1990 (c) 1990 (Japan)
 cworld2j                        // 11/06/1992 (c) 1992 (Japan)
 cworld2ja                       // 11/06/1992 (c) 1992 (Japan)
@@ -13253,6 +13258,12 @@ gamecom                         // Tiger Game.com
 @source:gamecstl.cpp
 gamecst2                        // MAME based bootleg, version 2.613
 gamecstl                        // MAME based bootleg
+
+@source:gamecube.cpp
+gcjp                            // (c) 2001 Nintendo
+gcus                            // (c) 2001 Nintendo
+gceu                            // (c) 2002 Nintendo
+gcbr                            // (c) 2002 Nintendo
 
 @source:gameking.cpp
 gamekin3                        //
@@ -20354,10 +20365,11 @@ mt_wwar                         // 48
 
 @source:megazone.cpp
 megazone                        // GX319 (c) 1983
-megazonea                       // GX319 (c) 1983
-megazoneb                       // GX319 (c) 1983 + Kosuka
-megazonec                       // GX319 (c) 1983 + Kosuka
-megazonei                       // GX319 (c) 1983 + Interlogic / Kosuka
+megazonea                       // GX319 (c) 1983 + Interlogic / Kosuka
+megazoneb                       // GX319 (c) 1983
+megazoneh                       // GX319 (c) 1983 + Kosuka
+megazonei                       // GX319 (c) 1983
+megazonej                       // GX319 (c) 1983 + Interlogic / Kosuka
 
 @source:meijinsn.cpp
 meijinsn                        // (c) 1986 SNK
@@ -30953,7 +30965,7 @@ ddp2j                           //
 ddp2k                           //
 ddp2t                           //
 ddp3							// (c) 2002 DoDonPachi Dai-Ou-Jou / DoDonPachi III
-ddpdoj                          // 
+ddpdoj                          //
 ddpdoja                         //
 ddpdojb                         //
 ddpdojblk                       //
@@ -31560,6 +31572,7 @@ popeyebl                        // bootleg
 popeyef                         // (c) 1982
 popeyeu                         // (c) 1982
 popeyej                         //
+popeyejo                        //
 skyskipr                        // (c) 1981
 
 @source:popobear.cpp
@@ -37131,12 +37144,13 @@ warfac                          // (c) 1999 Atari Games
 esckids                         // GX975 (c) 1991 (Asia)
 esckidsj                        // GX975 (c) 1991 (Japan)
 vendetta                        // GX081 (c) 1991 (World)
-vendetta2p                      // GX081 (c) 1991 (World)
 vendetta2pd                     // GX081 (c) 1991 (Asia)
 vendetta2peba                   // GX081 (c) 1991 (World)
+vendetta2pp                     // GX081 (c) 1991 (Japan)
 vendetta2pu                     // GX081 (c) 1991 (Asia)
 vendetta2pun                    // GX081 (c) 1991 (World)
-vendettaj                       // GX081 (c) 1991 (Japan)
+vendetta2pw                     // GX081 (c) 1991 (World)
+vendettan                       // GX081 (c) 1991 (Japan)
 vendettar                       // GX081 (c) 1991 (World)
 vendettaz                       // GX081 (c) 1991 (World)
 

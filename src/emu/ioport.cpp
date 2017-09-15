@@ -487,17 +487,12 @@ void digital_joystick::frame_update()
 		//  to a diagonal, or from one diagonal directly to an extreme diagonal.
 		//
 		//  The chances of this happening with a keyboard are slim, but we still need to
-		//  constrain this case.
-		//
-		//  For now, just resolve randomly.
+		//  constrain this case. Let's pick the horizontal axis.
 		//
 		if ((m_current4way & (UP_BIT | DOWN_BIT)) &&
 			(m_current4way & (LEFT_BIT | RIGHT_BIT)))
 		{
-			if (machine->rand() & 1)
-				m_current4way &= ~(LEFT_BIT | RIGHT_BIT);
-			else
-				m_current4way &= ~(UP_BIT | DOWN_BIT);
+			m_current4way &= ~(UP_BIT | DOWN_BIT);
 		}
 	}
 }
@@ -840,12 +835,7 @@ std::string ioport_field::key_name(int which) const
 
 	// if that doesn't work, convert to UTF-8
 	if (ch > 0x7F || isprint(ch))
-	{
-		char buf[10];
-		int count = utf8_from_uchar(buf, ARRAY_LENGTH(buf), ch);
-		buf[count] = 0;
-		return std::string(buf);
-	}
+		return utf8_from_uchar(ch);
 
 	// otherwise, opt for question marks
 	return "???";

@@ -1075,6 +1075,7 @@ asma2k                          //
 asmapro                         //
 
 @source:alphatro.cpp
+alphatp3						// 1982 Triumph-Adler
 alphatro                        //
 
 @source:altair.cpp
@@ -2258,6 +2259,7 @@ at                              // 1987 AMI Bios and Diagnostics
 at386                           // 19?? IBM AT 386
 at486                           // 19?? IBM AT 486
 atvga                           // 19?? AT VGA
+at386sx                         // 19?? AT VGA 386sx
 c386sx16                        // 1990 Commodore 386SX-16
 cmdpc30                         //
 ct386sx                         //
@@ -2752,6 +2754,7 @@ bbusters                        // A9003 'BB' (c) 1989
 bbustersu                       // A9003 'BB' (c) 1989
 bbustersua                      // A9003 'BB' (c) 1989
 bbustersj                       //
+bbustersja                      //
 mechatt                         // A8002 'MA' (c) 1989
 mechattj                        // A8002 'MA' (c) 1989
 mechattu                        // A8002 'MA' (c) 1989
@@ -12250,6 +12253,8 @@ waveterm                        //
 
 @source:europc.cpp
 europc                          // 1988 Schneider Euro PC (CGA or Hercules)
+europc2							// 1989 Schneider Euro PC II
+euroxt							// Schneider Euro XT
 
 @source:eva.cpp
 eva11                           //
@@ -12323,6 +12328,7 @@ yukon1                          // (c) 1989
 attckexd                        // (c) 1977 Exidy
 attckexd2                       // (c) 1977 Exidy
 deathrac                        // (c) 1976 Exidy
+rhunting                        // bootleg of deathrac
 
 @source:exp85.cpp
 exp85                           //
@@ -20429,7 +20435,9 @@ mm5tk                           // Mephisto 5.1 ROM Turbo Kit Speed
 rebel5                          // Mephisto 5
 
 @source:mephisto_montec.cpp
+smondial                        // 1986 Mephisto Super Mondial
 montec                          // 1987 Mephisto Monte Carlo
+smondial2                       // 1989 Mephisto Super Mondial II
 megaiv                          // 1989 Mephisto Mega IV
 monteciv                        // 1990 Mephisto Monte Carlo IV LE
 
@@ -30206,6 +30214,7 @@ zdsupers                        //
 ncrpc4i                         // NCR PC4i
 laser_turbo_xt                  // 1988 VTech Laser Turbo XT
 laser_xt3                       // 1989 VTech Laser XT/3
+olytext30						// AEG Olympia Olytext 30
 
 @source:pc100.cpp
 pc100                           //

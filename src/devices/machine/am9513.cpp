@@ -6,8 +6,12 @@
 
     The Am9513 is a five-channel counter/timer circuit introduced by
     AMD around 1980. (It was also sold as the AmZ8073, apparently due
-    to a licensing deal with Zilog.) Clock source, edge selection,
-    gating and retriggering are programmable for each channel.
+    to a licensing deal with Zilog to develop Z8000 peripherals. No
+    company is known to have second-sourced the device, however.)
+    Clock source, edge selection, gating and retriggering are
+    programmable for each channel. There is also a frequency divider
+    which can take any of the 15 normal counter inputs and divide it
+    by any number between 1 and 16.
 
     All internal counters are 16 bits wide (except the internal 4-bit
     counter for the FOUT divider, which is not externally accessible).
@@ -161,8 +165,8 @@ void am9513_device::master_reset()
 {
 	LOGMASKED(LOG_MODE, "Master reset\n");
 
-	// Clear master mode register to all zeroes
-	m_mmr = 0;
+	// Clear master mode register
+	set_master_mode(0);
 
 	// Enable prefetch for write
 	m_write_prefetch = true;
@@ -171,9 +175,13 @@ void am9513_device::master_reset()
 	std::fill(std::begin(m_tc), std::end(m_tc), false);
 	std::fill(std::begin(m_toggle), std::end(m_toggle), false);
 
-	// Initialize counter mode registers
+	// Initialize counter mode, load and hold registers
 	for (int c = 0; c < 5; c++)
+	{
 		set_counter_mode(c, 0x0b00);
+		m_counter_load[c] = 0;
+		m_counter_hold[c] = 0;
+	}
 }
 
 
@@ -372,18 +380,44 @@ void am9513_device::set_counter_mode(int c, u16 data)
 {
 	if ((data & 0xe0e0) != (m_counter_mode[c] & 0xe0e0))
 	{
-		// Mode selection and gating control
+		// CM15-CM13, CM7-CM5: Mode selection and gating control
 		int mode = ((data >> 5) & 7) * 3;
-		if ((data & 0xc000) == 0xc000)
-			mode += 2; // Edge gating
-		else if ((data & 0xe000) != 0)
-			mode += 1; // Level gating
-		LOGMASKED(LOG_MODE, "Counter %d: Mode %c selected\n", c + 1, mode + 'A');
+		switch (data & 0xe000)
+		{
+		case 0x0000:
+			mode += 'A';
+			LOGMASKED(LOG_MODE, "Counter %d: Mode %c selected (no gating)\n", c + 1, mode);
+			break;
+
+		case 0x2000:
+			mode += 'B';
+			LOGMASKED(LOG_MODE, "Counter %d: Mode %c selected (active high TC%d)\n", c + 1, mode, c);
+			break;
+
+		case 0x4000:
+		case 0x6000:
+			mode += 'B';
+			LOGMASKED(LOG_MODE, "Counter %d: Mode %c selected (active high GATE %d)\n", c + 1, mode, BIT(data, 13) ? c + 2 : c);
+			break;
+
+		case 0x8000:
+		case 0xa000:
+			mode += 'B';
+			LOGMASKED(LOG_MODE, "Counter %d: Mode %c selected (active %s GATE %d)\n", c + 1, mode, BIT(data, 13) ? "low" : "high", c + 1);
+			break;
+
+		case 0xc000:
+		case 0xe000:
+			mode += 'C';
+			LOGMASKED(LOG_MODE, "Counter %d: Mode %c selected (%s edge GATE %d)\n", c + 1, mode, BIT(data, 13) ? "falling" : "rising", c + 1);
+			break;
+		}
 	}
 
 	if ((data & 0x1f00) != (m_counter_mode[c] & 0x1f00))
 	{
-		// Source selection and edge control
+		// CM11-CM8: Source selection
+		// CM12: Source edge control
 		int source = (data >> 8) & 15;
 		int old_source = (m_counter_mode[c] >> 8) & 15;
 		if (old_source >= 11 && old_source <= 15 && source != old_source)
@@ -404,9 +438,9 @@ void am9513_device::set_counter_mode(int c, u16 data)
 	if ((data & 0x0018) != (m_counter_mode[c] & 0x0018))
 		LOGMASKED(LOG_MODE, "Counter %d: %s %s count\n", c + 1, BIT(data, 4) ? "BCD" : "Binary", BIT(data, 3) ? "up" : "down");
 
-	// Output forms
 	if ((data & 0x0007) != (m_counter_mode[c] & 0x0007))
 	{
+		// CM2-CM0: Output form
 		switch (data & 0x0007)
 		{
 		case 0x0000:
@@ -439,6 +473,7 @@ void am9513_device::set_counter_mode(int c, u16 data)
 			break;
 
 		case 0x0002:
+		case 0x0003: // SCP-300F sets this up; why?
 			if (c < 2 && BIT(m_mmr, c + 2))
 				set_output(c, m_count[c] == m_alarm[c]);
 			else
@@ -533,7 +568,7 @@ void am9513_device::set_output(int c, bool state)
 void am9513_device::set_toggle(int c, bool state)
 {
 	m_toggle[c] = state;
-	if ((m_counter_mode[c] & 0x0007) == 0x0002)
+	if ((m_counter_mode[c] & 0x0006) == 0x0002)
 		set_output(c, state);
 }
 
@@ -556,6 +591,7 @@ void am9513_device::set_tc(int c, bool state)
 			set_output(c, state);
 			break;
 		case 0x0002:
+		case 0x0003: // SCP-300F sets this up; why?
 			// TC toggled output
 			if (!state)
 				set_toggle(c, !m_toggle[c]);

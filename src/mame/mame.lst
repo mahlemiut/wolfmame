@@ -96,7 +96,8 @@ sgi_ip6                         // IP6: 4D/PI, R2000, 20MHz
 4enraya                         // (c) 1990 IDSA
 4enrayaa                        //
 unkpacg                         // (c) 19?? ???
-unkfr                           // 1998?
+unksig                          // 1998?
+unksiga                         // 1998?
 
 @source:4roses.cpp
 4roses                          // (c) 1999 Unknown
@@ -1074,8 +1075,10 @@ tnextspcj                       // A8003 'NS' (c) 1989 - Japan
 asma2k                          //
 asmapro                         //
 
-@source:alphatro.cpp
+@source:alphatpx.cpp
 alphatp3                        // 1982 Triumph-Adler
+
+@source:alphatro.cpp
 alphatro                        //
 
 @source:altair.cpp
@@ -9998,6 +10001,7 @@ ganbare                         // 11/04/2000 (c) 2000 (Japan)
 ghouls                          // 12/1988 (c) 1988 (World)
 ghoulsu                         // 12/1988 (c) 1988 (USA)
 knights                         // 27/11/1991 (c) 1991 (World)
+knightsb2                       // bootleg
 knightsj                        // 27/11/1991 (c) 1991 (Japan)
 knightsja                       // 27/11/1991 (c) 1991 (Japan)
 knightsu                        // 27/11/1991 (c) 1991 (USA)
@@ -17555,6 +17559,7 @@ cupsocs2                        // (c) 1992 Seibu
 denjinmk                        // (c) 199? Banpresto
 godzilla                        // (c) 1993 Banpresto
 grainbow                        // (c) 1993 Banpresto
+grainbowk                       // (c) 1993 Banpresto
 heatbrl                         // (c) 1992 Tad (World version 3)
 heatbrl2                        // (c) 1992 Tad (World version 2)
 heatbrle                        // (c) 1992 Tad (Electronic Devices license)
@@ -20438,6 +20443,7 @@ rebel5                          // Mephisto 5
 @source:mephisto_montec.cpp
 smondial                        // 1986 Mephisto Super Mondial
 montec                          // 1987 Mephisto Monte Carlo
+mondial2                        // 1987 Mephisto Mondial II
 smondial2                       // 1989 Mephisto Super Mondial II
 megaiv                          // 1989 Mephisto Mega IV
 monteciv                        // 1990 Mephisto Monte Carlo IV LE
@@ -20622,6 +20628,10 @@ wldarrow                        // (c) 1982 Meyco Games
 
 @source:meyc8088.cpp
 gldarrow                        // (c) 1984 Meyco Games
+
+@source:mfabfz.cpp
+mfabfz                          //
+mfabfz85                        //
 
 @source:mgames.cpp
 mgames                          // (c) 1981 Merit
@@ -27637,6 +27647,9 @@ mrjong                          // (c) 1983 Kiwako
 @source:ms0515.cpp
 ms0515                          //
 
+@source:ms6102.cpp
+ms6102                          //
+
 @source:ms32.cpp
 47pie2                          // (c) 1994
 47pie2o                         // (c) 1994
@@ -32651,6 +32664,7 @@ pomp_l1                         //
 stlwr_l2                        //
 taurs_l1                        //
 tmwrp_l2                        //
+tmwrp_l3                        //
 tmwrp_t2                        //
 topaz_l1                        //
 trizn_l1                        //
@@ -34448,6 +34462,7 @@ alphamis                        // (c) 1985
 arian                           // (c) 1985
 aso                             // (c) 1985
 athena                          // 'UP' (c) 1986
+athenab                         // bootleg?
 bermudat                        // (c) 1987
 bermudata                       // A6004 'WW' (c) 1987
 bermudatj                       // (c) 1987
@@ -34911,7 +34926,7 @@ ironmaid                        //
 lazrlord                        //
 lightnin                        //
 meteorp                         //
-meteorp2                        //
+meteorpo                        //
 nineball                        //
 orbitor1                        //
 quicksil                        //
@@ -35241,6 +35256,8 @@ chinatwn                        // MAK (c) 1991 Data East Corporation (Japan)
 supbtime                        // MAE (c) 1990 Data East Corporation (World)
 supbtimea                       // MAE (c) 1990 Data East Corporation (World)
 supbtimej                       // MAE (c) 1990 Data East Corporation (Japan)
+tumblep                         // MAP (c) 1991 Data East Corporation (World)
+tumblepj                        // MAP (c) 1991 Data East Corporation (Japan)
 
 @source:supdrapo.cpp
 supdrapo                        // (c) 1983 + Stern license
@@ -36030,6 +36047,7 @@ tapatune                        //
 @source:targeth.cpp
 targeth                         // (c) 1994 - Ref 940531
 targetha                        // (c) 1994 - Ref 940531
+targeth10                       // (c) 1994 - Ref 940531
 
 @source:tasman.cpp
 dragsphr                        //
@@ -36900,10 +36918,6 @@ tumbleb2                        // bootleg
 tumblepba                       //
 wlstar                          // (c) 1995 Mijin
 wondl96                         // (c) 1996 SemiCom
-
-@source:tumblep.cpp
-tumblep                         // MAP (c) 1991 Data East Corporation (World)
-tumblepj                        // MAP (c) 1991 Data East Corporation (Japan)
 
 @source:tunhunt.cpp
 tunhunt                         // 136000           (c) 1979

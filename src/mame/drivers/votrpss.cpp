@@ -70,10 +70,10 @@ Notes:
 //#include "votrpss.lh"
 
 /* Components */
-#include "machine/clock.h"
 #include "machine/i8251.h"
 #include "machine/i8255.h"
 #include "machine/pit8253.h"
+#include "machine/timer.h"
 #include "sound/ay8910.h"
 #include "sound/votrax.h"
 #include "machine/terminal.h"

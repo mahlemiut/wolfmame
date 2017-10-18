@@ -66,6 +66,7 @@ enum
 	XTAL_3_12MHz        = 3120000,      /* SP0250 clock on Gottlieb games */
 	XTAL_3_5MHz         = 3500000,      /* Reported by Commodore 65 document, true xtal unchecked on PCB */
 	XTAL_3_52128MHz     = 3521280,      /* RCA COSMAC VIP */
+	XTAL_3_57MHz        = 3570000,      /* Telmac TMC-600 */
 	XTAL_3_57864MHz     = 3578640,      /* Atari Portfolio PCD3311T */
 	XTAL_3_579545MHz    = 3579545,      /* NTSC color subcarrier, extremely common, used on 100's of PCBs (Keytronic custom part #48-300-010 is equivalent) */
 	XTAL_3_6864MHz      = 3686400,      /* Baud rate clock for MC68681 and similar UARTs */
@@ -160,6 +161,7 @@ enum
 	XTAL_15_468MHz      = 15468480,     /* Bank Panic h/w, Sega G80 */
 	XTAL_15_8976MHz     = 15897600,     /* IAI Swyft */
 	XTAL_15_92MHz       = 15920000,     /* HP Integral PC */
+	XTAL_15_9744MHz     = 15974400,     /* Osborne 1 */
 	XTAL_16MHz          = 16000000,     /* Extremely common, used on 100's of PCBs */
 	XTAL_16_384MHz      = 16384000,
 	XTAL_16_4MHz        = 16400000,     /* MS 6102 */

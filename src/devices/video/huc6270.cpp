@@ -48,6 +48,7 @@ TODO
   - Fix timing of VRAM-SATB DMA
   - Implement VRAM-VRAM DMA
   - DMA speeds differ depending on the dot clock selected in the huc6270
+  - Convert VRAM bus to actual space address (optimization)
 
 **********************************************************************/
 
@@ -500,31 +501,6 @@ WRITE_LINE_MEMBER( huc6270_device::vsync_changed )
 			/* Check for low->high VSYNC transition */
 			// VBlank IRQ happens at the beginning of HDW period after VDW ends
 			handle_vblank();
-
-			/* Should we perform VRAM-VRAM dma.
-			   The timing for this is incorrect.
-			 */
-			if ( m_dma_enabled )
-			{
-				int desr_inc = ( m_dcr & 0x0008 ) ? -1 : +1;
-				int sour_inc = ( m_dcr & 0x0004 ) ? -1 : +1;
-
-				LOG("doing dma sour = %04x, desr = %04x, lenr = %04x\n", m_sour, m_desr, m_lenr );
-				do {
-					uint16_t data = m_vram[ m_sour & m_vram_mask ];
-					m_vram[ m_desr & m_vram_mask ] = data;
-					m_sour += sour_inc;
-					m_desr += desr_inc;
-					m_lenr -= 1;
-				} while ( m_lenr != 0xFFFF );
-
-				if ( m_dcr & 0x0002 )
-				{
-					m_status |= HUC6270_DV;
-					m_irq_changed_cb( ASSERT_LINE );
-				}
-				m_dma_enabled = 0;
-			}
 		}
 	}
 
@@ -567,6 +543,7 @@ WRITE_LINE_MEMBER( huc6270_device::hsync_changed )
 			while ( m_horz_to_go == 0 )
 				next_horz_state();
 
+			handle_dma();
 		}
 		else
 		{
@@ -583,6 +560,42 @@ WRITE_LINE_MEMBER( huc6270_device::hsync_changed )
 	m_hsync = state;
 }
 
+inline void huc6270_device::handle_dma()
+{
+	/* Should we perform VRAM-VRAM dma.
+	   The timing for this is incorrect.
+	 */
+	if ( m_dma_enabled )
+	{
+		int desr_inc = ( m_dcr & 0x0008 ) ? -1 : +1;
+		int sour_inc = ( m_dcr & 0x0004 ) ? -1 : +1;
+
+		LOG("doing dma sour = %04x, desr = %04x, lenr = %04x\n", m_sour, m_desr, m_lenr );
+		
+		do {
+			uint16_t data;
+			
+			// area 0x8000-0xffff cannot be r/w (open bus)
+			if((m_sour & 0x8000) == 0)
+				data = m_vram[ m_sour & m_vram_mask ];
+			else
+				data = 0;
+			
+			if((m_desr & 0x8000) == 0)
+				m_vram[ m_desr & m_vram_mask ] = data;
+			m_sour += sour_inc;
+			m_desr += desr_inc;
+			m_lenr -= 1;
+		} while ( m_lenr != 0xFFFF );
+
+		if ( m_dcr & 0x0002 )
+		{
+			m_status |= HUC6270_DV;
+			m_irq_changed_cb( ASSERT_LINE );
+		}
+		m_dma_enabled = 0;
+	}
+}
 
 READ8_MEMBER( huc6270_device::read )
 {
@@ -605,7 +618,15 @@ READ8_MEMBER( huc6270_device::read )
 			if ( m_register_index == VxR )
 			{
 				m_marr += vram_increments[ ( m_cr >> 11 ) & 3 ];
-				m_vrr = m_vram[ m_marr & m_vram_mask ];
+				
+				if((m_marr & 0x8000) == 0)
+					m_vrr = m_vram[ m_marr & m_vram_mask ];
+				else
+				{
+					// TODO: test with real HW
+					m_vrr = 0;
+					logerror("%s Open Bus VRAM read (register read) %04x\n",this->tag(),m_marr);
+				}
 			}
 			break;
 	}
@@ -632,7 +653,14 @@ WRITE8_MEMBER( huc6270_device::write )
 
 				case MARR:      /* memory address read register LSB */
 					m_marr = ( m_marr & 0xFF00 ) | data;
-					m_vrr = m_vram[ m_marr & m_vram_mask ];
+					if((m_marr & 0x8000) == 0)
+						m_vrr = m_vram[ m_marr & m_vram_mask ];
+					else
+					{
+						// TODO: test with real HW
+						m_vrr = 0;
+						logerror("%s Open Bus VRAM read (memory address) %04x\n",this->tag(),m_marr);
+					}
 					break;
 
 				case VxR:       /* vram write data LSB */
@@ -726,7 +754,9 @@ WRITE8_MEMBER( huc6270_device::write )
 
 				case VxR:       /* vram write data MSB */
 					m_vwr = ( m_vwr & 0x00FF ) | ( data << 8 );
-					m_vram[ m_mawr & m_vram_mask ] = m_vwr;
+					// area 0x8000-0xffff is NOP and cannot be written to.
+					if((m_mawr & 0x8000) == 0)
+						m_vram[ m_mawr & m_vram_mask ] = m_vwr;
 					m_mawr += vram_increments[ ( m_cr >> 11 ) & 3 ];
 					break;
 

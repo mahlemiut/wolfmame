@@ -8711,6 +8711,7 @@ bishi                           // GX575 (c) 1996 (Japan)
 sbishi                          // GX675 (c) 1998 (Japan)
 sbishik                         // GX675 (c) 1998 (Korea)
 sbishika                        // GX675 (c) 1998 (Korea)
+dobouchn                        // 
 
 @source:bitgraph.cpp
 bitgrpha                        //
@@ -8961,6 +8962,7 @@ zavigaj                         // (c)
 blackjck                        //
 bowarrow                        //
 eightbll                        //
+eightblo                        //
 evelknie                        //
 freedom                         //
 matahari                        //
@@ -8976,6 +8978,7 @@ blakpyra                        //
 blbeauty                        //
 bmx                             //
 bullseye                        //
+bullseyn                        //
 centaur                         //
 cobrap                          //
 cosflash                        //
@@ -9145,9 +9148,10 @@ cabal                           // (c) 1988 Tad + Fabtek license
 cabala                          // (c) 1988 Tad + Fabtek license
 cabalbl                         // bootleg
 cabalbl2                        // bootleg
+cabaluk                         // (c) 1988 Tad + Electrocoin license
+cabalukj                        // (c) 1988 Tad + Electrocoin license
 cabalus                         // (c) 1988 Tad + Fabtek license
 cabalus2                        // (c) 1988 Tad + Fabtek license
-cabaluk                         //
 
 @source:cabaret.cpp
 cabaret                         // (c) 1992 AMT
@@ -10672,6 +10676,7 @@ hxhdci2k                        //
 
 @source:cyberbal.cpp
 cyberbal                        // 136064           (c) 1989
+cyberbal1                       // 136064           (c) 1989
 cyberbal2                       // 136064           (c) 1989
 cyberbal2p                      // 136071           (c) 1989
 cyberbal2p1                     // 136071           (c) 1989
@@ -12561,6 +12566,7 @@ feagv11                         //
 feagv2                          //
 feagv2a                         //
 feagv7                          //
+feagv7a                         //
 feagv9                          //
 fex68k                          //
 fex68km2                        //
@@ -13781,6 +13787,9 @@ goindolk                        // (c) 1987 Sun a Electronics
 goindolu                        // (c) 1987 Sun a Electronics
 homo                            // bootleg
 
+@source:gokidetor.cpp
+gokidetor                       // (c) 1992 Taito
+
 @source:goldngam.cpp
 moviecrd                        // (c) 1998 Golden Games
 swisspkr                        // (c) 1990 Golden Games
@@ -14652,8 +14661,10 @@ taltbeast                       // Tiger
 tbatman                         // Tiger
 tddragon                        // Tiger
 tgaunt                          // Tiger
+tjdredd                         // Tiger
 tsjam                           // Tiger
 tsonic                          // Tiger
+tswampt                         // Tiger
 
 @source:hh_tms1k.cpp
 7in1ss                          // Tiger Electronics
@@ -14862,6 +14873,7 @@ homez80                         //
 
 @source:horizon.cpp
 nshrz                           //
+nshrz2mhz                       //
 vector1                         //
 
 @source:hornet.cpp
@@ -17111,6 +17123,7 @@ kaypro4a                        // Kaypro 4 - 4/84
 kaypro4p88                      // Kaypro 4 - 4/83 w/plus88 board installed
 kayproii                        // Kaypro II - 2/83
 omni2                           // Omni II
+omni4							// Omni 4
 robie                           // Kaypro Robie
 
 @source:kc.cpp
@@ -17605,6 +17618,7 @@ teamqb2                         // (c) 1988 Leland
 upyoural                        // (c) 1987 Cinematronics
 viper                           // (c) 1988 Leland
 wseries                         // (c) 1985 Cinematronics
+wseries0                        // (c) 1985 Cinematronics
 asylum                          // (c) 1991 Leland
 ataxx                           // (c) 1990 Leland
 ataxxa                          // (c) 1990 Leland
@@ -20935,6 +20949,7 @@ pangbb                          // bootleg
 pangbold                        // bootleg
 pkladies                        // (c) 1989 Mitchell
 pkladiesbl                      // bootleg
+pkladiesbl2                     // bootleg
 pkladiesl                       // (c) 1989 Leprechaun
 pkladiesla                      // (c) 1989 Leprechaun
 pompingw                        // (c) 1989 Mitchell (Japan)
@@ -29783,6 +29798,9 @@ smshilo                         // (c) 1983 SMS Manufacturing Corp.
 ssjkrpkr                        // (c) 1982 Southern Systems & Assembly, Ltd.
 tpoker2                         // (c) 1993 Micro Manufacturing, Inc.
 
+@source:notechan.cpp
+notechan                        // (c) 1995 Banpresto
+
 @source:notetaker.cpp
 notetakr                        //
 
@@ -30224,6 +30242,7 @@ epc                             // 1984 Ericsson PC
 eppc                            // 1985 Ericsson Portable PC
 ibm5550                         //
 iskr3104                        //
+kaypro16                        //
 mbc16                           // Sanyo MBC-16
 mc1702                          //
 mk88                            //
@@ -33644,6 +33663,7 @@ dinokior                        //
 loveber3                        //
 lovebero                        //
 lovebery                        // 2004.10 Oshare Majo Love and Berry / Fashionable Witch Love and Berry
+ochaken                         //
 segasp                          //
 tetgiano                        //
 tetgiant                        //
@@ -33707,7 +33727,8 @@ gforce2j                        // 1988.07 Galaxy Force II (Japan)
 gforce2ja                       // 1988.07 Galaxy Force II (Japan)
 gforce2sd                       // 1988.?? Galaxy Force II (World, Super Deluxe unit)
 gloc                            // 1990.?? G-LOC Air Battle (World)
-glocr360                        // 1990.?? G-LOC (R360, World?)
+glocr360                        // 1990.?? G-LOC (R360, World)
+glocr360j                       // 1990.?? G-LOC (R360, Japan)
 glocu                           // 1990.04 G-LOC Air Battle (US)
 pdrift                          // 1988.?? Power Drift (World)
 pdrifta                         // 1988.?? Power Drift (World)
@@ -33718,6 +33739,11 @@ rchase                          // 1991.09 Rail Chase (World)
 rchasej                         // 1991.09 Rail Chase (Japan)
 strkfgtr                        // 1991.06 Strike Fighter (World)
 strkfgtrj                       // 1991.06 Strike Fighter (Japan)
+
+@source:seibucats.cpp
+emjjoshi						// (c) 1999 Seibu Kaihatsu / CATS
+emjscanb						// (c) 2001 Seibu Kaihatsu / CATS
+emjtrapz						// (c) 2001 Seibu Kaihatsu / CATS
 
 @source:seibuspi.cpp
 batlball                        // (c) 1995 Seibu Kaihatsu (Tuning License)
@@ -34921,6 +34947,7 @@ princess                        //
 stars                           //
 stingray                        //
 trident                         //
+tridento                        //
 wildfyre                        //
 
 @source:st_mp200.cpp
@@ -34929,6 +34956,7 @@ biggame                         //
 blkshpsq                        //
 catacomp                        //
 cheetah                         //
+cheetahb                        //
 dragfist                        //
 flight2k                        //
 freefall                        //
@@ -34993,10 +35021,26 @@ tomcatsw                        // (proto)          (c) 1983
 @source:statriv2.cpp
 bbchall                         // (c) 1986 Status Games
 bigcsino                        // (c) 1984 Status Games
-cstrip                          // (c) 1984 Status Games
-cstripix                        // (c) 1985 Status Games
-cstripviii                      // (c) 1985 Status Games
-cstripxi                        // (c) 1988 Status Games
+cs1_spp                         //
+cs1_spp2                        //
+cs10_sps                        //
+cs11_sps                        //
+cs11_sps2                       //
+cs11_ssp                        //
+cs12_sps                        //
+cs2_sps                         //
+cs3_qps                         //
+cs5_spp                         //
+cs5_ssp                         //
+cs6_sps                         //
+cs6_ssp                         //
+cs8_spp                         //
+cs8_sps                         //
+cs8_ssp                         //
+cs9_qps                         //
+cs9_spp                         //
+cspe_qps                        //
+csv1_qps                        //
 funcsino                        // (c) 1981 Status Games
 hangman                         // (c) 1984 Status Games
 nsupertr3                       // (c) 1988 Status Games
@@ -36268,7 +36312,8 @@ to9                             // 1985 Thomson T09
 to9p                            // 1986 Thomson T09+
 
 @source:thoop2.cpp
-thoop2                          // (c) 1994 - Ref ???
+thoop2                          // (c) 1994 - REF.940411
+thoop2a                         // (c) 1994 - REF.940411
 
 @source:thunderj.cpp
 thunderj                        // 136076           (c) 1990
@@ -38836,6 +38881,3 @@ vgmplay
 @source:ldplayer.cpp
 simldv1000                      // Pioneer LD-V1000
 simpr8210                       // Pioneer PR-8210
-
-@source:notechan.cpp
-notechan                        // (c) Banpresto

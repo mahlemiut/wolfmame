@@ -277,6 +277,7 @@ SOUNDS["DAVE"] = true
 VIDEOS["SEGA315_5124"] = true
 VIDEOS["SEGA315_5313"] = true
 --VIDEOS+= BUFSPRITE"] = true
+VIDEOS["BT459"] = true
 VIDEOS["CDP1861"] = true
 VIDEOS["CDP1862"] = true
 --VIDEOS["CESBLIT"] = true
@@ -418,6 +419,7 @@ MACHINES["HD63450"] = true
 MACHINES["HD64610"] = true
 MACHINES["HP_TACO"] = true
 MACHINES["1MA6"] = true
+MACHINES["1MB5"] = true
 MACHINES["I2CMEM"] = true
 MACHINES["I7220"] = true
 MACHINES["I80130"] = true
@@ -675,6 +677,8 @@ BUSES["HPDIO"] = true
 BUSES["IEEE488"] = true
 BUSES["IMI7000"] = true
 BUSES["INTELLEC4"] = true
+BUSES["INTERPRO_SR"] = true
+BUSES["INTERPRO_KEYBOARD"] = true
 BUSES["INTV"] = true
 BUSES["INTV_CTRL"] = true
 BUSES["IQ151"] = true
@@ -682,6 +686,7 @@ BUSES["ISA"] = true
 BUSES["ISBX"] = true
 BUSES["HP_OPTROM"] = true
 BUSES["HP80_OPTROM"] = true
+BUSES["HP80_IO"] = true
 BUSES["HP9845_IO"] = true
 BUSES["KC"] = true
 BUSES["LPCI"] = true
@@ -2200,8 +2205,8 @@ files {
 	MAME_DIR .. "src/mame/machine/interpro_mcga.cpp",
 	MAME_DIR .. "src/mame/machine/interpro_sga.h",
 	MAME_DIR .. "src/mame/machine/interpro_sga.cpp",
-	MAME_DIR .. "src/mame/machine/interpro_srarb.h",
-	MAME_DIR .. "src/mame/machine/interpro_srarb.cpp",
+	MAME_DIR .. "src/mame/machine/interpro_arbga.h",
+	MAME_DIR .. "src/mame/machine/interpro_arbga.cpp",
 }
 
 createMESSProjects(_target, _subtarget, "interton")
@@ -3056,6 +3061,7 @@ files {
 	MAME_DIR .. "src/mame/drivers/tv910.cpp",
 	MAME_DIR .. "src/mame/drivers/tv950.cpp",
 	MAME_DIR .. "src/mame/drivers/tv990.cpp",
+	MAME_DIR .. "src/mame/drivers/ts3000.cpp",
 }
 
 createMESSProjects(_target, _subtarget, "tem")
@@ -3401,6 +3407,7 @@ files {
 
 createMESSProjects(_target, _subtarget, "skeleton")
 files {
+	MAME_DIR .. "src/mame/drivers/acd.cpp",
 	MAME_DIR .. "src/mame/drivers/aceex.cpp",
 	MAME_DIR .. "src/mame/drivers/akaiax80.cpp",
 	MAME_DIR .. "src/mame/drivers/alesis_qs.cpp",
@@ -3496,6 +3503,7 @@ files {
 	MAME_DIR .. "src/mame/drivers/lft.cpp",
 	MAME_DIR .. "src/mame/drivers/lg-dvd.cpp",
 	MAME_DIR .. "src/mame/drivers/lola8a.cpp",
+	MAME_DIR .. "src/mame/drivers/lilith.cpp",
 	MAME_DIR .. "src/mame/drivers/m79152pc.cpp",
 	MAME_DIR .. "src/mame/drivers/mccpm.cpp",
 	MAME_DIR .. "src/mame/drivers/mes.cpp",
@@ -3556,6 +3564,7 @@ files {
 	MAME_DIR .. "src/mame/drivers/softbox.cpp",
 	MAME_DIR .. "src/mame/includes/softbox.h",
 	MAME_DIR .. "src/mame/drivers/squale.cpp",
+	MAME_DIR .. "src/mame/drivers/solbourne.cpp",
 	MAME_DIR .. "src/mame/drivers/swtpc.cpp",
 	MAME_DIR .. "src/mame/drivers/swyft.cpp",
 	MAME_DIR .. "src/mame/drivers/symbolics.cpp",
@@ -3565,7 +3574,9 @@ files {
 	MAME_DIR .. "src/mame/drivers/tavernie.cpp",
 	MAME_DIR .. "src/mame/drivers/tecnbras.cpp",
 	MAME_DIR .. "src/mame/drivers/terak.cpp",
+	MAME_DIR .. "src/mame/drivers/terco.cpp",
 	MAME_DIR .. "src/mame/drivers/ti630.cpp",
+	MAME_DIR .. "src/mame/drivers/trs80dt1.cpp",
 	MAME_DIR .. "src/mame/drivers/tsispch.cpp",
 	MAME_DIR .. "src/mame/includes/tsispch.h",
 	MAME_DIR .. "src/mame/drivers/tvgame.cpp",
@@ -3575,6 +3586,7 @@ files {
 	MAME_DIR .. "src/mame/drivers/vii.cpp",
 	MAME_DIR .. "src/mame/drivers/vsmilepro.cpp",
 	MAME_DIR .. "src/mame/drivers/wicat.cpp",
+	MAME_DIR .. "src/mame/drivers/wyse.cpp",
 	MAME_DIR .. "src/mame/drivers/xor100.cpp",
 	MAME_DIR .. "src/mame/includes/xor100.h",
 	MAME_DIR .. "src/mame/drivers/xavix.cpp",

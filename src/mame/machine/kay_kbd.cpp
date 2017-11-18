@@ -11,6 +11,14 @@
 #include "emu.h"
 #include "machine/kay_kbd.h"
 
+#define LOG_GENERAL (1U << 0)
+#define LOG_TXD     (1U << 1)
+
+//#define VERBOSE (LOG_GENERAL | LOG_TXD)
+#include "logmacro.h"
+
+#define LOGTXD(...) LOGMASKED(LOG_TXD, __VA_ARGS__)
+
 
 /*
  * The KAYPRO keyboard has roughly the following layout:
@@ -63,7 +71,7 @@ P1 is connected to the key matrix columns.
 
 P2.1, P2.2 and P2.3 are CTRL, CAPS LOCK, and SHIFT inputs.
 
-P2.6 drives the speaker (1.5625kHz tone generated using timer/counter).
+P2.5 drives the speaker (1.5625kHz tone generated using timer/counter).
 
 P2.7 is the serial data output to the host.
 
@@ -91,9 +99,10 @@ due to bugs it omits the first byte of each page (0x000, 0x100, 0x200,
 
 The serial command processing is quite lax in what it accepts:
 xxxx xxx1   ignored
-xxxx xx10   short beep
-xxxx x100   long beep
-xxx1 x000   answer back with 0xAA?
+xxxx Mx10   short beep, set keyclick mute to M
+xxxx M100   long beep, set keyclick mute to M
+xxx1 M000   answer back with 0xAA?, set keyclick mute to M
+xxx0 M000   set keyclick mute to M
 
 The Kaypro II was sold with a different keyboard using an 8751 (MCS-51)
 MCU, but we don't have a dump for it.
@@ -323,8 +332,9 @@ kaypro_10_keyboard_device::kaypro_10_keyboard_device(
 		machine_config const &mconfig,
 		char const *tag,
 		device_t *owner,
-		uint32_t clock)
+		std::uint32_t clock)
 	: device_t(mconfig, KAYPRO_10_KEYBOARD, tag, owner, clock)
+	, m_mcu(*this, "mcu")
 	, m_bell(*this, "bell")
 	, m_matrix(*this, "ROW.%X", 0)
 	, m_modifiers(*this, "MOD")
@@ -355,7 +365,7 @@ MACHINE_CONFIG_END
 
 ioport_constructor kaypro_10_keyboard_device::device_input_ports() const
 {
-	(void)INPUT_PORTS_NAME(kaypro_keyboard_bitshift);
+	(void)&INPUT_PORTS_NAME(kaypro_keyboard_bitshift);
 	return INPUT_PORTS_NAME(kaypro_keyboard_typewriter);
 }
 
@@ -379,7 +389,25 @@ READ8_MEMBER(kaypro_10_keyboard_device::p2_r)
 
 WRITE8_MEMBER(kaypro_10_keyboard_device::p2_w)
 {
-	m_bell->level_w(BIT(data, 6));
+	if ((VERBOSE & LOG_TXD) && (0x0014U >= static_cast<device_state_interface *>(m_mcu)->safe_pc()))
+	{
+		auto const suppressor(machine().disable_side_effect());
+		address_space &mcu_ram(m_mcu->space(AS_DATA));
+		std::uint8_t const txd_time(mcu_ram.read_byte(0x1cU));
+		std::uint8_t const serial_flags(mcu_ram.read_byte(0x1eU));
+		bool const txd_active(BIT(serial_flags, 6));
+		if ((21U == txd_time) && txd_active)
+		{
+			std::uint8_t const txd_bit(mcu_ram.read_byte(0x1bU));
+			LOGTXD(
+					(9U == txd_bit) ? "serial transmit: start bit = %1$u (cycles = %3$u)\n" : "serial transmit: bit %2$u = %1$u (cycles = %3$u)\n",
+					BIT(data, 7),
+					8U - txd_bit,
+					m_mcu->total_cycles());
+		}
+	}
+
+	m_bell->level_w(BIT(data, 5));
 	m_rxd_cb(BIT(data, 7));
 }
 

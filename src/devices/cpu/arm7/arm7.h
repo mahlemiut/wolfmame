@@ -31,6 +31,9 @@
 #define ARM7_MAX_FASTRAM       4
 #define ARM7_MAX_HOTSPOTS      16
 
+#define MCFG_ARM_HIGH_VECTORS() \
+	arm7_cpu_device::set_high_vectors(*device);
+
 
 /***************************************************************************
     COMPILER-SPECIFIC OPTIONS
@@ -51,6 +54,12 @@ class arm7_cpu_device : public cpu_device
 public:
 	// construction/destruction
 	arm7_cpu_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock);
+
+	static void set_high_vectors(device_t &device)
+	{
+		arm7_cpu_device &dev = downcast<arm7_cpu_device &>(device);
+		dev.m_vectorbase = 0xffff0000;
+	}
 
 protected:
 	enum
@@ -168,6 +177,8 @@ protected:
 	uint8_t m_archRev;          // ARM architecture revision (3, 4, and 5 are valid)
 	uint8_t m_archFlags;        // architecture flags
 
+	uint32_t m_vectorbase;
+
 //#if ARM7_MMU_ENABLE_HACK
 //  uint32_t mmu_enable_addr; // workaround for "MMU is enabled when PA != VA" problem
 //#endif
@@ -230,7 +241,7 @@ protected:
 	// Coprocessor support
 	DECLARE_WRITE32_MEMBER( arm7_do_callback );
 	DECLARE_READ32_MEMBER( arm7_rt_r_callback );
-	DECLARE_WRITE32_MEMBER( arm7_rt_w_callback );
+	virtual DECLARE_WRITE32_MEMBER( arm7_rt_w_callback );
 	void arm7_dt_r_callback(uint32_t insn, uint32_t *prn);
 	void arm7_dt_w_callback(uint32_t insn, uint32_t *prn);
 
@@ -620,6 +631,14 @@ public:
 	sa1110_cpu_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock);
 };
 
+class igs036_cpu_device : public arm9_cpu_device
+{
+public:
+	// construction/destruction
+	igs036_cpu_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock);
+	virtual DECLARE_WRITE32_MEMBER( arm7_rt_w_callback ) override;
+};
+
 
 DECLARE_DEVICE_TYPE(ARM7,     arm7_cpu_device)
 DECLARE_DEVICE_TYPE(ARM7_BE,  arm7_be_cpu_device)
@@ -629,5 +648,6 @@ DECLARE_DEVICE_TYPE(ARM920T,  arm920t_cpu_device)
 DECLARE_DEVICE_TYPE(ARM946ES, arm946es_cpu_device)
 DECLARE_DEVICE_TYPE(PXA255,   pxa255_cpu_device)
 DECLARE_DEVICE_TYPE(SA1110,   sa1110_cpu_device)
+DECLARE_DEVICE_TYPE(IGS036,   igs036_cpu_device)
 
 #endif // MAME_CPU_ARM7_ARM7_H

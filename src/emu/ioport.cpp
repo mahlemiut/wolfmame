@@ -2741,10 +2741,10 @@ void ioport_manager::record_init()
 		return;
 
 	// disable cheats
-	machine().options().set_value(OPTION_CHEAT, 0, OPTION_PRIORITY_HIGH);
+	machine().options().set_value(OPTION_CHEAT, 0, OPTION_PRIORITY_MAXIMUM);
 	
 	// disable LUA boot script
-	machine().options().set_value(OPTION_AUTOBOOT_SCRIPT, "", OPTION_PRIORITY_HIGH);
+	machine().options().set_value(OPTION_AUTOBOOT_SCRIPT, "", OPTION_PRIORITY_MAXIMUM);
 
 	// open the record file
 	osd_file::error filerr = m_record_file.open(filename);

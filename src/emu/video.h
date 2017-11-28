@@ -26,7 +26,7 @@
 
 // number of levels of frameskipping supported
 constexpr int FRAMESKIP_LEVELS = 12;
-constexpr int MAX_FRAMESKIP = FRAMESKIP_LEVELS - 2;
+constexpr int MAX_FRAMESKIP = FRAMESKIP_LEVELS - 4;
 
 #define LCD_FRAMES_PER_SECOND   30
 

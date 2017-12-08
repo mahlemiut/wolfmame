@@ -2746,6 +2746,9 @@ void ioport_manager::record_init()
 	// disable LUA boot script
 	machine().options().set_value(OPTION_AUTOBOOT_SCRIPT, "", OPTION_PRIORITY_MAXIMUM);
 
+	// disable rewinding
+	machine().options().set_value(OPTION_REWIND, 0, OPTION_PRIORITY_MAXIMUM);
+
 	// open the record file
 	osd_file::error filerr = m_record_file.open(filename);
 	assert_always(filerr == osd_file::error::NONE, "Failed to open file for recording");

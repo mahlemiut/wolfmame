@@ -1237,11 +1237,11 @@ uint32_t mame_ui_manager::handler_ingame(render_container &container)
 	}
 
 	// rewind single step
-	if (machine().ui_input().pressed(IPT_UI_REWIND_SINGLE))
+	if (machine().ui_input().pressed(IPT_UI_REWIND_SINGLE) && !machine().ioport().get_record_file()->is_open())
 		machine().rewind_step();
 
 	// handle a toggle cheats request
-	if (machine().ui_input().pressed(IPT_UI_TOGGLE_CHEAT))
+	if (machine().ui_input().pressed(IPT_UI_TOGGLE_CHEAT) && !machine().ioport().get_record_file()->is_open())
 		mame_machine_manager::instance()->cheat().set_enable(!mame_machine_manager::instance()->cheat().enabled());
 
 	// toggle movie recording

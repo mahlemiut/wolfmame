@@ -353,6 +353,7 @@ VIDEOS["GB_LCD"] = true
 VIDEOS["GBA_LCD"] = true
 VIDEOS["MGA2064W"] = true
 VIDEOS["PPU2C0X"] = true
+VIDEOS["DP8510"] = true
 
 --------------------------------------------------
 -- specify available machine cores
@@ -1073,7 +1074,7 @@ function linkProjects_mame_mess(_target, _subtarget)
 		"samsung",
 		"sanyo",
 		"saturn",
-		"sega",
+		"segacons",
 		"sequential",
 		"sgi",
 		"sharp",
@@ -1246,8 +1247,6 @@ files {
 	MAME_DIR .. "src/mame/machine/dc.cpp",
 	MAME_DIR .. "src/mame/machine/dc-ctrl.cpp",
 	MAME_DIR .. "src/mame/machine/dc-ctrl.h",
-	MAME_DIR .. "src/mame/machine/gdrom.cpp",
-	MAME_DIR .. "src/mame/machine/gdrom.h",
 	MAME_DIR .. "src/mame/machine/jvs13551.cpp",
 	MAME_DIR .. "src/mame/machine/jvs13551.h",
 	MAME_DIR .. "src/mame/machine/maple-dc.cpp",
@@ -2134,6 +2133,8 @@ files {
 	MAME_DIR .. "src/mame/drivers/hp48.cpp",
 	MAME_DIR .. "src/mame/includes/hp48.h",
 	MAME_DIR .. "src/mame/machine/hp48.cpp",
+        MAME_DIR .. "src/mame/machine/hp9845_printer.cpp",
+        MAME_DIR .. "src/mame/machine/hp9845_printer.h",
 	MAME_DIR .. "src/mame/video/hp48.cpp",
 	MAME_DIR .. "src/mame/drivers/hp49gp.cpp",
 	MAME_DIR .. "src/mame/drivers/hp9845.cpp",
@@ -2668,6 +2669,9 @@ files {
 	MAME_DIR .. "src/mame/drivers/prodigy.cpp",
 	MAME_DIR .. "src/mame/machine/nl_prodigy.cpp",
 	MAME_DIR .. "src/mame/machine/nl_prodigy.h",
+      }
+includedirs {
+	MAME_DIR .. "3rdparty/rapidjson/include",
 }
 
 createMESSProjects(_target, _subtarget, "psion")
@@ -2793,11 +2797,18 @@ files {
 	MAME_DIR .. "src/mame/includes/phc25.h",
 }
 
-createMESSProjects(_target, _subtarget, "sega")
+-- Don't call this project "sega" or it collides with the arcade one
+-- and merges with it, which ends up with libsega.a linked after
+-- libshared.a.  The link then fails on linux because SEGAM1AUDIO and RAX
+-- are in shared while model* and stv are in sega.
+
+createMESSProjects(_target, _subtarget, "segacons")
 files {
 	MAME_DIR .. "src/mame/drivers/dccons.cpp",
 	MAME_DIR .. "src/mame/includes/dccons.h",
 	MAME_DIR .. "src/mame/machine/dccons.cpp",
+	MAME_DIR .. "src/mame/machine/gdrom.cpp",
+	MAME_DIR .. "src/mame/machine/gdrom.h",
 	MAME_DIR .. "src/mame/drivers/megadriv.cpp",
 	MAME_DIR .. "src/mame/includes/megadriv.h",
 	MAME_DIR .. "src/mame/drivers/segapico.cpp",

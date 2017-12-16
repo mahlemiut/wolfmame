@@ -1079,6 +1079,10 @@ if (BUSES["ISA"]~=null) then
 		MAME_DIR .. "src/devices/bus/isa/num9rev.h",
 		MAME_DIR .. "src/devices/bus/isa/mcd.cpp",
 		MAME_DIR .. "src/devices/bus/isa/mcd.h",
+		MAME_DIR .. "src/devices/bus/isa/myb3k_com.cpp",
+		MAME_DIR .. "src/devices/bus/isa/myb3k_com.h",
+		MAME_DIR .. "src/devices/bus/isa/myb3k_fdc.cpp",
+		MAME_DIR .. "src/devices/bus/isa/myb3k_fdc.h",
 	}
 end
 
@@ -1368,6 +1372,8 @@ if (BUSES["S100"]~=null) then
 		MAME_DIR .. "src/devices/bus/s100/nsmdsa.h",
 		MAME_DIR .. "src/devices/bus/s100/nsmdsad.cpp",
 		MAME_DIR .. "src/devices/bus/s100/nsmdsad.h",
+		MAME_DIR .. "src/devices/bus/s100/seals8k.cpp",
+		MAME_DIR .. "src/devices/bus/s100/seals8k.h",
 		MAME_DIR .. "src/devices/bus/s100/wunderbus.cpp",
 		MAME_DIR .. "src/devices/bus/s100/wunderbus.h",
 	}
@@ -1787,6 +1793,8 @@ if (BUSES["A2BUS"]~=null) then
 		MAME_DIR .. "src/devices/bus/a2bus/agat7langcard.h",
 		MAME_DIR .. "src/devices/bus/a2bus/agat7ram.cpp",
 		MAME_DIR .. "src/devices/bus/a2bus/agat7ram.h",
+		MAME_DIR .. "src/devices/bus/a2bus/agat840k_hle.cpp",
+		MAME_DIR .. "src/devices/bus/a2bus/agat840k_hle.h",
 		MAME_DIR .. "src/devices/bus/a2bus/ssprite.cpp",
 		MAME_DIR .. "src/devices/bus/a2bus/ssprite.h",
 		MAME_DIR .. "src/devices/bus/a2bus/ssbapple.cpp",

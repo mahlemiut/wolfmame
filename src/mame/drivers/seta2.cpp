@@ -38,7 +38,7 @@ P-FG-03                 ????    Endless Riches                          E.N.Tige
 P0-140B                 2000    Funcube                                 Namco
 P0-140B                 2000    Namco Stars                             Namco
 P0-142A                 1999    Puzzle De Bowling                       MOSS / Nihon System
-P0-142A + extra parts   2000    Penguin Brothers                        Subsino
+P0-142A + extra parts   2000    Penguin Brothers / A-Blast              Subsino
 B0-003A (or B0-003B)    2000    Deer Hunting USA                        Sammy
 B0-003A (or B0-003B)    2001    Turkey Hunting USA                      Sammy
 B0-006B                 2001-2  Funcube 2 - 5                           Namco
@@ -80,7 +80,7 @@ grdians:
   ignore the individual color codes in the tiles data. Note: the frontmost frame
   has the shadow bit set, and has become invisible after implementing it.
 
-penbros:
+penbros/ablast:
 - Zooming is used briefly.
 
 deerhunt,wschamp:
@@ -375,35 +375,36 @@ ADDRESS_MAP_END
 ***************************************************************************/
 
 static ADDRESS_MAP_START( penbros_base_map, AS_PROGRAM, 16, seta2_state )
-	AM_RANGE(0x000000, 0x0fffff) AM_ROM                             // ROM
-	AM_RANGE(0x200000, 0x20ffff) AM_RAM                             // RAM
-	AM_RANGE(0x210000, 0x23ffff) AM_RAM                             // RAM
-	AM_RANGE(0x300000, 0x30ffff) AM_RAM                             // RAM
-	AM_RANGE(0x600000, 0x600001) AM_READ_PORT("P1")                 // P1
-	AM_RANGE(0x600002, 0x600003) AM_READ_PORT("P2")                 // P2
-	AM_RANGE(0x600004, 0x600005) AM_READ_PORT("SYSTEM")             // Coins
-	AM_RANGE(0x600004, 0x600005) AM_WRITE(pzlbowl_coin_counter_w)   // Coins Counter
+	AM_RANGE(0x000000, 0x0fffff) AM_ROM
+	AM_RANGE(0x200000, 0x20ffff) AM_RAM
+	AM_RANGE(0x210000, 0x21ffff) AM_RAM // zeroed at startup, then never written again on originals, used on the bootleg
+	AM_RANGE(0x220000, 0x22ffff) AM_RAM // zeroed at startup, then never written again
+	AM_RANGE(0x230000, 0x23ffff) AM_RAM // zeroed at startup, then never written again on originals, used on the bootleg
+	AM_RANGE(0x600000, 0x600001) AM_READ_PORT("P1")
+	AM_RANGE(0x600002, 0x600003) AM_READ_PORT("P2")
+	AM_RANGE(0x600004, 0x600005) AM_READ_PORT("SYSTEM")
+	AM_RANGE(0x600004, 0x600005) AM_WRITE(pzlbowl_coin_counter_w)
 	AM_RANGE(0x600006, 0x600007) AM_DEVREAD("watchdog", watchdog_timer_device, reset16_r)
-	//AM_RANGE(0x700000, 0x700001) AM_READ(pzlbowl_protection_r)      // Protection
-	AM_RANGE(0xb00000, 0xb3ffff) AM_RAM AM_SHARE("spriteram")       // Sprites
-	AM_RANGE(0xb40000, 0xb4ffff) AM_RAM_DEVWRITE("palette", palette_device, write) AM_SHARE("palette")    // Palette
-	AM_RANGE(0xb60000, 0xb6003f) AM_WRITE(vregs_w) AM_SHARE("vregs")
-	AM_RANGE(0xa00000, 0xa03fff) AM_DEVREADWRITE("x1snd", x1_010_device, word_r, word_w)   // Sound
-	AM_RANGE(0xfffc00, 0xffffff) AM_DEVREADWRITE("tmp68301", tmp68301_device, regs_r, regs_w)      // TMP68301 Registers
+	AM_RANGE(0xa00000, 0xa03fff) AM_DEVREADWRITE("x1snd", x1_010_device, word_r, word_w)
+	AM_RANGE(0xb00000, 0xb3ffff) AM_RAM AM_SHARE("spriteram")
+	AM_RANGE(0xb40000, 0xb4ffff) AM_RAM_DEVWRITE("palette", palette_device, write) AM_SHARE("palette")
 ADDRESS_MAP_END
 
 static ADDRESS_MAP_START( penbros_map, AS_PROGRAM, 16, seta2_state )
 	AM_IMPORT_FROM(penbros_base_map)
-	AM_RANGE(0x500300, 0x500301) AM_READ_PORT("DSW1")               // DSW 1
-	AM_RANGE(0x500302, 0x500303) AM_READ_PORT("DSW2")               // DSW 2
-	AM_RANGE(0x500300, 0x50030f) AM_WRITE(sound_bank_w)       // Samples Banks
+	AM_RANGE(0x300000, 0x30ffff) AM_RAM
+	AM_RANGE(0x500300, 0x500301) AM_READ_PORT("DSW1")
+	AM_RANGE(0x500302, 0x500303) AM_READ_PORT("DSW2")
+	AM_RANGE(0x500300, 0x50030f) AM_WRITE(sound_bank_w)
+	AM_RANGE(0xb60000, 0xb6003f) AM_WRITE(vregs_w) AM_SHARE("vregs")
+	AM_RANGE(0xfffc00, 0xffffff) AM_DEVREADWRITE("tmp68301", tmp68301_device, regs_r, regs_w)
 ADDRESS_MAP_END
 
-static ADDRESS_MAP_START( penbrosk_map, AS_PROGRAM, 16, seta2_state )
+static ADDRESS_MAP_START( ablastb_map, AS_PROGRAM, 16, seta2_state )
 	AM_IMPORT_FROM(penbros_base_map)
-	AM_RANGE(0x508300, 0x508301) AM_READ_PORT("DSW1")               // DSW 1
-	AM_RANGE(0x508302, 0x508303) AM_READ_PORT("DSW2")               // DSW 2
-	// TODO: Where are the samples banks?
+	AM_RANGE(0x508300, 0x508301) AM_READ_PORT("DSW1")
+	AM_RANGE(0x508302, 0x508303) AM_READ_PORT("DSW2")
+	// TODO: Is there samples banking like in the original?
 ADDRESS_MAP_END
 
 
@@ -2609,12 +2610,12 @@ static MACHINE_CONFIG_DERIVED( penbros, seta2 )
 	MCFG_SCREEN_VISIBLE_AREA(0, 0x140-1, 0x80, 0x160-1)
 MACHINE_CONFIG_END
 
-static MACHINE_CONFIG_DERIVED( penbrosk, penbros )
-	MCFG_CPU_MODIFY("maincpu") // actually TMP68HC000P-16
-	MCFG_CPU_PROGRAM_MAP(penbrosk_map)
+static MACHINE_CONFIG_DERIVED( ablastb, penbros )
+	MCFG_CPU_REPLACE("maincpu", M68000, XTAL_16MHz) // TMP68HC000P-16
+	MCFG_CPU_PROGRAM_MAP(ablastb_map)
+	MCFG_CPU_VBLANK_INT_DRIVER("screen", seta2_state, irq2_line_hold)
 
-	//TODO:
-	//MCFG_DEVICE_REMOVE("tmp68301")
+	MCFG_DEVICE_REMOVE("tmp68301")
 MACHINE_CONFIG_END
 
 static MACHINE_CONFIG_DERIVED( reelquak, seta2 )
@@ -3412,7 +3413,7 @@ ROM_END
 
 /***************************************************************************
 
-Penguin Brothers (Japan)
+Penguin Brothers / A-Blast
 (c)2000 Subsino
 
    CPU: Toshiba TMP68301AF-16 (100 Pin PQFP)
@@ -3472,27 +3473,47 @@ BAT1* Unpopulated CR2032 3Volt battery
 Ram M1 are NEC D43001GU-70LL
 Ram M2 are LGS GM76C8128ALLFW70
 
+Notes about sets:
+penbros: Original Japanese version with Japan region warning, title screen and all game text
+         in Japanese. However the Subsino logo is the wrong color
+ ablast: Title screen is in traditional Chinese. ROM labels imply Taiwan with "TWN" printed
+         on them. The region warning states Japan only & all game text is in Japanese. Lastly
+         the Subsino logo has correct color. The bootleg is a copy of A-Blast.
 ***************************************************************************/
 
-ROM_START( penbros )
+ROM_START( penbros ) // Genuine P0-142A PCB & original ROM labels
 	ROM_REGION( 0x100000, "maincpu", 0 )    // TMP68301 Code
-	ROM_LOAD16_BYTE( "u06.bin", 0x000000, 0x080000, CRC(7bbdffac) SHA1(d5766cb171b8d2e4c04a6bae37181fa5ada9d797) )
-	ROM_LOAD16_BYTE( "u07.bin", 0x000001, 0x080000, CRC(d50cda5f) SHA1(fc66f55f2070b447c5db85c948ce40adc37512f7) )
+	ROM_LOAD16_BYTE( "a-blast_jpn_u06.u06", 0x000000, 0x080000, CRC(7bbdffac) SHA1(d5766cb171b8d2e4c04a6bae37181fa5ada9d797) )
+	ROM_LOAD16_BYTE( "a-blast_jpn_u07.u07", 0x000001, 0x080000, CRC(d50cda5f) SHA1(fc66f55f2070b447c5db85c948ce40adc37512f7) )
 
 	ROM_REGION( 0x1000000, "sprites", 0 )   // Sprites
-	ROM_LOAD( "u38.bin", 0x000000, 0x400000, CRC(4247b39e) SHA1(f273931293beced312e02c870bf35e9cf0c91a8b) )
-	ROM_LOAD( "u39.bin", 0x400000, 0x400000, CRC(f9f07faf) SHA1(66fc4a9ad422fb384d2c775e43619137226898fc) )
-	ROM_LOAD( "u40.bin", 0x800000, 0x400000, CRC(dc9e0a96) SHA1(c2c8ccf9039ee0e179b08fdd2d37f29899349cda) )
-	ROM_FILL(            0xc00000, 0x400000, 0x00 )    // 6bpp instead of 8bpp
+	ROM_LOAD( "a-blast_jpn_u38.u38", 0x000000, 0x400000, CRC(4247b39e) SHA1(f273931293beced312e02c870bf35e9cf0c91a8b) )
+	ROM_LOAD( "a-blast_jpn_u39.u39", 0x400000, 0x400000, CRC(f9f07faf) SHA1(66fc4a9ad422fb384d2c775e43619137226898fc) )
+	ROM_LOAD( "a-blast_jpn_u40.u40", 0x800000, 0x400000, CRC(dc9e0a96) SHA1(c2c8ccf9039ee0e179b08fdd2d37f29899349cda) )
+	ROM_FILL(                        0xc00000, 0x400000, 0x00 )    // 6bpp instead of 8bpp
 
 	ROM_REGION( 0x300000, "x1snd", 0 )  // Samples
 	// Leave 1MB empty (addressable by the chip)
-	ROM_LOAD( "u18.bin", 0x100000, 0x200000, CRC(de4e65e2) SHA1(82d4e590c714b3e9bf0ffaf1500deb24fd315595) )
+	ROM_LOAD( "a-blast_jpn_u18.u18", 0x100000, 0x200000, CRC(de4e65e2) SHA1(82d4e590c714b3e9bf0ffaf1500deb24fd315595) )
 ROM_END
 
-// bootleg PCB with standard 68000 instead of TMP68301 and 4 FPGAs (3 A40MX04 and 1 A54SX16A)
+ROM_START( ablast ) // Genuine P0-142A PCB & original ROM labels
+	ROM_REGION( 0x100000, "maincpu", 0 )    // TMP68301 Code
+	ROM_LOAD16_BYTE( "a-blast_twn_u06.u06", 0x000000, 0x080000, CRC(e62156d7) SHA1(509fd41a0109dc5c00d83250383d578fd75502f3) )
+	ROM_LOAD16_BYTE( "a-blast_twn_u07.u07", 0x000001, 0x080000, CRC(d4ddc16b) SHA1(63312ce9ec6dffb47aa6aed505f077f20713e5ac) )
 
-ROM_START( penbrosk )
+	ROM_REGION( 0x1000000, "sprites", 0 )   // Sprites
+	ROM_LOAD( "a-blast_twn_u38.u38", 0x000000, 0x400000, CRC(090923da) SHA1(c1eaa8847fe183819af040d97d0e6d1cd9928991) )
+	ROM_LOAD( "a-blast_twn_u39.u39", 0x400000, 0x400000, CRC(6bb17d83) SHA1(b53d8cfc3833df937b92993f9eca17c805c5f58d) )
+	ROM_LOAD( "a-blast_twn_u40.u40", 0x800000, 0x400000, CRC(db94847d) SHA1(fd2e29a45bb0acbd9e709256c7fc27bdd64a6634) )
+	ROM_FILL(                        0xc00000, 0x400000, 0x00 )    // 6bpp instead of 8bpp
+
+	ROM_REGION( 0x300000, "x1snd", 0 )  // Samples
+	// Leave 1MB empty (addressable by the chip)
+	ROM_LOAD( "a-blast_twn_u18.u18", 0x100000, 0x200000, CRC(de4e65e2) SHA1(82d4e590c714b3e9bf0ffaf1500deb24fd315595) )
+ROM_END
+
+ROM_START( ablastb ) // bootleg PCB with standard 68000 instead of TMP68301 and 4 FPGAs (3 A40MX04 and 1 A54SX16A)
 	ROM_REGION( 0x100000, "maincpu", 0 )
 	ROM_LOAD16_WORD_SWAP( "1.bin", 0x000000, 0x100000, CRC(4adbd826) SHA1(004e3d0d5cb44c00283bc02f6d727e023690226d) )
 
@@ -3500,11 +3521,10 @@ ROM_START( penbrosk )
 	ROM_LOAD( "2.bin", 0x000000, 0x400000, CRC(090923da) SHA1(c1eaa8847fe183819af040d97d0e6d1cd9928991) )
 	ROM_LOAD( "3.bin", 0x400000, 0x400000, CRC(6bb17d83) SHA1(b53d8cfc3833df937b92993f9eca17c805c5f58d) )
 	ROM_LOAD( "4.bin", 0x800000, 0x400000, CRC(db94847d) SHA1(fd2e29a45bb0acbd9e709256c7fc27bdd64a6634) )
-	ROM_FILL(            0xc00000, 0x400000, 0x00 )    // 6bpp instead of 8bpp
+	ROM_FILL(          0xc00000, 0x400000, 0x00 )    // 6bpp instead of 8bpp
 
-	ROM_REGION( 0x300000, "x1snd", 0 )  // Samples
-	// Leave 1MB empty (addressable by the chip)
-	ROM_LOAD( "29F1610.bin", 0x100000, 0x200000, CRC(de4e65e2) SHA1(82d4e590c714b3e9bf0ffaf1500deb24fd315595) )
+	ROM_REGION( 0x200000, "x1snd", 0 )  // Samples. ROM content matches the penbros' one, but there's no proper X1-010 on the PCB. Possibly one of the FPGAs acts as a substitute?
+	ROM_LOAD( "29F1610.bin", 0x000000, 0x200000, CRC(de4e65e2) SHA1(82d4e590c714b3e9bf0ffaf1500deb24fd315595) )
 ROM_END
 
 /***************************************************************************
@@ -4088,7 +4108,7 @@ ROM_END
 
    CPU: Toshiba TMP68301AF-16 (100 Pin PQFP @ U1)
  Video: Allumer X1-020 9426HK003 (@ U9 - Same as DX-101?)
-        NEC DX-102               (52 Pin PQFP @ U8) 
+        NEC DX-102               (52 Pin PQFP @ U8)
         Allumer X1-007 505100    (SDIP42 @ U110 - Feeds RGB DACs)
  Sound: X1-010 (Mitsubishi M60016 Gate Array, 80 Pin PQFP @ U26)
 Inputs: Allumer X1-004 546100    (SDIP52)
@@ -4136,7 +4156,8 @@ GAME( 199?, endrichs,  0,        reelquak, endrichs, seta2_state, 0,        ROT0
 GAME( 1997, staraudi,  0,        staraudi, staraudi, staraudi_state, 0,     ROT0,   "Namco",                 "Star Audition",                                MACHINE_NO_COCKTAIL | MACHINE_IMPERFECT_GRAPHICS | MACHINE_IMPERFECT_SOUND )
 GAME( 1999, pzlbowl,   0,        pzlbowl,  pzlbowl,  seta2_state, 0,        ROT0,   "MOSS / Nihon System",   "Puzzle De Bowling (Japan)",                    MACHINE_NO_COCKTAIL )
 GAME( 2000, penbros,   0,        penbros,  penbros,  seta2_state, 0,        ROT0,   "Subsino",               "Penguin Brothers (Japan)",                     MACHINE_NO_COCKTAIL )
-GAME( 2000, penbrosk,  penbros,  penbrosk, penbros,  seta2_state, 0,        ROT0,   "bootleg",               "Penguin Brothers (Japan, bootleg)",            MACHINE_NO_COCKTAIL | MACHINE_NOT_WORKING )
+GAME( 2000, ablast,    penbros,  penbros,  penbros,  seta2_state, 0,        ROT0,   "Subsino",               "A-Blast (Japan)",                              MACHINE_NO_COCKTAIL )
+GAME( 2000, ablastb,   penbros,  ablastb,  penbros,  seta2_state, 0,        ROT0,   "bootleg",               "A-Blast (bootleg)",                            MACHINE_NO_COCKTAIL | MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND  ) // at least "tilemap sprite" scrolly flag differs, FPGA instead of x1-010
 GAME( 2000, namcostr,  0,        namcostr, funcube,  seta2_state, 0,        ROT0,   "Namco",                 "Namco Stars",                                  MACHINE_NO_COCKTAIL | MACHINE_NOT_WORKING )
 GAME( 2000, deerhunt,  0,        samshoot, deerhunt, seta2_state, 0,        ROT0,   "Sammy USA Corporation", "Deer Hunting USA V4.3",                        MACHINE_NO_COCKTAIL | MACHINE_IMPERFECT_GRAPHICS )
 GAME( 2000, deerhunta, deerhunt, samshoot, deerhunt, seta2_state, 0,        ROT0,   "Sammy USA Corporation", "Deer Hunting USA V4.2",                        MACHINE_NO_COCKTAIL | MACHINE_IMPERFECT_GRAPHICS )

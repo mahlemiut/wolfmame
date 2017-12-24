@@ -25,7 +25,7 @@ TODO:
   YMZ773   AMMS2
   YMZ775   AMMS2B
   YMZ774   AMMS2C   IGS PGM2
-  YMZ776   AMMS3    uses AM3 sample format (.mp3 derivative ?)
+  YMZ776   AMMS3    uses AM3 sample format (modified Ogg?)
 
 ***************************************************************************/
 
@@ -717,7 +717,7 @@ void ymz774_device::sequencer()
 				switch (reg)
 				{
 				case 0xff: // end
-					for (int ch = 0; ch < 16; ch++)	// might be wrong, ie not needed in case of loop
+					for (int ch = 0; ch < 16; ch++) // might be wrong, ie not needed in case of loop
 						if (sequence.stopchan & (1 << ch))
 							m_channels[ch].is_playing = false;
 					if (sequence.loop)

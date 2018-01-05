@@ -46,8 +46,8 @@ namespace {
 }
 
 // **** Constants ****
-constexpr unsigned SYS_CLOCK = 4915200;
-constexpr unsigned VIDEO_DOT_CLOCK   = 21060000;
+constexpr unsigned SYS_CLOCK = XTAL_4_9152MHz;
+constexpr unsigned VIDEO_DOT_CLOCK   = XTAL_21_06MHz;
 constexpr unsigned VIDEO_VIS_ROWS    = 24;
 constexpr unsigned VIDEO_TOT_ROWS    = 25;
 constexpr unsigned VIDEO_VIS_COLS    = 80;
@@ -358,7 +358,7 @@ void hp2645_state::video_fill_buffer(bool buff_idx , unsigned max_cycles)
 	bool curr_iv = false;   // U310-5
 	uint8_t curr_attrs = 0;
 	bool link_lsb = false;
-	uint8_t dma_byte;
+	uint8_t dma_byte = 0;
 
 	for (unsigned i = 0 , mem_cycles = 0; i < VIDEO_VIS_COLS && mem_cycles < max_cycles; mem_cycles++) {
 		if (link_lsb) {

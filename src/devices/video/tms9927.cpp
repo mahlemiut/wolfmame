@@ -32,9 +32,9 @@ static constexpr uint8_t skew_bits_value[4] = { 0, 1, 2, 2 };
 
 
 DEFINE_DEVICE_TYPE(TMS9927, tms9927_device, "tms9927", "TMS9927 VTC")
-DEFINE_DEVICE_TYPE(CRT5027, crt5027_device, "crt5027", "CRT5027")
-DEFINE_DEVICE_TYPE(CRT5037, crt5037_device, "crt5037", "CRT5037")
-DEFINE_DEVICE_TYPE(CRT5057, crt5057_device, "crt5057", "CRT5057")
+DEFINE_DEVICE_TYPE(CRT5027, crt5027_device, "crt5027", "CRT5027 VTAC")
+DEFINE_DEVICE_TYPE(CRT5037, crt5037_device, "crt5037", "CRT5037 VTAC")
+DEFINE_DEVICE_TYPE(CRT5057, crt5057_device, "crt5057", "CRT5057 VTAC")
 
 tms9927_device::tms9927_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock)
 	: tms9927_device(mconfig, TMS9927, tag, owner, clock)
@@ -138,11 +138,11 @@ void tms9927_device::device_timer(emu_timer &timer, device_timer_id id, int para
 
 		if (m_vsyn)
 		{
-			m_vsync_timer->adjust(m_screen->time_until_pos(3));
+			m_vsync_timer->adjust(screen().time_until_pos(3));
 		}
 		else
 		{
-			m_vsync_timer->adjust(m_screen->time_until_pos(0));
+			m_vsync_timer->adjust(screen().time_until_pos(0));
 		}
 		break;
 	}
@@ -178,20 +178,20 @@ void tms9927_device::generic_access(address_space &space, offs_t offset)
 		case 0x0a:  /* Reset */
 			if (!m_reset)
 			{
-				m_screen->update_now();
+				screen().update_now();
 				m_reset = true;
 			}
 			break;
 
 		case 0x0b:  /* Up scroll */
-			m_screen->update_now();
+			screen().update_now();
 			m_start_datarow = (m_start_datarow + 1) % DATA_ROWS_PER_FRAME;
 			break;
 
 		case 0x0e:  /* Start timing chain */
 			if (m_reset)
 			{
-				m_screen->update_now();
+				screen().update_now();
 				m_reset = false;
 				recompute_parameters(false);
 			}
@@ -216,7 +216,6 @@ WRITE8_MEMBER( tms9927_device::write )
 
 		case 0x0c:  /* LOAD CURSOR CHARACTER ADDRESS */
 		case 0x0d:  /* LOAD CURSOR ROW ADDRESS */
-osd_printf_debug("Cursor address changed\n");
 			m_reg[offset - 0x0c + 7] = data;
 			/* Recomputing parameters here will break the scrollup on the Attachè
 			   and probably other machines due to m_start_datarow being reset ! */
@@ -243,6 +242,12 @@ READ8_MEMBER( tms9927_device::read )
 			break;
 	}
 	return 0xff;
+}
+
+
+READ_LINE_MEMBER(tms9927_device::bl_r)
+{
+	return (screen().vblank() || screen().hblank()) ? 1 : 0;
 }
 
 
@@ -317,9 +322,9 @@ void tms9927_device::recompute_parameters(bool postload)
 
 	refresh = HZ_TO_ATTOSECONDS(m_clock) * m_total_hpix * m_total_vpix;
 
-	m_screen->configure(m_total_hpix, m_total_vpix, visarea, refresh);
+	screen().configure(m_total_hpix, m_total_vpix, visarea, refresh);
 
 	m_vsyn = 0;
-	m_vsync_timer->adjust(m_screen->time_until_pos(0, 0));
+	m_vsync_timer->adjust(screen().time_until_pos(0, 0));
 
 }

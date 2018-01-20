@@ -598,8 +598,12 @@ MACHINE_START_MEMBER(route16_state, ttmahjng)
 	save_item(NAME(m_ttmahjng_port_select));
 }
 
+DRIVER_INIT_MEMBER(route16_state, route16)
+{
+	save_item(NAME(m_protection_data));
+}
 
-static MACHINE_CONFIG_START( route16 )
+MACHINE_CONFIG_START(route16_state::route16)
 
 	/* basic machine hardware */
 	MCFG_CPU_ADD("cpu1", Z80, 2500000)  /* 10MHz / 4 = 2.5MHz */
@@ -627,7 +631,7 @@ static MACHINE_CONFIG_START( route16 )
 MACHINE_CONFIG_END
 
 
-static MACHINE_CONFIG_DERIVED( routex, route16 )
+MACHINE_CONFIG_DERIVED(route16_state::routex, route16)
 
 	/* basic machine hardware */
 	MCFG_CPU_MODIFY("cpu1")
@@ -635,7 +639,7 @@ static MACHINE_CONFIG_DERIVED( routex, route16 )
 MACHINE_CONFIG_END
 
 
-static MACHINE_CONFIG_DERIVED( stratvox, route16 )
+MACHINE_CONFIG_DERIVED(route16_state::stratvox, route16)
 
 	/* basic machine hardware */
 	MCFG_CPU_MODIFY("cpu1")
@@ -675,7 +679,7 @@ static MACHINE_CONFIG_DERIVED( stratvox, route16 )
 MACHINE_CONFIG_END
 
 
-static MACHINE_CONFIG_DERIVED( speakres, stratvox )
+MACHINE_CONFIG_DERIVED(route16_state::speakres, stratvox)
 
 	/* basic machine hardware */
 	MCFG_CPU_MODIFY("cpu1")
@@ -685,7 +689,7 @@ static MACHINE_CONFIG_DERIVED( speakres, stratvox )
 MACHINE_CONFIG_END
 
 
-static MACHINE_CONFIG_DERIVED( spacecho, speakres )
+MACHINE_CONFIG_DERIVED(route16_state::spacecho, speakres)
 
 	/* basic machine hardware */
 	MCFG_CPU_MODIFY("cpu2")
@@ -693,7 +697,7 @@ static MACHINE_CONFIG_DERIVED( spacecho, speakres )
 MACHINE_CONFIG_END
 
 
-static MACHINE_CONFIG_DERIVED( ttmahjng, route16 )
+MACHINE_CONFIG_DERIVED(route16_state::ttmahjng, route16)
 	MCFG_CPU_MODIFY("cpu1")
 	MCFG_CPU_PROGRAM_MAP(ttmahjng_cpu1_map)
 	MCFG_CPU_IO_MAP(0)
@@ -1075,9 +1079,9 @@ READ8_MEMBER(route16_state::route16_prot_read)
  *
  *************************************/
 
-GAME( 1981, route16,  0,        route16,  route16,  route16_state, 0,        ROT270, "Tehkan / Sun Electronics (Centuri license)", "Route 16 (set 1)", MACHINE_SUPPORTS_SAVE )
-GAME( 1981, route16a, route16,  route16,  route16,  route16_state, 0,        ROT270, "Tehkan / Sun Electronics (Centuri license)", "Route 16 (set 2)", MACHINE_SUPPORTS_SAVE )
-GAME( 1981, route16c, route16,  route16,  route16,  route16_state, 0,        ROT270, "Tehkan / Sun Electronics (Centuri license)", "Route 16 (set 3, bootleg?)", MACHINE_SUPPORTS_SAVE ) // similar to set 1 but with some protection removed?
+GAME( 1981, route16,  0,        route16,  route16,  route16_state, route16,  ROT270, "Tehkan / Sun Electronics (Centuri license)", "Route 16 (set 1)", MACHINE_SUPPORTS_SAVE )
+GAME( 1981, route16a, route16,  route16,  route16,  route16_state, route16,  ROT270, "Tehkan / Sun Electronics (Centuri license)", "Route 16 (set 2)", MACHINE_SUPPORTS_SAVE )
+GAME( 1981, route16c, route16,  route16,  route16,  route16_state, route16,  ROT270, "Tehkan / Sun Electronics (Centuri license)", "Route 16 (set 3, bootleg?)", MACHINE_SUPPORTS_SAVE ) // similar to set 1 but with some protection removed?
 GAME( 1981, route16bl,route16,  route16,  route16,  route16_state, 0,        ROT270, "bootleg (Leisure and Allied)",               "Route 16 (bootleg)", MACHINE_SUPPORTS_SAVE )
 GAME( 1981, routex,   route16,  routex,   route16,  route16_state, 0,        ROT270, "bootleg",                                    "Route X (bootleg)", MACHINE_SUPPORTS_SAVE )
 

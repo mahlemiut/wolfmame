@@ -2131,7 +2131,7 @@ ADDRESS_MAP_END
 #define VIDEO_CLOCK         XTAL_32MHz
 
 /* original Model 2 */
-static MACHINE_CONFIG_START( model2o )
+MACHINE_CONFIG_START(model2_state::model2o)
 	MCFG_CPU_ADD("maincpu", I960, 25000000)
 	MCFG_CPU_PROGRAM_MAP(model2o_mem)
 	MCFG_TIMER_DRIVER_ADD_SCANLINE("scantimer", model2_state, model2_interrupt, "screen", 0, 1)
@@ -2213,7 +2213,7 @@ static ADDRESS_MAP_START( drive_io_map, AS_IO, 8, model2_state )
 	AM_RANGE(0x80, 0x83) AM_DEVREADWRITE("driveadc", msm6253_device, d0_r, address_w)
 ADDRESS_MAP_END
 
-static MACHINE_CONFIG_START( sj25_0207_01 )
+MACHINE_CONFIG_START(model2_state::sj25_0207_01)
 	MCFG_CPU_ADD("drivecpu", Z80, XTAL_8MHz/2) // confirmed
 	MCFG_CPU_PROGRAM_MAP(drive_map)
 	MCFG_CPU_IO_MAP(drive_io_map)
@@ -2229,12 +2229,12 @@ static MACHINE_CONFIG_START( sj25_0207_01 )
 	MCFG_DEVICE_ADD("driveadc", MSM6253, 0)
 MACHINE_CONFIG_END
 
-static MACHINE_CONFIG_DERIVED( daytona, model2o )
+MACHINE_CONFIG_DERIVED(model2_state::daytona, model2o)
 	MCFG_FRAGMENT_ADD(sj25_0207_01)
 MACHINE_CONFIG_END
 
 /* 2A-CRX */
-static MACHINE_CONFIG_START( model2a )
+MACHINE_CONFIG_START(model2_state::model2a)
 	MCFG_CPU_ADD("maincpu", I960, 25000000)
 	MCFG_CPU_PROGRAM_MAP(model2a_crx_mem)
 	MCFG_TIMER_DRIVER_ADD_SCANLINE("scantimer", model2_state, model2_interrupt, "screen", 0, 1)
@@ -2292,11 +2292,11 @@ static MACHINE_CONFIG_START( model2a )
 	MCFG_M2COMM_ADD("m2comm")
 MACHINE_CONFIG_END
 
-static MACHINE_CONFIG_DERIVED( manxtt, model2a )
+MACHINE_CONFIG_DERIVED(model2_state::manxtt, model2a)
 	MCFG_MACHINE_START_OVERRIDE(model2_state,srallyc)
 MACHINE_CONFIG_END
 
-static MACHINE_CONFIG_DERIVED( manxttdx, manxtt ) /* Includes a Model 1 Sound board for additional sounds - Deluxe version only */
+MACHINE_CONFIG_DERIVED(model2_state::manxttdx, manxtt) /* Includes a Model 1 Sound board for additional sounds - Deluxe version only */
 	MCFG_SEGAM1AUDIO_ADD("m1audio")
 	MCFG_SEGAM1AUDIO_RXD_HANDLER(DEVWRITELINE("uart", i8251_device, write_rxd))
 
@@ -2310,23 +2310,23 @@ uint16_t model2_state::crypt_read_callback(uint32_t addr)
 	return ((dat&0xff00)>>8)|((dat&0x00ff)<<8);
 }
 
-static MACHINE_CONFIG_DERIVED( model2a_5881, model2a )
+MACHINE_CONFIG_DERIVED(model2_state::model2a_5881, model2a)
 	MCFG_DEVICE_ADD("315_5881", SEGA315_5881_CRYPT, 0)
 	MCFG_SET_READ_CALLBACK(model2_state, crypt_read_callback)
 MACHINE_CONFIG_END
 
-static MACHINE_CONFIG_DERIVED( model2a_0229, model2a )
+MACHINE_CONFIG_DERIVED(model2_state::model2a_0229, model2a)
 	MCFG_DEVICE_ADD("317_0229", SEGA315_5838_COMP, 0)
 //  MCFG_SET_5838_READ_CALLBACK(model2_state, crypt_read_callback)
 MACHINE_CONFIG_END
 
-static MACHINE_CONFIG_DERIVED( srallyc, model2a )
+MACHINE_CONFIG_DERIVED(model2_state::srallyc, model2a)
 	MCFG_MACHINE_START_OVERRIDE(model2_state,srallyc)
 	MCFG_FRAGMENT_ADD(sj25_0207_01)
 MACHINE_CONFIG_END
 
 /* 2B-CRX */
-static MACHINE_CONFIG_START( model2b )
+MACHINE_CONFIG_START(model2_state::model2b)
 	MCFG_CPU_ADD("maincpu", I960, 25000000)
 	MCFG_CPU_PROGRAM_MAP(model2b_crx_mem)
 	MCFG_TIMER_DRIVER_ADD_SCANLINE("scantimer", model2_state, model2_interrupt, "screen", 0, 1)
@@ -2388,17 +2388,17 @@ static MACHINE_CONFIG_START( model2b )
 MACHINE_CONFIG_END
 
 
-static MACHINE_CONFIG_DERIVED( model2b_5881, model2b )
+MACHINE_CONFIG_DERIVED(model2_state::model2b_5881, model2b)
 	MCFG_DEVICE_ADD("315_5881", SEGA315_5881_CRYPT, 0)
 	MCFG_SET_READ_CALLBACK(model2_state, crypt_read_callback)
 MACHINE_CONFIG_END
 
-static MACHINE_CONFIG_DERIVED( model2b_0229, model2b )
+MACHINE_CONFIG_DERIVED(model2_state::model2b_0229, model2b)
 	MCFG_DEVICE_ADD("317_0229", SEGA315_5838_COMP, 0)
 //  MCFG_SET_5838_READ_CALLBACK(model2_state, crypt_read_callback)
 MACHINE_CONFIG_END
 
-static MACHINE_CONFIG_DERIVED( indy500, model2b )
+MACHINE_CONFIG_DERIVED(model2_state::indy500, model2b)
 	MCFG_MACHINE_START_OVERRIDE(model2_state,srallyc)
 MACHINE_CONFIG_END
 
@@ -2413,7 +2413,7 @@ static ADDRESS_MAP_START( rchase2_ioport_map, AS_IO, 8, model2_state )
 	AM_RANGE(0x00, 0x07) AM_DEVREADWRITE("ioexp", cxd1095_device, read, write)
 ADDRESS_MAP_END
 
-static MACHINE_CONFIG_DERIVED( rchase2, model2b )
+MACHINE_CONFIG_DERIVED(model2_state::rchase2, model2b)
 	MCFG_CPU_ADD("iocpu", Z80, 4000000)
 	MCFG_CPU_PROGRAM_MAP(rchase2_iocpu_map)
 	MCFG_CPU_IO_MAP(rchase2_ioport_map)
@@ -2427,7 +2427,7 @@ static ADDRESS_MAP_START( copro_tgpx4_map, AS_PROGRAM, 64, model2_state )
 ADDRESS_MAP_END
 
 /* 2C-CRX */
-static MACHINE_CONFIG_START( model2c )
+MACHINE_CONFIG_START(model2_state::model2c)
 	MCFG_CPU_ADD("maincpu", I960, 25000000)
 	MCFG_CPU_PROGRAM_MAP(model2c_crx_mem)
 	MCFG_TIMER_DRIVER_ADD_SCANLINE("scantimer", model2_state, model2c_interrupt, "screen", 0, 1)
@@ -2481,7 +2481,7 @@ static MACHINE_CONFIG_START( model2c )
 	MCFG_M2COMM_ADD("m2comm")
 MACHINE_CONFIG_END
 
-static MACHINE_CONFIG_DERIVED( stcc, model2c )
+MACHINE_CONFIG_DERIVED(model2_state::stcc, model2c)
 	MCFG_DSBZ80_ADD(DSBZ80_TAG)
 	MCFG_SOUND_ROUTE(0, "lspeaker", 1.0)
 	MCFG_SOUND_ROUTE(1, "rspeaker", 1.0)
@@ -2490,12 +2490,12 @@ static MACHINE_CONFIG_DERIVED( stcc, model2c )
 	MCFG_I8251_TXD_HANDLER(DEVWRITELINE(DSBZ80_TAG, dsbz80_device, write_txd))
 MACHINE_CONFIG_END
 
-static MACHINE_CONFIG_DERIVED( model2c_5881, model2c )
+MACHINE_CONFIG_DERIVED(model2_state::model2c_5881, model2c)
 	MCFG_DEVICE_ADD("315_5881", SEGA315_5881_CRYPT, 0)
 	MCFG_SET_READ_CALLBACK(model2_state, crypt_read_callback)
 MACHINE_CONFIG_END
 
-static MACHINE_CONFIG_DERIVED( overrev2c, model2c )
+MACHINE_CONFIG_DERIVED(model2_state::overrev2c, model2c)
 	MCFG_MACHINE_START_OVERRIDE(model2_state,srallyc)
 MACHINE_CONFIG_END
 
@@ -5279,7 +5279,7 @@ ROM_START( dynabb97 ) /* Dynamite Baseball 97 Revision A, Model 2B */
 	ROM_LOAD("mpr-19853.35", 0x600000, 0x200000, CRC(cfc64857) SHA1(cf51fafb3d45bf799b9ccb407bee862e15c95981) )
 ROM_END
 
-ROM_START( fvipers ) /* Fighting Vipers Revision D, Model 2B */
+ROM_START( fvipers ) /* Fighting Vipers Revision D, Model 2B, Sega Game ID# 833-12359 REV.D FIGHTING VIPERS, ROM board ID# 834-12360 */
 	ROM_REGION( 0x200000, "maincpu", 0 ) // i960 program
 	ROM_LOAD32_WORD("epr-18606d.15", 0x000000, 0x020000, CRC(7334de7d) SHA1(d10355198a3f62b503701f44dc49bfe018c787d1) )
 	ROM_LOAD32_WORD("epr-18607d.16", 0x000002, 0x020000, CRC(700d2ade) SHA1(656e25a6389f04f7fb9099f0b41fb03fa645a2f0) )
@@ -5338,7 +5338,7 @@ ROM_START( fvipers ) /* Fighting Vipers Revision D, Model 2B */
 	ROM_LOAD("mpr-18632.35", 0x600000, 0x200000, CRC(39da6805) SHA1(9e9523b7c2bc50f869d062f80955da1281951299) )
 ROM_END
 
-ROM_START( fvipersb ) /* Fighting Vipers Revision B, Model 2B */
+ROM_START( fvipersb ) /* Fighting Vipers Revision B, Model 2B, Sega Game ID# 833-12359 FIGHTING VIPERS, ROM board ID# 834-12360 */
 	ROM_REGION( 0x200000, "maincpu", 0 ) // i960 program
 	ROM_LOAD32_WORD("epr-18606b.15", 0x000000, 0x020000, CRC(3b6d1697) SHA1(569ea2ed5c3431207854d260c8ed5266d8d39595) )
 	ROM_LOAD32_WORD("epr-18607b.16", 0x000002, 0x020000, CRC(2e6c2d91) SHA1(226ea4cca475f708e42591b57eb0a996c214ab29) )

@@ -638,6 +638,7 @@ looping.cpp
 lordgun.cpp
 lsasquad.cpp
 ltcasino.cpp
+luckybal.cpp
 ltd.cpp
 luckgrln.cpp
 lucky74.cpp
@@ -937,6 +938,7 @@ quakeat.cpp
 quantum.cpp
 quasar.cpp
 queen.cpp
+quickpick5.cpp
 quizdna.cpp
 quizo.cpp
 quizpani.cpp
@@ -1144,6 +1146,7 @@ statriv2.cpp
 stellafr.cpp
 stfight.cpp
 stlforce.cpp
+strkzn.cpp
 strnskil.cpp
 stuntair.cpp
 stv.cpp

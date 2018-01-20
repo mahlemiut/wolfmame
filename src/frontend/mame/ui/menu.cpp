@@ -262,7 +262,7 @@ menu::~menu()
 	{
 		pool *const ppool = m_pool;
 		m_pool = m_pool->next;
-		global_free(ppool);
+		global_free_array(ppool);
 	}
 }
 

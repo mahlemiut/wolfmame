@@ -261,7 +261,7 @@ DEFINE_DEVICE_TYPE(ISA8_CGA, isa8_cga_device, "cga", "IBM Color/Graphics Monitor
 //  device_add_mconfig - add device configuration
 //-------------------------------------------------
 
-MACHINE_CONFIG_MEMBER( isa8_cga_device::device_add_mconfig )
+MACHINE_CONFIG_START(isa8_cga_device::device_add_mconfig)
 	MCFG_SCREEN_ADD(CGA_SCREEN_NAME, RASTER)
 	MCFG_SCREEN_RAW_PARAMS(XTAL_14_31818MHz,912,0,640,262,0,200)
 	MCFG_SCREEN_UPDATE_DEVICE( DEVICE_SELF, isa8_cga_device, screen_update )
@@ -1701,7 +1701,7 @@ const tiny_rom_entry *isa8_cga_mc1502_device::device_rom_region() const
 
 DEFINE_DEVICE_TYPE(ISA8_CGA_M24, isa8_cga_m24_device, "cga_m24", "Olivetti M24 CGA")
 
-MACHINE_CONFIG_MEMBER( isa8_cga_m24_device::device_add_mconfig )
+MACHINE_CONFIG_START(isa8_cga_m24_device::device_add_mconfig)
 	isa8_cga_device::device_add_mconfig(config);
 
 	MCFG_DEVICE_MODIFY(CGA_SCREEN_NAME)
@@ -1813,7 +1813,10 @@ READ8_MEMBER( isa8_cga_m24_device::io_read )
 MC6845_UPDATE_ROW(isa8_cga_m24_device::crtc_update_row)
 {
 	if(m_mode2 & 1)
+	{
 		m24_gfx_1bpp_m24_update_row(bitmap, cliprect, ma, ra, y, x_count, cursor_x, de, hbp, vbp);
+		return;
+	}
 
 	if (m_update_row_type == -1)
 		return;
@@ -1893,7 +1896,7 @@ MC6845_UPDATE_ROW( isa8_cga_m24_device::m24_gfx_1bpp_m24_update_row )
 
 DEFINE_DEVICE_TYPE(ISA8_CGA_CPORTIII, isa8_cga_cportiii_device, "cga_cportiii", "Compaq Portable III CGA")
 
-MACHINE_CONFIG_MEMBER( isa8_cga_cportiii_device::device_add_mconfig )
+MACHINE_CONFIG_START(isa8_cga_cportiii_device::device_add_mconfig)
 	isa8_cga_m24_device::device_add_mconfig(config);
 
 	MCFG_DEVICE_MODIFY(CGA_SCREEN_NAME)

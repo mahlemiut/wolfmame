@@ -234,6 +234,7 @@ public:
 	{
 		m_inp_lines = 3;
 	}
+	void kdribble(machine_config &config);
 };
 
 // config
@@ -259,10 +260,11 @@ static INPUT_PORTS_START( kdribble )
 	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_SERVICE1 ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, acl_button, nullptr) PORT_NAME("All Clear")
 INPUT_PORTS_END
 
-static MACHINE_CONFIG_START( kdribble )
+MACHINE_CONFIG_START(kdribble_state::kdribble)
 
 	/* basic machine hardware */
 	MCFG_CPU_ADD("maincpu", SM510, XTAL_32_768kHz)
+	MCFG_SM510_R_MASK_OPTION(2) // confirmed
 	MCFG_SM510_WRITE_SEGS_CB(WRITE16(hh_sm510_state, sm510_lcd_segment_w))
 	MCFG_SM510_READ_K_CB(READ8(hh_sm510_state, input_r))
 	MCFG_SM510_WRITE_S_CB(WRITE8(hh_sm510_state, input_w))
@@ -304,6 +306,7 @@ public:
 	{
 		m_inp_lines = 3;
 	}
+	void ktopgun(machine_config &config);
 };
 
 // config
@@ -329,10 +332,11 @@ static INPUT_PORTS_START( ktopgun )
 	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_SERVICE1 ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, acl_button, nullptr) PORT_NAME("All Clear")
 INPUT_PORTS_END
 
-static MACHINE_CONFIG_START( ktopgun )
+MACHINE_CONFIG_START(ktopgun_state::ktopgun)
 
 	/* basic machine hardware */
 	MCFG_CPU_ADD("maincpu", SM510, XTAL_32_768kHz)
+	MCFG_SM510_R_MASK_OPTION(2) // confirmed
 	MCFG_SM510_WRITE_SEGS_CB(WRITE16(hh_sm510_state, sm510_lcd_segment_w))
 	MCFG_SM510_READ_K_CB(READ8(hh_sm510_state, input_r))
 	MCFG_SM510_WRITE_S_CB(WRITE8(hh_sm510_state, input_w))
@@ -376,6 +380,7 @@ public:
 	{
 		m_inp_lines = 3;
 	}
+	void kcontra(machine_config &config);
 };
 
 // config
@@ -401,7 +406,7 @@ static INPUT_PORTS_START( kcontra )
 	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_SERVICE1 ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, acl_button, nullptr) PORT_NAME("All Clear")
 INPUT_PORTS_END
 
-static MACHINE_CONFIG_START( kcontra )
+MACHINE_CONFIG_START(kcontra_state::kcontra)
 
 	/* basic machine hardware */
 	MCFG_CPU_ADD("maincpu", SM511, XTAL_32_768kHz)
@@ -446,6 +451,7 @@ public:
 	{
 		m_inp_lines = 3;
 	}
+	void ktmnt(machine_config &config);
 };
 
 // config
@@ -472,7 +478,7 @@ static INPUT_PORTS_START( ktmnt )
 	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_SERVICE1 ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, acl_button, nullptr) PORT_NAME("All Clear")
 INPUT_PORTS_END
 
-static MACHINE_CONFIG_START( ktmnt )
+MACHINE_CONFIG_START(ktmnt_state::ktmnt)
 
 	/* basic machine hardware */
 	MCFG_CPU_ADD("maincpu", SM511, XTAL_32_768kHz)
@@ -519,6 +525,7 @@ public:
 	{
 		m_inp_lines = 2;
 	}
+	void kgradius(machine_config &config);
 };
 
 // config
@@ -540,7 +547,7 @@ static INPUT_PORTS_START( kgradius )
 	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_SERVICE1 ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, acl_button, nullptr) PORT_NAME("All Clear")
 INPUT_PORTS_END
 
-static MACHINE_CONFIG_START( kgradius )
+MACHINE_CONFIG_START(kgradius_state::kgradius)
 
 	/* basic machine hardware */
 	MCFG_CPU_ADD("maincpu", SM511, XTAL_32_768kHz)
@@ -585,6 +592,7 @@ public:
 	{
 		m_inp_lines = 2;
 	}
+	void kloneran(machine_config &config);
 };
 
 // config
@@ -606,7 +614,7 @@ static INPUT_PORTS_START( kloneran )
 	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_SERVICE1 ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, acl_button, nullptr) PORT_NAME("All Clear")
 INPUT_PORTS_END
 
-static MACHINE_CONFIG_START( kloneran )
+MACHINE_CONFIG_START(kloneran_state::kloneran)
 
 	/* basic machine hardware */
 	MCFG_CPU_ADD("maincpu", SM511, XTAL_32_768kHz)
@@ -651,6 +659,7 @@ public:
 	{
 		m_inp_lines = 3;
 	}
+	void kblades(machine_config &config);
 };
 
 // config
@@ -676,7 +685,7 @@ static INPUT_PORTS_START( kblades )
 	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_SERVICE1 ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, acl_button, nullptr) PORT_NAME("All Clear")
 INPUT_PORTS_END
 
-static MACHINE_CONFIG_START( kblades )
+MACHINE_CONFIG_START(kblades_state::kblades)
 
 	/* basic machine hardware */
 	MCFG_CPU_ADD("maincpu", SM511, XTAL_32_768kHz)
@@ -722,6 +731,7 @@ public:
 	{
 		m_inp_lines = 3;
 	}
+	void knfl(machine_config &config);
 };
 
 // config
@@ -747,7 +757,7 @@ static INPUT_PORTS_START( knfl )
 	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_SERVICE1 ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, acl_button, nullptr) PORT_NAME("All Clear")
 INPUT_PORTS_END
 
-static MACHINE_CONFIG_START( knfl )
+MACHINE_CONFIG_START(knfl_state::knfl)
 
 	/* basic machine hardware */
 	MCFG_CPU_ADD("maincpu", SM511, XTAL_32_768kHz)
@@ -790,6 +800,7 @@ public:
 	{
 		m_inp_lines = 3;
 	}
+	void kbilly(machine_config &config);
 };
 
 // config
@@ -817,7 +828,7 @@ static INPUT_PORTS_START( kbilly )
 	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_SERVICE1 ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, acl_button, nullptr) PORT_NAME("All Clear")
 INPUT_PORTS_END
 
-static MACHINE_CONFIG_START( kbilly )
+MACHINE_CONFIG_START(kbilly_state::kbilly)
 
 	/* basic machine hardware */
 	MCFG_CPU_ADD("maincpu", SM511, XTAL_32_768kHz)
@@ -860,6 +871,7 @@ public:
 	{
 		m_inp_lines = 2;
 	}
+	void kbucky(machine_config &config);
 };
 
 // config
@@ -881,7 +893,7 @@ static INPUT_PORTS_START( kbucky )
 	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_SERVICE1 ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, acl_button, nullptr) PORT_NAME("All Clear")
 INPUT_PORTS_END
 
-static MACHINE_CONFIG_START( kbucky )
+MACHINE_CONFIG_START(kbucky_state::kbucky)
 
 	/* basic machine hardware */
 	MCFG_CPU_ADD("maincpu", SM511, XTAL_32_768kHz)
@@ -924,6 +936,7 @@ public:
 	{
 		m_inp_lines = 3;
 	}
+	void kgarfld(machine_config &config);
 };
 
 // config
@@ -949,7 +962,7 @@ static INPUT_PORTS_START( kgarfld )
 	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_SERVICE1 ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, acl_button, nullptr) PORT_NAME("All Clear")
 INPUT_PORTS_END
 
-static MACHINE_CONFIG_START( kgarfld )
+MACHINE_CONFIG_START(kgarfld_state::kgarfld)
 
 	/* basic machine hardware */
 	MCFG_CPU_ADD("maincpu", SM511, XTAL_32_768kHz)
@@ -1001,6 +1014,10 @@ public:
 	{
 		m_inp_lines = 3;
 	}
+	void exospace(machine_config &config);
+	void nupogodi(machine_config &config);
+	void gnw_egg(machine_config &config);
+	void gnw_mmouse(machine_config &config);
 };
 
 // config
@@ -1037,10 +1054,11 @@ static INPUT_PORTS_START( exospace )
 	PORT_BIT( 0x01, IP_ACTIVE_LOW, IPT_UNUSED )
 INPUT_PORTS_END
 
-static MACHINE_CONFIG_START( gnw_mmouse )
+MACHINE_CONFIG_START(gnw_mmouse_state::gnw_mmouse)
 
 	/* basic machine hardware */
 	MCFG_CPU_ADD("maincpu", SM5A, XTAL_32_768kHz)
+	MCFG_SM510_R_MASK_OPTION(SM510_R_CONTROL_OUTPUT) // ?
 	MCFG_SM500_WRITE_O_CB(WRITE8(hh_sm510_state, sm500_lcd_segment_w))
 	MCFG_SM510_READ_K_CB(READ8(hh_sm510_state, input_r))
 	MCFG_SM510_WRITE_R_CB(WRITE8(hh_sm510_state, piezo_input_w))
@@ -1061,7 +1079,7 @@ static MACHINE_CONFIG_START( gnw_mmouse )
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 0.25)
 MACHINE_CONFIG_END
 
-static MACHINE_CONFIG_DERIVED( gnw_egg, gnw_mmouse )
+MACHINE_CONFIG_DERIVED(gnw_mmouse_state::gnw_egg, gnw_mmouse)
 
 	/* video hardware */
 	MCFG_SCREEN_MODIFY("screen")
@@ -1069,10 +1087,11 @@ static MACHINE_CONFIG_DERIVED( gnw_egg, gnw_mmouse )
 	MCFG_SCREEN_VISIBLE_AREA(0, 1694-1, 0, 1080-1)
 MACHINE_CONFIG_END
 
-static MACHINE_CONFIG_DERIVED( nupogodi, gnw_mmouse )
+MACHINE_CONFIG_DERIVED(gnw_mmouse_state::nupogodi, gnw_mmouse)
 
 	/* basic machine hardware */
 	MCFG_CPU_REPLACE("maincpu", KB1013VK12, XTAL_32_768kHz)
+	MCFG_SM510_R_MASK_OPTION(SM510_R_CONTROL_OUTPUT)
 	MCFG_SM500_WRITE_O_CB(WRITE8(hh_sm510_state, sm500_lcd_segment_w))
 	MCFG_SM510_READ_K_CB(READ8(hh_sm510_state, input_r))
 	MCFG_SM510_WRITE_R_CB(WRITE8(hh_sm510_state, piezo_input_w))
@@ -1084,7 +1103,7 @@ static MACHINE_CONFIG_DERIVED( nupogodi, gnw_mmouse )
 	MCFG_SCREEN_VISIBLE_AREA(0, 1715-1, 0, 1080-1)
 MACHINE_CONFIG_END
 
-static MACHINE_CONFIG_DERIVED( exospace, nupogodi )
+MACHINE_CONFIG_DERIVED(gnw_mmouse_state::exospace, nupogodi)
 
 	/* video hardware */
 	MCFG_SCREEN_MODIFY("screen")
@@ -1113,6 +1132,7 @@ public:
 	{
 		m_inp_lines = 2;
 	}
+	void gnw_mickdon(machine_config &config);
 };
 
 // config
@@ -1139,10 +1159,11 @@ static INPUT_PORTS_START( gnw_mickdon )
 	PORT_CONFSETTING(    0x00, DEF_STR( On ) )
 INPUT_PORTS_END
 
-static MACHINE_CONFIG_START( gnw_mickdon )
+MACHINE_CONFIG_START(gnw_mickdon_state::gnw_mickdon)
 
 	/* basic machine hardware */
 	MCFG_CPU_ADD("maincpu", SM510, XTAL_32_768kHz)
+	MCFG_SM510_R_MASK_OPTION(2) // confirmed
 	MCFG_SM510_WRITE_SEGS_CB(WRITE16(hh_sm510_state, sm510_lcd_segment_w))
 	MCFG_SM510_READ_K_CB(READ8(hh_sm510_state, input_r))
 	MCFG_SM510_WRITE_S_CB(WRITE8(hh_sm510_state, input_w))
@@ -1190,6 +1211,7 @@ public:
 	{
 		m_inp_lines = 3;
 	}
+	void gnw_dkong2(machine_config &config);
 };
 
 // config
@@ -1197,7 +1219,7 @@ public:
 static INPUT_PORTS_START( gnw_dkong2 )
 	PORT_START("IN.0") // S1
 	PORT_BIT( 0x07, IP_ACTIVE_HIGH, IPT_UNUSED )
-	PORT_BIT( 0x08, IP_ACTIVE_HIGH, IPT_BUTTON1 ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, input_changed, nullptr)
+	PORT_BIT( 0x08, IP_ACTIVE_HIGH, IPT_BUTTON1 ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, input_changed, nullptr) // Jump
 
 	PORT_START("IN.1") // S2
 	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_JOYSTICK_RIGHT ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, input_changed, nullptr)
@@ -1220,10 +1242,11 @@ static INPUT_PORTS_START( gnw_dkong2 )
 	PORT_CONFSETTING(    0x00, DEF_STR( On ) )
 INPUT_PORTS_END
 
-static MACHINE_CONFIG_START( gnw_dkong2 )
+MACHINE_CONFIG_START(gnw_dkong2_state::gnw_dkong2)
 
 	/* basic machine hardware */
 	MCFG_CPU_ADD("maincpu", SM510, XTAL_32_768kHz)
+	MCFG_SM510_R_MASK_OPTION(2) // confirmed
 	MCFG_SM510_WRITE_SEGS_CB(WRITE16(hh_sm510_state, sm510_lcd_segment_w))
 	MCFG_SM510_READ_K_CB(READ8(hh_sm510_state, input_r))
 	MCFG_SM510_WRITE_S_CB(WRITE8(hh_sm510_state, input_w))
@@ -1271,6 +1294,7 @@ public:
 	{
 		m_inp_lines = 2;
 	}
+	void gnw_mario(machine_config &config);
 };
 
 // config
@@ -1302,10 +1326,11 @@ static INPUT_PORTS_START( gnw_mario )
 	PORT_CONFSETTING(    0x00, DEF_STR( On ) )
 INPUT_PORTS_END
 
-static MACHINE_CONFIG_START( gnw_mario )
+MACHINE_CONFIG_START(gnw_mario_state::gnw_mario)
 
 	/* basic machine hardware */
 	MCFG_CPU_ADD("maincpu", SM510, XTAL_32_768kHz)
+	MCFG_SM510_R_MASK_OPTION(2) // confirmed
 	MCFG_SM510_WRITE_SEGS_CB(WRITE16(hh_sm510_state, sm510_lcd_segment_w))
 	MCFG_SM510_READ_K_CB(READ8(hh_sm510_state, input_r))
 	MCFG_SM510_WRITE_S_CB(WRITE8(hh_sm510_state, input_w))
@@ -1356,6 +1381,7 @@ public:
 	{
 		m_inp_lines = 3;
 	}
+	void gnw_dkjr(machine_config &config);
 };
 
 // config
@@ -1363,7 +1389,7 @@ public:
 static INPUT_PORTS_START( gnw_dkjr )
 	PORT_START("IN.0") // S1
 	PORT_BIT( 0x07, IP_ACTIVE_HIGH, IPT_UNUSED )
-	PORT_BIT( 0x08, IP_ACTIVE_HIGH, IPT_BUTTON1 ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, input_changed, nullptr)
+	PORT_BIT( 0x08, IP_ACTIVE_HIGH, IPT_BUTTON1 ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, input_changed, nullptr) // Jump
 
 	PORT_START("IN.1") // S2
 	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_JOYSTICK_RIGHT ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, input_changed, nullptr)
@@ -1391,10 +1417,11 @@ static INPUT_PORTS_START( gnw_dkjr )
 	PORT_CONFSETTING(    0x00, DEF_STR( On ) )
 INPUT_PORTS_END
 
-static MACHINE_CONFIG_START( gnw_dkjr )
+MACHINE_CONFIG_START(gnw_dkjr_state::gnw_dkjr)
 
 	/* basic machine hardware */
 	MCFG_CPU_ADD("maincpu", SM510, XTAL_32_768kHz)
+	MCFG_SM510_R_MASK_OPTION(2) // confirmed
 	MCFG_SM510_WRITE_SEGS_CB(WRITE16(hh_sm510_state, sm510_lcd_segment_w))
 	MCFG_SM510_READ_K_CB(READ8(hh_sm510_state, input_r))
 	MCFG_SM510_WRITE_S_CB(WRITE8(hh_sm510_state, input_w))
@@ -1439,13 +1466,14 @@ public:
 	{
 		m_inp_lines = 2;
 	}
+	void gnw_mariocm(machine_config &config);
 };
 
 // config
 
 static INPUT_PORTS_START( gnw_mariocm )
 	PORT_START("IN.0") // S1
-	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_BUTTON1 ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, input_changed, nullptr)
+	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_BUTTON1 ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, input_changed, nullptr) // Open
 	PORT_BIT( 0x02, IP_ACTIVE_HIGH, IPT_JOYSTICK_RIGHT ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, input_changed, nullptr) PORT_16WAY
 	PORT_BIT( 0x04, IP_ACTIVE_HIGH, IPT_JOYSTICK_LEFT ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, input_changed, nullptr) PORT_16WAY
 	PORT_BIT( 0x08, IP_ACTIVE_HIGH, IPT_UNUSED )
@@ -1470,10 +1498,11 @@ static INPUT_PORTS_START( gnw_mariocm )
 	PORT_CONFSETTING(    0x00, DEF_STR( On ) )
 INPUT_PORTS_END
 
-static MACHINE_CONFIG_START( gnw_mariocm )
+MACHINE_CONFIG_START(gnw_mariocm_state::gnw_mariocm)
 
 	/* basic machine hardware */
 	MCFG_CPU_ADD("maincpu", SM510, XTAL_32_768kHz)
+	MCFG_SM510_R_MASK_OPTION(2) // confirmed
 	MCFG_SM510_WRITE_SEGS_CB(WRITE16(hh_sm510_state, sm510_lcd_segment_w))
 	MCFG_SM510_READ_K_CB(READ8(hh_sm510_state, input_r))
 	MCFG_SM510_WRITE_S_CB(WRITE8(hh_sm510_state, input_w))
@@ -1486,6 +1515,87 @@ static MACHINE_CONFIG_START( gnw_mariocm )
 	MCFG_SCREEN_REFRESH_RATE(50)
 	MCFG_SCREEN_SIZE(1647, 1080)
 	MCFG_SCREEN_VISIBLE_AREA(0, 1647-1, 0, 1080-1)
+
+	MCFG_TIMER_DRIVER_ADD_PERIODIC("display_decay", hh_sm510_state, display_decay_tick, attotime::from_msec(1))
+	MCFG_DEFAULT_LAYOUT(layout_svg)
+
+	/* sound hardware */
+	MCFG_SPEAKER_STANDARD_MONO("mono")
+	MCFG_SOUND_ADD("speaker", SPEAKER_SOUND, 0)
+	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 0.25)
+MACHINE_CONFIG_END
+
+
+
+
+
+/***************************************************************************
+
+  Nintendo Game & Watch: Super Mario Bros. (model: see below)
+  * Sharp SM511 label YM-105 9024B (new wide screen version) (die label ?)
+  * lcd screen with custom segments, 1-bit sound
+
+  First released in 1986 on Crystal Screen (model YM-801), rereleased on
+  New Wide Screen in 1988 (model YM-105). It was also a prize in a Nintendo
+  game contest in 1987 (model YM-901-S).
+
+***************************************************************************/
+
+class gnw_smb_state : public hh_sm510_state
+{
+public:
+	gnw_smb_state(const machine_config &mconfig, device_type type, const char *tag)
+		: hh_sm510_state(mconfig, type, tag)
+	{
+		m_inp_lines = 3;
+	}
+
+	void gnw_smb(machine_config &config);
+};
+
+// config
+
+static INPUT_PORTS_START( gnw_smb )
+	PORT_START("IN.0") // S1
+	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_SELECT ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, input_changed, nullptr) PORT_NAME("Time")
+	PORT_BIT( 0x02, IP_ACTIVE_HIGH, IPT_START1 ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, input_changed, nullptr) PORT_NAME("Game")
+	PORT_BIT( 0x04, IP_ACTIVE_HIGH, IPT_SERVICE2 ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, input_changed, nullptr) PORT_NAME("Alarm")
+	PORT_BIT( 0x08, IP_ACTIVE_HIGH, IPT_UNUSED )
+
+	PORT_START("IN.1") // S2
+	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_JOYSTICK_UP ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, input_changed, nullptr)
+	PORT_BIT( 0x02, IP_ACTIVE_HIGH, IPT_JOYSTICK_RIGHT ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, input_changed, nullptr)
+	PORT_BIT( 0x04, IP_ACTIVE_HIGH, IPT_JOYSTICK_DOWN ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, input_changed, nullptr)
+	PORT_BIT( 0x08, IP_ACTIVE_HIGH, IPT_JOYSTICK_LEFT ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, input_changed, nullptr)
+
+	PORT_START("IN.2") // S3
+	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_BUTTON1 ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, input_changed, nullptr) // Jump
+	PORT_BIT( 0x0e, IP_ACTIVE_HIGH, IPT_UNUSED )
+
+	PORT_START("ACL")
+	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_SERVICE1 ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, acl_button, nullptr) PORT_NAME("ACL")
+
+	PORT_START("B") // MCU B(beta) pin pulled to GND
+	PORT_CONFNAME( 0x01, 0x01, "Infinite Lives (Cheat)")
+	PORT_CONFSETTING(    0x01, DEF_STR( Off ) )
+	PORT_CONFSETTING(    0x00, DEF_STR( On ) )
+INPUT_PORTS_END
+
+MACHINE_CONFIG_START(gnw_smb_state::gnw_smb)
+
+	/* basic machine hardware */
+	MCFG_CPU_ADD("maincpu", SM511, XTAL_32_768kHz)
+	MCFG_SM510_WRITE_SEGS_CB(WRITE16(hh_sm510_state, sm510_lcd_segment_w))
+	MCFG_SM510_READ_K_CB(READ8(hh_sm510_state, input_r))
+	MCFG_SM510_WRITE_S_CB(WRITE8(hh_sm510_state, input_w))
+	MCFG_SM510_WRITE_R_CB(WRITE8(hh_sm510_state, piezo_r1_w))
+	MCFG_SM510_READ_B_CB(IOPORT("B"))
+
+	/* video hardware */
+	MCFG_SCREEN_SVG_ADD("screen", "svg")
+	MCFG_SCREEN_REFRESH_RATE(50)
+	MCFG_SCREEN_SIZE(1677, 1080)
+	MCFG_SCREEN_VISIBLE_AREA(0, 1677-1, 0, 1080-1)
 
 	MCFG_TIMER_DRIVER_ADD_PERIODIC("display_decay", hh_sm510_state, display_decay_tick, attotime::from_msec(1))
 	MCFG_DEFAULT_LAYOUT(layout_svg)
@@ -1518,6 +1628,7 @@ public:
 	{
 		m_inp_lines = 7;
 	}
+	void gnw_boxing(machine_config &config);
 };
 
 // config
@@ -1571,7 +1682,7 @@ static INPUT_PORTS_START( gnw_boxing )
 	PORT_CONFSETTING(    0x00, DEF_STR( On ) )
 INPUT_PORTS_END
 
-static MACHINE_CONFIG_START( gnw_boxing )
+MACHINE_CONFIG_START(gnw_boxing_state::gnw_boxing)
 
 	/* basic machine hardware */
 	MCFG_CPU_ADD("maincpu", SM511, XTAL_32_768kHz)
@@ -1625,6 +1736,8 @@ public:
 		m_inp_lines = 6;
 		m_inp_fixed = 6;
 	}
+	void trobhood(machine_config &config);
+	void tgaunt(machine_config &config);
 };
 
 // config
@@ -1678,15 +1791,15 @@ static INPUT_PORTS_START( trobhood )
 	PORT_BIT( 0x02, IP_ACTIVE_HIGH, IPT_BUTTON3 ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, input_changed, nullptr) PORT_NAME("Money")
 INPUT_PORTS_END
 
-static MACHINE_CONFIG_START( tgaunt )
+MACHINE_CONFIG_START(tgaunt_state::tgaunt)
 
 	/* basic machine hardware */
 	MCFG_CPU_ADD("maincpu", SM510, XTAL_32_768kHz)
+	MCFG_SM510_R_MASK_OPTION(SM510_R_CONTROL_OUTPUT)
 	MCFG_SM510_WRITE_SEGS_CB(WRITE16(hh_sm510_state, sm510_lcd_segment_w))
 	MCFG_SM510_READ_K_CB(READ8(hh_sm510_state, input_r))
 	MCFG_SM510_WRITE_S_CB(WRITE8(hh_sm510_state, input_w))
 	MCFG_SM510_WRITE_R_CB(WRITE8(hh_sm510_state, piezo_r1_w))
-	MCFG_SM510_R_DIRECT_CONTROL(true)
 	MCFG_SM510_READ_BA_CB(IOPORT("BA"))
 	MCFG_SM510_READ_B_CB(IOPORT("B"))
 
@@ -1705,7 +1818,7 @@ static MACHINE_CONFIG_START( tgaunt )
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 0.25)
 MACHINE_CONFIG_END
 
-static MACHINE_CONFIG_DERIVED( trobhood, tgaunt )
+MACHINE_CONFIG_DERIVED(tgaunt_state::trobhood, tgaunt)
 
 	/* video hardware */
 	MCFG_SCREEN_MODIFY("screen")
@@ -1720,8 +1833,11 @@ MACHINE_CONFIG_END
 /***************************************************************************
 
   Tiger Double Dragon (model 7-780)
-  * Sharp SM510 under epoxy (die label CMS54C, KMS570, KMS593)
+  * Sharp SM510 under epoxy (die label CMS54C, KMS570, 593)
   * lcd screen with custom segments, 1-bit sound
+
+  BTANB: On the baddie in the background throwing dynamite, the sparks
+  above his head are the same segment as the body, not the arm.
 
 ***************************************************************************/
 
@@ -1734,6 +1850,7 @@ public:
 		m_inp_lines = 5;
 		m_inp_fixed = 5;
 	}
+	void tddragon(machine_config &config);
 };
 
 // config
@@ -1775,15 +1892,15 @@ static INPUT_PORTS_START( tddragon )
 	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_SERVICE1 ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, acl_button, nullptr) PORT_NAME("ACL")
 INPUT_PORTS_END
 
-static MACHINE_CONFIG_START( tddragon )
+MACHINE_CONFIG_START(tddragon_state::tddragon)
 
 	/* basic machine hardware */
 	MCFG_CPU_ADD("maincpu", SM510, XTAL_32_768kHz)
+	MCFG_SM510_R_MASK_OPTION(SM510_R_CONTROL_OUTPUT) // confirmed
 	MCFG_SM510_WRITE_SEGS_CB(WRITE16(hh_sm510_state, sm510_lcd_segment_w))
 	MCFG_SM510_READ_K_CB(READ8(hh_sm510_state, input_r))
 	MCFG_SM510_WRITE_S_CB(WRITE8(hh_sm510_state, input_w))
 	MCFG_SM510_WRITE_R_CB(WRITE8(hh_sm510_state, piezo_r1_w))
-	MCFG_SM510_R_DIRECT_CONTROL(true)
 	MCFG_SM510_READ_BA_CB(IOPORT("BA"))
 	MCFG_SM510_READ_B_CB(IOPORT("B"))
 
@@ -1823,6 +1940,7 @@ public:
 		m_inp_lines = 6;
 		m_inp_fixed = 6;
 	}
+	void tkarnov(machine_config &config);
 };
 
 // config
@@ -1868,15 +1986,15 @@ static INPUT_PORTS_START( tkarnov )
 	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_SERVICE1 ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, acl_button, nullptr) PORT_NAME("ACL")
 INPUT_PORTS_END
 
-static MACHINE_CONFIG_START( tkarnov )
+MACHINE_CONFIG_START(tkarnov_state::tkarnov)
 
 	/* basic machine hardware */
 	MCFG_CPU_ADD("maincpu", SM510, XTAL_32_768kHz)
+	MCFG_SM510_R_MASK_OPTION(SM510_R_CONTROL_OUTPUT)
 	MCFG_SM510_WRITE_SEGS_CB(WRITE16(hh_sm510_state, sm510_lcd_segment_w))
 	MCFG_SM510_READ_K_CB(READ8(hh_sm510_state, input_r))
 	MCFG_SM510_WRITE_S_CB(WRITE8(hh_sm510_state, input_w))
 	MCFG_SM510_WRITE_R_CB(WRITE8(hh_sm510_state, piezo_r1_w))
-	MCFG_SM510_R_DIRECT_CONTROL(true)
 	MCFG_SM510_READ_BA_CB(IOPORT("BA"))
 	MCFG_SM510_READ_B_CB(IOPORT("B"))
 
@@ -1885,6 +2003,99 @@ static MACHINE_CONFIG_START( tkarnov )
 	MCFG_SCREEN_REFRESH_RATE(50)
 	MCFG_SCREEN_SIZE(1477, 1080)
 	MCFG_SCREEN_VISIBLE_AREA(0, 1477-1, 0, 1080-1)
+
+	MCFG_TIMER_DRIVER_ADD_PERIODIC("display_decay", hh_sm510_state, display_decay_tick, attotime::from_msec(1))
+	MCFG_DEFAULT_LAYOUT(layout_svg)
+
+	/* sound hardware */
+	MCFG_SPEAKER_STANDARD_MONO("mono")
+	MCFG_SOUND_ADD("speaker", SPEAKER_SOUND, 0)
+	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 0.25)
+MACHINE_CONFIG_END
+
+
+
+
+
+/***************************************************************************
+
+  Tiger Vindicators (model 7-786)
+  * Sharp SM510 under epoxy (die label CMS54C, KMS595)
+  * lcd screen with custom segments, 1-bit sound
+
+***************************************************************************/
+
+class tvindictr_state : public hh_sm510_state
+{
+public:
+	tvindictr_state(const machine_config &mconfig, device_type type, const char *tag)
+		: hh_sm510_state(mconfig, type, tag)
+	{
+		m_inp_lines = 6;
+		m_inp_fixed = 6;
+	}
+	void tvindictr(machine_config &config);
+};
+
+// config
+
+static INPUT_PORTS_START( tvindictr )
+	PORT_START("IN.0") // S1
+	PORT_BIT( 0x04, IP_ACTIVE_HIGH, IPT_JOYSTICK_UP ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, input_changed, nullptr)
+	PORT_BIT( 0x0b, IP_ACTIVE_HIGH, IPT_UNUSED )
+
+	PORT_START("IN.1") // S2
+	PORT_BIT( 0x02, IP_ACTIVE_HIGH, IPT_JOYSTICK_RIGHT ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, input_changed, nullptr)
+	PORT_BIT( 0x04, IP_ACTIVE_HIGH, IPT_JOYSTICK_LEFT ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, input_changed, nullptr)
+	PORT_BIT( 0x09, IP_ACTIVE_HIGH, IPT_UNUSED )
+
+	PORT_START("IN.2") // S3
+	PORT_BIT( 0x0f, IP_ACTIVE_HIGH, IPT_UNUSED )
+
+	PORT_START("IN.3") // S4
+	PORT_BIT( 0x02, IP_ACTIVE_HIGH, IPT_BUTTON3 ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, input_changed, nullptr) PORT_NAME("Gun Right")
+	PORT_BIT( 0x0d, IP_ACTIVE_HIGH, IPT_UNUSED )
+
+	PORT_START("IN.4") // S5
+	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_BUTTON1 ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, input_changed, nullptr) PORT_NAME("Fire")
+	PORT_BIT( 0x02, IP_ACTIVE_HIGH, IPT_BUTTON2 ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, input_changed, nullptr) PORT_NAME("Gun Left")
+	PORT_BIT( 0x0c, IP_ACTIVE_HIGH, IPT_UNUSED )
+
+	PORT_START("IN.5") // S6
+	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_SELECT ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, input_changed, nullptr) PORT_NAME("Max Score")
+	PORT_BIT( 0x0e, IP_ACTIVE_HIGH, IPT_UNUSED )
+
+	PORT_START("IN.6") // GND!
+	PORT_BIT( 0x07, IP_ACTIVE_HIGH, IPT_UNUSED )
+	PORT_BIT( 0x08, IP_ACTIVE_HIGH, IPT_START ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, input_changed, nullptr) PORT_NAME("Power On/Start")
+
+	PORT_START("BA")
+	PORT_BIT( 0x01, IP_ACTIVE_LOW, IPT_VOLUME_DOWN ) PORT_NAME("Sound")
+
+	PORT_START("B")
+	PORT_BIT( 0x01, IP_ACTIVE_LOW, IPT_POWER_OFF )
+
+	PORT_START("ACL")
+	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_SERVICE1 ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, acl_button, nullptr) PORT_NAME("ACL")
+INPUT_PORTS_END
+
+MACHINE_CONFIG_START(tvindictr_state::tvindictr)
+
+	/* basic machine hardware */
+	MCFG_CPU_ADD("maincpu", SM510, XTAL_32_768kHz)
+	MCFG_SM510_R_MASK_OPTION(SM510_R_CONTROL_OUTPUT)
+	MCFG_SM510_WRITE_SEGS_CB(WRITE16(hh_sm510_state, sm510_lcd_segment_w))
+	MCFG_SM510_READ_K_CB(READ8(hh_sm510_state, input_r))
+	MCFG_SM510_WRITE_S_CB(WRITE8(hh_sm510_state, input_w))
+	MCFG_SM510_WRITE_R_CB(WRITE8(hh_sm510_state, piezo_r1_w))
+	MCFG_SM510_READ_BA_CB(IOPORT("BA"))
+	MCFG_SM510_READ_B_CB(IOPORT("B"))
+
+	/* video hardware */
+	MCFG_SCREEN_SVG_ADD("screen", "svg")
+	MCFG_SCREEN_REFRESH_RATE(50)
+	MCFG_SCREEN_SIZE(1459, 1080)
+	MCFG_SCREEN_VISIBLE_AREA(0, 1459-1, 0, 1080-1)
 
 	MCFG_TIMER_DRIVER_ADD_PERIODIC("display_decay", hh_sm510_state, display_decay_tick, attotime::from_msec(1))
 	MCFG_DEFAULT_LAYOUT(layout_svg)
@@ -1918,6 +2129,7 @@ public:
 	}
 
 	DECLARE_WRITE8_MEMBER(write_r);
+	void tgaiden(machine_config &config);
 };
 
 // handlers
@@ -1928,7 +2140,7 @@ WRITE8_MEMBER(tgaiden_state::write_r)
 	piezo_r1_w(space, 0, data & 1);
 
 	// R2: led
-	//..
+	output().set_lamp_value(0, data >> 1 & 1);
 }
 
 // config
@@ -1970,15 +2182,15 @@ static INPUT_PORTS_START( tgaiden )
 	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_SERVICE1 ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, acl_button, nullptr) PORT_NAME("ACL")
 INPUT_PORTS_END
 
-static MACHINE_CONFIG_START( tgaiden )
+MACHINE_CONFIG_START(tgaiden_state::tgaiden)
 
 	/* basic machine hardware */
 	MCFG_CPU_ADD("maincpu", SM510, XTAL_32_768kHz)
+	MCFG_SM510_R_MASK_OPTION(SM510_R_CONTROL_OUTPUT)
 	MCFG_SM510_WRITE_SEGS_CB(WRITE16(hh_sm510_state, sm510_lcd_segment_w))
 	MCFG_SM510_READ_K_CB(READ8(hh_sm510_state, input_r))
 	MCFG_SM510_WRITE_S_CB(WRITE8(hh_sm510_state, input_w))
 	MCFG_SM510_WRITE_R_CB(WRITE8(tgaiden_state, write_r))
-	MCFG_SM510_R_DIRECT_CONTROL(true)
 	MCFG_SM510_READ_BA_CB(IOPORT("BA"))
 	MCFG_SM510_READ_B_CB(IOPORT("B"))
 
@@ -2018,6 +2230,7 @@ public:
 		m_inp_lines = 5;
 		m_inp_fixed = 5;
 	}
+	void tbatman(machine_config &config);
 };
 
 // config
@@ -2058,15 +2271,15 @@ static INPUT_PORTS_START( tbatman )
 	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_SERVICE1 ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, acl_button, nullptr) PORT_NAME("ACL")
 INPUT_PORTS_END
 
-static MACHINE_CONFIG_START( tbatman )
+MACHINE_CONFIG_START(tbatman_state::tbatman)
 
 	/* basic machine hardware */
 	MCFG_CPU_ADD("maincpu", SM510, XTAL_32_768kHz)
+	MCFG_SM510_R_MASK_OPTION(SM510_R_CONTROL_OUTPUT)
 	MCFG_SM510_WRITE_SEGS_CB(WRITE16(hh_sm510_state, sm510_lcd_segment_w))
 	MCFG_SM510_READ_K_CB(READ8(hh_sm510_state, input_r))
 	MCFG_SM510_WRITE_S_CB(WRITE8(hh_sm510_state, input_w))
 	MCFG_SM510_WRITE_R_CB(WRITE8(hh_sm510_state, piezo_r1_w))
-	MCFG_SM510_R_DIRECT_CONTROL(true)
 	MCFG_SM510_READ_BA_CB(IOPORT("BA"))
 	MCFG_SM510_READ_B_CB(IOPORT("B"))
 
@@ -2110,6 +2323,7 @@ public:
 		m_inp_lines = 5;
 		m_inp_fixed = 5;
 	}
+	void tsharr2(machine_config &config);
 };
 
 // config
@@ -2150,15 +2364,15 @@ static INPUT_PORTS_START( tsharr2 )
 	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_SERVICE1 ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, acl_button, nullptr) PORT_NAME("ACL")
 INPUT_PORTS_END
 
-static MACHINE_CONFIG_START( tsharr2 )
+MACHINE_CONFIG_START(tsharr2_state::tsharr2)
 
 	/* basic machine hardware */
 	MCFG_CPU_ADD("maincpu", SM510, XTAL_32_768kHz)
+	MCFG_SM510_R_MASK_OPTION(SM510_R_CONTROL_OUTPUT) // confirmed
 	MCFG_SM510_WRITE_SEGS_CB(WRITE16(hh_sm510_state, sm510_lcd_segment_w))
 	MCFG_SM510_READ_K_CB(READ8(hh_sm510_state, input_r))
 	MCFG_SM510_WRITE_S_CB(WRITE8(hh_sm510_state, input_w))
 	MCFG_SM510_WRITE_R_CB(WRITE8(hh_sm510_state, piezo_r1_w))
-	MCFG_SM510_R_DIRECT_CONTROL(true)
 	MCFG_SM510_READ_BA_CB(IOPORT("BA"))
 	MCFG_SM510_READ_B_CB(IOPORT("B"))
 
@@ -2198,6 +2412,7 @@ public:
 		m_inp_lines = 6;
 		m_inp_fixed = 6;
 	}
+	void tgoldnaxe(machine_config &config);
 };
 
 // config
@@ -2243,15 +2458,15 @@ static INPUT_PORTS_START( tgoldnaxe )
 	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_SERVICE1 ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, acl_button, nullptr) PORT_NAME("ACL")
 INPUT_PORTS_END
 
-static MACHINE_CONFIG_START( tgoldnaxe )
+MACHINE_CONFIG_START(tgoldnaxe_state::tgoldnaxe)
 
 	/* basic machine hardware */
 	MCFG_CPU_ADD("maincpu", SM510, XTAL_32_768kHz)
+	MCFG_SM510_R_MASK_OPTION(SM510_R_CONTROL_OUTPUT)
 	MCFG_SM510_WRITE_SEGS_CB(WRITE16(hh_sm510_state, sm510_lcd_segment_w))
 	MCFG_SM510_READ_K_CB(READ8(hh_sm510_state, input_r))
 	MCFG_SM510_WRITE_S_CB(WRITE8(hh_sm510_state, input_w))
 	MCFG_SM510_WRITE_R_CB(WRITE8(hh_sm510_state, piezo_r1_w))
-	MCFG_SM510_R_DIRECT_CONTROL(true)
 	MCFG_SM510_READ_BA_CB(IOPORT("BA"))
 	MCFG_SM510_READ_B_CB(IOPORT("B"))
 
@@ -2291,6 +2506,7 @@ public:
 		m_inp_lines = 6;
 		m_inp_fixed = 6;
 	}
+	void trobocop2(machine_config &config);
 };
 
 // config
@@ -2336,15 +2552,15 @@ static INPUT_PORTS_START( trobocop2 )
 	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_SERVICE1 ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, acl_button, nullptr) PORT_NAME("ACL")
 INPUT_PORTS_END
 
-static MACHINE_CONFIG_START( trobocop2 )
+MACHINE_CONFIG_START(trobocop2_state::trobocop2)
 
 	/* basic machine hardware */
 	MCFG_CPU_ADD("maincpu", SM510, XTAL_32_768kHz)
+	MCFG_SM510_R_MASK_OPTION(SM510_R_CONTROL_OUTPUT)
 	MCFG_SM510_WRITE_SEGS_CB(WRITE16(hh_sm510_state, sm510_lcd_segment_w))
 	MCFG_SM510_READ_K_CB(READ8(hh_sm510_state, input_r))
 	MCFG_SM510_WRITE_S_CB(WRITE8(hh_sm510_state, input_w))
 	MCFG_SM510_WRITE_R_CB(WRITE8(hh_sm510_state, piezo_r1_w))
-	MCFG_SM510_R_DIRECT_CONTROL(true)
 	MCFG_SM510_READ_BA_CB(IOPORT("BA"))
 	MCFG_SM510_READ_B_CB(IOPORT("B"))
 
@@ -2388,6 +2604,7 @@ public:
 		m_inp_lines = 6;
 		m_inp_fixed = 6;
 	}
+	void taltbeast(machine_config &config);
 };
 
 // config
@@ -2433,15 +2650,15 @@ static INPUT_PORTS_START( taltbeast )
 	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_SERVICE1 ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, acl_button, nullptr) PORT_NAME("ACL")
 INPUT_PORTS_END
 
-static MACHINE_CONFIG_START( taltbeast )
+MACHINE_CONFIG_START(taltbeast_state::taltbeast)
 
 	/* basic machine hardware */
 	MCFG_CPU_ADD("maincpu", SM510, XTAL_32_768kHz)
+	MCFG_SM510_R_MASK_OPTION(SM510_R_CONTROL_OUTPUT) // confirmed
 	MCFG_SM510_WRITE_SEGS_CB(WRITE16(hh_sm510_state, sm510_lcd_segment_w))
 	MCFG_SM510_READ_K_CB(READ8(hh_sm510_state, input_r))
 	MCFG_SM510_WRITE_S_CB(WRITE8(hh_sm510_state, input_w))
 	MCFG_SM510_WRITE_R_CB(WRITE8(hh_sm510_state, piezo_r1_w))
-	MCFG_SM510_R_DIRECT_CONTROL(true)
 	MCFG_SM510_READ_BA_CB(IOPORT("BA"))
 	MCFG_SM510_READ_B_CB(IOPORT("B"))
 
@@ -2481,6 +2698,7 @@ public:
 		m_inp_lines = 5;
 		m_inp_fixed = 5;
 	}
+	void tswampt(machine_config &config);
 };
 
 // config
@@ -2522,15 +2740,15 @@ static INPUT_PORTS_START( tswampt )
 	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_SERVICE1 ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, acl_button, nullptr) PORT_NAME("ACL")
 INPUT_PORTS_END
 
-static MACHINE_CONFIG_START( tswampt )
+MACHINE_CONFIG_START(tswampt_state::tswampt)
 
 	/* basic machine hardware */
 	MCFG_CPU_ADD("maincpu", SM510, XTAL_32_768kHz)
+	MCFG_SM510_R_MASK_OPTION(SM510_R_CONTROL_OUTPUT)
 	MCFG_SM510_WRITE_SEGS_CB(WRITE16(hh_sm510_state, sm510_lcd_segment_w))
 	MCFG_SM510_READ_K_CB(READ8(hh_sm510_state, input_r))
 	MCFG_SM510_WRITE_S_CB(WRITE8(hh_sm510_state, input_w))
 	MCFG_SM510_WRITE_R_CB(WRITE8(hh_sm510_state, piezo_r1_w))
-	MCFG_SM510_R_DIRECT_CONTROL(true)
 	MCFG_SM510_READ_BA_CB(IOPORT("BA"))
 	MCFG_SM510_READ_B_CB(IOPORT("B"))
 
@@ -2570,6 +2788,7 @@ public:
 		m_inp_lines = 6;
 		m_inp_fixed = 6;
 	}
+	void tmchammer(machine_config &config);
 };
 
 // config
@@ -2616,7 +2835,7 @@ static INPUT_PORTS_START( tmchammer )
 	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_SERVICE1 ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, acl_button, nullptr) PORT_NAME("ACL")
 INPUT_PORTS_END
 
-static MACHINE_CONFIG_START( tmchammer )
+MACHINE_CONFIG_START(tmchammer_state::tmchammer)
 
 	/* basic machine hardware */
 	MCFG_CPU_ADD("maincpu", SM511, XTAL_32_768kHz)
@@ -2663,6 +2882,7 @@ public:
 		m_inp_lines = 6;
 		m_inp_fixed = 6;
 	}
+	void tbtoads(machine_config &config);
 };
 
 // config
@@ -2708,15 +2928,15 @@ static INPUT_PORTS_START( tbtoads )
 	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_SERVICE1 ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, acl_button, nullptr) PORT_NAME("ACL")
 INPUT_PORTS_END
 
-static MACHINE_CONFIG_START( tbtoads )
+MACHINE_CONFIG_START(tbtoads_state::tbtoads)
 
 	/* basic machine hardware */
 	MCFG_CPU_ADD("maincpu", SM510, XTAL_32_768kHz)
+	MCFG_SM510_R_MASK_OPTION(SM510_R_CONTROL_OUTPUT)
 	MCFG_SM510_WRITE_SEGS_CB(WRITE16(hh_sm510_state, sm510_lcd_segment_w))
 	MCFG_SM510_READ_K_CB(READ8(hh_sm510_state, input_r))
 	MCFG_SM510_WRITE_S_CB(WRITE8(hh_sm510_state, input_w))
 	MCFG_SM510_WRITE_R_CB(WRITE8(hh_sm510_state, piezo_r1_w))
-	MCFG_SM510_R_DIRECT_CONTROL(true)
 	MCFG_SM510_READ_BA_CB(IOPORT("BA"))
 	MCFG_SM510_READ_B_CB(IOPORT("B"))
 
@@ -2760,6 +2980,7 @@ public:
 	void update_speaker();
 	DECLARE_WRITE8_MEMBER(write_r);
 	DECLARE_WRITE8_MEMBER(write_s);
+	void tsonic(machine_config &config);
 };
 
 // handlers
@@ -2826,7 +3047,7 @@ INPUT_PORTS_END
 
 static const s16 tsonic_speaker_levels[] = { 0, 0x7fff/3*1, 0x7fff/3*2, 0x7fff };
 
-static MACHINE_CONFIG_START( tsonic )
+MACHINE_CONFIG_START(tsonic_state::tsonic)
 
 	/* basic machine hardware */
 	MCFG_CPU_ADD("maincpu", SM511, XTAL_32_768kHz)
@@ -2858,6 +3079,96 @@ MACHINE_CONFIG_END
 
 /***************************************************************************
 
+  Tiger The Incredible Crash Dummies (model 78-516)
+  * Sharp SM510 under epoxy (die label ME0)
+  * lcd screen with custom segments, 1-bit sound
+
+***************************************************************************/
+
+class tdummies_state : public hh_sm510_state
+{
+public:
+	tdummies_state(const machine_config &mconfig, device_type type, const char *tag)
+		: hh_sm510_state(mconfig, type, tag)
+	{
+		m_inp_lines = 5;
+		m_inp_fixed = 5;
+	}
+	void tdummies(machine_config &config);
+};
+
+// config
+
+static INPUT_PORTS_START( tdummies )
+	PORT_START("IN.0") // S1
+	PORT_BIT( 0x04, IP_ACTIVE_HIGH, IPT_JOYSTICK_UP ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, input_changed, nullptr)
+	PORT_BIT( 0x0b, IP_ACTIVE_HIGH, IPT_UNUSED )
+
+	PORT_START("IN.1") // S2
+	PORT_BIT( 0x02, IP_ACTIVE_HIGH, IPT_JOYSTICK_RIGHT ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, input_changed, nullptr) // Crash
+	PORT_BIT( 0x04, IP_ACTIVE_HIGH, IPT_JOYSTICK_LEFT ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, input_changed, nullptr) // Brake
+	PORT_BIT( 0x09, IP_ACTIVE_HIGH, IPT_UNUSED )
+
+	PORT_START("IN.2") // S3
+	PORT_BIT( 0x02, IP_ACTIVE_HIGH, IPT_JOYSTICK_DOWN ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, input_changed, nullptr)
+	PORT_BIT( 0x0d, IP_ACTIVE_HIGH, IPT_UNUSED )
+
+	PORT_START("IN.3") // S4
+	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_BUTTON1 ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, input_changed, nullptr) PORT_NAME("Accelerate")
+	PORT_BIT( 0x02, IP_ACTIVE_HIGH, IPT_BUTTON2 ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, input_changed, nullptr) PORT_NAME("Pick")
+	PORT_BIT( 0x0c, IP_ACTIVE_HIGH, IPT_UNUSED )
+
+	PORT_START("IN.4") // S5
+	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_SELECT ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, input_changed, nullptr) PORT_NAME("Pause")
+	PORT_BIT( 0x0e, IP_ACTIVE_HIGH, IPT_UNUSED )
+
+	PORT_START("IN.5") // GND!
+	PORT_BIT( 0x07, IP_ACTIVE_HIGH, IPT_UNUSED )
+	PORT_BIT( 0x08, IP_ACTIVE_HIGH, IPT_START ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, input_changed, nullptr) PORT_NAME("Power On/Start")
+
+	PORT_START("BA")
+	PORT_BIT( 0x01, IP_ACTIVE_LOW, IPT_VOLUME_DOWN ) PORT_NAME("Sound")
+
+	PORT_START("B")
+	PORT_BIT( 0x01, IP_ACTIVE_LOW, IPT_POWER_OFF )
+
+	PORT_START("ACL")
+	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_SERVICE1 ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, acl_button, nullptr) PORT_NAME("ACL")
+INPUT_PORTS_END
+
+MACHINE_CONFIG_START(tdummies_state::tdummies)
+
+	/* basic machine hardware */
+	MCFG_CPU_ADD("maincpu", SM510, XTAL_32_768kHz)
+	MCFG_SM510_R_MASK_OPTION(SM510_R_CONTROL_OUTPUT)
+	MCFG_SM510_WRITE_SEGS_CB(WRITE16(hh_sm510_state, sm510_lcd_segment_w))
+	MCFG_SM510_READ_K_CB(READ8(hh_sm510_state, input_r))
+	MCFG_SM510_WRITE_S_CB(WRITE8(hh_sm510_state, input_w))
+	MCFG_SM510_WRITE_R_CB(WRITE8(hh_sm510_state, piezo_r1_w))
+	MCFG_SM510_READ_BA_CB(IOPORT("BA"))
+	MCFG_SM510_READ_B_CB(IOPORT("B"))
+
+	/* video hardware */
+	MCFG_SCREEN_SVG_ADD("screen", "svg")
+	MCFG_SCREEN_REFRESH_RATE(50)
+	MCFG_SCREEN_SIZE(1441, 1080)
+	MCFG_SCREEN_VISIBLE_AREA(0, 1441-1, 0, 1080-1)
+
+	MCFG_TIMER_DRIVER_ADD_PERIODIC("display_decay", hh_sm510_state, display_decay_tick, attotime::from_msec(1))
+	MCFG_DEFAULT_LAYOUT(layout_svg)
+
+	/* sound hardware */
+	MCFG_SPEAKER_STANDARD_MONO("mono")
+	MCFG_SOUND_ADD("speaker", SPEAKER_SOUND, 0)
+	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 0.25)
+MACHINE_CONFIG_END
+
+
+
+
+
+/***************************************************************************
+
   Tiger Street Fighter II (model 78-522)
   * Sharp SM510 under epoxy (die label ME1)
   * lcd screen with custom segments, 1-bit sound
@@ -2873,6 +3184,7 @@ public:
 		m_inp_lines = 6;
 		m_inp_fixed = 6;
 	}
+	void tsfight2(machine_config &config);
 };
 
 // config
@@ -2918,15 +3230,15 @@ static INPUT_PORTS_START( tsfight2 )
 	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_SERVICE1 ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, acl_button, nullptr) PORT_NAME("ACL")
 INPUT_PORTS_END
 
-static MACHINE_CONFIG_START( tsfight2 )
+MACHINE_CONFIG_START(tsfight2_state::tsfight2)
 
 	/* basic machine hardware */
 	MCFG_CPU_ADD("maincpu", SM510, XTAL_32_768kHz)
+	MCFG_SM510_R_MASK_OPTION(SM510_R_CONTROL_OUTPUT)
 	MCFG_SM510_WRITE_SEGS_CB(WRITE16(hh_sm510_state, sm510_lcd_segment_w))
 	MCFG_SM510_READ_K_CB(READ8(hh_sm510_state, input_r))
 	MCFG_SM510_WRITE_S_CB(WRITE8(hh_sm510_state, input_w))
 	MCFG_SM510_WRITE_R_CB(WRITE8(hh_sm510_state, piezo_r1_w))
-	MCFG_SM510_R_DIRECT_CONTROL(true)
 	MCFG_SM510_READ_BA_CB(IOPORT("BA"))
 	MCFG_SM510_READ_B_CB(IOPORT("B"))
 
@@ -2935,6 +3247,106 @@ static MACHINE_CONFIG_START( tsfight2 )
 	MCFG_SCREEN_REFRESH_RATE(50)
 	MCFG_SCREEN_SIZE(1444, 1080)
 	MCFG_SCREEN_VISIBLE_AREA(0, 1444-1, 0, 1080-1)
+
+	MCFG_TIMER_DRIVER_ADD_PERIODIC("display_decay", hh_sm510_state, display_decay_tick, attotime::from_msec(1))
+	MCFG_DEFAULT_LAYOUT(layout_svg)
+
+	/* sound hardware */
+	MCFG_SPEAKER_STANDARD_MONO("mono")
+	MCFG_SOUND_ADD("speaker", SPEAKER_SOUND, 0)
+	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 0.25)
+MACHINE_CONFIG_END
+
+
+
+
+
+/***************************************************************************
+
+  Tiger Super Double Dragon (model 78-528)
+  * Sharp SM510 under epoxy (die label MF5)
+  * lcd screen with custom segments, 1-bit sound
+
+  BTANB: The player char right arm muscle is part of the right kick segment.
+  They probably meant to use it for the right punch segment, but this is
+  how it shows on the LCD.
+
+***************************************************************************/
+
+class tsddragon_state : public hh_sm510_state
+{
+public:
+	tsddragon_state(const machine_config &mconfig, device_type type, const char *tag)
+		: hh_sm510_state(mconfig, type, tag)
+	{
+		m_inp_lines = 6;
+		m_inp_fixed = 6;
+	}
+
+	void tsddragon(machine_config &config);
+};
+
+// config
+
+static INPUT_PORTS_START( tsddragon )
+	PORT_START("IN.0") // S1
+	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_BUTTON1 ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, input_changed, nullptr) PORT_NAME("Kick Left")
+	PORT_BIT( 0x04, IP_ACTIVE_HIGH, IPT_JOYSTICK_UP ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, input_changed, nullptr) // Jump
+	PORT_BIT( 0x0a, IP_ACTIVE_HIGH, IPT_UNUSED )
+
+	PORT_START("IN.1") // S2
+	PORT_BIT( 0x02, IP_ACTIVE_HIGH, IPT_JOYSTICK_RIGHT ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, input_changed, nullptr)
+	PORT_BIT( 0x04, IP_ACTIVE_HIGH, IPT_JOYSTICK_LEFT ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, input_changed, nullptr)
+	PORT_BIT( 0x09, IP_ACTIVE_HIGH, IPT_UNUSED )
+
+	PORT_START("IN.2") // S3
+	PORT_BIT( 0x02, IP_ACTIVE_HIGH, IPT_JOYSTICK_DOWN ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, input_changed, nullptr) // Down/Pick
+	PORT_BIT( 0x0d, IP_ACTIVE_HIGH, IPT_UNUSED )
+
+	PORT_START("IN.3") // S4
+	PORT_BIT( 0x02, IP_ACTIVE_HIGH, IPT_BUTTON3 ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, input_changed, nullptr) PORT_NAME("Special Technique")
+	PORT_BIT( 0x0d, IP_ACTIVE_HIGH, IPT_UNUSED )
+
+	PORT_START("IN.4") // S5
+	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_BUTTON2 ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, input_changed, nullptr) PORT_NAME("Kick Right")
+	PORT_BIT( 0x02, IP_ACTIVE_HIGH, IPT_BUTTON4 ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, input_changed, nullptr) PORT_NAME("Punch")
+	PORT_BIT( 0x0c, IP_ACTIVE_HIGH, IPT_UNUSED )
+
+	PORT_START("IN.5") // S6
+	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_SELECT ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, input_changed, nullptr) PORT_NAME("Select")
+	PORT_BIT( 0x0e, IP_ACTIVE_HIGH, IPT_UNUSED )
+
+	PORT_START("IN.6") // GND!
+	PORT_BIT( 0x07, IP_ACTIVE_HIGH, IPT_UNUSED )
+	PORT_BIT( 0x08, IP_ACTIVE_HIGH, IPT_START ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, input_changed, nullptr) PORT_NAME("Power On/Start")
+
+	PORT_START("BA")
+	PORT_BIT( 0x01, IP_ACTIVE_LOW, IPT_VOLUME_DOWN ) PORT_NAME("Sound")
+
+	PORT_START("B")
+	PORT_BIT( 0x01, IP_ACTIVE_LOW, IPT_POWER_OFF )
+
+	PORT_START("ACL")
+	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_SERVICE1 ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, acl_button, nullptr) PORT_NAME("ACL")
+INPUT_PORTS_END
+
+MACHINE_CONFIG_START(tsddragon_state::tsddragon)
+
+	/* basic machine hardware */
+	MCFG_CPU_ADD("maincpu", SM510, XTAL_32_768kHz)
+	MCFG_SM510_R_MASK_OPTION(SM510_R_CONTROL_OUTPUT)
+	MCFG_SM510_WRITE_SEGS_CB(WRITE16(hh_sm510_state, sm510_lcd_segment_w))
+	MCFG_SM510_READ_K_CB(READ8(hh_sm510_state, input_r))
+	MCFG_SM510_WRITE_S_CB(WRITE8(hh_sm510_state, input_w))
+	MCFG_SM510_WRITE_R_CB(WRITE8(hh_sm510_state, piezo_r1_w))
+	MCFG_SM510_READ_BA_CB(IOPORT("BA"))
+	MCFG_SM510_READ_B_CB(IOPORT("B"))
+
+	/* video hardware */
+	MCFG_SCREEN_SVG_ADD("screen", "svg")
+	MCFG_SCREEN_REFRESH_RATE(50)
+	MCFG_SCREEN_SIZE(1503, 1080)
+	MCFG_SCREEN_VISIBLE_AREA(0, 1503-1, 0, 1080-1)
 
 	MCFG_TIMER_DRIVER_ADD_PERIODIC("display_decay", hh_sm510_state, display_decay_tick, attotime::from_msec(1))
 	MCFG_DEFAULT_LAYOUT(layout_svg)
@@ -2968,6 +3380,7 @@ public:
 	}
 
 	virtual DECLARE_WRITE8_MEMBER(input_w) override;
+	void tnmarebc(machine_config &config);
 };
 
 // handlers
@@ -3016,15 +3429,15 @@ static INPUT_PORTS_START( tnmarebc )
 	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_SERVICE1 ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, acl_button, nullptr) PORT_NAME("ACL")
 INPUT_PORTS_END
 
-static MACHINE_CONFIG_START( tnmarebc )
+MACHINE_CONFIG_START(tnmarebc_state::tnmarebc)
 
 	/* basic machine hardware */
 	MCFG_CPU_ADD("maincpu", SM510, XTAL_32_768kHz)
+	MCFG_SM510_R_MASK_OPTION(SM510_R_CONTROL_OUTPUT)
 	MCFG_SM510_WRITE_SEGS_CB(WRITE16(hh_sm510_state, sm510_lcd_segment_w))
 	MCFG_SM510_READ_K_CB(READ8(hh_sm510_state, input_r))
 	MCFG_SM510_WRITE_S_CB(WRITE8(tnmarebc_state, input_w))
 	MCFG_SM510_WRITE_R_CB(WRITE8(hh_sm510_state, piezo_r1_w))
-	MCFG_SM510_R_DIRECT_CONTROL(true)
 	MCFG_SM510_READ_BA_CB(IOPORT("BA"))
 	MCFG_SM510_READ_B_CB(IOPORT("B"))
 
@@ -3064,6 +3477,7 @@ public:
 		m_inp_lines = 6;
 		m_inp_fixed = 6;
 	}
+	void tmkombat(machine_config &config);
 };
 
 // config
@@ -3110,15 +3524,15 @@ static INPUT_PORTS_START( tmkombat )
 	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_SERVICE1 ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, acl_button, nullptr) PORT_NAME("ACL")
 INPUT_PORTS_END
 
-static MACHINE_CONFIG_START( tmkombat )
+MACHINE_CONFIG_START(tmkombat_state::tmkombat)
 
 	/* basic machine hardware */
 	MCFG_CPU_ADD("maincpu", SM510, XTAL_32_768kHz)
+	MCFG_SM510_R_MASK_OPTION(SM510_R_CONTROL_OUTPUT)
 	MCFG_SM510_WRITE_SEGS_CB(WRITE16(hh_sm510_state, sm510_lcd_segment_w))
 	MCFG_SM510_READ_K_CB(READ8(hh_sm510_state, input_r))
 	MCFG_SM510_WRITE_S_CB(WRITE8(hh_sm510_state, input_w))
 	MCFG_SM510_WRITE_R_CB(WRITE8(hh_sm510_state, piezo_r1_w))
-	MCFG_SM510_R_DIRECT_CONTROL(true)
 	MCFG_SM510_READ_BA_CB(IOPORT("BA"))
 	MCFG_SM510_READ_B_CB(IOPORT("B"))
 
@@ -3158,6 +3572,7 @@ public:
 		m_inp_lines = 6;
 		m_inp_fixed = 6;
 	}
+	void tshadow(machine_config &config);
 };
 
 // config
@@ -3203,15 +3618,15 @@ static INPUT_PORTS_START( tshadow )
 	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_SERVICE1 ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, acl_button, nullptr) PORT_NAME("ACL")
 INPUT_PORTS_END
 
-static MACHINE_CONFIG_START( tshadow )
+MACHINE_CONFIG_START(tshadow_state::tshadow)
 
 	/* basic machine hardware */
 	MCFG_CPU_ADD("maincpu", SM510, XTAL_32_768kHz)
+	MCFG_SM510_R_MASK_OPTION(SM510_R_CONTROL_OUTPUT)
 	MCFG_SM510_WRITE_SEGS_CB(WRITE16(hh_sm510_state, sm510_lcd_segment_w))
 	MCFG_SM510_READ_K_CB(READ8(hh_sm510_state, input_r))
 	MCFG_SM510_WRITE_S_CB(WRITE8(hh_sm510_state, input_w))
 	MCFG_SM510_WRITE_R_CB(WRITE8(hh_sm510_state, piezo_r1_w))
-	MCFG_SM510_R_DIRECT_CONTROL(true)
 	MCFG_SM510_READ_BA_CB(IOPORT("BA"))
 	MCFG_SM510_READ_B_CB(IOPORT("B"))
 
@@ -3220,6 +3635,101 @@ static MACHINE_CONFIG_START( tshadow )
 	MCFG_SCREEN_REFRESH_RATE(50)
 	MCFG_SCREEN_SIZE(1484, 1080)
 	MCFG_SCREEN_VISIBLE_AREA(0, 1484-1, 0, 1080-1)
+
+	MCFG_TIMER_DRIVER_ADD_PERIODIC("display_decay", hh_sm510_state, display_decay_tick, attotime::from_msec(1))
+	MCFG_DEFAULT_LAYOUT(layout_svg)
+
+	/* sound hardware */
+	MCFG_SPEAKER_STANDARD_MONO("mono")
+	MCFG_SOUND_ADD("speaker", SPEAKER_SOUND, 0)
+	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 0.25)
+MACHINE_CONFIG_END
+
+
+
+
+
+/***************************************************************************
+
+  Tiger Skeleton Warriors - The Dark Crusade (model 78-569)
+  * Sharp SM510 under epoxy (die label MK0)
+  * lcd screen with custom segments, 1-bit sound
+
+***************************************************************************/
+
+class tskelwarr_state : public hh_sm510_state
+{
+public:
+	tskelwarr_state(const machine_config &mconfig, device_type type, const char *tag)
+		: hh_sm510_state(mconfig, type, tag)
+	{
+		m_inp_lines = 6;
+		m_inp_fixed = 6;
+	}
+
+	void tskelwarr(machine_config &);
+};
+
+// config
+
+static INPUT_PORTS_START( tskelwarr )
+	PORT_START("IN.0") // S1
+	PORT_BIT( 0x04, IP_ACTIVE_HIGH, IPT_JOYSTICK_UP ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, input_changed, nullptr)
+	PORT_BIT( 0x0b, IP_ACTIVE_HIGH, IPT_UNUSED )
+
+	PORT_START("IN.1") // S2
+	PORT_BIT( 0x02, IP_ACTIVE_HIGH, IPT_JOYSTICK_RIGHT ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, input_changed, nullptr)
+	PORT_BIT( 0x04, IP_ACTIVE_HIGH, IPT_JOYSTICK_LEFT ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, input_changed, nullptr)
+	PORT_BIT( 0x09, IP_ACTIVE_HIGH, IPT_UNUSED )
+
+	PORT_START("IN.2") // S3
+	PORT_BIT( 0x02, IP_ACTIVE_HIGH, IPT_JOYSTICK_DOWN ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, input_changed, nullptr)
+	PORT_BIT( 0x0d, IP_ACTIVE_HIGH, IPT_UNUSED )
+
+	PORT_START("IN.3") // S4
+	PORT_BIT( 0x02, IP_ACTIVE_HIGH, IPT_BUTTON2 ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, input_changed, nullptr) PORT_NAME("Attack Right")
+	PORT_BIT( 0x0d, IP_ACTIVE_HIGH, IPT_UNUSED )
+
+	PORT_START("IN.4") // S5
+	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_BUTTON3 ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, input_changed, nullptr) PORT_NAME("Pick/Call")
+	PORT_BIT( 0x02, IP_ACTIVE_HIGH, IPT_BUTTON1 ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, input_changed, nullptr) PORT_NAME("Attack Left")
+	PORT_BIT( 0x0c, IP_ACTIVE_HIGH, IPT_UNUSED )
+
+	PORT_START("IN.5") // S6
+	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_SELECT ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, input_changed, nullptr) PORT_NAME("Pause")
+	PORT_BIT( 0x0e, IP_ACTIVE_HIGH, IPT_UNUSED )
+
+	PORT_START("IN.6") // GND!
+	PORT_BIT( 0x07, IP_ACTIVE_HIGH, IPT_UNUSED )
+	PORT_BIT( 0x08, IP_ACTIVE_HIGH, IPT_START ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, input_changed, nullptr) PORT_NAME("Power On/Start")
+
+	PORT_START("BA")
+	PORT_BIT( 0x01, IP_ACTIVE_LOW, IPT_VOLUME_DOWN ) PORT_NAME("Sound")
+
+	PORT_START("B")
+	PORT_BIT( 0x01, IP_ACTIVE_LOW, IPT_POWER_OFF )
+
+	PORT_START("ACL")
+	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_SERVICE1 ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, acl_button, nullptr) PORT_NAME("ACL")
+INPUT_PORTS_END
+
+MACHINE_CONFIG_START(tskelwarr_state::tskelwarr)
+
+	/* basic machine hardware */
+	MCFG_CPU_ADD("maincpu", SM510, XTAL_32_768kHz)
+	MCFG_SM510_R_MASK_OPTION(SM510_R_CONTROL_OUTPUT)
+	MCFG_SM510_WRITE_SEGS_CB(WRITE16(hh_sm510_state, sm510_lcd_segment_w))
+	MCFG_SM510_READ_K_CB(READ8(hh_sm510_state, input_r))
+	MCFG_SM510_WRITE_S_CB(WRITE8(hh_sm510_state, input_w))
+	MCFG_SM510_WRITE_R_CB(WRITE8(hh_sm510_state, piezo_r1_w))
+	MCFG_SM510_READ_BA_CB(IOPORT("BA"))
+	MCFG_SM510_READ_B_CB(IOPORT("B"))
+
+	/* video hardware */
+	MCFG_SCREEN_SVG_ADD("screen", "svg")
+	MCFG_SCREEN_REFRESH_RATE(50)
+	MCFG_SCREEN_SIZE(1444, 1080)
+	MCFG_SCREEN_VISIBLE_AREA(0, 1444-1, 0, 1080-1)
 
 	MCFG_TIMER_DRIVER_ADD_PERIODIC("display_decay", hh_sm510_state, display_decay_tick, attotime::from_msec(1))
 	MCFG_DEFAULT_LAYOUT(layout_svg)
@@ -3251,6 +3761,7 @@ public:
 		m_inp_lines = 6;
 		m_inp_fixed = 6;
 	}
+	void tbatfor(machine_config &config);
 };
 
 // config
@@ -3297,15 +3808,15 @@ static INPUT_PORTS_START( tbatfor )
 	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_SERVICE1 ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, acl_button, nullptr) PORT_NAME("ACL")
 INPUT_PORTS_END
 
-static MACHINE_CONFIG_START( tbatfor )
+MACHINE_CONFIG_START(tbatfor_state::tbatfor)
 
 	/* basic machine hardware */
 	MCFG_CPU_ADD("maincpu", SM510, XTAL_32_768kHz)
+	MCFG_SM510_R_MASK_OPTION(SM510_R_CONTROL_OUTPUT)
 	MCFG_SM510_WRITE_SEGS_CB(WRITE16(hh_sm510_state, sm510_lcd_segment_w))
 	MCFG_SM510_READ_K_CB(READ8(hh_sm510_state, input_r))
 	MCFG_SM510_WRITE_S_CB(WRITE8(hh_sm510_state, input_w))
 	MCFG_SM510_WRITE_R_CB(WRITE8(hh_sm510_state, piezo_r1_w))
-	MCFG_SM510_R_DIRECT_CONTROL(true)
 	MCFG_SM510_READ_BA_CB(IOPORT("BA"))
 	MCFG_SM510_READ_B_CB(IOPORT("B"))
 
@@ -3331,7 +3842,7 @@ MACHINE_CONFIG_END
 /***************************************************************************
 
   Tiger Judge Dredd (model 78-581)
-  * Sharp SM510 under epoxy (die label MKS)
+  * Sharp SM510 under epoxy (die label MK5)
   * lcd screen with custom segments, 1-bit sound
 
 ***************************************************************************/
@@ -3345,6 +3856,7 @@ public:
 		m_inp_lines = 6;
 		m_inp_fixed = 6;
 	}
+	void tjdredd(machine_config &config);
 };
 
 // config
@@ -3391,15 +3903,15 @@ static INPUT_PORTS_START( tjdredd )
 	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_SERVICE1 ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, acl_button, nullptr) PORT_NAME("ACL")
 INPUT_PORTS_END
 
-static MACHINE_CONFIG_START( tjdredd )
+MACHINE_CONFIG_START(tjdredd_state::tjdredd)
 
 	/* basic machine hardware */
 	MCFG_CPU_ADD("maincpu", SM510, XTAL_32_768kHz)
+	MCFG_SM510_R_MASK_OPTION(SM510_R_CONTROL_OUTPUT)
 	MCFG_SM510_WRITE_SEGS_CB(WRITE16(hh_sm510_state, sm510_lcd_segment_w))
 	MCFG_SM510_READ_K_CB(READ8(hh_sm510_state, input_r))
 	MCFG_SM510_WRITE_S_CB(WRITE8(hh_sm510_state, input_w))
 	MCFG_SM510_WRITE_R_CB(WRITE8(hh_sm510_state, piezo_r1_w))
-	MCFG_SM510_R_DIRECT_CONTROL(true)
 	MCFG_SM510_READ_BA_CB(IOPORT("BA"))
 	MCFG_SM510_READ_B_CB(IOPORT("B"))
 
@@ -3439,6 +3951,7 @@ public:
 		m_inp_lines = 6;
 		m_inp_fixed = 6;
 	}
+	void tapollo13(machine_config &config);
 };
 
 // config
@@ -3485,15 +3998,15 @@ static INPUT_PORTS_START( tapollo13 )
 	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_SERVICE1 ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, acl_button, nullptr) PORT_NAME("ACL")
 INPUT_PORTS_END
 
-static MACHINE_CONFIG_START( tapollo13 )
+MACHINE_CONFIG_START(tapollo13_state::tapollo13)
 
 	/* basic machine hardware */
 	MCFG_CPU_ADD("maincpu", SM510, XTAL_32_768kHz)
+	MCFG_SM510_R_MASK_OPTION(SM510_R_CONTROL_OUTPUT)
 	MCFG_SM510_WRITE_SEGS_CB(WRITE16(hh_sm510_state, sm510_lcd_segment_w))
 	MCFG_SM510_READ_K_CB(READ8(hh_sm510_state, input_r))
 	MCFG_SM510_WRITE_S_CB(WRITE8(hh_sm510_state, input_w))
 	MCFG_SM510_WRITE_R_CB(WRITE8(hh_sm510_state, piezo_r1_w))
-	MCFG_SM510_R_DIRECT_CONTROL(true)
 	MCFG_SM510_READ_BA_CB(IOPORT("BA"))
 	MCFG_SM510_READ_B_CB(IOPORT("B"))
 
@@ -3533,6 +4046,7 @@ public:
 		m_inp_lines = 5;
 		m_inp_fixed = 5;
 	}
+	void tsjam(machine_config &config);
 };
 
 // config
@@ -3574,15 +4088,15 @@ static INPUT_PORTS_START( tsjam )
 	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_SERVICE1 ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, acl_button, nullptr) PORT_NAME("ACL")
 INPUT_PORTS_END
 
-static MACHINE_CONFIG_START( tsjam )
+MACHINE_CONFIG_START(tsjam_state::tsjam)
 
 	/* basic machine hardware */
 	MCFG_CPU_ADD("maincpu", SM510, XTAL_32_768kHz) // no external XTAL
+	MCFG_SM510_R_MASK_OPTION(SM510_R_CONTROL_OUTPUT)
 	MCFG_SM510_WRITE_SEGS_CB(WRITE16(hh_sm510_state, sm510_lcd_segment_w))
 	MCFG_SM510_READ_K_CB(READ8(hh_sm510_state, input_r))
 	MCFG_SM510_WRITE_S_CB(WRITE8(hh_sm510_state, input_w))
 	MCFG_SM510_WRITE_R_CB(WRITE8(hh_sm510_state, piezo_r1_w))
-	MCFG_SM510_R_DIRECT_CONTROL(true)
 	MCFG_SM510_READ_BA_CB(IOPORT("BA"))
 	MCFG_SM510_READ_B_CB(IOPORT("B"))
 
@@ -3621,6 +4135,7 @@ public:
 	{
 		m_inp_lines = 8;
 	}
+	void tigarden(machine_config &config);
 };
 
 // config
@@ -3677,10 +4192,11 @@ static INPUT_PORTS_START( tigarden )
 	PORT_BIT( 0x02, IP_ACTIVE_HIGH, IPT_VOLUME_DOWN ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, input_changed, nullptr) PORT_NAME("Sound")
 INPUT_PORTS_END
 
-static MACHINE_CONFIG_START( tigarden )
+MACHINE_CONFIG_START(tigarden_state::tigarden)
 
 	/* basic machine hardware */
 	MCFG_CPU_ADD("maincpu", SM510, XTAL_32_768kHz)
+	MCFG_SM510_R_MASK_OPTION(2) // confirmed
 	MCFG_SM510_WRITE_SEGS_CB(WRITE16(hh_sm510_state, sm510_lcd_segment_w))
 	MCFG_SM510_READ_K_CB(READ8(hh_sm510_state, input_r))
 	MCFG_SM510_WRITE_S_CB(WRITE8(hh_sm510_state, input_w))
@@ -3721,6 +4237,7 @@ public:
 	{
 		m_inp_lines = 8;
 	}
+	void nummunch(machine_config &config);
 };
 
 // config
@@ -3775,7 +4292,7 @@ static INPUT_PORTS_START( nummunch )
 	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_POWER_ON ) PORT_CHANGED_MEMBER(DEVICE_SELF, hh_sm510_state, acl_button, nullptr)
 INPUT_PORTS_END
 
-static MACHINE_CONFIG_START( nummunch )
+MACHINE_CONFIG_START(nummunch_state::nummunch)
 
 	/* basic machine hardware */
 	MCFG_CPU_ADD("maincpu", SM511, XTAL_32_768kHz)
@@ -4022,6 +4539,18 @@ ROM_START( gnw_mariocm )
 ROM_END
 
 
+ROM_START( gnw_smb ) // dumped from New Wide Screen version
+	ROM_REGION( 0x1000, "maincpu", 0 )
+	ROM_LOAD( "ym-105.program", 0x0000, 0x1000, CRC(0dff3b12) SHA1(3fa83f88e49ea9d7080fe935ec90ce69acbe8850) )
+
+	ROM_REGION( 0x100, "maincpu:melody", 0 )
+	ROM_LOAD( "ym-105.melody", 0x000, 0x100, NO_DUMP )
+
+	ROM_REGION( 648209, "svg", 0)
+	ROM_LOAD( "gnw_smb.svg", 0, 648209, CRC(4a6fdb28) SHA1(0a0bc48d82d5b8bf8ef96ef9ce2f87ba6ea850c1) )
+ROM_END
+
+
 ROM_START( gnw_boxing )
 	ROM_REGION( 0x1000, "maincpu", 0 )
 	ROM_LOAD( "bx-301_744.program", 0x0000, 0x1000, CRC(0fdf0303) SHA1(0b791c9d4874e9534d0a9b7a8968ce02fe4bee96) )
@@ -4055,8 +4584,8 @@ ROM_START( tddragon )
 	ROM_REGION( 0x1000, "maincpu", 0 )
 	ROM_LOAD( "593", 0x0000, 0x1000, CRC(2642f778) SHA1(fee77acf93e057a8b4627389dfd481c6d9cbd02b) )
 
-	ROM_REGION( 511435, "svg", 0)
-	ROM_LOAD( "tddragon.svg", 0, 511435, CRC(7d8f6e77) SHA1(c3200db662085c0f711145b2002ea2ff2f8a3af7) )
+	ROM_REGION( 511434, "svg", 0)
+	ROM_LOAD( "tddragon.svg", 0, 511434, CRC(641e7ceb) SHA1(bbfc37cc085e00921422f65d9aac9949f871e7b7) )
 ROM_END
 
 
@@ -4066,6 +4595,15 @@ ROM_START( tkarnov )
 
 	ROM_REGION( 527377, "svg", 0)
 	ROM_LOAD( "tkarnov.svg", 0, 527377, CRC(971840fc) SHA1(48db7139fa875e60b44340fb475b6d1081ef5c10) )
+ROM_END
+
+
+ROM_START( tvindictr )
+	ROM_REGION( 0x1000, "maincpu", 0 )
+	ROM_LOAD( "595", 0x0000, 0x1000, CRC(b574d16f) SHA1(d2cb0f2e21ca2defe49a4b45f4c8e169ae9979ab) )
+
+	ROM_REGION( 314165, "svg", 0)
+	ROM_LOAD( "tvindictr.svg", 0, 314165, CRC(2241992c) SHA1(efd44879d1c0d5befd7ea07089418406fc101315) )
 ROM_END
 
 
@@ -4165,12 +4703,30 @@ ROM_START( tsonic )
 ROM_END
 
 
+ROM_START( tdummies )
+	ROM_REGION( 0x1000, "maincpu", 0 )
+	ROM_LOAD( "me0", 0x0000, 0x1000, CRC(29efae4a) SHA1(0b26913a3fd2fde2b39549f0f7cbc3daaa41eb50) )
+
+	ROM_REGION( 525493, "svg", 0)
+	ROM_LOAD( "tdummies.svg", 0, 525493, CRC(a18a5216) SHA1(1238e8c489445e715d4fc53e597820845b386233) )
+ROM_END
+
+
 ROM_START( tsfight2 )
 	ROM_REGION( 0x1000, "maincpu", 0 )
 	ROM_LOAD( "me1", 0x0000, 0x1000, CRC(73384e94) SHA1(350417d101ce034b3974b4a1d2e04bcb3bf70605) )
 
 	ROM_REGION( 630403, "svg", 0)
 	ROM_LOAD( "tsfight2.svg", 0, 630403, CRC(eadc2c81) SHA1(20b2a797f6b9a008c1994eaee7b87e3fe828e837) )
+ROM_END
+
+
+ROM_START( tsddragon )
+	ROM_REGION( 0x1000, "maincpu", 0 )
+	ROM_LOAD( "mf5", 0x0000, 0x1000, CRC(264c8e82) SHA1(470eb2f09a58ef05eb0b7c8e11380ad1d8ce4e1a) )
+
+	ROM_REGION( 753533, "svg", 0)
+	ROM_LOAD( "tsddragon.svg", 0, 753533, CRC(fb526049) SHA1(552fe005a6e23e083867b7d1c10d20daa8913a14) )
 ROM_END
 
 
@@ -4201,6 +4757,15 @@ ROM_START( tshadow )
 ROM_END
 
 
+ROM_START( tskelwarr )
+	ROM_REGION( 0x1000, "maincpu", 0 )
+	ROM_LOAD( "mk0", 0x0000, 0x1000, CRC(dc7827a1) SHA1(74ff143605684df0c70db604a5f22dbf512044d7) )
+
+	ROM_REGION( 1125002, "svg", 0)
+	ROM_LOAD( "tskelwarr.svg", 0, 1125002, CRC(49c6ca24) SHA1(71f4ed98ab558deeb86820b7fbf7534a7b7d6b01) )
+ROM_END
+
+
 ROM_START( tbatfor )
 	ROM_REGION( 0x1000, "maincpu", 0 )
 	ROM_LOAD( "mk3", 0x0000, 0x1000, CRC(9993c382) SHA1(0c89e21024315ce7c086af5390c60f5766028c4f) )
@@ -4212,7 +4777,7 @@ ROM_END
 
 ROM_START( tjdredd )
 	ROM_REGION( 0x1000, "maincpu", 0 )
-	ROM_LOAD( "mks", 0x0000, 0x1000, CRC(7beee5a7) SHA1(9a190197c5751b43a9ab2dc8c536934dc5fc5e83) )
+	ROM_LOAD( "mk5", 0x0000, 0x1000, CRC(7beee5a7) SHA1(9a190197c5751b43a9ab2dc8c536934dc5fc5e83) )
 
 	ROM_REGION( 1051586, "svg", 0)
 	ROM_LOAD( "tjdredd.svg", 0, 1051586, CRC(4fcdca0a) SHA1(d4b019fec94890ba6600baf2b2096dbcf3295180) )
@@ -4283,6 +4848,7 @@ CONS( 1983, gnw_mario,   0,          0, gnw_mario,   gnw_mario,   gnw_mario_stat
 
 CONS( 1982, gnw_dkjr,    0,          0, gnw_dkjr,    gnw_dkjr,    gnw_dkjr_state,    0, "Nintendo", "Game & Watch: Donkey Kong Jr. (new wide screen)", MACHINE_SUPPORTS_SAVE )
 CONS( 1983, gnw_mariocm, 0,          0, gnw_mariocm, gnw_mariocm, gnw_mariocm_state, 0, "Nintendo", "Game & Watch: Mario's Cement Factory (new wide screen)", MACHINE_SUPPORTS_SAVE )
+CONS( 1986, gnw_smb,     0,          0, gnw_smb,     gnw_smb,     gnw_smb_state,     0, "Nintendo", "Game & Watch: Super Mario Bros.", MACHINE_SUPPORTS_SAVE | MACHINE_NOT_WORKING )
 
 CONS( 1984, gnw_boxing,  0,          0, gnw_boxing,  gnw_boxing,  gnw_boxing_state,  0, "Nintendo", "Game & Watch: Boxing", MACHINE_SUPPORTS_SAVE )
 
@@ -4290,6 +4856,7 @@ CONS( 1989, tgaunt,      0,          0, tgaunt,      tgaunt,      tgaunt_state, 
 CONS( 1991, trobhood,    tgaunt,     0, trobhood,    trobhood,    tgaunt_state,      0, "Tiger Electronics", "Robin Hood (handheld)", MACHINE_SUPPORTS_SAVE )
 CONS( 1989, tddragon,    0,          0, tddragon,    tddragon,    tddragon_state,    0, "Tiger Electronics (licensed from Technos/Tradewest)", "Double Dragon (handheld)", MACHINE_SUPPORTS_SAVE )
 CONS( 1989, tkarnov,     0,          0, tkarnov,     tkarnov,     tkarnov_state,     0, "Tiger Electronics (licensed from Data East)", "Karnov (handheld)", MACHINE_SUPPORTS_SAVE )
+CONS( 1989, tvindictr,   0,          0, tvindictr,   tvindictr,   tvindictr_state,   0, "Tiger Electronics (licensed from Tengen)", "Vindicators (handheld)", MACHINE_SUPPORTS_SAVE )
 CONS( 1989, tgaiden,     0,          0, tgaiden,     tgaiden,     tgaiden_state,     0, "Tiger Electronics (licensed from Tecmo)", "Ninja Gaiden (handheld)", MACHINE_SUPPORTS_SAVE | MACHINE_NOT_WORKING )
 CONS( 1989, tbatman,     0,          0, tbatman,     tbatman,     tbatman_state,     0, "Tiger Electronics", "Batman (handheld)", MACHINE_SUPPORTS_SAVE )
 CONS( 1990, tsharr2,     0,          0, tsharr2,     tsharr2,     tsharr2_state,     0, "Tiger Electronics (licensed from Sega)", "Space Harrier II (handheld)", MACHINE_SUPPORTS_SAVE )
@@ -4300,10 +4867,13 @@ CONS( 1991, tswampt,     0,          0, tswampt,     tswampt,     tswampt_state,
 CONS( 1991, tmchammer,   0,          0, tmchammer,   tmchammer,   tmchammer_state,   0, "Tiger Electronics", "MC Hammer: U Can't Touch This (handheld)", MACHINE_SUPPORTS_SAVE )
 CONS( 1991, tbtoads,     0,          0, tbtoads,     tbtoads,     tbtoads_state,     0, "Tiger Electronics (licensed from Rare/Tradewest)", "Battletoads (handheld)", MACHINE_SUPPORTS_SAVE )
 CONS( 1992, tsonic,      0,          0, tsonic,      tsonic,      tsonic_state,      0, "Tiger Electronics (licensed from Sega)", "Sonic The Hedgehog (handheld)", MACHINE_SUPPORTS_SAVE )
+CONS( 1993, tdummies,    0,          0, tdummies,    tdummies,    tdummies_state,    0, "Tiger Electronics", "The Incredible Crash Dummies (handheld)", MACHINE_SUPPORTS_SAVE )
 CONS( 1993, tsfight2,    0,          0, tsfight2,    tsfight2,    tsfight2_state,    0, "Tiger Electronics (licensed from Capcom)", "Street Fighter II (handheld)", MACHINE_SUPPORTS_SAVE )
+CONS( 1993, tsddragon,   0,          0, tsddragon,   tsddragon,   tsddragon_state,   0, "Tiger Electronics (licensed from Technos)", "Super Double Dragon (handheld)", MACHINE_SUPPORTS_SAVE )
 CONS( 1993, tnmarebc,    0,          0, tnmarebc,    tnmarebc,    tnmarebc_state,    0, "Tiger Electronics", "Nightmare Before Christmas (handheld)", MACHINE_SUPPORTS_SAVE ) // note: title has no "The"
 CONS( 1993, tmkombat,    0,          0, tmkombat,    tmkombat,    tmkombat_state,    0, "Tiger Electronics (licensed from Midway)", "Mortal Kombat (handheld)", MACHINE_SUPPORTS_SAVE )
 CONS( 1994, tshadow,     0,          0, tshadow,     tshadow,     tshadow_state,     0, "Tiger Electronics", "The Shadow (handheld)", MACHINE_SUPPORTS_SAVE )
+CONS( 1994, tskelwarr,   0,          0, tskelwarr,   tskelwarr,   tskelwarr_state,   0, "Tiger Electronics", "Skeleton Warriors - The Dark Crusade (handheld)", MACHINE_SUPPORTS_SAVE )
 CONS( 1995, tbatfor,     0,          0, tbatfor,     tbatfor,     tbatfor_state,     0, "Tiger Electronics", "Batman Forever - Double Dose of Doom (handheld)", MACHINE_SUPPORTS_SAVE )
 CONS( 1995, tjdredd,     0,          0, tjdredd,     tjdredd,     tjdredd_state,     0, "Tiger Electronics", "Judge Dredd (handheld)", MACHINE_SUPPORTS_SAVE )
 CONS( 1995, tapollo13,   0,          0, tapollo13,   tapollo13,   tapollo13_state,   0, "Tiger Electronics", "Apollo 13 (handheld)", MACHINE_SUPPORTS_SAVE )

@@ -10,11 +10,11 @@
     6545 CRTC
     6551 ACIA
 
-    IRQ = ACIA wire-OR CRTC VBlank
+    IRQ = ACIA gated with flip-flop driven by CRTC VBlank (not wire-OR)
     NMI = AY-5-3600 keyboard char present
 
     TODO:
-        - Character attributes: how is that even possible?  (Esc-V brings up test screen)
+        - Attributes might not all be correct (Esc-V brings up test screen)
         - DIP switches don't all appear to have the expected effects
         - Keyboard hookup isn't quite right
 
@@ -23,17 +23,20 @@
 #include "emu.h"
 #include "bus/rs232/rs232.h"
 #include "cpu/m6502/m6502.h"
+#include "machine/input_merger.h"
 #include "machine/kb3600.h"
 #include "machine/mos6551.h"
+#include "sound/beep.h"
 #include "video/mc6845.h"
 #include "screen.h"
+#include "speaker.h"
 
 #define ACIA_TAG    "acia1"
 #define CRTC_TAG    "crtc"
 #define RS232_TAG   "rs232"
 #define KBDC_TAG    "ay3600"
 
-#define MASTER_CLOCK (13608000)
+#define MASTER_CLOCK XTAL_13_608MHz
 
 class tv910_state : public driver_device
 {
@@ -41,11 +44,15 @@ public:
 	tv910_state(const machine_config &mconfig, device_type type, const char *tag)
 		: driver_device(mconfig, type, tag)
 		, m_maincpu(*this, "maincpu")
+		, m_mainirq(*this, "mainirq")
 		, m_crtc(*this, CRTC_TAG)
 		, m_vram(*this, "vram")
+		, m_chrrom(*this, "graphics")
 		, m_ay3600(*this, KBDC_TAG)
 		, m_kbdrom(*this, "keyboard")
 		, m_kbspecial(*this, "keyb_special")
+		, m_beep(*this, "bell")
+		, m_dsw1(*this, "DSW1")
 	{ }
 
 	virtual void machine_start() override;
@@ -63,22 +70,24 @@ public:
 	DECLARE_WRITE8_MEMBER(control_w);
 
 	DECLARE_WRITE_LINE_MEMBER(vbl_w);
-	DECLARE_WRITE_LINE_MEMBER(acia_irq_w);
 
 	DECLARE_READ_LINE_MEMBER(ay3600_shift_r);
 	DECLARE_READ_LINE_MEMBER(ay3600_control_r);
 	DECLARE_WRITE_LINE_MEMBER(ay3600_data_ready_w);
 	DECLARE_WRITE_LINE_MEMBER(ay3600_ako_w);
 
+	void tv910(machine_config &config);
+private:
 	required_device<m6502_device> m_maincpu;
+	required_device<input_merger_device> m_mainirq;
 	required_device<r6545_1_device> m_crtc;
 	required_shared_ptr<uint8_t> m_vram;
+	required_region_ptr<uint8_t> m_chrrom;
 	required_device<ay3600_device> m_ay3600;
 	required_memory_region m_kbdrom;
 	required_ioport m_kbspecial;
-
-private:
-	uint8_t *m_vramptr, *m_chrrom;
+	required_device<beep_device> m_beep;
+	required_ioport m_dsw1;
 
 	uint16_t m_lastchar, m_strobe;
 	uint8_t m_transchar;
@@ -86,8 +95,6 @@ private:
 	int m_repeatdelay;
 
 	uint8_t m_control;
-
-	bool m_vbl_irq, m_aica_irq;
 };
 
 static ADDRESS_MAP_START(tv910_mem, AS_PROGRAM, 8, tv910_state)
@@ -120,6 +127,8 @@ WRITE8_MEMBER(tv910_state::control_w)
 		(data & 0x2) ? 'C' : 'c',
 		(data & 1) ? 'B' : ' ');
 	#endif
+
+	m_beep->set_state(BIT(data, 0));
 }
 
 READ8_MEMBER(tv910_state::charset_r)
@@ -378,11 +387,12 @@ static INPUT_PORTS_START( tv910 )
 	PORT_DIPNAME( 0x80, 0x00, "Duplex" )
 	PORT_DIPSETTING( 0x00, "Half Duplex" )
 	PORT_DIPSETTING( 0x80, "Full Duplex" )
-#if 0
-	PORT_DIPNAME( 0x100, 0x000, "Colors" )
-	PORT_DIPSETTING( 0x00, "Black characters on white screen" )
-	PORT_DIPSETTING( 0x100, "White characters on black screen" )
 
+	PORT_DIPNAME( 0x100, 0x100, "Colors" )
+	PORT_DIPSETTING( 0x00, "Black characters on green screen" )
+	PORT_DIPSETTING( 0x100, "Green characters on black screen" )
+
+#if 0
 	PORT_DIPNAME( 0x200, 0x200, "Data Set Ready" )
 	PORT_DIPSETTING( 0x00, "DSR connected" )
 	PORT_DIPSETTING( 0x200, "DSR disconnected" )
@@ -391,12 +401,11 @@ INPUT_PORTS_END
 
 void tv910_state::machine_start()
 {
-	m_vramptr = m_vram.target();
-	m_chrrom = memregion("graphics")->base();
 }
 
 void tv910_state::machine_reset()
 {
+	control_w(machine().dummy_space(), 0, 0);
 }
 
 MC6845_ON_UPDATE_ADDR_CHANGED( tv910_state::crtc_update_addr )
@@ -407,96 +416,70 @@ WRITE_LINE_MEMBER(tv910_state::vbl_w)
 {
 	// this is ACKed by vbl_ack_w, state going 0 here doesn't ack the IRQ
 	if (state)
-	{
-		m_vbl_irq = true;
-		m_maincpu->set_input_line(M6502_IRQ_LINE, ASSERT_LINE);
-	}
-}
-
-WRITE_LINE_MEMBER(tv910_state::acia_irq_w)
-{
-	m_aica_irq = (state == ASSERT_LINE) ? true : false;
-
-	if (m_aica_irq || m_vbl_irq)
-	{
-		m_maincpu->set_input_line(M6502_IRQ_LINE, ASSERT_LINE);
-	}
-	else
-	{
-		m_maincpu->set_input_line(M6502_IRQ_LINE, CLEAR_LINE);
-	}
+		m_mainirq->in_w<0>(1);
 }
 
 WRITE8_MEMBER(tv910_state::vbl_ack_w)
 {
-	m_vbl_irq = false;
-
-	if (m_aica_irq || m_vbl_irq)
-	{
-		m_maincpu->set_input_line(M6502_IRQ_LINE, ASSERT_LINE);
-	}
-	else
-	{
-		m_maincpu->set_input_line(M6502_IRQ_LINE, CLEAR_LINE);
-	}
+	m_mainirq->in_w<0>(0);
 }
 
 MC6845_UPDATE_ROW( tv910_state::crtc_update_row )
 {
-	static const uint32_t palette[2] = { 0, 0x00ff00 };
 	uint32_t  *p = &bitmap.pix32(y);
-	uint16_t  chr_base = ra;
-	int i;
+	uint16_t  chr_base = ra & 7;
+	uint8_t   chr = m_vram[0x7ff];
+	uint8_t   att = (chr & 0xf0) == 0x90 ? chr & 0x0f : 0;
+	bool      bow = BIT(m_dsw1->read(), 8);
 
-	for ( i = 0; i < x_count; i++ )
+	for (int i = 0; i < x_count; i++)
 	{
 		uint16_t offset = ( ma + i ) & 0x7ff;
-		uint8_t chr = m_vramptr[ offset ];
-		uint8_t data = m_chrrom[ chr_base + chr * 8 ];
-		uint8_t fg = 1;
-		uint8_t bg = 0;
+		uint8_t chr = m_vram[ offset ];
+		bool att_blk = (chr & 0xf0) == 0x90;
+		bool half_int = BIT(chr, 7) && !att_blk;
+		if (att_blk)
+			att = chr & 0x0f;
 
-		if ( i == cursor_x )
-		{
-			if (m_control & 2)
-			{
-				data = 0xFF;
-			}
-		}
+		uint8_t data = m_chrrom[chr_base | (chr & 0x7f) << 3];
+		rgb_t fg = rgb_t::green();
+		rgb_t bg = rgb_t::black();
+		if (half_int)
+			fg = rgb_t(fg.r() / 2, fg.g() / 2, fg.b() / 2);
 
-		if ((y % 10) >= 8)
-		{
-			*p++ = palette[0];
-			*p++ = palette[0];
-			*p++ = palette[0];
-			*p++ = palette[0];
-			*p++ = palette[0];
-			*p++ = palette[0];
-			*p++ = palette[0];
-			*p++ = palette[0];
-			*p++ = palette[0];
-		}
-		else
-		{
-			*p = palette[( data & 0x80 ) ? fg : bg]; p++;
-			*p = palette[( data & 0x40 ) ? fg : bg]; p++;
-			*p = palette[( data & 0x20 ) ? fg : bg]; p++;
-			*p = palette[( data & 0x10 ) ? fg : bg]; p++;
-			*p = palette[( data & 0x08 ) ? fg : bg]; p++;
-			*p = palette[( data & 0x04 ) ? fg : bg]; p++;
-			*p = palette[( data & 0x02 ) ? fg : bg]; p++;
-			*p = palette[( data & 0x01 ) ? fg : bg]; p++;
-		}
+		if (ra == 9)
+			data = BIT(att, 3) ? 0xff : 0;
+		else if (ra == 0 || att_blk || BIT(att, 0) || (BIT(att, 1) && BIT(m_control, 1)))
+			data = 0;
+
+		if (i == cursor_x && BIT(m_control, 1))
+			data ^= 0xff;
+		if (BIT(att, 2))
+			data ^= 0xff;
+		if (bow)
+			data ^= 0xff;
+
+		*p = BIT(data, 7) ? bg : fg; p++;
+		*p = BIT(data, 6) ? bg : fg; p++;
+		*p = BIT(data, 5) ? bg : fg; p++;
+		*p = BIT(data, 4) ? bg : fg; p++;
+		*p = BIT(data, 3) ? bg : fg; p++;
+		*p = BIT(data, 2) ? bg : fg; p++;
+		*p = BIT(data, 1) ? bg : fg; p++;
+		*p = BIT(data, 0) ? bg : fg; p++;
 	}
 }
 
-static MACHINE_CONFIG_START( tv910 )
+MACHINE_CONFIG_START(tv910_state::tv910)
 	/* basic machine hardware */
 	MCFG_CPU_ADD("maincpu", M6502, MASTER_CLOCK/8)
 	MCFG_CPU_PROGRAM_MAP(tv910_mem)
 
+	MCFG_INPUT_MERGER_ANY_HIGH("mainirq")
+	MCFG_INPUT_MERGER_OUTPUT_HANDLER(INPUTLINE("maincpu", M6502_IRQ_LINE))
+
 	MCFG_SCREEN_ADD("screen", RASTER)
-	MCFG_SCREEN_RAW_PARAMS(MASTER_CLOCK, 882, 0, 720, 370, 0, 350 ) // not real values
+	MCFG_SCREEN_RAW_PARAMS(MASTER_CLOCK, 720, 0, 640, 315, 0, 250)
 	MCFG_SCREEN_UPDATE_DEVICE( CRTC_TAG, r6545_1_device, screen_update )
 
 	MCFG_MC6845_ADD(CRTC_TAG, R6545_1, "screen", MASTER_CLOCK/8)
@@ -523,7 +506,7 @@ static MACHINE_CONFIG_START( tv910 )
 
 	MCFG_DEVICE_ADD(ACIA_TAG, MOS6551, 0)
 	MCFG_MOS6551_XTAL(XTAL_1_8432MHz)
-	MCFG_MOS6551_IRQ_HANDLER(WRITELINE(tv910_state, acia_irq_w))
+	MCFG_MOS6551_IRQ_HANDLER(DEVWRITELINE("mainirq", input_merger_device, in_w<1>))
 	MCFG_MOS6551_TXD_HANDLER(DEVWRITELINE(RS232_TAG, rs232_port_device, write_txd))
 	MCFG_MOS6551_RTS_HANDLER(DEVWRITELINE(RS232_TAG, rs232_port_device, write_rts))
 	MCFG_MOS6551_DTR_HANDLER(DEVWRITELINE(RS232_TAG, rs232_port_device, write_dtr))
@@ -534,6 +517,9 @@ static MACHINE_CONFIG_START( tv910 )
 	MCFG_RS232_DSR_HANDLER(DEVWRITELINE(ACIA_TAG, mos6551_device, write_dsr))
 	MCFG_RS232_CTS_HANDLER(DEVWRITELINE(ACIA_TAG, mos6551_device, write_cts))
 
+	MCFG_SPEAKER_STANDARD_MONO("mono")
+	MCFG_SOUND_ADD("bell", BEEP, MASTER_CLOCK / 8400) // 1620 Hz (Row 10 signal)
+	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 0.50)
 MACHINE_CONFIG_END
 
 /* ROM definition */
@@ -550,4 +536,4 @@ ROM_END
 
 /* Driver */
 //    YEAR  NAME    PARENT  COMPAT   MACHINE    INPUT  STATE         INIT  COMPANY      FULLNAME  FLAGS
-COMP( 1981, tv910,  0,      0,       tv910,     tv910, tv910_state,  0,    "TeleVideo", "TV910",  MACHINE_NOT_WORKING | MACHINE_NO_SOUND )
+COMP( 1981, tv910,  0,      0,       tv910,     tv910, tv910_state,  0,    "TeleVideo", "TV910",  MACHINE_NOT_WORKING )

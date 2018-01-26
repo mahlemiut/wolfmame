@@ -39,6 +39,7 @@
  @MP0923   TMS1000   1979, Entex Baseball 2 (6002)
  *MP1022   TMS1100   1979, Texas Instruments unknown thermostat
  @MP1030   TMS1100   1980, APF Mathemagician
+ *MP1072   TMS1100   198?, unknown device, Germany (have decap)
  @MP1133   TMS1470   1979, Kosmos Astro
  @MP1180   TMS1100   1980, Tomy Power House Pinball
  @MP1181   TMS1100   1979, Conic Football 2
@@ -1499,8 +1500,8 @@ public:
 
 	void set_clock();
 	DECLARE_INPUT_CHANGED_MEMBER(skill_switch);
-
 	void h2hbaseb(machine_config &config);
+
 protected:
 	virtual void machine_reset() override;
 };
@@ -1763,8 +1764,8 @@ public:
 	DECLARE_WRITE16_MEMBER(write_r);
 	DECLARE_WRITE16_MEMBER(write_o);
 	DECLARE_READ8_MEMBER(read_k);
-
 	void quizwizc(machine_config &config);
+
 protected:
 	virtual void machine_start() override;
 };
@@ -1940,8 +1941,8 @@ public:
 	DECLARE_WRITE16_MEMBER(write_r);
 	DECLARE_WRITE16_MEMBER(write_o);
 	DECLARE_READ8_MEMBER(read_k);
-
 	void tc4(machine_config &config);
+
 protected:
 	virtual void machine_start() override;
 };
@@ -3100,8 +3101,8 @@ public:
 
 	void set_clock();
 	DECLARE_INPUT_CHANGED_MEMBER(skill_switch);
-
 	void ebball3(machine_config &config);
+
 protected:
 	virtual void machine_reset() override;
 };
@@ -3370,8 +3371,8 @@ public:
 
 	void set_clock();
 	DECLARE_INPUT_CHANGED_MEMBER(skill_switch);
-
 	void einvader(machine_config &config);
+
 protected:
 	virtual void machine_reset() override;
 };
@@ -3732,8 +3733,8 @@ public:
 
 	void set_clock();
 	DECLARE_INPUT_CHANGED_MEMBER(skill_switch);
-
 	void raisedvl(machine_config &config);
+
 protected:
 	virtual void machine_reset() override;
 };
@@ -3991,8 +3992,8 @@ public:
 
 	void set_clock();
 	DECLARE_INPUT_CHANGED_MEMBER(skill_switch);
-
 	void f3in1(machine_config &config);
+
 protected:
 	virtual void machine_reset() override;
 };
@@ -4129,8 +4130,8 @@ public:
 	virtual DECLARE_WRITE16_MEMBER(write_r);
 	virtual DECLARE_WRITE16_MEMBER(write_o);
 	virtual DECLARE_READ8_MEMBER(read_k);
-
 	void gpoker(machine_config &config);
+
 protected:
 	virtual void machine_reset() override;
 };
@@ -4499,8 +4500,8 @@ public:
 	virtual DECLARE_WRITE16_MEMBER(write_r);
 	virtual DECLARE_WRITE16_MEMBER(write_o);
 	virtual DECLARE_READ8_MEMBER(read_k);
-
 	void ginv2000(machine_config &config);
+
 protected:
 	virtual void machine_reset() override;
 };
@@ -4726,7 +4727,7 @@ INPUT_PORTS_END
 MACHINE_CONFIG_START(fxmcr165_state::fxmcr165)
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", TMS1100, XTAL_400kHz)
+	MCFG_CPU_ADD("maincpu", TMS1100, 400_kHz_XTAL)
 	MCFG_TMS1XXX_READ_K_CB(READ8(fxmcr165_state, read_k))
 	MCFG_TMS1XXX_WRITE_R_CB(WRITE16(fxmcr165_state, write_r))
 	MCFG_TMS1XXX_WRITE_O_CB(WRITE16(fxmcr165_state, write_o))
@@ -6125,8 +6126,8 @@ public:
 
 	void set_clock();
 	DECLARE_INPUT_CHANGED_MEMBER(speed_switch);
-
 	void ssimon(machine_config &config);
+
 protected:
 	virtual void machine_reset() override;
 };
@@ -6274,8 +6275,8 @@ public:
 	int m_gearbox_pos;
 	bool sensor_state() { return m_gearbox_pos < 0 && m_display_decay[0][0] != 0; }
 	TIMER_DEVICE_CALLBACK_MEMBER(gearbox_sim_tick);
-
 	void bigtrak(machine_config &config);
+
 protected:
 	virtual void machine_start() override;
 };
@@ -6466,8 +6467,8 @@ public:
 	DECLARE_WRITE16_MEMBER(write_r);
 	DECLARE_WRITE16_MEMBER(write_o);
 	DECLARE_READ8_MEMBER(read_k);
-
 	void mbdtower(machine_config &config);
+
 protected:
 	virtual void machine_start() override;
 };
@@ -7030,6 +7031,7 @@ public:
 	mmerlin_state(const machine_config &mconfig, device_type type, const char *tag)
 		: merlin_state(mconfig, type, tag)
 	{ }
+
 	void mmerlin(machine_config &config);
 };
 
@@ -7216,7 +7218,7 @@ public:
 
 void bankshot_state::prepare_display()
 {
-	display_matrix(7, 11, m_o, m_r & ~3);
+	display_matrix(8, 11, m_o, m_r & ~3);
 }
 
 WRITE16_MEMBER(bankshot_state::write_r)
@@ -7234,9 +7236,8 @@ WRITE16_MEMBER(bankshot_state::write_r)
 
 WRITE16_MEMBER(bankshot_state::write_o)
 {
-	// O0-O6: led state
-	// O7: N/C
-	m_o = data & 0x7f;
+	// O0-O7: led state
+	m_o = data;
 	prepare_display();
 }
 
@@ -7783,6 +7784,7 @@ public:
 	tcfballa_state(const machine_config &mconfig, device_type type, const char *tag)
 		: tcfball_state(mconfig, type, tag)
 	{ }
+
 	void tcfballa(machine_config &config);
 };
 
@@ -8748,8 +8750,8 @@ public:
 
 	void set_clock();
 	DECLARE_INPUT_CHANGED_MEMBER(skill_switch);
-
 	void tbreakup(machine_config &config);
+
 protected:
 	virtual void machine_reset() override;
 	virtual void machine_start() override;
@@ -9181,8 +9183,8 @@ public:
 	DECLARE_WRITE16_MEMBER(write_r);
 	DECLARE_WRITE16_MEMBER(write_o);
 	DECLARE_READ8_MEMBER(read_k);
-
 	void xl25(machine_config &config);
+
 protected:
 	virtual void machine_reset() override;
 };

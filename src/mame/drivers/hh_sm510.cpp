@@ -234,6 +234,7 @@ public:
 	{
 		m_inp_lines = 3;
 	}
+
 	void kdribble(machine_config &config);
 };
 
@@ -263,7 +264,7 @@ INPUT_PORTS_END
 MACHINE_CONFIG_START(kdribble_state::kdribble)
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", SM510, XTAL_32_768kHz)
+	MCFG_CPU_ADD("maincpu", SM510, 32.768_kHz_XTAL)
 	MCFG_SM510_R_MASK_OPTION(2) // confirmed
 	MCFG_SM510_WRITE_SEGS_CB(WRITE16(hh_sm510_state, sm510_lcd_segment_w))
 	MCFG_SM510_READ_K_CB(READ8(hh_sm510_state, input_r))
@@ -306,6 +307,7 @@ public:
 	{
 		m_inp_lines = 3;
 	}
+
 	void ktopgun(machine_config &config);
 };
 
@@ -335,7 +337,7 @@ INPUT_PORTS_END
 MACHINE_CONFIG_START(ktopgun_state::ktopgun)
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", SM510, XTAL_32_768kHz)
+	MCFG_CPU_ADD("maincpu", SM510, 32.768_kHz_XTAL)
 	MCFG_SM510_R_MASK_OPTION(2) // confirmed
 	MCFG_SM510_WRITE_SEGS_CB(WRITE16(hh_sm510_state, sm510_lcd_segment_w))
 	MCFG_SM510_READ_K_CB(READ8(hh_sm510_state, input_r))
@@ -380,6 +382,7 @@ public:
 	{
 		m_inp_lines = 3;
 	}
+
 	void kcontra(machine_config &config);
 };
 
@@ -409,7 +412,7 @@ INPUT_PORTS_END
 MACHINE_CONFIG_START(kcontra_state::kcontra)
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", SM511, XTAL_32_768kHz)
+	MCFG_CPU_ADD("maincpu", SM511, 32.768_kHz_XTAL)
 	MCFG_SM510_WRITE_SEGS_CB(WRITE16(hh_sm510_state, sm510_lcd_segment_w))
 	MCFG_SM510_READ_K_CB(READ8(hh_sm510_state, input_r))
 	MCFG_SM510_WRITE_S_CB(WRITE8(hh_sm510_state, input_w))
@@ -451,6 +454,7 @@ public:
 	{
 		m_inp_lines = 3;
 	}
+
 	void ktmnt(machine_config &config);
 };
 
@@ -481,7 +485,7 @@ INPUT_PORTS_END
 MACHINE_CONFIG_START(ktmnt_state::ktmnt)
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", SM511, XTAL_32_768kHz)
+	MCFG_CPU_ADD("maincpu", SM511, 32.768_kHz_XTAL)
 	MCFG_SM510_WRITE_SEGS_CB(WRITE16(hh_sm510_state, sm510_lcd_segment_w))
 	MCFG_SM510_READ_K_CB(READ8(hh_sm510_state, input_r))
 	MCFG_SM510_WRITE_S_CB(WRITE8(hh_sm510_state, input_w))
@@ -525,6 +529,7 @@ public:
 	{
 		m_inp_lines = 2;
 	}
+
 	void kgradius(machine_config &config);
 };
 
@@ -550,7 +555,7 @@ INPUT_PORTS_END
 MACHINE_CONFIG_START(kgradius_state::kgradius)
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", SM511, XTAL_32_768kHz)
+	MCFG_CPU_ADD("maincpu", SM511, 32.768_kHz_XTAL)
 	MCFG_SM510_WRITE_SEGS_CB(WRITE16(hh_sm510_state, sm510_lcd_segment_w))
 	MCFG_SM510_READ_K_CB(READ8(hh_sm510_state, input_r))
 	MCFG_SM510_WRITE_S_CB(WRITE8(hh_sm510_state, input_w))
@@ -592,6 +597,7 @@ public:
 	{
 		m_inp_lines = 2;
 	}
+
 	void kloneran(machine_config &config);
 };
 
@@ -617,7 +623,7 @@ INPUT_PORTS_END
 MACHINE_CONFIG_START(kloneran_state::kloneran)
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", SM511, XTAL_32_768kHz)
+	MCFG_CPU_ADD("maincpu", SM511, 32.768_kHz_XTAL)
 	MCFG_SM510_WRITE_SEGS_CB(WRITE16(hh_sm510_state, sm510_lcd_segment_w))
 	MCFG_SM510_READ_K_CB(READ8(hh_sm510_state, input_r))
 	MCFG_SM510_WRITE_S_CB(WRITE8(hh_sm510_state, input_w))
@@ -659,6 +665,7 @@ public:
 	{
 		m_inp_lines = 3;
 	}
+
 	void kblades(machine_config &config);
 };
 
@@ -688,7 +695,7 @@ INPUT_PORTS_END
 MACHINE_CONFIG_START(kblades_state::kblades)
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", SM511, XTAL_32_768kHz)
+	MCFG_CPU_ADD("maincpu", SM511, 32.768_kHz_XTAL)
 	MCFG_SM510_WRITE_SEGS_CB(WRITE16(hh_sm510_state, sm510_lcd_segment_w))
 	MCFG_SM510_READ_K_CB(READ8(hh_sm510_state, input_r))
 	MCFG_SM510_WRITE_S_CB(WRITE8(hh_sm510_state, input_w))
@@ -731,6 +738,7 @@ public:
 	{
 		m_inp_lines = 3;
 	}
+
 	void knfl(machine_config &config);
 };
 
@@ -760,7 +768,7 @@ INPUT_PORTS_END
 MACHINE_CONFIG_START(knfl_state::knfl)
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", SM511, XTAL_32_768kHz)
+	MCFG_CPU_ADD("maincpu", SM511, 32.768_kHz_XTAL)
 	MCFG_SM510_WRITE_SEGS_CB(WRITE16(hh_sm510_state, sm510_lcd_segment_w))
 	MCFG_SM510_READ_K_CB(READ8(hh_sm510_state, input_r))
 	MCFG_SM510_WRITE_S_CB(WRITE8(hh_sm510_state, input_w))
@@ -800,6 +808,7 @@ public:
 	{
 		m_inp_lines = 3;
 	}
+
 	void kbilly(machine_config &config);
 };
 
@@ -831,7 +840,7 @@ INPUT_PORTS_END
 MACHINE_CONFIG_START(kbilly_state::kbilly)
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", SM511, XTAL_32_768kHz)
+	MCFG_CPU_ADD("maincpu", SM511, 32.768_kHz_XTAL)
 	MCFG_SM510_WRITE_SEGS_CB(WRITE16(hh_sm510_state, sm510_lcd_segment_w))
 	MCFG_SM510_READ_K_CB(READ8(hh_sm510_state, input_r))
 	MCFG_SM510_WRITE_S_CB(WRITE8(hh_sm510_state, input_w))
@@ -871,6 +880,7 @@ public:
 	{
 		m_inp_lines = 2;
 	}
+
 	void kbucky(machine_config &config);
 };
 
@@ -896,7 +906,7 @@ INPUT_PORTS_END
 MACHINE_CONFIG_START(kbucky_state::kbucky)
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", SM511, XTAL_32_768kHz)
+	MCFG_CPU_ADD("maincpu", SM511, 32.768_kHz_XTAL)
 	MCFG_SM510_WRITE_SEGS_CB(WRITE16(hh_sm510_state, sm510_lcd_segment_w))
 	MCFG_SM510_READ_K_CB(READ8(hh_sm510_state, input_r))
 	MCFG_SM510_WRITE_S_CB(WRITE8(hh_sm510_state, input_w))
@@ -936,6 +946,7 @@ public:
 	{
 		m_inp_lines = 3;
 	}
+
 	void kgarfld(machine_config &config);
 };
 
@@ -965,7 +976,7 @@ INPUT_PORTS_END
 MACHINE_CONFIG_START(kgarfld_state::kgarfld)
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", SM511, XTAL_32_768kHz)
+	MCFG_CPU_ADD("maincpu", SM511, 32.768_kHz_XTAL)
 	MCFG_SM510_WRITE_SEGS_CB(WRITE16(hh_sm510_state, sm510_lcd_segment_w))
 	MCFG_SM510_READ_K_CB(READ8(hh_sm510_state, input_r))
 	MCFG_SM510_WRITE_S_CB(WRITE8(hh_sm510_state, input_w))
@@ -1014,6 +1025,7 @@ public:
 	{
 		m_inp_lines = 3;
 	}
+
 	void exospace(machine_config &config);
 	void nupogodi(machine_config &config);
 	void gnw_egg(machine_config &config);
@@ -1057,7 +1069,7 @@ INPUT_PORTS_END
 MACHINE_CONFIG_START(gnw_mmouse_state::gnw_mmouse)
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", SM5A, XTAL_32_768kHz)
+	MCFG_CPU_ADD("maincpu", SM5A, 32.768_kHz_XTAL)
 	MCFG_SM510_R_MASK_OPTION(SM510_R_CONTROL_OUTPUT) // ?
 	MCFG_SM500_WRITE_O_CB(WRITE8(hh_sm510_state, sm500_lcd_segment_w))
 	MCFG_SM510_READ_K_CB(READ8(hh_sm510_state, input_r))
@@ -1090,7 +1102,7 @@ MACHINE_CONFIG_END
 MACHINE_CONFIG_DERIVED(gnw_mmouse_state::nupogodi, gnw_mmouse)
 
 	/* basic machine hardware */
-	MCFG_CPU_REPLACE("maincpu", KB1013VK12, XTAL_32_768kHz)
+	MCFG_CPU_REPLACE("maincpu", KB1013VK12, 32.768_kHz_XTAL)
 	MCFG_SM510_R_MASK_OPTION(SM510_R_CONTROL_OUTPUT)
 	MCFG_SM500_WRITE_O_CB(WRITE8(hh_sm510_state, sm500_lcd_segment_w))
 	MCFG_SM510_READ_K_CB(READ8(hh_sm510_state, input_r))
@@ -1132,6 +1144,7 @@ public:
 	{
 		m_inp_lines = 2;
 	}
+
 	void gnw_mickdon(machine_config &config);
 };
 
@@ -1162,7 +1175,7 @@ INPUT_PORTS_END
 MACHINE_CONFIG_START(gnw_mickdon_state::gnw_mickdon)
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", SM510, XTAL_32_768kHz)
+	MCFG_CPU_ADD("maincpu", SM510, 32.768_kHz_XTAL)
 	MCFG_SM510_R_MASK_OPTION(2) // confirmed
 	MCFG_SM510_WRITE_SEGS_CB(WRITE16(hh_sm510_state, sm510_lcd_segment_w))
 	MCFG_SM510_READ_K_CB(READ8(hh_sm510_state, input_r))
@@ -1211,6 +1224,7 @@ public:
 	{
 		m_inp_lines = 3;
 	}
+
 	void gnw_dkong2(machine_config &config);
 };
 
@@ -1245,7 +1259,7 @@ INPUT_PORTS_END
 MACHINE_CONFIG_START(gnw_dkong2_state::gnw_dkong2)
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", SM510, XTAL_32_768kHz)
+	MCFG_CPU_ADD("maincpu", SM510, 32.768_kHz_XTAL)
 	MCFG_SM510_R_MASK_OPTION(2) // confirmed
 	MCFG_SM510_WRITE_SEGS_CB(WRITE16(hh_sm510_state, sm510_lcd_segment_w))
 	MCFG_SM510_READ_K_CB(READ8(hh_sm510_state, input_r))
@@ -1294,6 +1308,7 @@ public:
 	{
 		m_inp_lines = 2;
 	}
+
 	void gnw_mario(machine_config &config);
 };
 
@@ -1329,7 +1344,7 @@ INPUT_PORTS_END
 MACHINE_CONFIG_START(gnw_mario_state::gnw_mario)
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", SM510, XTAL_32_768kHz)
+	MCFG_CPU_ADD("maincpu", SM510, 32.768_kHz_XTAL)
 	MCFG_SM510_R_MASK_OPTION(2) // confirmed
 	MCFG_SM510_WRITE_SEGS_CB(WRITE16(hh_sm510_state, sm510_lcd_segment_w))
 	MCFG_SM510_READ_K_CB(READ8(hh_sm510_state, input_r))
@@ -1381,6 +1396,7 @@ public:
 	{
 		m_inp_lines = 3;
 	}
+
 	void gnw_dkjr(machine_config &config);
 };
 
@@ -1420,7 +1436,7 @@ INPUT_PORTS_END
 MACHINE_CONFIG_START(gnw_dkjr_state::gnw_dkjr)
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", SM510, XTAL_32_768kHz)
+	MCFG_CPU_ADD("maincpu", SM510, 32.768_kHz_XTAL)
 	MCFG_SM510_R_MASK_OPTION(2) // confirmed
 	MCFG_SM510_WRITE_SEGS_CB(WRITE16(hh_sm510_state, sm510_lcd_segment_w))
 	MCFG_SM510_READ_K_CB(READ8(hh_sm510_state, input_r))
@@ -1466,6 +1482,7 @@ public:
 	{
 		m_inp_lines = 2;
 	}
+
 	void gnw_mariocm(machine_config &config);
 };
 
@@ -1501,7 +1518,7 @@ INPUT_PORTS_END
 MACHINE_CONFIG_START(gnw_mariocm_state::gnw_mariocm)
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", SM510, XTAL_32_768kHz)
+	MCFG_CPU_ADD("maincpu", SM510, 32.768_kHz_XTAL)
 	MCFG_SM510_R_MASK_OPTION(2) // confirmed
 	MCFG_SM510_WRITE_SEGS_CB(WRITE16(hh_sm510_state, sm510_lcd_segment_w))
 	MCFG_SM510_READ_K_CB(READ8(hh_sm510_state, input_r))
@@ -1537,7 +1554,9 @@ MACHINE_CONFIG_END
 
   First released in 1986 on Crystal Screen (model YM-801), rereleased on
   New Wide Screen in 1988 (model YM-105). It was also a prize in a Nintendo
-  game contest in 1987 (model YM-901-S).
+  game contest in 1987 (model YM-901-S). In YM-801, Mario looks like the
+  ones in ML-102 and MW-56. In YM-901-S and YM-105 he looks more detailed.
+  Until further proof, it's assumed that the ROM is the same for each model.
 
 ***************************************************************************/
 
@@ -1584,7 +1603,7 @@ INPUT_PORTS_END
 MACHINE_CONFIG_START(gnw_smb_state::gnw_smb)
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", SM511, XTAL_32_768kHz)
+	MCFG_CPU_ADD("maincpu", SM511, 32.768_kHz_XTAL)
 	MCFG_SM510_WRITE_SEGS_CB(WRITE16(hh_sm510_state, sm510_lcd_segment_w))
 	MCFG_SM510_READ_K_CB(READ8(hh_sm510_state, input_r))
 	MCFG_SM510_WRITE_S_CB(WRITE8(hh_sm510_state, input_w))
@@ -1628,6 +1647,7 @@ public:
 	{
 		m_inp_lines = 7;
 	}
+
 	void gnw_boxing(machine_config &config);
 };
 
@@ -1685,7 +1705,7 @@ INPUT_PORTS_END
 MACHINE_CONFIG_START(gnw_boxing_state::gnw_boxing)
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", SM511, XTAL_32_768kHz)
+	MCFG_CPU_ADD("maincpu", SM511, 32.768_kHz_XTAL)
 	MCFG_SM510_WRITE_SEGS_CB(WRITE16(hh_sm510_state, sm510_lcd_segment_w))
 	MCFG_SM510_READ_K_CB(READ8(hh_sm510_state, input_r))
 	MCFG_SM510_WRITE_S_CB(WRITE8(hh_sm510_state, input_w))
@@ -1736,6 +1756,7 @@ public:
 		m_inp_lines = 6;
 		m_inp_fixed = 6;
 	}
+
 	void trobhood(machine_config &config);
 	void tgaunt(machine_config &config);
 };
@@ -1794,7 +1815,7 @@ INPUT_PORTS_END
 MACHINE_CONFIG_START(tgaunt_state::tgaunt)
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", SM510, XTAL_32_768kHz)
+	MCFG_CPU_ADD("maincpu", SM510, 32.768_kHz_XTAL)
 	MCFG_SM510_R_MASK_OPTION(SM510_R_CONTROL_OUTPUT)
 	MCFG_SM510_WRITE_SEGS_CB(WRITE16(hh_sm510_state, sm510_lcd_segment_w))
 	MCFG_SM510_READ_K_CB(READ8(hh_sm510_state, input_r))
@@ -1850,6 +1871,7 @@ public:
 		m_inp_lines = 5;
 		m_inp_fixed = 5;
 	}
+
 	void tddragon(machine_config &config);
 };
 
@@ -1895,7 +1917,7 @@ INPUT_PORTS_END
 MACHINE_CONFIG_START(tddragon_state::tddragon)
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", SM510, XTAL_32_768kHz)
+	MCFG_CPU_ADD("maincpu", SM510, 32.768_kHz_XTAL)
 	MCFG_SM510_R_MASK_OPTION(SM510_R_CONTROL_OUTPUT) // confirmed
 	MCFG_SM510_WRITE_SEGS_CB(WRITE16(hh_sm510_state, sm510_lcd_segment_w))
 	MCFG_SM510_READ_K_CB(READ8(hh_sm510_state, input_r))
@@ -1940,6 +1962,7 @@ public:
 		m_inp_lines = 6;
 		m_inp_fixed = 6;
 	}
+
 	void tkarnov(machine_config &config);
 };
 
@@ -1989,7 +2012,7 @@ INPUT_PORTS_END
 MACHINE_CONFIG_START(tkarnov_state::tkarnov)
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", SM510, XTAL_32_768kHz)
+	MCFG_CPU_ADD("maincpu", SM510, 32.768_kHz_XTAL)
 	MCFG_SM510_R_MASK_OPTION(SM510_R_CONTROL_OUTPUT)
 	MCFG_SM510_WRITE_SEGS_CB(WRITE16(hh_sm510_state, sm510_lcd_segment_w))
 	MCFG_SM510_READ_K_CB(READ8(hh_sm510_state, input_r))
@@ -2034,6 +2057,7 @@ public:
 		m_inp_lines = 6;
 		m_inp_fixed = 6;
 	}
+
 	void tvindictr(machine_config &config);
 };
 
@@ -2082,7 +2106,7 @@ INPUT_PORTS_END
 MACHINE_CONFIG_START(tvindictr_state::tvindictr)
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", SM510, XTAL_32_768kHz)
+	MCFG_CPU_ADD("maincpu", SM510, 32.768_kHz_XTAL)
 	MCFG_SM510_R_MASK_OPTION(SM510_R_CONTROL_OUTPUT)
 	MCFG_SM510_WRITE_SEGS_CB(WRITE16(hh_sm510_state, sm510_lcd_segment_w))
 	MCFG_SM510_READ_K_CB(READ8(hh_sm510_state, input_r))
@@ -2185,7 +2209,7 @@ INPUT_PORTS_END
 MACHINE_CONFIG_START(tgaiden_state::tgaiden)
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", SM510, XTAL_32_768kHz)
+	MCFG_CPU_ADD("maincpu", SM510, 32.768_kHz_XTAL)
 	MCFG_SM510_R_MASK_OPTION(SM510_R_CONTROL_OUTPUT)
 	MCFG_SM510_WRITE_SEGS_CB(WRITE16(hh_sm510_state, sm510_lcd_segment_w))
 	MCFG_SM510_READ_K_CB(READ8(hh_sm510_state, input_r))
@@ -2230,6 +2254,7 @@ public:
 		m_inp_lines = 5;
 		m_inp_fixed = 5;
 	}
+
 	void tbatman(machine_config &config);
 };
 
@@ -2274,7 +2299,7 @@ INPUT_PORTS_END
 MACHINE_CONFIG_START(tbatman_state::tbatman)
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", SM510, XTAL_32_768kHz)
+	MCFG_CPU_ADD("maincpu", SM510, 32.768_kHz_XTAL)
 	MCFG_SM510_R_MASK_OPTION(SM510_R_CONTROL_OUTPUT)
 	MCFG_SM510_WRITE_SEGS_CB(WRITE16(hh_sm510_state, sm510_lcd_segment_w))
 	MCFG_SM510_READ_K_CB(READ8(hh_sm510_state, input_r))
@@ -2323,6 +2348,7 @@ public:
 		m_inp_lines = 5;
 		m_inp_fixed = 5;
 	}
+
 	void tsharr2(machine_config &config);
 };
 
@@ -2367,7 +2393,7 @@ INPUT_PORTS_END
 MACHINE_CONFIG_START(tsharr2_state::tsharr2)
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", SM510, XTAL_32_768kHz)
+	MCFG_CPU_ADD("maincpu", SM510, 32.768_kHz_XTAL)
 	MCFG_SM510_R_MASK_OPTION(SM510_R_CONTROL_OUTPUT) // confirmed
 	MCFG_SM510_WRITE_SEGS_CB(WRITE16(hh_sm510_state, sm510_lcd_segment_w))
 	MCFG_SM510_READ_K_CB(READ8(hh_sm510_state, input_r))
@@ -2412,6 +2438,7 @@ public:
 		m_inp_lines = 6;
 		m_inp_fixed = 6;
 	}
+
 	void tgoldnaxe(machine_config &config);
 };
 
@@ -2461,7 +2488,7 @@ INPUT_PORTS_END
 MACHINE_CONFIG_START(tgoldnaxe_state::tgoldnaxe)
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", SM510, XTAL_32_768kHz)
+	MCFG_CPU_ADD("maincpu", SM510, 32.768_kHz_XTAL)
 	MCFG_SM510_R_MASK_OPTION(SM510_R_CONTROL_OUTPUT)
 	MCFG_SM510_WRITE_SEGS_CB(WRITE16(hh_sm510_state, sm510_lcd_segment_w))
 	MCFG_SM510_READ_K_CB(READ8(hh_sm510_state, input_r))
@@ -2506,6 +2533,7 @@ public:
 		m_inp_lines = 6;
 		m_inp_fixed = 6;
 	}
+
 	void trobocop2(machine_config &config);
 };
 
@@ -2555,7 +2583,7 @@ INPUT_PORTS_END
 MACHINE_CONFIG_START(trobocop2_state::trobocop2)
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", SM510, XTAL_32_768kHz)
+	MCFG_CPU_ADD("maincpu", SM510, 32.768_kHz_XTAL)
 	MCFG_SM510_R_MASK_OPTION(SM510_R_CONTROL_OUTPUT)
 	MCFG_SM510_WRITE_SEGS_CB(WRITE16(hh_sm510_state, sm510_lcd_segment_w))
 	MCFG_SM510_READ_K_CB(READ8(hh_sm510_state, input_r))
@@ -2604,6 +2632,7 @@ public:
 		m_inp_lines = 6;
 		m_inp_fixed = 6;
 	}
+
 	void taltbeast(machine_config &config);
 };
 
@@ -2653,7 +2682,7 @@ INPUT_PORTS_END
 MACHINE_CONFIG_START(taltbeast_state::taltbeast)
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", SM510, XTAL_32_768kHz)
+	MCFG_CPU_ADD("maincpu", SM510, 32.768_kHz_XTAL)
 	MCFG_SM510_R_MASK_OPTION(SM510_R_CONTROL_OUTPUT) // confirmed
 	MCFG_SM510_WRITE_SEGS_CB(WRITE16(hh_sm510_state, sm510_lcd_segment_w))
 	MCFG_SM510_READ_K_CB(READ8(hh_sm510_state, input_r))
@@ -2698,6 +2727,7 @@ public:
 		m_inp_lines = 5;
 		m_inp_fixed = 5;
 	}
+
 	void tswampt(machine_config &config);
 };
 
@@ -2743,7 +2773,7 @@ INPUT_PORTS_END
 MACHINE_CONFIG_START(tswampt_state::tswampt)
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", SM510, XTAL_32_768kHz)
+	MCFG_CPU_ADD("maincpu", SM510, 32.768_kHz_XTAL)
 	MCFG_SM510_R_MASK_OPTION(SM510_R_CONTROL_OUTPUT)
 	MCFG_SM510_WRITE_SEGS_CB(WRITE16(hh_sm510_state, sm510_lcd_segment_w))
 	MCFG_SM510_READ_K_CB(READ8(hh_sm510_state, input_r))
@@ -2788,6 +2818,7 @@ public:
 		m_inp_lines = 6;
 		m_inp_fixed = 6;
 	}
+
 	void tmchammer(machine_config &config);
 };
 
@@ -2838,7 +2869,7 @@ INPUT_PORTS_END
 MACHINE_CONFIG_START(tmchammer_state::tmchammer)
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", SM511, XTAL_32_768kHz)
+	MCFG_CPU_ADD("maincpu", SM511, 32.768_kHz_XTAL)
 	MCFG_SM510_WRITE_SEGS_CB(WRITE16(hh_sm510_state, sm510_lcd_segment_w))
 	MCFG_SM510_READ_K_CB(READ8(hh_sm510_state, input_r))
 	MCFG_SM510_WRITE_S_CB(WRITE8(hh_sm510_state, input_w))
@@ -2882,6 +2913,7 @@ public:
 		m_inp_lines = 6;
 		m_inp_fixed = 6;
 	}
+
 	void tbtoads(machine_config &config);
 };
 
@@ -2931,7 +2963,7 @@ INPUT_PORTS_END
 MACHINE_CONFIG_START(tbtoads_state::tbtoads)
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", SM510, XTAL_32_768kHz)
+	MCFG_CPU_ADD("maincpu", SM510, 32.768_kHz_XTAL)
 	MCFG_SM510_R_MASK_OPTION(SM510_R_CONTROL_OUTPUT)
 	MCFG_SM510_WRITE_SEGS_CB(WRITE16(hh_sm510_state, sm510_lcd_segment_w))
 	MCFG_SM510_READ_K_CB(READ8(hh_sm510_state, input_r))
@@ -3050,7 +3082,7 @@ static const s16 tsonic_speaker_levels[] = { 0, 0x7fff/3*1, 0x7fff/3*2, 0x7fff }
 MACHINE_CONFIG_START(tsonic_state::tsonic)
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", SM511, XTAL_32_768kHz)
+	MCFG_CPU_ADD("maincpu", SM511, 32.768_kHz_XTAL)
 	MCFG_SM510_WRITE_SEGS_CB(WRITE16(hh_sm510_state, sm510_lcd_segment_w))
 	MCFG_SM510_READ_K_CB(READ8(hh_sm510_state, input_r))
 	MCFG_SM510_WRITE_S_CB(WRITE8(tsonic_state, write_s))
@@ -3094,6 +3126,7 @@ public:
 		m_inp_lines = 5;
 		m_inp_fixed = 5;
 	}
+
 	void tdummies(machine_config &config);
 };
 
@@ -3139,7 +3172,7 @@ INPUT_PORTS_END
 MACHINE_CONFIG_START(tdummies_state::tdummies)
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", SM510, XTAL_32_768kHz)
+	MCFG_CPU_ADD("maincpu", SM510, 32.768_kHz_XTAL)
 	MCFG_SM510_R_MASK_OPTION(SM510_R_CONTROL_OUTPUT)
 	MCFG_SM510_WRITE_SEGS_CB(WRITE16(hh_sm510_state, sm510_lcd_segment_w))
 	MCFG_SM510_READ_K_CB(READ8(hh_sm510_state, input_r))
@@ -3184,6 +3217,7 @@ public:
 		m_inp_lines = 6;
 		m_inp_fixed = 6;
 	}
+
 	void tsfight2(machine_config &config);
 };
 
@@ -3233,7 +3267,7 @@ INPUT_PORTS_END
 MACHINE_CONFIG_START(tsfight2_state::tsfight2)
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", SM510, XTAL_32_768kHz)
+	MCFG_CPU_ADD("maincpu", SM510, 32.768_kHz_XTAL)
 	MCFG_SM510_R_MASK_OPTION(SM510_R_CONTROL_OUTPUT)
 	MCFG_SM510_WRITE_SEGS_CB(WRITE16(hh_sm510_state, sm510_lcd_segment_w))
 	MCFG_SM510_READ_K_CB(READ8(hh_sm510_state, input_r))
@@ -3333,7 +3367,7 @@ INPUT_PORTS_END
 MACHINE_CONFIG_START(tsddragon_state::tsddragon)
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", SM510, XTAL_32_768kHz)
+	MCFG_CPU_ADD("maincpu", SM510, 32.768_kHz_XTAL)
 	MCFG_SM510_R_MASK_OPTION(SM510_R_CONTROL_OUTPUT)
 	MCFG_SM510_WRITE_SEGS_CB(WRITE16(hh_sm510_state, sm510_lcd_segment_w))
 	MCFG_SM510_READ_K_CB(READ8(hh_sm510_state, input_r))
@@ -3432,7 +3466,7 @@ INPUT_PORTS_END
 MACHINE_CONFIG_START(tnmarebc_state::tnmarebc)
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", SM510, XTAL_32_768kHz)
+	MCFG_CPU_ADD("maincpu", SM510, 32.768_kHz_XTAL)
 	MCFG_SM510_R_MASK_OPTION(SM510_R_CONTROL_OUTPUT)
 	MCFG_SM510_WRITE_SEGS_CB(WRITE16(hh_sm510_state, sm510_lcd_segment_w))
 	MCFG_SM510_READ_K_CB(READ8(hh_sm510_state, input_r))
@@ -3477,6 +3511,7 @@ public:
 		m_inp_lines = 6;
 		m_inp_fixed = 6;
 	}
+
 	void tmkombat(machine_config &config);
 };
 
@@ -3527,7 +3562,7 @@ INPUT_PORTS_END
 MACHINE_CONFIG_START(tmkombat_state::tmkombat)
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", SM510, XTAL_32_768kHz)
+	MCFG_CPU_ADD("maincpu", SM510, 32.768_kHz_XTAL)
 	MCFG_SM510_R_MASK_OPTION(SM510_R_CONTROL_OUTPUT)
 	MCFG_SM510_WRITE_SEGS_CB(WRITE16(hh_sm510_state, sm510_lcd_segment_w))
 	MCFG_SM510_READ_K_CB(READ8(hh_sm510_state, input_r))
@@ -3572,6 +3607,7 @@ public:
 		m_inp_lines = 6;
 		m_inp_fixed = 6;
 	}
+
 	void tshadow(machine_config &config);
 };
 
@@ -3621,7 +3657,7 @@ INPUT_PORTS_END
 MACHINE_CONFIG_START(tshadow_state::tshadow)
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", SM510, XTAL_32_768kHz)
+	MCFG_CPU_ADD("maincpu", SM510, 32.768_kHz_XTAL)
 	MCFG_SM510_R_MASK_OPTION(SM510_R_CONTROL_OUTPUT)
 	MCFG_SM510_WRITE_SEGS_CB(WRITE16(hh_sm510_state, sm510_lcd_segment_w))
 	MCFG_SM510_READ_K_CB(READ8(hh_sm510_state, input_r))
@@ -3716,7 +3752,7 @@ INPUT_PORTS_END
 MACHINE_CONFIG_START(tskelwarr_state::tskelwarr)
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", SM510, XTAL_32_768kHz)
+	MCFG_CPU_ADD("maincpu", SM510, 32.768_kHz_XTAL)
 	MCFG_SM510_R_MASK_OPTION(SM510_R_CONTROL_OUTPUT)
 	MCFG_SM510_WRITE_SEGS_CB(WRITE16(hh_sm510_state, sm510_lcd_segment_w))
 	MCFG_SM510_READ_K_CB(READ8(hh_sm510_state, input_r))
@@ -3761,6 +3797,7 @@ public:
 		m_inp_lines = 6;
 		m_inp_fixed = 6;
 	}
+
 	void tbatfor(machine_config &config);
 };
 
@@ -3811,7 +3848,7 @@ INPUT_PORTS_END
 MACHINE_CONFIG_START(tbatfor_state::tbatfor)
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", SM510, XTAL_32_768kHz)
+	MCFG_CPU_ADD("maincpu", SM510, 32.768_kHz_XTAL)
 	MCFG_SM510_R_MASK_OPTION(SM510_R_CONTROL_OUTPUT)
 	MCFG_SM510_WRITE_SEGS_CB(WRITE16(hh_sm510_state, sm510_lcd_segment_w))
 	MCFG_SM510_READ_K_CB(READ8(hh_sm510_state, input_r))
@@ -3856,6 +3893,7 @@ public:
 		m_inp_lines = 6;
 		m_inp_fixed = 6;
 	}
+
 	void tjdredd(machine_config &config);
 };
 
@@ -3906,7 +3944,7 @@ INPUT_PORTS_END
 MACHINE_CONFIG_START(tjdredd_state::tjdredd)
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", SM510, XTAL_32_768kHz)
+	MCFG_CPU_ADD("maincpu", SM510, 32.768_kHz_XTAL)
 	MCFG_SM510_R_MASK_OPTION(SM510_R_CONTROL_OUTPUT)
 	MCFG_SM510_WRITE_SEGS_CB(WRITE16(hh_sm510_state, sm510_lcd_segment_w))
 	MCFG_SM510_READ_K_CB(READ8(hh_sm510_state, input_r))
@@ -3951,6 +3989,7 @@ public:
 		m_inp_lines = 6;
 		m_inp_fixed = 6;
 	}
+
 	void tapollo13(machine_config &config);
 };
 
@@ -4001,7 +4040,7 @@ INPUT_PORTS_END
 MACHINE_CONFIG_START(tapollo13_state::tapollo13)
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", SM510, XTAL_32_768kHz)
+	MCFG_CPU_ADD("maincpu", SM510, 32.768_kHz_XTAL)
 	MCFG_SM510_R_MASK_OPTION(SM510_R_CONTROL_OUTPUT)
 	MCFG_SM510_WRITE_SEGS_CB(WRITE16(hh_sm510_state, sm510_lcd_segment_w))
 	MCFG_SM510_READ_K_CB(READ8(hh_sm510_state, input_r))
@@ -4046,6 +4085,7 @@ public:
 		m_inp_lines = 5;
 		m_inp_fixed = 5;
 	}
+
 	void tsjam(machine_config &config);
 };
 
@@ -4091,7 +4131,7 @@ INPUT_PORTS_END
 MACHINE_CONFIG_START(tsjam_state::tsjam)
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", SM510, XTAL_32_768kHz) // no external XTAL
+	MCFG_CPU_ADD("maincpu", SM510, 32.768_kHz_XTAL) // no external XTAL
 	MCFG_SM510_R_MASK_OPTION(SM510_R_CONTROL_OUTPUT)
 	MCFG_SM510_WRITE_SEGS_CB(WRITE16(hh_sm510_state, sm510_lcd_segment_w))
 	MCFG_SM510_READ_K_CB(READ8(hh_sm510_state, input_r))
@@ -4135,6 +4175,7 @@ public:
 	{
 		m_inp_lines = 8;
 	}
+
 	void tigarden(machine_config &config);
 };
 
@@ -4195,7 +4236,7 @@ INPUT_PORTS_END
 MACHINE_CONFIG_START(tigarden_state::tigarden)
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", SM510, XTAL_32_768kHz)
+	MCFG_CPU_ADD("maincpu", SM510, 32.768_kHz_XTAL)
 	MCFG_SM510_R_MASK_OPTION(2) // confirmed
 	MCFG_SM510_WRITE_SEGS_CB(WRITE16(hh_sm510_state, sm510_lcd_segment_w))
 	MCFG_SM510_READ_K_CB(READ8(hh_sm510_state, input_r))
@@ -4237,6 +4278,7 @@ public:
 	{
 		m_inp_lines = 8;
 	}
+
 	void nummunch(machine_config &config);
 };
 
@@ -4295,7 +4337,7 @@ INPUT_PORTS_END
 MACHINE_CONFIG_START(nummunch_state::nummunch)
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", SM511, XTAL_32_768kHz)
+	MCFG_CPU_ADD("maincpu", SM511, 32.768_kHz_XTAL)
 	MCFG_SM510_WRITE_SEGS_CB(WRITE16(hh_sm510_state, sm510_lcd_segment_w))
 	MCFG_SM510_READ_K_CB(READ8(hh_sm510_state, input_r))
 	MCFG_SM510_WRITE_S_CB(WRITE8(hh_sm510_state, input_w))
@@ -4539,7 +4581,7 @@ ROM_START( gnw_mariocm )
 ROM_END
 
 
-ROM_START( gnw_smb ) // dumped from New Wide Screen version
+ROM_START( gnw_smb )
 	ROM_REGION( 0x1000, "maincpu", 0 )
 	ROM_LOAD( "ym-105.program", 0x0000, 0x1000, CRC(0dff3b12) SHA1(3fa83f88e49ea9d7080fe935ec90ce69acbe8850) )
 
@@ -4848,7 +4890,7 @@ CONS( 1983, gnw_mario,   0,          0, gnw_mario,   gnw_mario,   gnw_mario_stat
 
 CONS( 1982, gnw_dkjr,    0,          0, gnw_dkjr,    gnw_dkjr,    gnw_dkjr_state,    0, "Nintendo", "Game & Watch: Donkey Kong Jr. (new wide screen)", MACHINE_SUPPORTS_SAVE )
 CONS( 1983, gnw_mariocm, 0,          0, gnw_mariocm, gnw_mariocm, gnw_mariocm_state, 0, "Nintendo", "Game & Watch: Mario's Cement Factory (new wide screen)", MACHINE_SUPPORTS_SAVE )
-CONS( 1986, gnw_smb,     0,          0, gnw_smb,     gnw_smb,     gnw_smb_state,     0, "Nintendo", "Game & Watch: Super Mario Bros.", MACHINE_SUPPORTS_SAVE | MACHINE_NOT_WORKING )
+CONS( 1988, gnw_smb,     0,          0, gnw_smb,     gnw_smb,     gnw_smb_state,     0, "Nintendo", "Game & Watch: Super Mario Bros. (new wide screen)", MACHINE_SUPPORTS_SAVE | MACHINE_NOT_WORKING )
 
 CONS( 1984, gnw_boxing,  0,          0, gnw_boxing,  gnw_boxing,  gnw_boxing_state,  0, "Nintendo", "Game & Watch: Boxing", MACHINE_SUPPORTS_SAVE )
 

@@ -790,7 +790,9 @@ void model2_renderer::model2_3d_render(triangle *tri, const rectangle &cliprect)
 	renderer = (tri->texheader[0] >> 13) & 7;
 
 	/* calculate and clip to viewport */
-	rectangle vp(tri->viewport[0] - 8, tri->viewport[2] - 8, (384-tri->viewport[3])+90, (384-tri->viewport[1])+90);
+	// TODO: correct? seems to be right for all cases
+	//rectangle vp(tri->viewport[0] - 8, tri->viewport[2] - 8, (384-tri->viewport[3])+90, (384-tri->viewport[1])+90);
+	rectangle vp(tri->viewport[0] - 8, tri->viewport[2] - tri->viewport[0], tri->viewport[1] - 127, tri->viewport[3] - tri->viewport[1]);
 	vp &= cliprect;
 
 	extra.state = &m_state;
@@ -2597,7 +2599,9 @@ VIDEO_START_MEMBER(model2_state,model2)
 	geo_init( (uint32_t*)memregion("user2")->base() );
 
 	/* init various video-related pointers */
-	m_palram = make_unique_clear<uint16_t[]>(0x2000);
+	m_palram = make_unique_clear<uint16_t[]>(0x4000/2);
+	m_colorxlat = make_unique_clear<uint16_t[]>(0xc000/2);
+	m_lumaram = make_unique_clear<uint16_t[]>(0x10000/2);
 }
 
 uint32_t model2_state::screen_update_model2(screen_device &screen, bitmap_rgb32 &bitmap, const rectangle &cliprect)
@@ -2631,6 +2635,6 @@ uint32_t model2_state::screen_update_model2(screen_device &screen, bitmap_rgb32 
 	tile->draw(screen, m_sys24_bitmap, cliprect, 0, 0, 0);
 
 	copybitmap_trans(bitmap, m_sys24_bitmap, 0, 0, 0, 0, cliprect, 0);
-
+	
 	return 0;
 }

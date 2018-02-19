@@ -146,6 +146,16 @@ public:
 
 	static void cfg_single_360K(device_t *device);
 	static void cfg_single_1200K(device_t *device);
+	void at16_io(address_map &map);
+	void at16_map(address_map &map);
+	void at16l_map(address_map &map);
+	void at32_io(address_map &map);
+	void at32_map(address_map &map);
+	void at32l_map(address_map &map);
+	void ficpio_io(address_map &map);
+	void ficpio_map(address_map &map);
+	void neat_io(address_map &map);
+	void ps1_16_io(address_map &map);
 };
 
 class megapc_state : public driver_device
@@ -175,24 +185,28 @@ public:
 	DECLARE_WRITE_LINE_MEMBER( wd7600_spkr ) { m_speaker->level_w(state); }
 	void megapcpl(machine_config &config);
 	void megapc(machine_config &config);
+	void megapc_io(address_map &map);
+	void megapc_map(address_map &map);
+	void megapcpl_io(address_map &map);
+	void megapcpl_map(address_map &map);
 };
 
 
-static ADDRESS_MAP_START( at16_map, AS_PROGRAM, 16, at_state )
+ADDRESS_MAP_START(at_state::at16_map)
 	ADDRESS_MAP_UNMAP_HIGH
 	AM_RANGE(0x000000, 0x09ffff) AM_RAMBANK("bank10")
 	AM_RANGE(0x0e0000, 0x0fffff) AM_ROM AM_REGION("bios", 0)
 	AM_RANGE(0xfe0000, 0xffffff) AM_ROM AM_REGION("bios", 0)
 ADDRESS_MAP_END
 
-static ADDRESS_MAP_START( at16l_map, AS_PROGRAM, 16, at_state )
+ADDRESS_MAP_START(at_state::at16l_map)
 	ADDRESS_MAP_UNMAP_HIGH
 	AM_RANGE(0x000000, 0x09ffff) AM_RAMBANK("bank10")
 	AM_RANGE(0x0e0000, 0x0fffff) AM_ROM AM_REGION("bios", 0x20000)
 	AM_RANGE(0xfe0000, 0xffffff) AM_ROM AM_REGION("bios", 0x20000)
 ADDRESS_MAP_END
 
-static ADDRESS_MAP_START( at32_map, AS_PROGRAM, 32, at_state )
+ADDRESS_MAP_START(at_state::at32_map)
 	ADDRESS_MAP_UNMAP_HIGH
 	AM_RANGE(0x00000000, 0x0009ffff) AM_RAMBANK("bank10")
 	AM_RANGE(0x000e0000, 0x000fffff) AM_ROM AM_REGION("bios", 0)
@@ -200,7 +214,7 @@ static ADDRESS_MAP_START( at32_map, AS_PROGRAM, 32, at_state )
 	AM_RANGE(0xfffe0000, 0xffffffff) AM_ROM AM_REGION("bios", 0)
 ADDRESS_MAP_END
 
-static ADDRESS_MAP_START( at32l_map, AS_PROGRAM, 32, at_state )
+ADDRESS_MAP_START(at_state::at32l_map)
 	ADDRESS_MAP_UNMAP_HIGH
 	AM_RANGE(0x00000000, 0x0009ffff) AM_RAMBANK("bank10")
 	AM_RANGE(0x000e0000, 0x000fffff) AM_ROM AM_REGION("bios", 0x20000)
@@ -208,14 +222,14 @@ static ADDRESS_MAP_START( at32l_map, AS_PROGRAM, 32, at_state )
 	AM_RANGE(0xfffe0000, 0xffffffff) AM_ROM AM_REGION("bios", 0x20000)
 ADDRESS_MAP_END
 
-static ADDRESS_MAP_START( ficpio_map, AS_PROGRAM, 32, at_state )
+ADDRESS_MAP_START(at_state::ficpio_map)
 	ADDRESS_MAP_UNMAP_HIGH
 	AM_RANGE(0x00000000, 0x0009ffff) AM_RAMBANK("bank10")
 	AM_RANGE(0x00800000, 0x00800bff) AM_RAM AM_SHARE("nvram")
 	AM_RANGE(0xfffe0000, 0xffffffff) AM_ROM AM_REGION("isa", 0x20000)
 ADDRESS_MAP_END
 
-static ADDRESS_MAP_START( at16_io, AS_IO, 16, at_state )
+ADDRESS_MAP_START(at_state::at16_io)
 	ADDRESS_MAP_UNMAP_HIGH
 	AM_RANGE(0x0000, 0x00ff) AM_DEVICE("mb", at_mb_device, map)
 ADDRESS_MAP_END
@@ -242,25 +256,25 @@ READ8_MEMBER( at_state::ps1_portb_r )
 	return data;
 }
 
-static ADDRESS_MAP_START(ps1_16_io, AS_IO, 16, at_state )
+ADDRESS_MAP_START(at_state::ps1_16_io)
 	ADDRESS_MAP_UNMAP_HIGH
 	AM_RANGE(0x0000, 0x00ff) AM_DEVICE("mb", at_mb_device, map)
 	AM_RANGE(0x0060, 0x0061) AM_READ8(ps1_portb_r, 0xff00)
 	AM_RANGE(0x0102, 0x0105) AM_READWRITE(ps1_unk_r, ps1_unk_w)
 ADDRESS_MAP_END
 
-static ADDRESS_MAP_START( neat_io, AS_IO, 16, at_state )
+ADDRESS_MAP_START(at_state::neat_io)
 	ADDRESS_MAP_UNMAP_HIGH
 	AM_RANGE(0x0000, 0x00ff) AM_DEVICE("mb", at_mb_device, map)
 	AM_RANGE(0x0022, 0x0023) AM_DEVICE("cs8221", cs8221_device, map)
 ADDRESS_MAP_END
 
-static ADDRESS_MAP_START( at32_io, AS_IO, 32, at_state )
+ADDRESS_MAP_START(at_state::at32_io)
 	ADDRESS_MAP_UNMAP_HIGH
 	AM_RANGE(0x0000, 0x00ff) AM_DEVICE16("mb", at_mb_device, map, 0xffffffff)
 ADDRESS_MAP_END
 
-static ADDRESS_MAP_START( ficpio_io, AS_IO, 32, at_state )
+ADDRESS_MAP_START(at_state::ficpio_io)
 	ADDRESS_MAP_UNMAP_HIGH
 	AM_RANGE(0x0000, 0x00ff) AM_DEVICE16("mb", at_mb_device, map, 0xffffffff)
 	AM_RANGE(0x00a8, 0x00af) AM_DEVREADWRITE8("chipset", vt82c496_device, read, write, 0xffffffff)
@@ -323,17 +337,17 @@ WRITE_LINE_MEMBER( megapc_state::wd7600_hold )
 	m_wd7600->hlda_w(state);
 }
 
-static ADDRESS_MAP_START( megapc_map, AS_PROGRAM, 16, at_state )
+ADDRESS_MAP_START(megapc_state::megapc_map)
 ADDRESS_MAP_END
 
-static ADDRESS_MAP_START( megapcpl_map, AS_PROGRAM, 32, at_state )
+ADDRESS_MAP_START(megapc_state::megapcpl_map)
 ADDRESS_MAP_END
 
-static ADDRESS_MAP_START( megapc_io, AS_IO, 16, at_state )
+ADDRESS_MAP_START(megapc_state::megapc_io)
 	ADDRESS_MAP_UNMAP_HIGH
 ADDRESS_MAP_END
 
-static ADDRESS_MAP_START( megapcpl_io, AS_IO, 32, at_state )
+ADDRESS_MAP_START(megapc_state::megapcpl_io)
 	ADDRESS_MAP_UNMAP_HIGH
 ADDRESS_MAP_END
 
@@ -416,35 +430,42 @@ MACHINE_CONFIG_START(at_state::ibm5170)
 	MCFG_RAM_EXTRA_OPTIONS("2M,4M,8M,15M")
 MACHINE_CONFIG_END
 
-MACHINE_CONFIG_DERIVED(at_state::ibm5170a, ibm5170)
+MACHINE_CONFIG_START(at_state::ibm5170a)
+	ibm5170(config);
 	MCFG_CPU_MODIFY("maincpu")
 	MCFG_CPU_CLOCK(XTAL(16'000'000)/2)
 MACHINE_CONFIG_END
 
-MACHINE_CONFIG_DERIVED(at_state::ews286, ibm5170)
+MACHINE_CONFIG_START(at_state::ews286)
+	ibm5170(config);
 	MCFG_CPU_MODIFY("maincpu")
 	MCFG_CPU_CLOCK(XTAL(16'000'000)/2) // Exact crystal needs to be verified, 8 MHz according to specification
 
 	MCFG_DEVICE_MODIFY("isa2")
 	MCFG_SLOT_OPTION_MACHINE_CONFIG("fdc", cfg_single_1200K) // From pictures but also with a 3.5" as second floppy
 
+	MCFG_SOFTWARE_LIST_ADD("ews286_disk_list","ews286_flop")
+
 	MCFG_RAM_MODIFY(RAM_TAG)
 	MCFG_RAM_DEFAULT_SIZE("640K")
 MACHINE_CONFIG_END
 
-MACHINE_CONFIG_DERIVED(at_state::ec1842, ibm5170)
+MACHINE_CONFIG_START(at_state::ec1842)
+	ibm5170(config);
 	MCFG_CPU_MODIFY("maincpu")
 	MCFG_CPU_CLOCK(12000000)
 MACHINE_CONFIG_END
 
-MACHINE_CONFIG_DERIVED(at_state::ibm5162, ibm5170)
+MACHINE_CONFIG_START(at_state::ibm5162)
+	ibm5170(config);
 	MCFG_CPU_MODIFY("maincpu")
 	MCFG_CPU_CLOCK(6000000)
 	MCFG_DEVICE_MODIFY("isa1")
 	MCFG_DEVICE_SLOT_INTERFACE(pc_isa16_cards, "cga", false)
 MACHINE_CONFIG_END
 
-MACHINE_CONFIG_DERIVED(at_state::ibmps1, ibm5170)
+MACHINE_CONFIG_START(at_state::ibmps1)
+	ibm5170(config);
 	MCFG_MACHINE_START_OVERRIDE(at_state, vrom_fix)
 	MCFG_CPU_MODIFY("maincpu")
 	MCFG_CPU_CLOCK(XTAL(10'000'000))
@@ -456,7 +477,8 @@ MACHINE_CONFIG_DERIVED(at_state::ibmps1, ibm5170)
 	MCFG_DEVICE_SLOT_INTERFACE(pc_at_keyboards, STR_KBD_MICROSOFT_NATURAL, false)
 MACHINE_CONFIG_END
 
-MACHINE_CONFIG_DERIVED(at_state::atvga, ibm5170)
+MACHINE_CONFIG_START(at_state::atvga)
+	ibm5170(config);
 	MCFG_CPU_MODIFY("maincpu")
 	MCFG_CPU_CLOCK(12000000)
 	MCFG_DEVICE_MODIFY("isa1")
@@ -466,7 +488,8 @@ MACHINE_CONFIG_DERIVED(at_state::atvga, ibm5170)
 	MCFG_ISA16_SLOT_ADD("mb:isabus","isa5", pc_isa16_cards, nullptr, false)
 MACHINE_CONFIG_END
 
-MACHINE_CONFIG_DERIVED(at_state::neat, atvga)
+MACHINE_CONFIG_START(at_state::neat)
+	atvga(config);
 	MCFG_CPU_MODIFY("maincpu")
 	MCFG_CPU_IO_MAP(neat_io)
 	MCFG_DEVICE_REMOVE("mb:rtc")  // TODO: move this into the cs8221
@@ -476,12 +499,14 @@ MACHINE_CONFIG_DERIVED(at_state::neat, atvga)
 	MCFG_CS8221_ADD("cs8221", "maincpu", "mb:isa", "bios")
 MACHINE_CONFIG_END
 
-MACHINE_CONFIG_DERIVED(at_state::xb42639, atvga)
+MACHINE_CONFIG_START(at_state::xb42639)
+	atvga(config);
 	MCFG_CPU_MODIFY("maincpu")
 	MCFG_CPU_CLOCK(12500000)
 MACHINE_CONFIG_END
 
-MACHINE_CONFIG_DERIVED(at_state::k286i, ibm5162)
+MACHINE_CONFIG_START(at_state::k286i)
+	ibm5162(config);
 	MCFG_DEVICE_MODIFY("kbd")
 	MCFG_DEVICE_SLOT_INTERFACE(pc_at_keyboards, STR_KBD_MICROSOFT_NATURAL, false)
 	MCFG_ISA16_SLOT_ADD("mb:isabus","isa5", pc_isa16_cards, nullptr, false)
@@ -520,38 +545,44 @@ MACHINE_CONFIG_START(at_state::at386)
 	MCFG_RAM_EXTRA_OPTIONS("2M,4M,8M,15M,16M,32M,64M")
 MACHINE_CONFIG_END
 
-MACHINE_CONFIG_DERIVED(at_state::at386l, at386)
+MACHINE_CONFIG_START(at_state::at386l)
+	at386(config);
 	MCFG_CPU_MODIFY("maincpu")
 	MCFG_CPU_PROGRAM_MAP(at32l_map)
 MACHINE_CONFIG_END
 
-MACHINE_CONFIG_DERIVED(at_state::at486, at386)
+MACHINE_CONFIG_START(at_state::at486)
+	at386(config);
 	MCFG_CPU_REPLACE("maincpu", I486, 25000000)
 	MCFG_CPU_PROGRAM_MAP(at32_map)
 	MCFG_CPU_IO_MAP(at32_io)
 	MCFG_CPU_IRQ_ACKNOWLEDGE_DEVICE("mb:pic8259_master", pic8259_device, inta_cb)
 MACHINE_CONFIG_END
 
-MACHINE_CONFIG_DERIVED(at_state::at486l, at486)
+MACHINE_CONFIG_START(at_state::at486l)
+	at486(config);
 	MCFG_CPU_MODIFY("maincpu")
 	MCFG_CPU_PROGRAM_MAP(at32l_map)
 MACHINE_CONFIG_END
 
-MACHINE_CONFIG_DERIVED(at_state::at386sx, atvga)
+MACHINE_CONFIG_START(at_state::at386sx)
+	atvga(config);
 	MCFG_CPU_REPLACE("maincpu", I386SX, 16000000)     /* 386SX */
 	MCFG_CPU_PROGRAM_MAP(at16_map)
 	MCFG_CPU_IO_MAP(at16_io)
 	MCFG_CPU_IRQ_ACKNOWLEDGE_DEVICE("mb:pic8259_master", pic8259_device, inta_cb)
 MACHINE_CONFIG_END
 
-MACHINE_CONFIG_DERIVED(at_state::ct386sx, at386sx)
+MACHINE_CONFIG_START(at_state::ct386sx)
+	at386sx(config);
 	MCFG_CPU_MODIFY("maincpu")
 	MCFG_CPU_IO_MAP(neat_io)
 	MCFG_CS8221_ADD("cs8221", "maincpu", "mb:isa", "maincpu")
 MACHINE_CONFIG_END
 
 // Commodore PC 30-III
-MACHINE_CONFIG_DERIVED(at_state::pc30iii, ibm5170)
+MACHINE_CONFIG_START(at_state::pc30iii)
+	ibm5170(config);
 	MCFG_CPU_MODIFY("maincpu")
 	MCFG_CPU_CLOCK(6000000) // should be XTAL(24'000'000)/2, but doesn't post with that setting
 	MCFG_DEVICE_MODIFY("isa1")
@@ -559,7 +590,8 @@ MACHINE_CONFIG_DERIVED(at_state::pc30iii, ibm5170)
 MACHINE_CONFIG_END
 
 // Commodore PC 40-III
-MACHINE_CONFIG_DERIVED(at_state::pc40iii, ibm5170)
+MACHINE_CONFIG_START(at_state::pc40iii)
+	ibm5170(config);
 	MCFG_CPU_MODIFY("maincpu")
 	MCFG_CPU_CLOCK(6000000) // should be XTAL(24'000'000)/2, but doesn't post with that setting
 	MCFG_DEVICE_MODIFY("isa1")
@@ -643,7 +675,8 @@ MACHINE_CONFIG_START(megapc_state::megapc)
 	MCFG_SOFTWARE_LIST_ADD("disk_list","megapc")
 MACHINE_CONFIG_END
 
-MACHINE_CONFIG_DERIVED(megapc_state::megapcpl, megapc)
+MACHINE_CONFIG_START(megapc_state::megapcpl)
+	megapc(config);
 	MCFG_CPU_REPLACE("maincpu", I486, 66000000 / 2)
 	MCFG_CPU_PROGRAM_MAP(megapcpl_map)
 	MCFG_CPU_IO_MAP(megapcpl_io)
@@ -755,7 +788,8 @@ MACHINE_CONFIG_START(at_state::comportiii)
 	MCFG_RAM_EXTRA_OPTIONS("1152K,1664K,2176K,2688K,4736K,6784K")
 MACHINE_CONFIG_END
 
-MACHINE_CONFIG_DERIVED(at_state::comportii, ibm5170)
+MACHINE_CONFIG_START(at_state::comportii)
+	ibm5170(config);
 	MCFG_CPU_MODIFY("maincpu")
 	MCFG_CPU_CLOCK(48_MHz_XTAL/6)
 	MCFG_DEVICE_MODIFY("isa2")

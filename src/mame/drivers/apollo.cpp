@@ -678,7 +678,7 @@ WRITE32_MEMBER(apollo_state::apollo_f8_w){
  ADDRESS MAPS
  ***************************************************************************/
 
-static ADDRESS_MAP_START(dn3500_map, AS_PROGRAM, 32, apollo_state )
+ADDRESS_MAP_START(apollo_state::dn3500_map)
 		AM_RANGE(0x00000000, 0xffffffff) AM_READWRITE(apollo_unmapped_r, apollo_unmapped_w)
 
 		AM_RANGE(0x000000, 0x00ffff) AM_ROM /* boot ROM  */
@@ -722,7 +722,7 @@ static ADDRESS_MAP_START(dn3500_map, AS_PROGRAM, 32, apollo_state )
 //      AM_RANGE(0xf8000000, 0xffffffff) AM_READWRITE(apollo_f8_r, apollo_f8_w)
 ADDRESS_MAP_END
 
-static ADDRESS_MAP_START(dsp3500_map, AS_PROGRAM, 32, apollo_state )
+ADDRESS_MAP_START(apollo_state::dsp3500_map)
 		AM_RANGE(0x00000000, 0xffffffff) AM_READWRITE(apollo_unmapped_r, apollo_unmapped_w)
 		AM_RANGE(0x000000, 0x00ffff) AM_ROM /* boot ROM  */
 		AM_RANGE(0x000000, 0x00ffff) AM_WRITE(apollo_rom_w)
@@ -754,7 +754,7 @@ static ADDRESS_MAP_START(dsp3500_map, AS_PROGRAM, 32, apollo_state )
 //      AM_RANGE(0xf8000000, 0xffffffff) AM_READWRITE(apollo_f8_r, apollo_f8_w)
 ADDRESS_MAP_END
 
-static ADDRESS_MAP_START(dn3000_map, AS_PROGRAM, 32, apollo_state )
+ADDRESS_MAP_START(apollo_state::dn3000_map)
 		AM_RANGE(0x000000, 0xffffff) AM_READWRITE(apollo_unmapped_r, apollo_unmapped_w)
 
 		AM_RANGE(0x000000, 0x007fff) AM_ROM /* boot ROM  */
@@ -786,7 +786,7 @@ static ADDRESS_MAP_START(dn3000_map, AS_PROGRAM, 32, apollo_state )
 		AM_RANGE(0x0a0000, 0x0bffff) AM_DEVREADWRITE16(APOLLO_SCREEN_TAG, apollo_graphics_15i, apollo_cgm_r, apollo_cgm_w, 0xffffffff)
 ADDRESS_MAP_END
 
-static ADDRESS_MAP_START(dsp3000_map, AS_PROGRAM, 32, apollo_state )
+ADDRESS_MAP_START(apollo_state::dsp3000_map)
 		AM_RANGE(0x000000, 0xffffff) AM_READWRITE(apollo_unmapped_r, apollo_unmapped_w)
 
 		AM_RANGE(0x000000, 0x007fff) AM_ROM /* boot ROM  */
@@ -815,7 +815,7 @@ static ADDRESS_MAP_START(dsp3000_map, AS_PROGRAM, 32, apollo_state )
 ADDRESS_MAP_END
 
 
-static ADDRESS_MAP_START(dn5500_map, AS_PROGRAM, 32, apollo_state )
+ADDRESS_MAP_START(apollo_state::dn5500_map)
 	AM_RANGE(0x00000000, 0xffffffff) AM_READWRITE(apollo_unmapped_r, apollo_unmapped_w)
 	AM_RANGE(0x000000, 0x00ffff) AM_ROM /* boot ROM  */
 	AM_RANGE(0x000000, 0x00ffff) AM_WRITE(apollo_rom_w)
@@ -861,7 +861,7 @@ static ADDRESS_MAP_START(dn5500_map, AS_PROGRAM, 32, apollo_state )
 //  AM_RANGE(0xf8000000, 0xffffffff) AM_READWRITE(apollo_f8_r, apollo_f8_w)
 ADDRESS_MAP_END
 
-static ADDRESS_MAP_START(dsp5500_map, AS_PROGRAM, 32, apollo_state )
+ADDRESS_MAP_START(apollo_state::dsp5500_map)
 	AM_RANGE(0x00000000, 0xffffffff) AM_READWRITE(apollo_unmapped_r, apollo_unmapped_w)
 	AM_RANGE(0x000000, 0x00ffff) AM_ROM /* boot ROM  */
 	AM_RANGE(0x000000, 0x00ffff) AM_WRITE(apollo_rom_w)
@@ -1055,7 +1055,7 @@ MACHINE_CONFIG_START(apollo_state::dn3500)
 
 	MCFG_QUANTUM_TIME(attotime::from_hz(60))
 
-	MCFG_FRAGMENT_ADD( apollo )
+	apollo(config);
 
 	/* keyboard beeper */
 	MCFG_SPEAKER_STANDARD_MONO("mono")
@@ -1079,7 +1079,7 @@ MACHINE_CONFIG_START(apollo_state::dsp3500)
 	MCFG_CPU_IRQ_ACKNOWLEDGE_DRIVER(apollo_state,apollo_irq_acknowledge)
 	MCFG_QUANTUM_TIME(attotime::from_hz(60))
 
-	MCFG_FRAGMENT_ADD( apollo_terminal )
+	apollo_terminal(config);
 
 	/* keyboard beeper */
 	MCFG_SPEAKER_STANDARD_MONO("mono")
@@ -1095,7 +1095,8 @@ MACHINE_CONFIG_START(apollo_state::dsp3500)
 	MCFG_DEFAULT_LAYOUT( layout_apollo_dsp )
 MACHINE_CONFIG_END
 
-MACHINE_CONFIG_DERIVED(apollo_state::dn3500_19i, dn3500)
+MACHINE_CONFIG_START(apollo_state::dn3500_19i)
+	dn3500(config);
 	/* video hardware 19" monochrome */
 	MCFG_APOLLO_MONO19I_ADD(APOLLO_SCREEN_TAG)
 	MCFG_DEVICE_ADD(APOLLO_KBD_TAG, APOLLO_KBD, 0)
@@ -1103,7 +1104,8 @@ MACHINE_CONFIG_DERIVED(apollo_state::dn3500_19i, dn3500)
 	MCFG_APOLLO_KBD_GERMAN_CALLBACK(READLINE(apollo_state, apollo_kbd_is_german))
 MACHINE_CONFIG_END
 
-MACHINE_CONFIG_DERIVED(apollo_state::dn3500_15i, dn3500)
+MACHINE_CONFIG_START(apollo_state::dn3500_15i)
+	dn3500(config);
 	/* video hardware is 15" monochrome or color */
 	MCFG_APOLLO_GRAPHICS_ADD(APOLLO_SCREEN_TAG)
 	MCFG_DEVICE_ADD(APOLLO_KBD_TAG, APOLLO_KBD, 0)
@@ -1111,7 +1113,8 @@ MACHINE_CONFIG_DERIVED(apollo_state::dn3500_15i, dn3500)
 	MCFG_APOLLO_KBD_GERMAN_CALLBACK(READLINE(apollo_state, apollo_kbd_is_german))
 MACHINE_CONFIG_END
 
-MACHINE_CONFIG_DERIVED(apollo_state::dn3000, dn3500)
+MACHINE_CONFIG_START(apollo_state::dn3000)
+	dn3500(config);
 	MCFG_CPU_REPLACE(MAINCPU, M68020PMMU, 12000000) /* 12 MHz */
 	MCFG_CPU_IRQ_ACKNOWLEDGE_DRIVER(apollo_state,apollo_irq_acknowledge)
 	MCFG_CPU_PROGRAM_MAP(dn3000_map)
@@ -1127,7 +1130,7 @@ MACHINE_CONFIG_START(apollo_state::dsp3000)
 	MCFG_CPU_PROGRAM_MAP(dsp3000_map)
 	MCFG_QUANTUM_TIME(attotime::from_hz(60))
 
-	MCFG_FRAGMENT_ADD( apollo_terminal )
+	apollo_terminal(config);
 
 	/* keyboard beeper */
 	MCFG_SPEAKER_STANDARD_MONO("mono")
@@ -1146,7 +1149,8 @@ MACHINE_CONFIG_START(apollo_state::dsp3000)
 	MCFG_DEFAULT_LAYOUT( layout_apollo_dsp )
 MACHINE_CONFIG_END
 
-MACHINE_CONFIG_DERIVED(apollo_state::dn3000_19i, dn3000)
+MACHINE_CONFIG_START(apollo_state::dn3000_19i)
+	dn3000(config);
 	/* video hardware 19" monochrome */
 	MCFG_APOLLO_MONO19I_ADD(APOLLO_SCREEN_TAG)
 	MCFG_DEVICE_ADD(APOLLO_KBD_TAG, APOLLO_KBD, 0)
@@ -1154,7 +1158,8 @@ MACHINE_CONFIG_DERIVED(apollo_state::dn3000_19i, dn3000)
 	MCFG_APOLLO_KBD_GERMAN_CALLBACK(READLINE(apollo_state, apollo_kbd_is_german))
 MACHINE_CONFIG_END
 
-MACHINE_CONFIG_DERIVED(apollo_state::dn3000_15i, dn3000)
+MACHINE_CONFIG_START(apollo_state::dn3000_15i)
+	dn3000(config);
 	/* video hardware 15" monochrome */
 	MCFG_APOLLO_GRAPHICS_ADD(APOLLO_SCREEN_TAG)
 	MCFG_DEVICE_ADD(APOLLO_KBD_TAG, APOLLO_KBD, 0)
@@ -1162,7 +1167,8 @@ MACHINE_CONFIG_DERIVED(apollo_state::dn3000_15i, dn3000)
 	MCFG_APOLLO_KBD_GERMAN_CALLBACK(READLINE(apollo_state, apollo_kbd_is_german))
 MACHINE_CONFIG_END
 
-MACHINE_CONFIG_DERIVED(apollo_state::dn5500, dn3500)
+MACHINE_CONFIG_START(apollo_state::dn5500)
+	dn3500(config);
 	MCFG_CPU_REPLACE(MAINCPU, M68040, 25000000) /* 25 MHz */
 	MCFG_CPU_PROGRAM_MAP(dn5500_map)
 MACHINE_CONFIG_END
@@ -1173,7 +1179,7 @@ MACHINE_CONFIG_START(apollo_state::dsp5500)
 	MCFG_CPU_IRQ_ACKNOWLEDGE_DRIVER(apollo_state,apollo_irq_acknowledge)
 	MCFG_QUANTUM_TIME(attotime::from_hz(60))
 
-	MCFG_FRAGMENT_ADD(apollo_terminal)
+	apollo_terminal(config);
 
 	/* keyboard beeper */
 	MCFG_SPEAKER_STANDARD_MONO("mono")
@@ -1184,7 +1190,8 @@ MACHINE_CONFIG_START(apollo_state::dsp5500)
 	MCFG_DEFAULT_LAYOUT( layout_apollo_dsp )
 MACHINE_CONFIG_END
 
-MACHINE_CONFIG_DERIVED(apollo_state::dn5500_19i, dn5500)
+MACHINE_CONFIG_START(apollo_state::dn5500_19i)
+	dn5500(config);
 	/* video hardware 19" monochrome */
 	MCFG_APOLLO_MONO19I_ADD(APOLLO_SCREEN_TAG)
 	MCFG_DEVICE_ADD(APOLLO_KBD_TAG, APOLLO_KBD, 0)
@@ -1192,7 +1199,8 @@ MACHINE_CONFIG_DERIVED(apollo_state::dn5500_19i, dn5500)
 	MCFG_APOLLO_KBD_GERMAN_CALLBACK(READLINE(apollo_state, apollo_kbd_is_german))
 MACHINE_CONFIG_END
 
-MACHINE_CONFIG_DERIVED(apollo_state::dn5500_15i, dn5500)
+MACHINE_CONFIG_START(apollo_state::dn5500_15i)
+	dn5500(config);
 	/* video hardware 15" monochrome */
 	MCFG_APOLLO_GRAPHICS_ADD(APOLLO_SCREEN_TAG)
 	MCFG_DEVICE_ADD(APOLLO_KBD_TAG, APOLLO_KBD, 0)

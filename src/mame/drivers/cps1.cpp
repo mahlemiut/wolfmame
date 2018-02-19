@@ -535,7 +535,7 @@ All PRGx go to B-board. Provision for up to 4MB of ROM space, which was never us
 
 */
 
-static ADDRESS_MAP_START( main_map, AS_PROGRAM, 16, cps_state )
+ADDRESS_MAP_START(cps_state::main_map)
 	AM_RANGE(0x000000, 0x3fffff) AM_ROM
 	AM_RANGE(0x800000, 0x800007) AM_READ_PORT("IN1")            /* Player input ports */
 	/* forgottn, willow, cawing, nemo, varth read from 800010. Probably debug input leftover from development */
@@ -556,7 +556,7 @@ ADDRESS_MAP_END
 /* Forgotten Worlds has a NEC uPD4701AC on the B-board handling dial inputs from the CN-MOWS connector. */
 /* The memory mapping is handled by PAL LWIO */
 
-static ADDRESS_MAP_START( forgottn_map, AS_PROGRAM, 16, cps_state )
+ADDRESS_MAP_START(cps_state::forgottn_map)
 	AM_IMPORT_FROM(main_map)
 	AM_RANGE(0x800040, 0x800041) AM_DEVWRITE8("upd4701", upd4701_device, reset_x, 0x00ff)
 	AM_RANGE(0x800048, 0x800049) AM_DEVWRITE8("upd4701", upd4701_device, reset_y, 0x00ff)
@@ -587,7 +587,7 @@ SOUNDA15   = pin13 =   (  I1 )
 /SOUNDCE   = pin12 = ! ( !I0 & (!I1 | ( I1 & !I2)) )
 */
 
-static ADDRESS_MAP_START( sub_map, AS_PROGRAM, 8, cps_state )
+ADDRESS_MAP_START(cps_state::sub_map)
 	AM_RANGE(0x0000, 0x7fff) AM_ROM
 	AM_RANGE(0x8000, 0xbfff) AM_ROMBANK("bank1")
 	AM_RANGE(0xd000, 0xd7ff) AM_RAM
@@ -599,7 +599,7 @@ static ADDRESS_MAP_START( sub_map, AS_PROGRAM, 8, cps_state )
 	AM_RANGE(0xf00a, 0xf00a) AM_DEVREAD("soundlatch2", generic_latch_8_device, read) /* Sound timer fade */
 ADDRESS_MAP_END
 
-static ADDRESS_MAP_START( qsound_main_map, AS_PROGRAM, 16, cps_state )
+ADDRESS_MAP_START(cps_state::qsound_main_map)
 	AM_RANGE(0x000000, 0x1fffff) AM_ROM
 	AM_RANGE(0x800000, 0x800007) AM_READ_PORT("IN1")            /* Player input ports */
 	AM_RANGE(0x800018, 0x80001f) AM_READ(cps1_dsw_r)            /* System input ports / Dip Switches */
@@ -617,7 +617,7 @@ static ADDRESS_MAP_START( qsound_main_map, AS_PROGRAM, 16, cps_state )
 	AM_RANGE(0xff0000, 0xffffff) AM_RAM AM_SHARE("mainram")
 ADDRESS_MAP_END
 
-ADDRESS_MAP_START( qsound_sub_map, AS_PROGRAM, 8, cps_state )   // used by cps2.c too
+ADDRESS_MAP_START(cps_state::qsound_sub_map)   // used by cps2.c too
 	AM_RANGE(0x0000, 0x7fff) AM_ROM
 	AM_RANGE(0x8000, 0xbfff) AM_ROMBANK("bank1")    /* banked (contains music data) */
 	AM_RANGE(0xc000, 0xcfff) AM_RAM AM_SHARE("qsound_ram1")
@@ -627,11 +627,11 @@ ADDRESS_MAP_START( qsound_sub_map, AS_PROGRAM, 8, cps_state )   // used by cps2.
 	AM_RANGE(0xf000, 0xffff) AM_RAM AM_SHARE("qsound_ram2")
 ADDRESS_MAP_END
 
-ADDRESS_MAP_START( qsound_decrypted_opcodes_map, AS_OPCODES, 8, cps_state )
+ADDRESS_MAP_START(cps_state::qsound_decrypted_opcodes_map)
 	AM_RANGE(0x0000, 0x7fff) AM_ROMBANK("decrypted")
 ADDRESS_MAP_END
 
-static ADDRESS_MAP_START( sf2m3_map, AS_PROGRAM, 16, cps_state )
+ADDRESS_MAP_START(cps_state::sf2m3_map)
 	AM_RANGE(0x000000, 0x3fffff) AM_ROM
 	AM_RANGE(0x800010, 0x800011) AM_READ_PORT("IN1")            /* Player input ports */
 	AM_RANGE(0x800028, 0x80002f) AM_READ(cps1_hack_dsw_r)            /* System input ports / Dip Switches */
@@ -647,7 +647,7 @@ static ADDRESS_MAP_START( sf2m3_map, AS_PROGRAM, 16, cps_state )
 	AM_RANGE(0xff0000, 0xffffff) AM_RAM
 ADDRESS_MAP_END
 
-static ADDRESS_MAP_START( sf2m10_map, AS_PROGRAM, 16, cps_state )
+ADDRESS_MAP_START(cps_state::sf2m10_map)
 	AM_RANGE(0x000000, 0x3fffff) AM_ROM
 	AM_RANGE(0x800000, 0x800007) AM_READ_PORT("IN1")
 	AM_RANGE(0x800018, 0x80001f) AM_READ(cps1_hack_dsw_r)
@@ -3377,7 +3377,8 @@ MACHINE_CONFIG_START(cps_state::cps1_10MHz)
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 0.30)
 MACHINE_CONFIG_END
 
-MACHINE_CONFIG_DERIVED(cps_state::forgottn, cps1_10MHz)
+MACHINE_CONFIG_START(cps_state::forgottn)
+	cps1_10MHz(config);
 	MCFG_CPU_MODIFY("maincpu")
 	MCFG_CPU_PROGRAM_MAP(forgottn_map)
 
@@ -3386,20 +3387,23 @@ MACHINE_CONFIG_DERIVED(cps_state::forgottn, cps1_10MHz)
 	MCFG_UPD4701_PORTY("DIAL1")
 MACHINE_CONFIG_END
 
-MACHINE_CONFIG_DERIVED(cps_state::cps1_12MHz, cps1_10MHz)
+MACHINE_CONFIG_START(cps_state::cps1_12MHz)
+	cps1_10MHz(config);
 
 	/* basic machine hardware */
 	MCFG_CPU_MODIFY("maincpu")
 	MCFG_CPU_CLOCK( XTAL(12'000'000) )    /* verified on pcb */
 MACHINE_CONFIG_END
 
-MACHINE_CONFIG_DERIVED(cps_state::pang3, cps1_12MHz)
+MACHINE_CONFIG_START(cps_state::pang3)
+	cps1_12MHz(config);
 
 	/* basic machine hardware */
 	MCFG_EEPROM_SERIAL_93C46_ADD("eeprom")
 MACHINE_CONFIG_END
 
-MACHINE_CONFIG_DERIVED(cps_state::ganbare, cps1_10MHz)
+MACHINE_CONFIG_START(cps_state::ganbare)
+	cps1_10MHz(config);
 
 	/* basic machine hardware */
 	MCFG_CPU_MODIFY("maincpu")
@@ -3408,7 +3412,8 @@ MACHINE_CONFIG_DERIVED(cps_state::ganbare, cps1_10MHz)
 	MCFG_M48T35_ADD("m48t35")
 MACHINE_CONFIG_END
 
-MACHINE_CONFIG_DERIVED(cps_state::qsound, cps1_12MHz)
+MACHINE_CONFIG_START(cps_state::qsound)
+	cps1_12MHz(config);
 
 	/* basic machine hardware */
 	MCFG_CPU_REPLACE("maincpu", M68000, XTAL(12'000'000) )    /* verified on pcb */
@@ -3418,7 +3423,7 @@ MACHINE_CONFIG_DERIVED(cps_state::qsound, cps1_12MHz)
 
 	MCFG_CPU_REPLACE("audiocpu", Z80, XTAL(8'000'000))  /* verified on pcb */
 	MCFG_CPU_PROGRAM_MAP(qsound_sub_map)
-	MCFG_CPU_DECRYPTED_OPCODES_MAP(qsound_decrypted_opcodes_map)
+	MCFG_CPU_OPCODES_MAP(qsound_decrypted_opcodes_map)
 	MCFG_CPU_PERIODIC_INT_DRIVER(cps_state, irq0_line_hold, 250) // measured (cps2.c)
 
 	MCFG_MACHINE_START_OVERRIDE(cps_state, qsound)
@@ -3439,18 +3444,21 @@ MACHINE_CONFIG_DERIVED(cps_state::qsound, cps1_12MHz)
 	MCFG_SOUND_ROUTE(1, "rspeaker", 1.0)
 MACHINE_CONFIG_END
 
-MACHINE_CONFIG_DERIVED(cps_state::wofhfh, cps1_12MHz)
+MACHINE_CONFIG_START(cps_state::wofhfh)
+	cps1_12MHz(config);
 
 	/* basic machine hardware */
 	MCFG_EEPROM_SERIAL_93C46_8BIT_ADD("eeprom")
 MACHINE_CONFIG_END
 
-MACHINE_CONFIG_DERIVED(cps_state::sf2m3, cps1_12MHz)
+MACHINE_CONFIG_START(cps_state::sf2m3)
+	cps1_12MHz(config);
 	MCFG_CPU_MODIFY("maincpu")
 	MCFG_CPU_PROGRAM_MAP(sf2m3_map)
 MACHINE_CONFIG_END
 
-MACHINE_CONFIG_DERIVED(cps_state::sf2m10, cps1_12MHz)
+MACHINE_CONFIG_START(cps_state::sf2m10)
+	cps1_12MHz(config);
 	MCFG_CPU_MODIFY("maincpu")
 	MCFG_CPU_PROGRAM_MAP(sf2m10_map)
 MACHINE_CONFIG_END

@@ -96,6 +96,7 @@
 #include "cpu/mn10200/mn102dis.h"
 #include "cpu/nanoprocessor/nanoprocessor_dasm.h"
 #include "cpu/nec/necdasm.h"
+#include "cpu/nuon/nuondasm.h"
 #include "cpu/patinhofeio/patinho_feio_dasm.h"
 #include "cpu/pdp1/pdp1dasm.h"
 #include "cpu/pdp1/tx0dasm.h"
@@ -318,7 +319,7 @@ static const dasm_table_entry dasm_table[] =
 	{ "e0c6200",         be, -1, []() -> util::disasm_interface * { return new e0c6200_disassembler; } },
 //  { "es5510",          be,  0, []() -> util::disasm_interface * { return new es5510_disassembler; } }, // Currently does nothing
 	{ "esrip",           be,  0, []() -> util::disasm_interface * { return new esrip_disassembler; } },
-	{ "f8",              le,  0, []() -> util::disasm_interface * { return new f8_disassembler; } },
+	{ "f8",              be,  0, []() -> util::disasm_interface * { return new f8_disassembler; } },
 	{ "g65816",          le,  0, []() -> util::disasm_interface * { return new g65816_disassembler(&g65816_unidasm); } },
 	{ "h6280",           le,  0, []() -> util::disasm_interface * { return new h6280_disassembler; } },
 	{ "h8",              be,  0, []() -> util::disasm_interface * { return new h8_disassembler; } },
@@ -391,6 +392,7 @@ static const dasm_table_entry dasm_table[] =
 	{ "mn10200",         le,  0, []() -> util::disasm_interface * { return new mn10200_disassembler; } },
 	{ "nanoprocessor",   le,  0, []() -> util::disasm_interface * { return new hp_nanoprocessor_disassembler; } },
 	{ "nec",             le,  0, []() -> util::disasm_interface * { return new nec_disassembler; } },
+	{ "nuon",            be,  0, []() -> util::disasm_interface * { return new nuon_disassembler; } },
 	{ "nsc8105",         le,  0, []() -> util::disasm_interface * { return new m680x_disassembler(8105); } },
 	{ "patinho_feio",    le,  0, []() -> util::disasm_interface * { return new patinho_feio_disassembler; } },
 	{ "pdp1",            be,  0, []() -> util::disasm_interface * { return new pdp1_disassembler; } },

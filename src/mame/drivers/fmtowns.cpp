@@ -2190,7 +2190,7 @@ WRITE_LINE_MEMBER( towns_state::towns_syndet_irq )
 }
 
 
-static ADDRESS_MAP_START(towns_mem, AS_PROGRAM, 32, towns_state)
+ADDRESS_MAP_START(towns_state::towns_mem)
 	// memory map based on FM-Towns/Bochs (Bochs modified to emulate the FM-Towns)
 	// may not be (and probably is not) correct
 	AM_RANGE(0x00000000, 0x000bffff) AM_RAM
@@ -2219,7 +2219,7 @@ static ADDRESS_MAP_START(towns_mem, AS_PROGRAM, 32, towns_state)
 	AM_RANGE(0xfffc0000, 0xffffffff) AM_ROM AM_REGION("user",0x200000)  // SYSTEM ROM
 ADDRESS_MAP_END
 
-static ADDRESS_MAP_START(marty_mem, AS_PROGRAM, 16, towns_state)
+ADDRESS_MAP_START(towns_state::marty_mem)
 	AM_RANGE(0x00000000, 0x000bffff) AM_RAM
 	AM_RANGE(0x000c0000, 0x000c7fff) AM_READWRITE8(towns_gfx_r,towns_gfx_w,0xffff)
 	AM_RANGE(0x000c8000, 0x000cafff) AM_READWRITE8(towns_spriteram_low_r,towns_spriteram_low_w,0xffff)
@@ -2244,7 +2244,7 @@ static ADDRESS_MAP_START(marty_mem, AS_PROGRAM, 16, towns_state)
 	AM_RANGE(0x00fc0000, 0x00ffffff) AM_ROM AM_REGION("user",0x200000)  // SYSTEM ROM
 ADDRESS_MAP_END
 
-static ADDRESS_MAP_START(ux_mem, AS_PROGRAM, 16, towns_state)
+ADDRESS_MAP_START(towns_state::ux_mem)
 	AM_RANGE(0x00000000, 0x000bffff) AM_RAM
 	AM_RANGE(0x000c0000, 0x000c7fff) AM_READWRITE8(towns_gfx_r,towns_gfx_w,0xffff)
 	AM_RANGE(0x000c8000, 0x000cafff) AM_READWRITE8(towns_spriteram_low_r,towns_spriteram_low_w,0xffff)
@@ -2268,7 +2268,7 @@ static ADDRESS_MAP_START(ux_mem, AS_PROGRAM, 16, towns_state)
 	AM_RANGE(0x00fc0000, 0x00ffffff) AM_ROM AM_REGION("user",0x200000)  // SYSTEM ROM
 ADDRESS_MAP_END
 
-static ADDRESS_MAP_START( towns_io , AS_IO, 32, towns_state)
+ADDRESS_MAP_START(towns_state::towns_io)
 	// I/O ports derived from FM Towns/Bochs, these are specific to the FM Towns
 	// System ports
 	ADDRESS_MAP_UNMAP_HIGH
@@ -2327,7 +2327,7 @@ static ADDRESS_MAP_START( towns_io , AS_IO, 32, towns_state)
 	AM_RANGE(0xff80,0xffff) AM_READWRITE8(towns_video_cff80_r,towns_video_cff80_w,0xffffffff)
 ADDRESS_MAP_END
 
-static ADDRESS_MAP_START( towns16_io , AS_IO, 16, towns_state)  // for the 386SX based systems
+ADDRESS_MAP_START(towns_state::towns16_io)  // for the 386SX based systems
 	// System ports
 	ADDRESS_MAP_UNMAP_HIGH
 	AM_RANGE(0x0000,0x0003) AM_DEVREADWRITE8("pic8259_master", pic8259_device, read, write, 0x00ff)
@@ -2892,12 +2892,12 @@ MACHINE_CONFIG_START(towns_state::towns_base)
 MACHINE_CONFIG_END
 
 MACHINE_CONFIG_START(towns_state::towns)
-	MCFG_FRAGMENT_ADD(towns_base)
+	towns_base(config);
 	MCFG_NVRAM_ADD_0FILL("nvram")
 MACHINE_CONFIG_END
 
 MACHINE_CONFIG_START(towns16_state::townsux)
-	MCFG_FRAGMENT_ADD(towns_base)
+	towns_base(config);
 
 	MCFG_CPU_REPLACE("maincpu",I386SX, 16000000)
 	MCFG_CPU_PROGRAM_MAP(ux_mem)
@@ -2912,7 +2912,8 @@ MACHINE_CONFIG_START(towns16_state::townsux)
 	MCFG_NVRAM_ADD_0FILL("nvram16")
 MACHINE_CONFIG_END
 
-MACHINE_CONFIG_DERIVED(towns_state::townssj, towns)
+MACHINE_CONFIG_START(towns_state::townssj)
+	towns(config);
 
 	MCFG_CPU_REPLACE("maincpu",PENTIUM, 66000000)
 	MCFG_CPU_PROGRAM_MAP(towns_mem)
@@ -2925,7 +2926,8 @@ MACHINE_CONFIG_DERIVED(towns_state::townssj, towns)
 	MCFG_RAM_EXTRA_OPTIONS("40M,72M")
 MACHINE_CONFIG_END
 
-MACHINE_CONFIG_DERIVED(towns_state::townshr, towns)
+MACHINE_CONFIG_START(towns_state::townshr)
+	towns(config);
 	MCFG_CPU_REPLACE("maincpu",I486, 20000000)
 	MCFG_CPU_PROGRAM_MAP(towns_mem)
 	MCFG_CPU_IO_MAP(towns_io)
@@ -2937,7 +2939,8 @@ MACHINE_CONFIG_DERIVED(towns_state::townshr, towns)
 	MCFG_RAM_EXTRA_OPTIONS("12M,20M,28M")
 MACHINE_CONFIG_END
 
-MACHINE_CONFIG_DERIVED(towns_state::townsftv, towns)
+MACHINE_CONFIG_START(towns_state::townsftv)
+	towns(config);
 	MCFG_CPU_REPLACE("maincpu",I486, 33000000)
 	MCFG_CPU_PROGRAM_MAP(towns_mem)
 	MCFG_CPU_IO_MAP(towns_io)
@@ -2950,7 +2953,7 @@ MACHINE_CONFIG_DERIVED(towns_state::townsftv, towns)
 MACHINE_CONFIG_END
 
 MACHINE_CONFIG_START(marty_state::marty)
-	MCFG_FRAGMENT_ADD(towns_base)
+	towns_base(config);
 
 	MCFG_CPU_REPLACE("maincpu",I386SX, 16000000)
 	MCFG_CPU_PROGRAM_MAP(marty_mem)

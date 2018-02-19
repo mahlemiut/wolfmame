@@ -227,7 +227,7 @@ WRITE8_MEMBER(pc6001_state::nec_ppi8255_w)
 	m_ppi->write(space,offset,data);
 }
 
-static ADDRESS_MAP_START(pc6001_map, AS_PROGRAM, 8, pc6001_state )
+ADDRESS_MAP_START(pc6001_state::pc6001_map)
 	ADDRESS_MAP_UNMAP_HIGH
 	AM_RANGE(0x0000, 0x3fff) AM_ROM AM_WRITENOP
 //  AM_RANGE(0x4000, 0x5fff) // mapped by the cartslot
@@ -235,7 +235,7 @@ static ADDRESS_MAP_START(pc6001_map, AS_PROGRAM, 8, pc6001_state )
 	AM_RANGE(0x8000, 0xffff) AM_RAM AM_SHARE("ram")
 ADDRESS_MAP_END
 
-static ADDRESS_MAP_START( pc6001_io , AS_IO, 8, pc6001_state )
+ADDRESS_MAP_START(pc6001_state::pc6001_io)
 	ADDRESS_MAP_UNMAP_HIGH
 	ADDRESS_MAP_GLOBAL_MASK(0xff)
 	AM_RANGE(0x80, 0x80) AM_DEVREADWRITE("uart", i8251_device, data_r, data_w)
@@ -677,7 +677,7 @@ READ8_MEMBER(pc6001mk2_state::mk2_bank_w0_r)
 	return m_bank_w;
 }
 
-static ADDRESS_MAP_START(pc6001mk2_map, AS_PROGRAM, 8, pc6001mk2_state )
+ADDRESS_MAP_START(pc6001mk2_state::pc6001mk2_map)
 	ADDRESS_MAP_UNMAP_HIGH
 	AM_RANGE(0x0000, 0x1fff) AM_ROMBANK("bank1") AM_WRITE(mk2_work_ram0_w)
 	AM_RANGE(0x2000, 0x3fff) AM_ROMBANK("bank2") AM_WRITE(mk2_work_ram1_w)
@@ -689,7 +689,7 @@ static ADDRESS_MAP_START(pc6001mk2_map, AS_PROGRAM, 8, pc6001mk2_state )
 	AM_RANGE(0xe000, 0xffff) AM_ROMBANK("bank8") AM_WRITE(mk2_work_ram7_w)
 ADDRESS_MAP_END
 
-static ADDRESS_MAP_START( pc6001mk2_io , AS_IO, 8, pc6001mk2_state )
+ADDRESS_MAP_START(pc6001mk2_state::pc6001mk2_io)
 	ADDRESS_MAP_UNMAP_HIGH
 	ADDRESS_MAP_GLOBAL_MASK(0xff)
 	AM_RANGE(0x80, 0x80) AM_DEVREADWRITE("uart", i8251_device, data_r, data_w)
@@ -739,7 +739,7 @@ WRITE8_MEMBER(pc6601_state::fdc_w)
 {
 }
 
-static ADDRESS_MAP_START( pc6601_io , AS_IO, 8, pc6601_state )
+ADDRESS_MAP_START(pc6601_state::pc6601_io)
 	ADDRESS_MAP_UNMAP_HIGH
 	ADDRESS_MAP_GLOBAL_MASK(0xff)
 	AM_IMPORT_FROM( pc6001mk2_io )
@@ -908,7 +908,7 @@ READ8_MEMBER(pc6001sr_state::hw_rev_r)
 	return 0;
 }
 
-static ADDRESS_MAP_START(pc6001sr_map, AS_PROGRAM, 8, pc6001sr_state )
+ADDRESS_MAP_START(pc6001sr_state::pc6001sr_map)
 	ADDRESS_MAP_UNMAP_HIGH
 	AM_RANGE(0x0000, 0x1fff) AM_ROMBANK("bank1") AM_WRITE(sr_work_ram0_w)
 	AM_RANGE(0x2000, 0x3fff) AM_ROMBANK("bank2") AM_WRITE(sr_work_ram1_w)
@@ -920,7 +920,7 @@ static ADDRESS_MAP_START(pc6001sr_map, AS_PROGRAM, 8, pc6001sr_state )
 	AM_RANGE(0xe000, 0xffff) AM_ROMBANK("bank8") AM_WRITE(sr_work_ram7_w)
 ADDRESS_MAP_END
 
-static ADDRESS_MAP_START( pc6001sr_io , AS_IO, 8, pc6001sr_state )
+ADDRESS_MAP_START(pc6001sr_state::pc6001sr_io)
 	ADDRESS_MAP_UNMAP_HIGH
 	ADDRESS_MAP_GLOBAL_MASK(0xff)
 //  0x40-0x43 palette indexes
@@ -1532,7 +1532,8 @@ MACHINE_CONFIG_END
 
 
 
-MACHINE_CONFIG_DERIVED(pc6001mk2_state::pc6001mk2, pc6001)
+MACHINE_CONFIG_START(pc6001mk2_state::pc6001mk2)
+	pc6001(config);
 	/* basic machine hardware */
 	MCFG_CPU_MODIFY("maincpu")
 	MCFG_CPU_PROGRAM_MAP(pc6001mk2_map)
@@ -1554,7 +1555,8 @@ MACHINE_CONFIG_DERIVED(pc6001mk2_state::pc6001mk2, pc6001)
 
 MACHINE_CONFIG_END
 
-MACHINE_CONFIG_DERIVED(pc6601_state::pc6601, pc6001mk2)
+MACHINE_CONFIG_START(pc6601_state::pc6601)
+	pc6001mk2(config);
 
 	/* basic machine hardware */
 	MCFG_CPU_REPLACE("maincpu", Z80, PC6001_MAIN_CLOCK / 2)
@@ -1564,7 +1566,8 @@ MACHINE_CONFIG_DERIVED(pc6601_state::pc6601, pc6001mk2)
 	MCFG_CPU_IRQ_ACKNOWLEDGE_DRIVER(pc6001_state, irq_callback)
 MACHINE_CONFIG_END
 
-MACHINE_CONFIG_DERIVED(pc6001sr_state::pc6001sr, pc6001mk2)
+MACHINE_CONFIG_START(pc6001sr_state::pc6001sr)
+	pc6001mk2(config);
 
 	/* basic machine hardware */
 	//*Yes*, PC-6001 SR Z80 CPU is actually slower than older models (better waitstates tho?)

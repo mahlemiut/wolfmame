@@ -249,6 +249,8 @@ public:
 	uint32_t copro_fifoout_pop(address_space &space, uint32_t offset, uint32_t mem_mask);
 	void copro_fifoout_push(device_t *device, uint32_t data,uint32_t offset,uint32_t mem_mask);
 
+	void model2_3d_frame_start( void );
+	void geo_parse( void );
 	void model2_3d_frame_end( bitmap_rgb32 &bitmap, const rectangle &cliprect );
 
 	void model2_timers(machine_config &config);
@@ -271,6 +273,25 @@ public:
 	void sj25_0207_01(machine_config &config);
 	void srallyc(machine_config &config);
 	void stcc(machine_config &config);
+	void copro_sharc_map(address_map &map);
+	void copro_tgp_map(address_map &map);
+	void copro_tgpx4_map(address_map &map);
+	void drive_io_map(address_map &map);
+	void drive_map(address_map &map);
+	void geo_sharc_map(address_map &map);
+	void model2_base_mem(address_map &map);
+	void model2_snd(address_map &map);
+	void model2a_crx_mem(address_map &map);
+	void model2b_crx_mem(address_map &map);
+	void model2c_crx_mem(address_map &map);
+	void model2o_mem(address_map &map);
+	void rchase2_iocpu_map(address_map &map);
+	void rchase2_ioport_map(address_map &map);
+	
+	uint8_t m_gamma_table[256];
+	
+protected:
+	virtual void video_start() override;
 };
 
 
@@ -315,14 +336,14 @@ static inline uint16_t get_texel( uint32_t base_x, uint32_t base_y, int x, int y
 
 struct triangle;
 
-class model2_renderer : public poly_manager<float, m2_poly_extra_data, 4, 4000>
+class model2_renderer : public poly_manager<float, m2_poly_extra_data, 4, 32768>
 {
 public:
 	typedef void (model2_renderer::*scanline_render_func)(int32_t scanline, const extent_t& extent, const m2_poly_extra_data& object, int threadid);
 
 public:
 	model2_renderer(model2_state& state)
-		: poly_manager<float, m2_poly_extra_data, 4, 4000>(state.machine())
+		: poly_manager<float, m2_poly_extra_data, 4, 32768>(state.machine())
 		, m_state(state)
 		, m_destmap(state.m_screen->width(), state.m_screen->height())
 	{

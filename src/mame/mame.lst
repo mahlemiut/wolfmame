@@ -8843,6 +8843,9 @@ blockout                        // TA-0029 (c) 1989 + California Dreams
 blockout2                       // TA-0029 (c) 1989 + California Dreams
 blockoutj                       // TA-0029 (c) 1989 + California Dreams (Japan)
 
+@source:blocktax.cpp
+blocktax                        // (c)2002 TAX / Game Revival
+
 @source:bloodbro.cpp
 bloodbro                        // (c) 1990 Tad
 bloodbroj                       // (c) 1990 Tad
@@ -10142,6 +10145,7 @@ sf2accp2                        // hack
 sf2amf                          // bootleg
 sf2amf2                         // bootleg
 sf2bhh                          // hack
+sf2bhh2                         // hack?
 sf2ce                           // 13/05/1992 (c) 1992 (World)
 sf2ceblp                        // hack
 sf2cebltw                       // hack
@@ -11606,6 +11610,9 @@ dsb46                           //
 @source:dual68.cpp
 dual68                          //
 
+@source:duet16.cpp
+duet16                          //
+
 @source:dunhuang.cpp
 dunhuang                        // (c) 1995
 
@@ -12840,6 +12847,7 @@ freekickb2                      // (c) 1987 bootleg
 freekickb3                      // (c) 1987 bootleg
 gigas                           // (c) 1986 Sega
 gigasb                          // (c) 1986 bootleg
+gigasm2                         // (c) 1986 Sega
 gigasm2b                        // (c) 1986 bootleg
 oigas                           // (c) 1986 bootleg
 pbillrd                         // (c) 1987 Nihon System
@@ -17359,6 +17367,7 @@ ringking3                       // (c) 1985 Data East USA
 ringkingw                       // (c) 1985 Wood Place Inc.
 
 @source:kingpin.cpp
+dealracl                        //
 kingpin                         // (c) 1983 American Communications Laboratories Inc.
 maxideal                        // (c) 1983 American Communications Laboratories Inc.
 
@@ -36518,6 +36527,7 @@ tb303                           // Roland
 
 @source:tbowl.cpp
 tbowl                           // 6206 - (c) 1987 Tecmo
+tbowla							//
 tbowlj                          // 6206 - (c) 1987 Tecmo
 tbowlp                          // Suspected proto of Japanese version for US Market
 
@@ -37858,6 +37868,7 @@ vsmileb                         //
 vsmilef                         //
 vsmileg                         //
 walle                           //
+wireless                        // Wireless
 wirels60                        // Wireless 60
 wlsair60                        // Wireless Air 60
 zone40                          // Zone 40
@@ -38966,9 +38977,14 @@ xsleenaj                        // TA-0019 (c) 1986
 taitons1                        //
 rad_ping                        //
 rad_mtrk                        //
+rad_mtrkp						//
 rad_bb2                         //
 rad_box                         //
+rad_boxp						//
 rad_crdn                        //
+rad_crdnp						//
+rad_bass						//
+rad_bassp						//
 eka_strt                        //
 xavtenni                        //
 ttv_sw                          //

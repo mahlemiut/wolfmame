@@ -361,8 +361,8 @@ ADDRESS_MAP_END
 
 ADDRESS_MAP_START(ti85_state::ti83p_asic_mem)
 	AM_RANGE(0x0000, 0x3fff) AM_DEVREADWRITE("membank1", address_map_bank_device, read8, write8)
-	AM_RANGE(0x4000, 0x7fff) AM_DEVREADWRITE("membank2", address_map_bank_device, read8, write8)
-	AM_RANGE(0x8000, 0xbfff) AM_DEVREADWRITE("membank3", address_map_bank_device, read8, write8)
+	AM_RANGE(0x4000, 0x7fff) AM_DEVWRITE("membank2", address_map_bank_device, write8) AM_READ(ti83p_membank2_r)
+	AM_RANGE(0x8000, 0xbfff) AM_DEVWRITE("membank3", address_map_bank_device, write8) AM_READ(ti83p_membank3_r)
 	AM_RANGE(0xc000, 0xffff) AM_DEVREADWRITE("membank4", address_map_bank_device, read8, write8)
 ADDRESS_MAP_END
 
@@ -931,7 +931,8 @@ ROM_START (ti84p)
 	ROMX_LOAD( "ti84pv255mp.bin", 0x00000, 0x100000, CRC(4af31251) SHA1(8f67269346644b87e7cd0f353f5f4030e787cf57), ROM_BIOS(8) )
 ROM_END
 
-//    YEAR  NAME        PARENT  COMPAT  MACHINE  INPUT  STATE        INIT   COMPANY              FULLNAME                       FLAGS
+
+//    YEAR  NAME        PARENT  COMPAT  MACHINE  INPUT  STATE        INIT   COMPANY              FULLNAME                                        FLAGS
 COMP( 1990, ti81,       0,      0,      ti81,    ti81,  ti85_state,  0,     "Texas Instruments", "TI-81",                                        MACHINE_NO_SOUND_HW )
 COMP( 1992, ti85,       0,      0,      ti85d,   ti85,  ti85_state,  0,     "Texas Instruments", "TI-85",                                        MACHINE_NO_SOUND_HW )
 COMP( 1993, ti82,       0,      0,      ti82,    ti82,  ti85_state,  0,     "Texas Instruments", "TI-82",                                        MACHINE_NO_SOUND_HW )

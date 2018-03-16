@@ -4,12 +4,12 @@
 ABC CAD Mouse/Hi-res video card
 
 The ABC CAD was an innovative electronics CAD accessory invented by
-Marek Gorczyca, Betronex Elektronik AB 1983 to overcome the limitations 
+Marek Gorczyca, Betronex Elektronik AB 1983 to overcome the limitations
 in the ABC80 microcomputer graphics which was very popular in Sweden at the time.
 
-The mouse feature is in the form of a small box with a handle sticking out at the front. 
-The handle can be manipulated in one direction by turning it around its internal pivot 
-point left and right. The other dimension in handled by pulling and pushing the handle. 
+The mouse feature is in the form of a small box with a handle sticking out at the front.
+The handle can be manipulated in one direction by turning it around its internal pivot
+point left and right. The other dimension in handled by pulling and pushing the handle.
 One button is available on the top of the handle.
 
 The mouse is connected via the ABC bus, but also passes through the
@@ -105,19 +105,21 @@ const tiny_rom_entry *abc_cadmouse_device::device_rom_region() const
 //  ADDRESS_MAP( abc_cadmouse_mem )
 //-------------------------------------------------
 
-ADDRESS_MAP_START( abc_cadmouse_device::abc_cadmouse_mem )
-	ADDRESS_MAP_UNMAP_HIGH
-	ADDRESS_MAP_GLOBAL_MASK(0x3fff)
-	AM_RANGE(0x0000, 0x3fff) AM_ROM AM_REGION(Z80_TAG, 0)
-ADDRESS_MAP_END
+void abc_cadmouse_device::abc_cadmouse_mem(address_map &map)
+{
+	map.unmap_value_high();
+	map.global_mask(0x3fff);
+	map(0x0000, 0x3fff).rom().region(Z80_TAG, 0);
+}
 
 
 //-------------------------------------------------
 //  ADDRESS_MAP( abc_cadmouse_io )
 //-------------------------------------------------
 
-ADDRESS_MAP_START( abc_cadmouse_device::abc_cadmouse_io )
-ADDRESS_MAP_END
+void abc_cadmouse_device::abc_cadmouse_io(address_map &map)
+{
+}
 
 //-------------------------------------------------
 //  device_add_mconfig - add device configuration

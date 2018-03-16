@@ -46,7 +46,6 @@
 #include "machine/stvprot.h"
 #include "sound/scsp.h"
 
-#include "screen.h"
 #include "softlist.h"
 #include "speaker.h"
 
@@ -973,40 +972,43 @@ DRIVER_INIT_MEMBER(stv_state, hopper)
 	m_slave->space(AS_PROGRAM).install_readwrite_handler(0x00400000, 0x0040003f, read32_delegate(FUNC(stv_state::stv_ioga_r32),this), write32_delegate(FUNC(stv_state::hop_ioga_w32),this));
 }
 
-ADDRESS_MAP_START(stv_state::stv_mem)
-	AM_RANGE(0x00000000, 0x0007ffff) AM_ROM AM_MIRROR(0x20000000) AM_REGION("bios", 0) // bios
-	AM_RANGE(0x00100000, 0x0010007f) AM_DEVREADWRITE8("smpc", smpc_hle_device, read, write, 0xffffffff)
-	AM_RANGE(0x00180000, 0x0018ffff) AM_READWRITE8(saturn_backupram_r,saturn_backupram_w,0xffffffff) AM_SHARE("share1")
-	AM_RANGE(0x00200000, 0x002fffff) AM_RAM AM_MIRROR(0x20100000) AM_SHARE("workram_l")
+void stv_state::stv_mem(address_map &map)
+{
+	map(0x00000000, 0x0007ffff).rom().mirror(0x20000000).region("bios", 0); // bios
+	map(0x00100000, 0x0010007f).rw(m_smpc_hle, FUNC(smpc_hle_device::read), FUNC(smpc_hle_device::write));
+	map(0x00180000, 0x0018ffff).rw(this, FUNC(stv_state::saturn_backupram_r), FUNC(stv_state::saturn_backupram_w)).share("share1");
+	map(0x00200000, 0x002fffff).ram().mirror(0x20100000).share("workram_l");
 //  AM_RANGE(0x00400000, 0x0040001f) AM_READWRITE(stv_ioga_r32, stv_io_w32) AM_SHARE("ioga") AM_MIRROR(0x20) /* installed with per-game specific */
-	AM_RANGE(0x01000000, 0x017fffff) AM_WRITE(minit_w)
-	AM_RANGE(0x01800000, 0x01ffffff) AM_WRITE(sinit_w)
-	AM_RANGE(0x02000000, 0x04ffffff) AM_ROM AM_MIRROR(0x20000000) AM_REGION("abus", 0) // cartridge
+	map(0x01000000, 0x017fffff).w(this, FUNC(stv_state::minit_w));
+	map(0x01800000, 0x01ffffff).w(this, FUNC(stv_state::sinit_w));
+	map(0x02000000, 0x04ffffff).rom().mirror(0x20000000).region("abus", 0); // cartridge
 	/* Sound */
-	AM_RANGE(0x05a00000, 0x05afffff) AM_READWRITE16(saturn_soundram_r, saturn_soundram_w,0xffffffff)
-	AM_RANGE(0x05b00000, 0x05b00fff) AM_DEVREADWRITE16("scsp", scsp_device, read, write, 0xffffffff)
+	map(0x05a00000, 0x05afffff).rw(this, FUNC(stv_state::saturn_soundram_r), FUNC(stv_state::saturn_soundram_w));
+	map(0x05b00000, 0x05b00fff).rw("scsp", FUNC(scsp_device::read), FUNC(scsp_device::write));
 	/* VDP1 */
-	AM_RANGE(0x05c00000, 0x05c7ffff) AM_READWRITE(saturn_vdp1_vram_r, saturn_vdp1_vram_w)
-	AM_RANGE(0x05c80000, 0x05cbffff) AM_READWRITE(saturn_vdp1_framebuffer0_r, saturn_vdp1_framebuffer0_w)
-	AM_RANGE(0x05d00000, 0x05d0001f) AM_READWRITE16(saturn_vdp1_regs_r, saturn_vdp1_regs_w,0xffffffff)
-	AM_RANGE(0x05e00000, 0x05e7ffff) AM_MIRROR(0x80000) AM_READWRITE(saturn_vdp2_vram_r, saturn_vdp2_vram_w)
-	AM_RANGE(0x05f00000, 0x05f7ffff) AM_READWRITE(saturn_vdp2_cram_r, saturn_vdp2_cram_w)
-	AM_RANGE(0x05f80000, 0x05fbffff) AM_READWRITE16(saturn_vdp2_regs_r, saturn_vdp2_regs_w,0xffffffff)
-	AM_RANGE(0x05fe0000, 0x05fe00cf) AM_DEVICE("scu", sega_scu_device, regs_map ) //AM_READWRITE(saturn_scu_r, saturn_scu_w)
-	AM_RANGE(0x06000000, 0x060fffff) AM_RAM AM_MIRROR(0x21f00000) AM_SHARE("workram_h")
-	AM_RANGE(0x60000000, 0x600003ff) AM_WRITENOP
-	AM_RANGE(0xc0000000, 0xc00007ff) AM_RAM // cache RAM
-ADDRESS_MAP_END
+	map(0x05c00000, 0x05c7ffff).rw(this, FUNC(stv_state::saturn_vdp1_vram_r), FUNC(stv_state::saturn_vdp1_vram_w));
+	map(0x05c80000, 0x05cbffff).rw(this, FUNC(stv_state::saturn_vdp1_framebuffer0_r), FUNC(stv_state::saturn_vdp1_framebuffer0_w));
+	map(0x05d00000, 0x05d0001f).rw(this, FUNC(stv_state::saturn_vdp1_regs_r), FUNC(stv_state::saturn_vdp1_regs_w));
+	map(0x05e00000, 0x05e7ffff).mirror(0x80000).rw(this, FUNC(stv_state::saturn_vdp2_vram_r), FUNC(stv_state::saturn_vdp2_vram_w));
+	map(0x05f00000, 0x05f7ffff).rw(this, FUNC(stv_state::saturn_vdp2_cram_r), FUNC(stv_state::saturn_vdp2_cram_w));
+	map(0x05f80000, 0x05fbffff).rw(this, FUNC(stv_state::saturn_vdp2_regs_r), FUNC(stv_state::saturn_vdp2_regs_w));
+	map(0x05fe0000, 0x05fe00cf).m(m_scu, FUNC(sega_scu_device::regs_map)); //AM_READWRITE(saturn_scu_r, saturn_scu_w)
+	map(0x06000000, 0x060fffff).ram().mirror(0x21f00000).share("workram_h");
+	map(0x60000000, 0x600003ff).nopw();
+	map(0xc0000000, 0xc00007ff).ram(); // cache RAM
+}
 
-ADDRESS_MAP_START(stv_state::stvcd_mem)
-	AM_IMPORT_FROM(stv_mem)
-	AM_RANGE(0x05800000, 0x0589ffff) AM_DEVREADWRITE("stvcd", stvcd_device, stvcd_r, stvcd_w)
-ADDRESS_MAP_END
+void stv_state::stvcd_mem(address_map &map)
+{
+	stv_mem(map);
+	map(0x05800000, 0x0589ffff).rw("stvcd", FUNC(stvcd_device::stvcd_r), FUNC(stvcd_device::stvcd_w));
+}
 
-ADDRESS_MAP_START(stv_state::sound_mem)
-	AM_RANGE(0x000000, 0x0fffff) AM_RAM AM_SHARE("sound_ram")
-	AM_RANGE(0x100000, 0x100fff) AM_DEVREADWRITE("scsp", scsp_device, read, write)
-ADDRESS_MAP_END
+void stv_state::sound_mem(address_map &map)
+{
+	map(0x000000, 0x0fffff).ram().share("sound_ram");
+	map(0x100000, 0x100fff).rw("scsp", FUNC(scsp_device::read), FUNC(scsp_device::write));
+}
 
 
 
@@ -1077,10 +1079,11 @@ MACHINE_CONFIG_START(stv_state::stv)
 	MCFG_CPU_PROGRAM_MAP(sound_mem)
 
 	MCFG_SEGA_SCU_ADD("scu")
-	sega_scu_device::static_set_hostcpu(*device, "maincpu");
+	downcast<sega_scu_device &>(*device).set_hostcpu("maincpu");
 
 	MCFG_SMPC_HLE_ADD("smpc", XTAL(4'000'000))
-	smpc_hle_device::static_set_region_code(*device, 0);
+	MCFG_SMPC_HLE_SCREEN("screen")
+	downcast<smpc_hle_device &>(*device).set_region_code(0);
 	MCFG_SMPC_HLE_PDR1_IN_CB(READ8(stv_state, pdr1_input_r))
 	MCFG_SMPC_HLE_PDR2_IN_CB(READ8(stv_state, pdr2_input_r))
 	MCFG_SMPC_HLE_PDR1_OUT_CB(WRITE8(stv_state, pdr1_output_w))
@@ -3584,7 +3587,7 @@ ROM_START( patocar )
 ROM_END
 
 ROM_START( sackids )
-//	STV_BIOS
+//  STV_BIOS
 
 	// wants it's own specific bios, marked "CKBP1.13J0001024" at 0x800
 	// PC=06004150 is where it compares this
@@ -3593,15 +3596,15 @@ ROM_START( sackids )
 	ROM_LOAD16_WORD_SWAP( "epr-20091.ic8",   0x000000, 0x080000, BAD_DUMP CRC(59ed40f4) SHA1(eff0f54c70bce05ff3a289bf30b1027e1c8cd117) )
 
 	ROM_REGION32_BE( 0x3000000, "cart", ROMREGION_ERASE00 ) /* SH2 code */
-    ROM_LOAD16_WORD_SWAP( "ic22.bin",     0x0200000, 0x200000, CRC(4d9d1870) SHA1(c702964af2767b0db4ca1d6c7d07356e675d5efd) )
-    ROM_LOAD16_WORD_SWAP( "ic24.bin",     0x0400000, 0x200000, CRC(39fca3e5) SHA1(29be552f58b69f8f3f237ca14f13af3673559123) )
-    ROM_LOAD16_WORD_SWAP( "ic26.bin",     0x0600000, 0x200000, CRC(f38c79b6) SHA1(a470a22ef3d735c9929f70ef5441547a07a480e8) )
-    ROM_LOAD16_WORD_SWAP( "ic28.bin",     0x0800000, 0x200000, CRC(63d09f3c) SHA1(e470e5af52f9ee70bf160ff58a5cbafd7e674073) )
-    ROM_LOAD16_WORD_SWAP( "ic30.bin",     0x0a00000, 0x200000, CRC(f89811ba) SHA1(8fa8b4b09430456bce63e45686640c7bcdde90e9) )
-    ROM_LOAD16_WORD_SWAP( "ic32.bin",     0x0c00000, 0x200000, CRC(1db6c26b) SHA1(2e14b7b021bce145f989295fdc6effcd799f00a4) )
-    ROM_LOAD16_WORD_SWAP( "ic34.bin",     0x0e00000, 0x200000, CRC(0f3622c8) SHA1(69337114d6902675018371101f0fba01902de54a) )
-    ROM_LOAD16_WORD_SWAP( "ic36.bin",     0x1000000, 0x200000, CRC(9a4109e5) SHA1(ba59caac5f5a80fc52c507d8a47f322a380aa9a1) ) // empty / FF filled
-	
+	ROM_LOAD16_WORD_SWAP( "ic22.bin",     0x0200000, 0x200000, CRC(4d9d1870) SHA1(c702964af2767b0db4ca1d6c7d07356e675d5efd) )
+	ROM_LOAD16_WORD_SWAP( "ic24.bin",     0x0400000, 0x200000, CRC(39fca3e5) SHA1(29be552f58b69f8f3f237ca14f13af3673559123) )
+	ROM_LOAD16_WORD_SWAP( "ic26.bin",     0x0600000, 0x200000, CRC(f38c79b6) SHA1(a470a22ef3d735c9929f70ef5441547a07a480e8) )
+	ROM_LOAD16_WORD_SWAP( "ic28.bin",     0x0800000, 0x200000, CRC(63d09f3c) SHA1(e470e5af52f9ee70bf160ff58a5cbafd7e674073) )
+	ROM_LOAD16_WORD_SWAP( "ic30.bin",     0x0a00000, 0x200000, CRC(f89811ba) SHA1(8fa8b4b09430456bce63e45686640c7bcdde90e9) )
+	ROM_LOAD16_WORD_SWAP( "ic32.bin",     0x0c00000, 0x200000, CRC(1db6c26b) SHA1(2e14b7b021bce145f989295fdc6effcd799f00a4) )
+	ROM_LOAD16_WORD_SWAP( "ic34.bin",     0x0e00000, 0x200000, CRC(0f3622c8) SHA1(69337114d6902675018371101f0fba01902de54a) )
+	ROM_LOAD16_WORD_SWAP( "ic36.bin",     0x1000000, 0x200000, CRC(9a4109e5) SHA1(ba59caac5f5a80fc52c507d8a47f322a380aa9a1) ) // empty / FF filled
+
 	ROM_REGION32_BE( 0x3000000, "abus", ROMREGION_ERASE00 ) /* SH2 code */
 ROM_END
 

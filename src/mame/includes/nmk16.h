@@ -53,7 +53,7 @@ public:
 	optional_shared_ptr<uint16_t> m_nmk_fgvideoram;
 	optional_shared_ptr<uint16_t> m_gunnail_scrollramy;
 	optional_shared_ptr_array<uint16_t, 2> m_afega_scroll;
-	
+
 	optional_region_ptr<uint16_t> m_tilemap_rom;
 	optional_memory_bank m_audiobank;
 	optional_memory_bank_array<2> m_okibank;
@@ -110,7 +110,6 @@ public:
 	DECLARE_WRITE16_MEMBER(bioship_bank_w);
 	DECLARE_WRITE8_MEMBER(spec2k_oki1_banking_w);
 	DECLARE_WRITE8_MEMBER(twinactn_oki_bank_w);
-	DECLARE_READ16_MEMBER(atombjt_unkr_r) {return 0x0000;}
 	DECLARE_WRITE16_MEMBER(nmk16_x0016_w);
 	DECLARE_WRITE16_MEMBER(nmk16_bioship_x0016_w);
 	DECLARE_DRIVER_INIT(nmk);

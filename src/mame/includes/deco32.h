@@ -1,5 +1,6 @@
 // license:BSD-3-Clause
 // copyright-holders:Bryan McPhail
+#include "cpu/h6280/h6280.h"
 #include "audio/decobsmt.h"
 #include "video/bufsprite.h"
 #include "video/decospr.h"
@@ -86,14 +87,14 @@ public:
 	// all but captaven
 	DECLARE_WRITE32_MEMBER(buffered_palette_w);
 	DECLARE_WRITE32_MEMBER(palette_dma_w);
-	
+
 	void h6280_sound_custom_latch_map(address_map &map);
 	void h6280_sound_map(address_map &map);
 	void z80_sound_io(address_map &map);
 	void z80_sound_map(address_map &map);
 protected:
 	virtual void video_start() override;
-	
+
 	void allocate_spriteram(int chip);
 	void allocate_buffered_palette();
 	void allocate_rowscroll(int size1, int size2, int size3, int size4);
@@ -207,7 +208,7 @@ public:
 		m_vol_gun(*this, "vol_gun"),
 		m_gun_speaker_disabled(true)
 	{ }
-	
+
 	required_device<buffered_spriteram32_device> m_spriteram;
 
 	required_shared_ptr_array<uint32_t, 2> m_sprite_layout_ram;
@@ -233,7 +234,7 @@ public:
 	DECLARE_WRITE32_MEMBER(speaker_switch_w);
 	LC7535_VOLUME_CHANGED(volume_main_changed);
 	LC7535_VOLUME_CHANGED(volume_gun_changed);
-	
+
 	DECLARE_WRITE8_MEMBER(lockload_okibank_lo_w);
 	DECLARE_WRITE8_MEMBER(lockload_okibank_hi_w); // lockload
 

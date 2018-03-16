@@ -1,6 +1,6 @@
 // license:BSD-3-Clause
 // copyright-holders:Aaron Giles, Angelo Salese
-/*************************************************************************************** 
+/***************************************************************************************
 
  Badlands - Playmark Bootleg support
 
@@ -11,9 +11,9 @@
  - fix sound;
  - inputs (coins & accelerators);
  - any way to disable sprites in service mode?
- 
+
 ========================================================================================
- 
+
  Year: 1989
  Producer: Playmark
 
@@ -54,18 +54,18 @@ uint32_t badlandsbl_state::screen_update_badlandsbl(screen_device &screen, bitma
 	// TODO: is this derived from something else?
 	{
 		gfx_element *gfx = m_gfxdecode->gfx(1);
-		
+
 		for(int count=0;count<(0x100-0x10)/2;count+=4)
 		{
 			if((m_spriteram[count+3] & 0xff) == 0xff)
 				return 0;
-		
+
 			uint16 tile = m_spriteram[count];
 			int y = (511 - 14) - (m_spriteram[count+1] & 0x1ff);
 			int x = (m_spriteram[count+2] >> 7) - 7;
 			int color = (m_spriteram[count+3] >> 8) & 7;
 			int h = (m_spriteram[count+3] & 0xf) + 1;
-			
+
 			for(int yi=0;yi<h;yi++)
 				gfx->transpen(bitmap,cliprect,tile+yi,color,0,0,x,y+yi*8,0);
 		}
@@ -97,33 +97,34 @@ READ8_MEMBER(badlandsbl_state::sound_response_r)
 	return m_sound_response;
 }
 
-ADDRESS_MAP_START(badlandsbl_state::bootleg_map)
-	AM_RANGE(0x000000, 0x03ffff) AM_ROM
+void badlandsbl_state::bootleg_map(address_map &map)
+{
+	map(0x000000, 0x03ffff).rom();
 
-	AM_RANGE(0x400000, 0x400005) AM_READWRITE8(bootleg_shared_r,bootleg_shared_w,0xffff)
-	AM_RANGE(0x400006, 0x400007) AM_READ8(sound_response_r,0xff00)
-	AM_RANGE(0x400008, 0x40000f) AM_RAM // breaks tilemap gfxs otherwise?
-	AM_RANGE(0x400010, 0x4000ff) AM_RAM AM_SHARE("spriteram")
+	map(0x400000, 0x400005).rw(this, FUNC(badlandsbl_state::bootleg_shared_r), FUNC(badlandsbl_state::bootleg_shared_w));
+	map(0x400006, 0x400006).r(this, FUNC(badlandsbl_state::sound_response_r));
+	map(0x400008, 0x40000f).ram(); // breaks tilemap gfxs otherwise?
+	map(0x400010, 0x4000ff).ram().share("spriteram");
 
 	// sound comms?
-	AM_RANGE(0xfc0000, 0xfc0001) AM_READ(badlandsb_unk_r) AM_WRITENOP
+	map(0xfc0000, 0xfc0001).r(this, FUNC(badlandsbl_state::badlandsb_unk_r)).nopw();
 
-	AM_RANGE(0xfd0000, 0xfd1fff) AM_DEVREADWRITE8("eeprom", eeprom_parallel_28xx_device, read, write, 0x00ff)
+	map(0xfd0000, 0xfd1fff).rw("eeprom", FUNC(eeprom_parallel_28xx_device::read), FUNC(eeprom_parallel_28xx_device::write)).umask16(0x00ff);
 	//AM_RANGE(0xfe0000, 0xfe1fff) AM_DEVWRITE("watchdog", watchdog_timer_device, reset_w)
-	AM_RANGE(0xfe2000, 0xfe3fff) AM_WRITE(video_int_ack_w)
+	map(0xfe2000, 0xfe3fff).w(this, FUNC(badlandsbl_state::video_int_ack_w));
 
-	AM_RANGE(0xfe0000, 0xfe0001) AM_WRITENOP
-	AM_RANGE(0xfe4000, 0xfe4001) AM_READ_PORT("FE4000")
-	AM_RANGE(0xfe4004, 0xfe4005) AM_READ_PORT("P1")
-	AM_RANGE(0xfe4006, 0xfe4007) AM_READ_PORT("P2")
-	AM_RANGE(0xfe4008, 0xfe4009) AM_WRITE(badlands_pf_bank_w)
-	AM_RANGE(0xfe400c, 0xfe400d) AM_DEVWRITE("eeprom", eeprom_parallel_28xx_device, unlock_write16)
+	map(0xfe0000, 0xfe0001).nopw();
+	map(0xfe4000, 0xfe4001).portr("FE4000");
+	map(0xfe4004, 0xfe4005).portr("P1");
+	map(0xfe4006, 0xfe4007).portr("P2");
+	map(0xfe4008, 0xfe4009).w(this, FUNC(badlandsbl_state::badlands_pf_bank_w));
+	map(0xfe400c, 0xfe400d).w("eeprom", FUNC(eeprom_parallel_28xx_device::unlock_write16));
 
-	AM_RANGE(0xffc000, 0xffc3ff) AM_DEVREADWRITE8("palette", palette_device, read8, write8, 0xff00) AM_SHARE("palette")
-	AM_RANGE(0xffe000, 0xffefff) AM_RAM_DEVWRITE("playfield", tilemap_device, write16) AM_SHARE("playfield")
+	map(0xffc000, 0xffc3ff).rw("palette", FUNC(palette_device::read8), FUNC(palette_device::write8)).umask16(0xff00).share("palette");
+	map(0xffe000, 0xffefff).ram().w("playfield", FUNC(tilemap_device::write16)).share("playfield");
 
-	AM_RANGE(0xfff000, 0xffffff) AM_RAM
-ADDRESS_MAP_END
+	map(0xfff000, 0xffffff).ram();
+}
 
 WRITE8_MEMBER(badlandsbl_state::bootleg_main_irq_w)
 {
@@ -131,15 +132,16 @@ WRITE8_MEMBER(badlandsbl_state::bootleg_main_irq_w)
 	m_sound_response = data;
 }
 
-ADDRESS_MAP_START(badlandsbl_state::bootleg_audio_map)
-	AM_RANGE(0x0000, 0x1fff) AM_ROM AM_REGION("audiorom", 0)
-	AM_RANGE(0x2000, 0x2005) AM_RAM AM_SHARE("b_sharedram")
-	AM_RANGE(0x2006, 0x3fff) AM_RAM
-	AM_RANGE(0x4000, 0xcfff) AM_ROM AM_REGION("audiorom", 0x4000)
-	AM_RANGE(0xd400, 0xd400) AM_WRITE(bootleg_main_irq_w) 
-	AM_RANGE(0xd800, 0xd801) AM_DEVREADWRITE("ymsnd", ym2151_device, read, write)
-	AM_RANGE(0xe000, 0xffff) AM_NOP // either RAM mirror or left-over
-ADDRESS_MAP_END
+void badlandsbl_state::bootleg_audio_map(address_map &map)
+{
+	map(0x0000, 0x1fff).rom().region("audiorom", 0);
+	map(0x2000, 0x2005).ram().share("b_sharedram");
+	map(0x2006, 0x3fff).ram();
+	map(0x4000, 0xcfff).rom().region("audiorom", 0x4000);
+	map(0xd400, 0xd400).w(this, FUNC(badlandsbl_state::bootleg_main_irq_w));
+	map(0xd800, 0xd801).rw("ymsnd", FUNC(ym2151_device::read), FUNC(ym2151_device::write));
+	map(0xe000, 0xffff).noprw(); // either RAM mirror or left-over
+}
 
 
 static INPUT_PORTS_START( badlandsb )
@@ -175,7 +177,7 @@ static const gfx_layout pflayout_bootleg =
 	4,
 	{ RGN_FRAC(0,4), RGN_FRAC(1,4), RGN_FRAC(2,4), RGN_FRAC(3,4) },
 //  TODO: service mode and (most of) in-game uses this arrangement
-//	{ RGN_FRAC(1,4), RGN_FRAC(3,4), RGN_FRAC(0,4), RGN_FRAC(2,4) },
+//  { RGN_FRAC(1,4), RGN_FRAC(3,4), RGN_FRAC(0,4), RGN_FRAC(2,4) },
 	{ 0, 1, 2, 3, 4, 5, 6, 7 },
 	{ 0*8, 1*8, 2*8, 3*8, 4*8, 5*8, 6*8, 7*8 },
 	8*8
@@ -227,8 +229,8 @@ MACHINE_CONFIG_START(badlandsbl_state::badlandsb)
 	MCFG_CPU_PROGRAM_MAP(bootleg_audio_map)
 	MCFG_TIMER_DRIVER_ADD_SCANLINE("scantimer", badlandsbl_state, bootleg_sound_scanline, "screen", 0, 1)
 
-//	MCFG_QUANTUM_PERFECT_CPU("maincpu")
-	
+//  MCFG_QUANTUM_PERFECT_CPU("maincpu")
+
 	MCFG_MACHINE_START_OVERRIDE(badlands_state,badlands)
 
 	MCFG_EEPROM_2816_ADD("eeprom")
@@ -241,8 +243,8 @@ MACHINE_CONFIG_START(badlandsbl_state::badlandsb)
 	MCFG_PALETTE_MEMBITS(8)
 
 	MCFG_TILEMAP_ADD_STANDARD("playfield", "gfxdecode", 2, badlands_state, get_playfield_tile_info, 8,8, SCAN_ROWS, 64,32)
-//	MCFG_ATARI_MOTION_OBJECTS_ADD("mob", "screen", badlands_state::s_mob_config)
-//	MCFG_ATARI_MOTION_OBJECTS_GFXDECODE("gfxdecode")
+//  MCFG_ATARI_MOTION_OBJECTS_ADD("mob", "screen", badlands_state::s_mob_config)
+//  MCFG_ATARI_MOTION_OBJECTS_GFXDECODE("gfxdecode")
 
 	MCFG_SCREEN_ADD("screen", RASTER)
 	MCFG_SCREEN_VIDEO_ATTRIBUTES(VIDEO_UPDATE_BEFORE_VBLANK)

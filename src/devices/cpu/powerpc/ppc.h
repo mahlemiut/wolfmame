@@ -8,16 +8,16 @@
     PowerPC emulator.
 
 ***************************************************************************/
-
 #ifndef MAME_CPU_POWERPC_PPC_H
 #define MAME_CPU_POWERPC_PPC_H
 
 #pragma once
 
-#include "divtlb.h"
 #include "cpu/drcfe.h"
 #include "cpu/drcuml.h"
 #include "cpu/drcumlsh.h"
+
+#include "divtlb.h"
 
 
 /***************************************************************************
@@ -168,14 +168,11 @@ enum
 	downcast<ppc_device &>(*device).set_bus_frequency(_frequency);
 
 
-class ppc_frontend;
-
-
 class ppc_device : public cpu_device, public device_vtlb_interface
 {
-	friend class ppc_frontend;
-
 protected:
+	class frontend;
+
 	/* PowerPC flavors */
 	enum powerpc_flavor
 	{
@@ -535,7 +532,7 @@ protected:
 	/* core state */
 	drc_cache           m_cache;                      /* pointer to the DRC code cache */
 	std::unique_ptr<drcuml_state>      m_drcuml;                     /* DRC UML generator state */
-	std::unique_ptr<ppc_frontend>      m_drcfe;                      /* pointer to the DRC front-end state */
+	std::unique_ptr<frontend>          m_drcfe;                      /* pointer to the DRC front-end state */
 	uint32_t              m_drcoptions;                 /* configurable DRC options */
 
 	/* parameters for subroutines */
@@ -671,8 +668,8 @@ protected:
 	bool generate_instruction_3f(drcuml_block *block, compiler_state *compiler, const opcode_desc *desc);
 	void log_add_disasm_comment(drcuml_block *block, uint32_t pc, uint32_t op);
 	const char *log_desc_flags_to_string(uint32_t flags);
-	void log_register_list(drcuml_state *drcuml, const char *string, const uint32_t *reglist, const uint32_t *regnostarlist);
-	void log_opcode_desc(drcuml_state *drcuml, const opcode_desc *desclist, int indent);
+	void log_register_list(const char *string, const uint32_t *reglist, const uint32_t *regnostarlist);
+	void log_opcode_desc(const opcode_desc *desclist, int indent);
 
 };
 

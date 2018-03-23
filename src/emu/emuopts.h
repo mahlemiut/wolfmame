@@ -180,6 +180,7 @@
 #define OPTION_COMM_LOCAL_PORT      "comm_localport"
 #define OPTION_COMM_REMOTE_HOST     "comm_remotehost"
 #define OPTION_COMM_REMOTE_PORT     "comm_remoteport"
+#define OPTION_COMM_FRAME_SYNC      "comm_framesync"
 
 #define OPTION_CONFIRM_QUIT         "confirm_quit"
 #define OPTION_UI_MOUSE             "ui_mouse"
@@ -462,6 +463,7 @@ public:
 	const char *comm_localport() const { return value(OPTION_COMM_LOCAL_PORT); }
 	const char *comm_remotehost() const { return value(OPTION_COMM_REMOTE_HOST); }
 	const char *comm_remoteport() const { return value(OPTION_COMM_REMOTE_PORT); }
+	bool comm_framesync() const { return bool_value(OPTION_COMM_FRAME_SYNC); }
 
 	bool confirm_quit() const { return bool_value(OPTION_CONFIRM_QUIT); }
 	bool ui_mouse() const { return bool_value(OPTION_UI_MOUSE); }

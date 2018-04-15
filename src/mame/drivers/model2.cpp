@@ -38,7 +38,6 @@
     - skytargt: short draw distance (might be down to z-sort);
     - srallyc: some 3d elements doesn't show up properly (tree models, last hill in course 1 is often black colored);
     - vcop: sound dies at enter initial screen (i.e. after played the game once) (untested);
-    - vcop: lightgun input is offsetted (needs to be calibrated in service mode);
     - vcop: missing 3d at stage select screen (priority?);
     - vstriker: stadium ads have terrible colors (they uses the wrong color table, @see video/model2rd.hxx)
 
@@ -481,8 +480,13 @@ READ8_MEMBER(model2_state::model2_crx_in_r)
 		input = m_in[m_port_1c00014]->read();
 		break;
 	case 0x0c:
+		if (m_lightgun_mux < 8)
+			input = lightgun_coords_r(space, m_lightgun_mux);
+		else
+			input = lightgun_offscreen_r(space, 0);
+		break;
 	case 0x0d:
-		input = hotd_lightgun_r(space, offset - 0x0c);
+		input = 0x0c; // lightgun latches?
 		break;
 	case 0x0e:
 		// these must be high
@@ -701,7 +705,7 @@ void model2_tgp_state::copro_tgp_bank_map(address_map &map)
 
 void model2_tgp_state::copro_tgp_io_map(address_map &map)
 {
-	map(0x0000, 0xffff).m(m_copro_tgp_bank, FUNC(address_map_bank_device::amap32));		
+	map(0x0000, 0xffff).m(m_copro_tgp_bank, FUNC(address_map_bank_device::amap32));
 }
 
 void model2_tgp_state::copro_tgp_rf_map(address_map &map)
@@ -1172,45 +1176,6 @@ WRITE32_MEMBER(model2_state::geo_w)
 
 /*****************************************************************************/
 
-
-READ8_MEMBER(model2_state::hotd_lightgun_r)
-{
-	uint8_t res = 0xff;
-
-	if(m_lightgun_mux < 8)
-		res = (m_lightgun_ports[m_lightgun_mux >> 1].read_safe(0) >> ((m_lightgun_mux & 1)*8)) & 0xff;
-	else
-	{
-		uint16_t p1x,p1y,p2x,p2y;
-
-		res = 0xfc;
-
-		p1x = m_lightgun_ports[1].read_safe(0);
-		p1y = m_lightgun_ports[0].read_safe(0);
-		p2x = m_lightgun_ports[3].read_safe(0);
-		p2y = m_lightgun_ports[2].read_safe(0);
-
-		/* TODO: might be better, supposedly user has to calibrate guns in order to make these settings to work ... */
-		if(p1x <= 0x28 || p1x >= 0x3e0 || p1y <= 0x40 || p1y >= 0x3c0)
-			res |= 1;
-
-		if(p2x <= 0x28 || p2x >= 0x3e0 || p2y <= 0x40 || p2y >= 0x3c0)
-			res |= 2;
-	}
-
-	/* upper bits are presumably related to lightgun latches */
-	if (offset == 1)
-		return 0x0c;
-	else
-		return res;
-}
-
-WRITE32_MEMBER(model2_state::hotd_lightgun_w)
-{
-	m_lightgun_mux = data;
-}
-
-
 READ32_MEMBER(model2o_state::daytona_unk_r)
 {
 	return 0x00400000;
@@ -1472,34 +1437,53 @@ void model2_state::model2_5881_mem(address_map &map)
 	map(0x01d90000, 0x01d9ffff).m(m_cryptdevice, FUNC(sega_315_5881_crypt_device::iomap_le));
 }
 
-READ8_MEMBER(model2_state::virtuacop_lightgun_r)
+//**************************************************************************
+//  LIGHTGUN
+//**************************************************************************
+
+// Interface board ID: 837-12079
+// ALTERA FLEX + Sega 315-5338A
+
+READ8_MEMBER( model2_state::lightgun_coords_r )
 {
-	uint8_t res;
-
-	res = (m_lightgun_ports[offset >> 1].read_safe(0) >> ((offset & 1)*8)) & 0xff;
-
-	return res;
+	return (m_lightgun_ports[offset >> 1].read_safe(0) >> ((offset & 1)*8)) & 0xff;
 }
 
-/* handles offscreen gun trigger detection here */
-READ8_MEMBER(model2_state::virtuacop_lightgun_offscreen_r)
+// handles offscreen gun trigger detection here
+READ8_MEMBER( model2_state::lightgun_offscreen_r )
 {
-	uint16_t special_res = 0xfffc;
-	uint16_t p1x,p1y,p2x,p2y;
+	// 5 percent border size
+	const float BORDER_SIZE = 0.05f;
 
-	p1x = m_lightgun_ports[1].read_safe(0);
-	p1y = m_lightgun_ports[0].read_safe(0);
-	p2x = m_lightgun_ports[3].read_safe(0);
-	p2y = m_lightgun_ports[2].read_safe(0);
+	// calculate width depending on min/max port value
+	const int BORDER_P1X = (m_lightgun_ports[1]->field(0x3ff)->maxval() - m_lightgun_ports[1]->field(0x3ff)->minval()) * BORDER_SIZE;
+	const int BORDER_P1Y = (m_lightgun_ports[0]->field(0x3ff)->maxval() - m_lightgun_ports[0]->field(0x3ff)->minval()) * BORDER_SIZE;
+	const int BORDER_P2X = (m_lightgun_ports[3]->field(0x3ff)->maxval() - m_lightgun_ports[3]->field(0x3ff)->minval()) * BORDER_SIZE;
+	const int BORDER_P2Y = (m_lightgun_ports[2]->field(0x3ff)->maxval() - m_lightgun_ports[2]->field(0x3ff)->minval()) * BORDER_SIZE;
 
-	/* TODO: might be better, supposedly user has to calibrate guns in order to make these settings to work ... */
-	if(p1x <= 0x28 || p1x >= 0x3e0 || p1y <= 0x40 || p1y >= 0x3c0)
-		special_res |= 1;
+	uint16_t data = 0xfffc;
 
-	if(p2x <= 0x28 || p2x >= 0x3e0 || p2y <= 0x40 || p2y >= 0x3c0)
-		special_res |= 2;
+	const uint16_t P1X = m_lightgun_ports[1].read_safe(0);
+	const uint16_t P1Y = m_lightgun_ports[0].read_safe(0);
+	const uint16_t P2X = m_lightgun_ports[3].read_safe(0);
+	const uint16_t P2Y = m_lightgun_ports[2].read_safe(0);
 
-	return (special_res >> ((offset & 1)*8)) & 0xff;
+	// border hit test for player 1 and 2
+	if (P1X <= (m_lightgun_ports[1]->field(0x3ff)->minval() + BORDER_P1X)) data |= 1;
+	if (P1X >= (m_lightgun_ports[1]->field(0x3ff)->maxval() - BORDER_P1X)) data |= 1;
+	if (P1Y <= (m_lightgun_ports[0]->field(0x3ff)->minval() + BORDER_P1Y)) data |= 1;
+	if (P1Y >= (m_lightgun_ports[0]->field(0x3ff)->maxval() - BORDER_P1Y)) data |= 1;
+	if (P2X <= (m_lightgun_ports[3]->field(0x3ff)->minval() + BORDER_P2X)) data |= 2;
+	if (P2X >= (m_lightgun_ports[3]->field(0x3ff)->maxval() - BORDER_P2X)) data |= 2;
+	if (P2Y <= (m_lightgun_ports[2]->field(0x3ff)->minval() + BORDER_P2Y)) data |= 2;
+	if (P2Y >= (m_lightgun_ports[2]->field(0x3ff)->maxval() - BORDER_P2Y)) data |= 2;
+
+	return (data >> ((offset & 1)*8)) & 0xff;
+}
+
+WRITE8_MEMBER( model2_state::lightgun_mux_w )
+{
+	m_lightgun_mux = data;
 }
 
 /* Apparently original Model 2 doesn't have fifo control? */
@@ -1507,6 +1491,10 @@ READ32_MEMBER(model2o_state::fifo_control_2o_r)
 {
 	return 0xffffffff;
 }
+
+//**************************************************************************
+//  OUTPUTS
+//**************************************************************************
 
 WRITE8_MEMBER( model2o_state::daytona_output_w )
 {
@@ -1577,8 +1565,8 @@ void model2o_state::model2o_mem(address_map &map)
 
 	map(0x01c00000, 0x01c0001f).rw("io", FUNC(m1io_device::read), FUNC(m1io_device::write)).umask32(0x00ff00ff);
 	map(0x01c00040, 0x01c00043).r(this, FUNC(model2o_state::daytona_unk_r));
-	map(0x01c00100, 0x01c0010f).r(this, FUNC(model2o_state::virtuacop_lightgun_r)).umask32(0x00ff00ff);
-	map(0x01c00110, 0x01c00113).r(this, FUNC(model2o_state::virtuacop_lightgun_offscreen_r)).umask32(0x00ff00ff);
+	map(0x01c00100, 0x01c0010f).r(this, FUNC(model2o_state::lightgun_coords_r)).umask32(0x00ff00ff);
+	map(0x01c00110, 0x01c00113).r(this, FUNC(model2o_state::lightgun_offscreen_r)).umask32(0x00ff00ff);
 	map(0x01c00200, 0x01c002ff).ram().share("backup2");
 	map(0x01c80000, 0x01c80003).rw(this, FUNC(model2o_state::model2_serial_r), FUNC(model2o_state::model2_serial_w));
 }
@@ -1671,7 +1659,7 @@ void model2a_state::model2a_crx_mem(address_map &map)
 	map(0x01c00000, 0x01c00003).w(this, FUNC(model2a_state::ctrl0_w));
 	map(0x01c00008, 0x01c0000f).nopw();
 	map(0x01c00010, 0x01c00013).nopw();
-	map(0x01c00014, 0x01c00017).w(this, FUNC(model2a_state::hotd_lightgun_w));
+	map(0x01c00014, 0x01c00017).w(this, FUNC(model2a_state::lightgun_mux_w)).umask32(0x000000ff);
 	map(0x01c0001c, 0x01c0001f).w(this, FUNC(model2a_state::analog_2b_w));
 	map(0x01c00040, 0x01c00043).nopw();
 	map(0x01c80000, 0x01c80003).rw(this, FUNC(model2a_state::model2_serial_r), FUNC(model2a_state::model2_serial_w));
@@ -1716,7 +1704,7 @@ void model2b_state::model2b_crx_mem(address_map &map)
 	map(0x01c00000, 0x01c00003).w(this, FUNC(model2b_state::ctrl0_w));
 	map(0x01c00008, 0x01c0000b).nopw();
 	map(0x01c00010, 0x01c00013).nopw(); // gunblade
-	map(0x01c00014, 0x01c00017).w(this, FUNC(model2b_state::hotd_lightgun_w));
+	map(0x01c00014, 0x01c00017).w(this, FUNC(model2b_state::lightgun_mux_w)).umask32(0x000000ff);
 	map(0x01c0001c, 0x01c0001f).w(this, FUNC(model2b_state::analog_2b_w));
 	map(0x01c00040, 0x01c00043).nopw();
 	map(0x01c80000, 0x01c80003).rw(this, FUNC(model2b_state::model2_serial_r), FUNC(model2b_state::model2_serial_w));
@@ -1753,7 +1741,7 @@ void model2c_state::model2c_crx_mem(address_map &map)
 	map(0x01c00000, 0x01c00003).w(this, FUNC(model2c_state::ctrl0_w));
 	map(0x01c00008, 0x01c0000b).nopw();
 	map(0x01c00010, 0x01c00013).nopw();
-	map(0x01c00014, 0x01c00017).w(this, FUNC(model2c_state::hotd_lightgun_w));
+	map(0x01c00014, 0x01c00017).w(this, FUNC(model2c_state::lightgun_mux_w)).umask32(0x000000ff);
 	map(0x01c0001c, 0x01c0001f).w(this, FUNC(model2c_state::analog_2b_w));
 	map(0x01c80000, 0x01c80003).rw(this, FUNC(model2c_state::model2_serial_r), FUNC(model2c_state::model2_serial_w));
 }
@@ -1853,23 +1841,23 @@ static INPUT_PORTS_START( vcop )
 	PORT_BIT(0x02, IP_ACTIVE_LOW, IPT_BUTTON1) PORT_PLAYER(2) PORT_NAME("P2 Trigger")
 	PORT_BIT(0xfc, IP_ACTIVE_LOW, IPT_UNUSED)
 
-	PORT_START("DEBUG")
+	PORT_START("IN2")
 	PORT_DIPNAME(0x02, 0x02, "No enemies") PORT_DIPLOCATION("DEBUG:1")
 	PORT_DIPSETTING(   0x02, DEF_STR( Off ))
 	PORT_DIPSETTING(   0x00, DEF_STR( On ))
 	PORT_BIT(0xfd, IP_ACTIVE_LOW, IPT_UNUSED)
 
 	PORT_START("P1_X")
-	PORT_BIT(0x3ff, 0x200, IPT_LIGHTGUN_X) PORT_CROSSHAIR(X, 1.0, 0.0, 0) PORT_MINMAX(0, 0x3ff) PORT_SENSITIVITY(50) PORT_KEYDELTA(15) PORT_PLAYER(1)
+	PORT_BIT(0x3ff, 0x17c, IPT_LIGHTGUN_X) PORT_CROSSHAIR(X, 1.0, 0.0, 0) PORT_MINMAX(0x083, 0x276) PORT_SENSITIVITY(50) PORT_KEYDELTA(13) PORT_PLAYER(1)
 
 	PORT_START("P1_Y")
-	PORT_BIT(0x3ff, 0x200, IPT_LIGHTGUN_Y) PORT_CROSSHAIR(Y, 1.0, 0.0, 0) PORT_MINMAX(0, 0x3ff) PORT_SENSITIVITY(50) PORT_KEYDELTA(15) PORT_PLAYER(1)
+	PORT_BIT(0x3ff, 0x0e6, IPT_LIGHTGUN_Y) PORT_CROSSHAIR(Y, 1.0, 0.0, 0) PORT_MINMAX(0x024, 0x1a9) PORT_SENSITIVITY(50) PORT_KEYDELTA(10) PORT_PLAYER(1)
 
 	PORT_START("P2_X")
-	PORT_BIT(0x3ff, 0x200, IPT_LIGHTGUN_X) PORT_CROSSHAIR(X, 1.0, 0.0, 0) PORT_MINMAX(0, 0x3ff) PORT_SENSITIVITY(50) PORT_KEYDELTA(15) PORT_PLAYER(2)
+	PORT_BIT(0x3ff, 0x179, IPT_LIGHTGUN_X) PORT_CROSSHAIR(X, 1.0, 0.0, 0) PORT_MINMAX(0x080, 0x273) PORT_SENSITIVITY(50) PORT_KEYDELTA(13) PORT_PLAYER(2)
 
 	PORT_START("P2_Y")
-	PORT_BIT(0x3ff, 0x200, IPT_LIGHTGUN_Y) PORT_CROSSHAIR(Y, 1.0, 0.0, 0) PORT_MINMAX(0, 0x3ff) PORT_SENSITIVITY(50) PORT_KEYDELTA(15) PORT_PLAYER(2)
+	PORT_BIT(0x3ff, 0x0e8, IPT_LIGHTGUN_Y) PORT_CROSSHAIR(Y, 1.0, 0.0, 0) PORT_MINMAX(0x027, 0x1a9) PORT_SENSITIVITY(50) PORT_KEYDELTA(10) PORT_PLAYER(2)
 INPUT_PORTS_END
 
 static INPUT_PORTS_START( model2 )
@@ -1946,8 +1934,53 @@ static INPUT_PORTS_START( zerogun )
 	PORT_DIPSETTING(    0x00, DEF_STR( On ) )
 INPUT_PORTS_END
 
+static INPUT_PORTS_START( vcop2 )
+	PORT_INCLUDE(vcop)
+
+	PORT_MODIFY("IN2")
+	PORT_BIT(0xff, IP_ACTIVE_LOW, IPT_UNKNOWN )
+
+	PORT_MODIFY("P1_X")
+	PORT_BIT(0x3ff, 0x17f, IPT_LIGHTGUN_X) PORT_CROSSHAIR(X, 1.0, 0.0, 0) PORT_MINMAX(137, 630) PORT_SENSITIVITY(50) PORT_KEYDELTA(13) PORT_PLAYER(1)
+
+	PORT_MODIFY("P1_Y")
+	PORT_BIT(0x3ff, 0x0e6, IPT_LIGHTGUN_Y) PORT_CROSSHAIR(Y, 1.0, 0.0, 0) PORT_MINMAX( 36, 425) PORT_SENSITIVITY(50) PORT_KEYDELTA(10) PORT_PLAYER(1)
+
+	PORT_MODIFY("P2_X")
+	PORT_BIT(0x3ff, 0x17c, IPT_LIGHTGUN_X) PORT_CROSSHAIR(X, 1.0, 0.0, 0) PORT_MINMAX(134, 627) PORT_SENSITIVITY(50) PORT_KEYDELTA(13) PORT_PLAYER(2)
+
+	PORT_MODIFY("P2_Y")
+	PORT_BIT(0x3ff, 0x0e6, IPT_LIGHTGUN_Y) PORT_CROSSHAIR(Y, 1.0, 0.0, 0) PORT_MINMAX( 36, 425) PORT_SENSITIVITY(50) PORT_KEYDELTA(10) PORT_PLAYER(2)
+
+	PORT_START("DSW")
+	PORT_DIPNAME( 0x01, 0x01, DEF_STR( Unknown ) ) PORT_DIPLOCATION("SW:1")
+	PORT_DIPSETTING(    0x01, DEF_STR( Off ) )
+	PORT_DIPSETTING(    0x00, DEF_STR( On ) )
+	PORT_DIPNAME( 0x02, 0x02, DEF_STR( Unknown ) ) PORT_DIPLOCATION("SW:2")
+	PORT_DIPSETTING(    0x02, DEF_STR( Off ) )
+	PORT_DIPSETTING(    0x00, DEF_STR( On ) )
+	PORT_DIPNAME( 0x04, 0x04, DEF_STR( Unknown ) ) PORT_DIPLOCATION("SW:3")
+	PORT_DIPSETTING(    0x04, DEF_STR( Off ) )
+	PORT_DIPSETTING(    0x00, DEF_STR( On ) )
+	PORT_DIPNAME( 0x08, 0x08, DEF_STR( Unknown ) ) PORT_DIPLOCATION("SW:4")
+	PORT_DIPSETTING(    0x08, DEF_STR( Off ) )
+	PORT_DIPSETTING(    0x00, DEF_STR( On ) )
+	PORT_DIPNAME( 0x10, 0x10, DEF_STR( Unknown ) ) PORT_DIPLOCATION("SW:5")
+	PORT_DIPSETTING(    0x10, DEF_STR( Off ) )
+	PORT_DIPSETTING(    0x00, DEF_STR( On ) )
+	PORT_DIPNAME( 0x20, 0x20, DEF_STR( Unknown ) ) PORT_DIPLOCATION("SW:6")
+	PORT_DIPSETTING(    0x20, DEF_STR( Off ) )
+	PORT_DIPSETTING(    0x00, DEF_STR( On ) )
+	PORT_DIPNAME( 0x40, 0x40, DEF_STR( Unknown ) ) PORT_DIPLOCATION("SW:7")
+	PORT_DIPSETTING(    0x40, DEF_STR( Off ) )
+	PORT_DIPSETTING(    0x00, DEF_STR( On ) )
+	PORT_DIPNAME( 0x80, 0x80, DEF_STR( Unknown ) ) PORT_DIPLOCATION("SW:8")
+	PORT_DIPSETTING(    0x80, DEF_STR( Off ) )
+	PORT_DIPSETTING(    0x00, DEF_STR( On ) )
+INPUT_PORTS_END
+
 static INPUT_PORTS_START( gunblade )
-	PORT_INCLUDE( vcop )
+	PORT_INCLUDE( vcop2 )
 
 	PORT_MODIFY("P1_X")
 	PORT_BIT( 0x3ff, IP_ACTIVE_LOW, IPT_UNUSED )
@@ -2015,7 +2048,6 @@ static INPUT_PORTS_START( motoraid )
 	PORT_BIT(0x20, IP_ACTIVE_LOW, IPT_BUTTON2 ) PORT_NAME("P1 Kick")
 INPUT_PORTS_END
 
-
 static INPUT_PORTS_START( srallyc )
 	PORT_INCLUDE( model2 )
 	PORT_INCLUDE( gears )
@@ -2070,6 +2102,22 @@ static INPUT_PORTS_START( sgt24h )
 	PORT_BIT(0xff, IP_ACTIVE_HIGH, IPT_UNUSED )
 INPUT_PORTS_END
 
+static INPUT_PORTS_START( hotd )
+	PORT_INCLUDE(vcop2)
+
+	PORT_MODIFY("P1_X")
+	PORT_BIT(0x3ff, 0x180, IPT_LIGHTGUN_X) PORT_CROSSHAIR(X, 1.0, 0.0, 0) PORT_MINMAX(173, 596) PORT_SENSITIVITY(50) PORT_KEYDELTA(13) PORT_PLAYER(1)
+
+	PORT_MODIFY("P1_Y")
+	PORT_BIT(0x3ff, 0x0e9, IPT_LIGHTGUN_Y) PORT_CROSSHAIR(Y, 1.0, 0.0, 0) PORT_MINMAX( 87, 380) PORT_SENSITIVITY(50) PORT_KEYDELTA(10) PORT_PLAYER(1)
+
+	PORT_MODIFY("P2_X")
+	PORT_BIT(0x3ff, 0x17b, IPT_LIGHTGUN_X) PORT_CROSSHAIR(X, 1.0, 0.0, 0) PORT_MINMAX(163, 596) PORT_SENSITIVITY(50) PORT_KEYDELTA(13) PORT_PLAYER(2)
+
+	PORT_MODIFY("P2_Y")
+	PORT_BIT(0x3ff, 0x0e9, IPT_LIGHTGUN_Y) PORT_CROSSHAIR(Y, 1.0, 0.0, 0) PORT_MINMAX( 87, 380) PORT_SENSITIVITY(50) PORT_KEYDELTA(10) PORT_PLAYER(2)
+INPUT_PORTS_END
+
 static INPUT_PORTS_START( overrev )
 	PORT_INCLUDE( sgt24h )
 
@@ -2096,7 +2144,7 @@ INPUT_PORTS_END
 static INPUT_PORTS_START( rchase2 )
 	PORT_INCLUDE( gunblade )
 
-	PORT_START("IN2")
+	PORT_MODIFY("IN2")
 	PORT_BIT(0xff, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_CUSTOM_MEMBER(DEVICE_SELF, model2_state,rchase2_devices_r, nullptr)
 
 	// reversed p1 and p2 wrt Gunblade
@@ -2502,7 +2550,7 @@ MACHINE_CONFIG_START(model2o_state::model2o)
 
 	MCFG_DEVICE_ADD("copro_fifo_in", GENERIC_FIFO_U32, 0)
 	MCFG_DEVICE_ADD("copro_fifo_out", GENERIC_FIFO_U32, 0)
-	
+
 	MCFG_MACHINE_START_OVERRIDE(model2_tgp_state,model2_tgp)
 	MCFG_MACHINE_RESET_OVERRIDE(model2o_state,model2o)
 
@@ -2616,7 +2664,7 @@ MACHINE_CONFIG_START(model2o_state::vcop)
 	model2o(config);
 
 	MCFG_DEVICE_MODIFY("io")
-	MCFG_M1IO_DI2_CB(IOPORT("DEBUG"))
+	MCFG_M1IO_DI2_CB(IOPORT("IN2"))
 	MCFG_M1IO_DO_CB(WRITE8(model2o_state, vcop_output_w))
 MACHINE_CONFIG_END
 
@@ -2642,7 +2690,7 @@ MACHINE_CONFIG_START(model2a_state::model2a)
 
 	MCFG_DEVICE_ADD("copro_fifo_in", GENERIC_FIFO_U32, 0)
 	MCFG_DEVICE_ADD("copro_fifo_out", GENERIC_FIFO_U32, 0)
-	
+
 	MCFG_MACHINE_START_OVERRIDE(model2_tgp_state,model2_tgp)
 	MCFG_MACHINE_RESET_OVERRIDE(model2a_state,model2a)
 
@@ -2788,7 +2836,7 @@ MACHINE_CONFIG_START(model2c_state::model2c)
 
 	MCFG_DEVICE_ADD("copro_fifo_in", GENERIC_FIFO_U32, 0)
 	MCFG_DEVICE_ADD("copro_fifo_out", GENERIC_FIFO_U32, 0)
-	
+
 	MCFG_MACHINE_START_OVERRIDE(model2c_state,model2c)
 	MCFG_MACHINE_RESET_OVERRIDE(model2c_state,model2c)
 
@@ -6476,7 +6524,7 @@ GAME( 1995, srallyc,   0,       srallyc,      srallyc,  model2a_state, srallyc, 
 GAME( 1995, srallycb,  srallyc, srallyc,      srallyc,  model2a_state, srallyc, ROT0, "Sega",   "Sega Rally Championship - Twin/DX (Revision B)", MACHINE_NOT_WORKING|MACHINE_IMPERFECT_GRAPHICS )
 GAME( 1995, srallycdx, srallyc, srallyc,      srallyc,  model2a_state, srallyc, ROT0, "Sega",   "Sega Rally Championship - DX (Revision A)", MACHINE_NOT_WORKING|MACHINE_IMPERFECT_GRAPHICS )
 GAME( 1995, srallycdxa,srallyc, srallyc,      srallyc,  model2a_state, srallyc, ROT0, "Sega",   "Sega Rally Championship - DX", MACHINE_NOT_WORKING|MACHINE_IMPERFECT_GRAPHICS )
-GAME( 1995, vcop2,     0,       model2a,      vcop,     model2a_state, 0,       ROT0, "Sega",   "Virtua Cop 2", MACHINE_NOT_WORKING|MACHINE_IMPERFECT_GRAPHICS )
+GAME( 1995, vcop2,     0,       model2a,      vcop2,    model2a_state, 0,       ROT0, "Sega",   "Virtua Cop 2", MACHINE_NOT_WORKING|MACHINE_IMPERFECT_GRAPHICS )
 GAME( 1995, skytargt,  0,       model2a,      skytargt, model2a_state, 0,       ROT0, "Sega",   "Sky Target", MACHINE_NOT_WORKING|MACHINE_IMPERFECT_GRAPHICS )
 GAME( 1996, doaa,      doa,     model2a_0229, model2,   model2a_state, doa,     ROT0, "Sega",   "Dead or Alive (Model 2A, Revision A)", MACHINE_NOT_WORKING|MACHINE_IMPERFECT_GRAPHICS )
 GAME( 1997, zeroguna,  zerogun, model2a_5881, zerogun,  model2a_state, zerogun, ROT0, "Psikyo", "Zero Gunner (Export, Model 2A)", MACHINE_NOT_WORKING|MACHINE_IMPERFECT_GRAPHICS )
@@ -6522,7 +6570,7 @@ GAME( 1996, stccb,     stcc,     stcc,         stcc,     model2c_state, 0,      
 GAME( 1996, stcca,     stcc,     stcc,         stcc,     model2c_state, 0,       ROT0, "Sega",   "Sega Touring Car Championship (Revision A)", MACHINE_NOT_WORKING|MACHINE_IMPERFECT_GRAPHICS )
 GAME( 1996, waverunr,  0,        model2c,      waverunr, model2c_state, 0,       ROT0, "Sega",   "Wave Runner (Japan, Revision A)", MACHINE_NOT_WORKING|MACHINE_IMPERFECT_GRAPHICS )
 GAME( 1997, bel,       0,        model2c,      bel,      model2c_state, 0,       ROT0, "Sega / EPL Productions", "Behind Enemy Lines", MACHINE_NOT_WORKING|MACHINE_IMPERFECT_GRAPHICS )
-GAME( 1997, hotd,      0,        model2c,      vcop,     model2c_state, 0,       ROT0, "Sega",   "The House of the Dead", MACHINE_NOT_WORKING|MACHINE_IMPERFECT_GRAPHICS )
+GAME( 1997, hotd,      0,        model2c,      hotd,     model2c_state, 0,       ROT0, "Sega",   "The House of the Dead", MACHINE_NOT_WORKING|MACHINE_IMPERFECT_GRAPHICS )
 GAME( 1997, overrev,   0,        overrev2c,    overrev,  model2c_state, 0,       ROT0, "Jaleco", "Over Rev (Model 2C, Revision A)", MACHINE_NOT_WORKING|MACHINE_IMPERFECT_GRAPHICS )
 GAME( 1997, rascot2,   0,        model2c,      model2,   model2c_state, 0,       ROT0, "Sega",   "Royal Ascot II", MACHINE_NOT_WORKING|MACHINE_IMPERFECT_GRAPHICS )
 GAME( 1997, segawski,  0,        model2c,      segawski, model2c_state, 0,       ROT0, "Sega",   "Sega Water Ski (Japan, Revision A)", MACHINE_NOT_WORKING|MACHINE_IMPERFECT_GRAPHICS )

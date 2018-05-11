@@ -288,7 +288,7 @@ MACHINE_CONFIG_START(md_boot_state::puckpkmn)
 
 	MCFG_DEVICE_REMOVE("genesis_snd_z80")
 
-	MCFG_OKIM6295_ADD("oki", XTAL(4'000'000) / 4, PIN7_HIGH)
+	MCFG_DEVICE_ADD("oki", OKIM6295, XTAL(4'000'000) / 4, okim6295_device::PIN7_HIGH)
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "lspeaker", 0.25)
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "rspeaker",0.25)
 MACHINE_CONFIG_END
@@ -472,7 +472,7 @@ ROM_START( puckpkmnb )
 ROM_END
 
 
-
+//決戰天皇/Juézhàn tiānhuáng (Traditional Chinese)
 ROM_START( jzth )
 	ROM_REGION( 0x400000, "maincpu", 0 )
 	ROM_LOAD16_BYTE( "s.y.u5", 0x000000, 0x080000, CRC(a4a526b5) SHA1(85d0299caf91ff50b6870f845b9aacbd358ed81f) )
@@ -493,4 +493,4 @@ ROM_END
 GAME( 2000, puckpkmn, 0,        puckpkmn,  puckpkmn, md_boot_state, puckpkmn, ROT0, "Genie",                  "Puckman Pockimon (set 1)", 0 )
 GAME( 2000, puckpkmna,puckpkmn, puckpkmna, puckpkmn, md_boot_state, puckpkmn, ROT0, "IBS",                    "Puckman Pockimon (set 2)", 0 )
 GAME( 2000, puckpkmnb,puckpkmn, puckpkmna, puckpkmn, md_boot_state, puckpkmn, ROT0, "Sun Mixing",             "Puckman Pockimon (set 3)", 0 )
-GAME( 2000, jzth,     0,        jzth,      jzth,     md_boot_state, puckpkmn, ROT0, "<unknown>",              "Jue Zhan Tian Huang", MACHINE_IMPERFECT_SOUND )
+GAME( 2000, jzth,     0,        jzth,      jzth,     md_boot_state, puckpkmn, ROT0, "<unknown>",              "Juezhan Tianhuang", MACHINE_IMPERFECT_SOUND )

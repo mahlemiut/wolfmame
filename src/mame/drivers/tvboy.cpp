@@ -81,7 +81,7 @@ MACHINE_CONFIG_START(tvboy_state::tvboyii)
 	/* basic machine hardware */
 	MCFG_DEVICE_ADD("maincpu", M6507, MASTER_CLOCK_PAL / 3)
 	MCFG_DEVICE_PROGRAM_MAP(tvboy_mem)
-	MCFG_M6502_DISABLE_DIRECT()
+	MCFG_M6502_DISABLE_CACHE()
 
 	/* video hardware */
 	MCFG_DEVICE_ADD("tia_video", TIA_PAL_VIDEO, 0)
@@ -95,7 +95,7 @@ MACHINE_CONFIG_START(tvboy_state::tvboyii)
 	MCFG_SCREEN_PALETTE("tia_video:palette")
 
 	/* sound hardware */
-	MCFG_SPEAKER_STANDARD_MONO("mono")
+	SPEAKER(config, "mono").front_center();
 	MCFG_SOUND_TIA_ADD("tia", MASTER_CLOCK_PAL/114)
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 0.90)
 

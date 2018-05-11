@@ -3485,8 +3485,8 @@ static INPUT_PORTS_START( firehawk )
 	PORT_DIPSETTING(      0x0100, DEF_STR( Off ) )
 	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
 	PORT_DIPNAME( 0x0200, 0x0200, DEF_STR( Region ) )       PORT_DIPLOCATION("SW2:7")
-	PORT_DIPSETTING(      0x0200, DEF_STR( World ) )
-	PORT_DIPSETTING(      0x0000, DEF_STR( China ) )
+	PORT_DIPSETTING(      0x0200, DEF_STR( World ) ) // Fire Hawk
+	PORT_DIPSETTING(      0x0000, DEF_STR( China ) ) // 火狐傳說/Huǒhú chuánshuō
 	PORT_DIPNAME( 0x0400, 0x0400, DEF_STR( Free_Play ) )        PORT_DIPLOCATION("SW2:6")
 	PORT_DIPSETTING(      0x0400, DEF_STR( Off ) )
 	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
@@ -3700,9 +3700,9 @@ static const gfx_layout charlayout =
 	8,8,
 	RGN_FRAC(1,1),
 	4,
-	{ 0, 1, 2, 3 },
-	{ 0*4, 1*4, 2*4, 3*4, 4*4, 5*4, 6*4, 7*4 },
-	{ 0*32, 1*32, 2*32, 3*32, 4*32, 5*32, 6*32, 7*32 },
+	{ STEP4(0,1) },
+	{ STEP8(0,4) },
+	{ STEP8(0,4*8) },
 	32*8
 };
 
@@ -3711,35 +3711,33 @@ static const gfx_layout tilelayout =
 	16,16,
 	RGN_FRAC(1,1),
 	4,
-	{ 0, 1, 2, 3 },
-	{ 0*4, 1*4, 2*4, 3*4, 4*4, 5*4, 6*4, 7*4,
-			16*32+0*4, 16*32+1*4, 16*32+2*4, 16*32+3*4, 16*32+4*4, 16*32+5*4, 16*32+6*4, 16*32+7*4 },
-	{ 0*32, 1*32, 2*32, 3*32, 4*32, 5*32, 6*32, 7*32,
-			8*32, 9*32, 10*32, 11*32, 12*32, 13*32, 14*32, 15*32 },
+	{ STEP4(0,1) },
+	{ STEP8(0,4), STEP8(4*8*16,4) },
+	{ STEP16(0,4*8) },
 	32*32
 };
 
 static GFXDECODE_START( tharrier )
-	GFXDECODE_ENTRY( "fgtile", 0, charlayout, 0x000, 16 ) /* color 0x200-0x2ff */
-	GFXDECODE_ENTRY( "bgtile", 0, tilelayout, 0x000, 16 ) /* color 0x000-0x0ff */
+	GFXDECODE_ENTRY( "fgtile",  0, charlayout, 0x000, 16 ) /* color 0x200-0x2ff */
+	GFXDECODE_ENTRY( "bgtile",  0, tilelayout, 0x000, 16 ) /* color 0x000-0x0ff */
 	GFXDECODE_ENTRY( "sprites", 0, tilelayout, 0x100, 16 ) /* color 0x100-0x1ff */
 GFXDECODE_END
 
 static GFXDECODE_START( macross )
-	GFXDECODE_ENTRY( "fgtile", 0, charlayout, 0x200, 16 ) /* color 0x200-0x2ff */
-	GFXDECODE_ENTRY( "bgtile", 0, tilelayout, 0x000, 16 ) /* color 0x000-0x0ff */
+	GFXDECODE_ENTRY( "fgtile",  0, charlayout, 0x200, 16 ) /* color 0x200-0x2ff */
+	GFXDECODE_ENTRY( "bgtile",  0, tilelayout, 0x000, 16 ) /* color 0x000-0x0ff */
 	GFXDECODE_ENTRY( "sprites", 0, tilelayout, 0x100, 16 ) /* color 0x100-0x1ff */
 GFXDECODE_END
 
 static GFXDECODE_START( macross2 )
-	GFXDECODE_ENTRY( "fgtile", 0, charlayout, 0x300, 16 ) /* color 0x300-0x3ff */
-	GFXDECODE_ENTRY( "bgtile", 0, tilelayout, 0x000, 16 ) /* color 0x000-0x0ff */
+	GFXDECODE_ENTRY( "fgtile",  0, charlayout, 0x300, 16 ) /* color 0x300-0x3ff */
+	GFXDECODE_ENTRY( "bgtile",  0, tilelayout, 0x000, 16 ) /* color 0x000-0x0ff */
 	GFXDECODE_ENTRY( "sprites", 0, tilelayout, 0x100, 32 ) /* color 0x100-0x2ff */
 GFXDECODE_END
 
 static GFXDECODE_START( bjtwin )
-	GFXDECODE_ENTRY( "fgtile", 0, charlayout, 0x000, 16 ) /* color 0x000-0x0ff */
-	GFXDECODE_ENTRY( "bgtile", 0, charlayout, 0x000, 16 ) /* color 0x000-0x0ff */
+	GFXDECODE_ENTRY( "fgtile",  0, charlayout, 0x000, 16 ) /* color 0x000-0x0ff */
+	GFXDECODE_ENTRY( "bgtile",  0, charlayout, 0x000, 16 ) /* color 0x000-0x0ff */
 	GFXDECODE_ENTRY( "sprites", 0, tilelayout, 0x100, 16 ) /* color 0x100-0x1ff */
 GFXDECODE_END
 
@@ -3747,17 +3745,17 @@ GFXDECODE_END
 
 
 static GFXDECODE_START( bioship )
-	GFXDECODE_ENTRY( "fgtile", 0, charlayout, 0x300, 16 ) /* color 0x300-0x3ff */
-	GFXDECODE_ENTRY( "bgtile", 0, tilelayout, 0x100, 16 ) /* color 0x100-0x1ff */
+	GFXDECODE_ENTRY( "fgtile",  0, charlayout, 0x300, 16 ) /* color 0x300-0x3ff */
+	GFXDECODE_ENTRY( "bgtile",  0, tilelayout, 0x100, 16 ) /* color 0x100-0x1ff */
 	GFXDECODE_ENTRY( "sprites", 0, tilelayout, 0x200, 16 ) /* color 0x200-0x2ff */
-	GFXDECODE_ENTRY( "gfx4", 0, tilelayout, 0x000, 16 ) /* color 0x000-0x0ff */
+	GFXDECODE_ENTRY( "gfx4",    0, tilelayout, 0x000, 16 ) /* color 0x000-0x0ff */
 GFXDECODE_END
 
 static GFXDECODE_START( strahl )
-	GFXDECODE_ENTRY( "fgtile", 0, charlayout, 0x000, 16 ) /* color 0x000-0x0ff */
-	GFXDECODE_ENTRY( "bgtile", 0, tilelayout, 0x300, 16 ) /* color 0x300-0x3ff */
+	GFXDECODE_ENTRY( "fgtile",  0, charlayout, 0x000, 16 ) /* color 0x000-0x0ff */
+	GFXDECODE_ENTRY( "bgtile",  0, tilelayout, 0x300, 16 ) /* color 0x300-0x3ff */
 	GFXDECODE_ENTRY( "sprites", 0, tilelayout, 0x100, 16 ) /* color 0x100-0x1ff */
-	GFXDECODE_ENTRY( "gfx4", 0, tilelayout, 0x200, 16 ) /* color 0x200-0x2ff */
+	GFXDECODE_ENTRY( "gfx4",    0, tilelayout, 0x200, 16 ) /* color 0x200-0x2ff */
 GFXDECODE_END
 
 
@@ -3866,7 +3864,7 @@ MACHINE_CONFIG_START(nmk16_state::tharrier)
 	MCFG_VIDEO_START_OVERRIDE(nmk16_state,macross)
 
 	/* sound hardware */
-	MCFG_SPEAKER_STANDARD_MONO("mono")
+	SPEAKER(config, "mono").front_center();
 
 	MCFG_GENERIC_LATCH_8_ADD("soundlatch")
 	MCFG_GENERIC_LATCH_8_ADD("soundlatch2")
@@ -3878,11 +3876,11 @@ MACHINE_CONFIG_START(nmk16_state::tharrier)
 	MCFG_SOUND_ROUTE(2, "mono", 0.50)
 	MCFG_SOUND_ROUTE(3, "mono", 1.20)
 
-	MCFG_OKIM6295_ADD("oki1", 16000000/4, PIN7_LOW)
+	MCFG_DEVICE_ADD("oki1", OKIM6295, 16000000/4, okim6295_device::PIN7_LOW)
 	MCFG_DEVICE_ADDRESS_MAP(0, oki1_map)
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 0.10)
 
-	MCFG_OKIM6295_ADD("oki2", 16000000/4, PIN7_LOW)
+	MCFG_DEVICE_ADD("oki2", OKIM6295, 16000000/4, okim6295_device::PIN7_LOW)
 	MCFG_DEVICE_ADDRESS_MAP(0, oki2_map)
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 0.10)
 MACHINE_CONFIG_END
@@ -3906,7 +3904,7 @@ MACHINE_CONFIG_START(nmk16_state::mustang)
 	MCFG_VIDEO_START_OVERRIDE(nmk16_state,macross)
 
 	/* sound hardware */
-	MCFG_SPEAKER_STANDARD_MONO("mono")
+	SPEAKER(config, "mono").front_center();
 
 	MCFG_NMK004_ADD("nmk004", 8000000)
 	MCFG_NMK004_RESET_CB(INPUTLINE("maincpu", INPUT_LINE_RESET))
@@ -3918,11 +3916,11 @@ MACHINE_CONFIG_START(nmk16_state::mustang)
 	MCFG_SOUND_ROUTE(2, "mono", 0.50)
 	MCFG_SOUND_ROUTE(3, "mono", 1.20)
 
-	MCFG_OKIM6295_ADD("oki1", 16000000/4, PIN7_LOW)
+	MCFG_DEVICE_ADD("oki1", OKIM6295, 16000000/4, okim6295_device::PIN7_LOW)
 	MCFG_DEVICE_ADDRESS_MAP(0, oki1_map)
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 0.10)
 
-	MCFG_OKIM6295_ADD("oki2", 16000000/4, PIN7_LOW)
+	MCFG_DEVICE_ADD("oki2", OKIM6295, 16000000/4, okim6295_device::PIN7_LOW)
 	MCFG_DEVICE_ADDRESS_MAP(0, oki2_map)
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 0.10)
 MACHINE_CONFIG_END
@@ -3949,13 +3947,13 @@ MACHINE_CONFIG_START(nmk16_state::mustangb)
 	MCFG_VIDEO_START_OVERRIDE(nmk16_state,macross)
 
 	/* sound hardware */
-	MCFG_SPEAKER_STANDARD_MONO("mono")
+	SPEAKER(config, "mono").front_center();
 
 	MCFG_DEVICE_ADD("ymsnd", YM3812, 14318180/4)
 	MCFG_YM3812_IRQ_HANDLER(WRITELINE("seibu_sound", seibu_sound_device, fm_irqhandler))
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 1.0)
 
-	MCFG_OKIM6295_ADD("oki", 1320000, PIN7_LOW)
+	MCFG_DEVICE_ADD("oki", OKIM6295, 1320000, okim6295_device::PIN7_LOW)
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 0.40)
 
 	MCFG_DEVICE_ADD("seibu_sound", SEIBU_SOUND, 0)
@@ -3987,7 +3985,7 @@ MACHINE_CONFIG_START(nmk16_state::bioship)
 	MCFG_VIDEO_START_OVERRIDE(nmk16_state,bioship)
 
 	/* sound hardware */
-	MCFG_SPEAKER_STANDARD_MONO("mono")
+	SPEAKER(config, "mono").front_center();
 
 	MCFG_NMK004_ADD("nmk004", 8000000)
 	MCFG_NMK004_RESET_CB(INPUTLINE("maincpu", INPUT_LINE_RESET))
@@ -3999,11 +3997,11 @@ MACHINE_CONFIG_START(nmk16_state::bioship)
 	MCFG_SOUND_ROUTE(2, "mono", 0.50)
 	MCFG_SOUND_ROUTE(3, "mono", 1.20)
 
-	MCFG_OKIM6295_ADD("oki1", BIOSHIP_CRYSTAL2 / 3 , PIN7_LOW) /* 4.0 Mhz, Pin 7 High (verified) */
+	MCFG_DEVICE_ADD("oki1", OKIM6295, BIOSHIP_CRYSTAL2 / 3 , okim6295_device::PIN7_LOW) /* 4.0 Mhz, Pin 7 High (verified) */
 	MCFG_DEVICE_ADDRESS_MAP(0, oki1_map)
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 0.10)
 
-	MCFG_OKIM6295_ADD("oki2", BIOSHIP_CRYSTAL2 / 3 , PIN7_LOW) /* 4.0 Mhz, Pin 7 High (verified) */
+	MCFG_DEVICE_ADD("oki2", OKIM6295, BIOSHIP_CRYSTAL2 / 3 , okim6295_device::PIN7_LOW) /* 4.0 Mhz, Pin 7 High (verified) */
 	MCFG_DEVICE_ADDRESS_MAP(0, oki2_map)
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 0.10)
 MACHINE_CONFIG_END
@@ -4027,7 +4025,7 @@ MACHINE_CONFIG_START(nmk16_state::vandyke)
 	MCFG_VIDEO_START_OVERRIDE(nmk16_state,macross)
 
 	/* sound hardware */
-	MCFG_SPEAKER_STANDARD_MONO("mono")
+	SPEAKER(config, "mono").front_center();
 
 	MCFG_NMK004_ADD("nmk004", 8000000)
 	MCFG_NMK004_RESET_CB(INPUTLINE("maincpu", INPUT_LINE_RESET))
@@ -4039,11 +4037,11 @@ MACHINE_CONFIG_START(nmk16_state::vandyke)
 	MCFG_SOUND_ROUTE(2, "mono", 0.50)
 	MCFG_SOUND_ROUTE(3, "mono", 1.20)
 
-	MCFG_OKIM6295_ADD("oki1", XTAL(12'000'000)/3, PIN7_LOW) /* verified on pcb */
+	MCFG_DEVICE_ADD("oki1", OKIM6295, XTAL(12'000'000)/3, okim6295_device::PIN7_LOW) /* verified on pcb */
 	MCFG_DEVICE_ADDRESS_MAP(0, oki1_map)
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 0.10)
 
-	MCFG_OKIM6295_ADD("oki2", XTAL(12'000'000)/3, PIN7_LOW) /* verified on pcb */
+	MCFG_DEVICE_ADD("oki2", OKIM6295, XTAL(12'000'000)/3, okim6295_device::PIN7_LOW) /* verified on pcb */
 	MCFG_DEVICE_ADDRESS_MAP(0, oki2_map)
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 0.10)
 MACHINE_CONFIG_END
@@ -4070,9 +4068,9 @@ MACHINE_CONFIG_START(nmk16_state::vandykeb)
 	MCFG_VIDEO_START_OVERRIDE(nmk16_state,macross)
 
 	/* sound hardware */
-	MCFG_SPEAKER_STANDARD_MONO("mono")
+	SPEAKER(config, "mono").front_center();
 
-	MCFG_OKIM6295_ADD("oki1", 16000000/16, PIN7_LOW)
+	MCFG_DEVICE_ADD("oki1", OKIM6295, 16000000/16, okim6295_device::PIN7_LOW)
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 0.20)
 	MCFG_DEVICE_ADDRESS_MAP(0, oki1_map)
 MACHINE_CONFIG_END
@@ -4096,7 +4094,7 @@ MACHINE_CONFIG_START(nmk16_state::acrobatm)
 	MCFG_VIDEO_START_OVERRIDE(nmk16_state,macross)
 
 	/* sound hardware */
-	MCFG_SPEAKER_STANDARD_MONO("mono")
+	SPEAKER(config, "mono").front_center();
 
 	MCFG_NMK004_ADD("nmk004", 8000000)
 	MCFG_NMK004_RESET_CB(INPUTLINE("maincpu", INPUT_LINE_RESET))
@@ -4108,11 +4106,11 @@ MACHINE_CONFIG_START(nmk16_state::acrobatm)
 	MCFG_SOUND_ROUTE(2, "mono", 0.50)
 	MCFG_SOUND_ROUTE(3, "mono", 1.20)
 
-	MCFG_OKIM6295_ADD("oki1", 16000000/4, PIN7_LOW) /* (verified on pcb) on the pcb pin7 is not connected to gnd or +5v! */
+	MCFG_DEVICE_ADD("oki1", OKIM6295, 16000000/4, okim6295_device::PIN7_LOW) /* (verified on pcb) on the pcb pin7 is not connected to gnd or +5v! */
 	MCFG_DEVICE_ADDRESS_MAP(0, oki1_map)
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 0.10)
 
-	MCFG_OKIM6295_ADD("oki2", 16000000/4, PIN7_LOW) /* (verified on pcb) on the pcb pin7 is not connected to gnd or +5v! */
+	MCFG_DEVICE_ADD("oki2", OKIM6295, 16000000/4, okim6295_device::PIN7_LOW) /* (verified on pcb) on the pcb pin7 is not connected to gnd or +5v! */
 	MCFG_DEVICE_ADDRESS_MAP(0, oki2_map)
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 0.10)
 MACHINE_CONFIG_END
@@ -4140,13 +4138,13 @@ MACHINE_CONFIG_START(nmk16_state::tdragonb)    /* bootleg using Raiden sound har
 	MCFG_VIDEO_START_OVERRIDE(nmk16_state,macross)
 
 	/* sound hardware */
-	MCFG_SPEAKER_STANDARD_MONO("mono")
+	SPEAKER(config, "mono").front_center();
 
 	MCFG_DEVICE_ADD("ymsnd", YM3812, 14318180/4)
 	MCFG_YM3812_IRQ_HANDLER(WRITELINE("seibu_sound", seibu_sound_device, fm_irqhandler))
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 1.0)
 
-	MCFG_OKIM6295_ADD("oki", 1320000, PIN7_LOW)
+	MCFG_DEVICE_ADD("oki", OKIM6295, 1320000, okim6295_device::PIN7_LOW)
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 0.40)
 
 	MCFG_DEVICE_ADD("seibu_sound", SEIBU_SOUND, 0)
@@ -4175,7 +4173,7 @@ MACHINE_CONFIG_START(nmk16_state::tdragon)
 	MCFG_VIDEO_START_OVERRIDE(nmk16_state,macross)
 
 	/* sound hardware */
-	MCFG_SPEAKER_STANDARD_MONO("mono")
+	SPEAKER(config, "mono").front_center();
 
 	MCFG_NMK004_ADD("nmk004", 8000000)
 	MCFG_NMK004_RESET_CB(INPUTLINE("maincpu", INPUT_LINE_RESET))
@@ -4187,11 +4185,11 @@ MACHINE_CONFIG_START(nmk16_state::tdragon)
 	MCFG_SOUND_ROUTE(2, "mono", 0.50)
 	MCFG_SOUND_ROUTE(3, "mono", 1.20)
 
-	MCFG_OKIM6295_ADD("oki1", XTAL(8'000'000)/2, PIN7_LOW) /* verified on pcb */
+	MCFG_DEVICE_ADD("oki1", OKIM6295, XTAL(8'000'000)/2, okim6295_device::PIN7_LOW) /* verified on pcb */
 	MCFG_DEVICE_ADDRESS_MAP(0, oki1_map)
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 0.10)
 
-	MCFG_OKIM6295_ADD("oki2", XTAL(8'000'000)/2, PIN7_LOW) /* verified on pcb */
+	MCFG_DEVICE_ADD("oki2", OKIM6295, XTAL(8'000'000)/2, okim6295_device::PIN7_LOW) /* verified on pcb */
 	MCFG_DEVICE_ADDRESS_MAP(0, oki2_map)
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 0.10)
 MACHINE_CONFIG_END
@@ -4223,12 +4221,12 @@ MACHINE_CONFIG_START(nmk16_state::ssmissin)
 	MCFG_VIDEO_START_OVERRIDE(nmk16_state,macross)
 
 	/* sound hardware */
-	MCFG_SPEAKER_STANDARD_MONO("mono")
+	SPEAKER(config, "mono").front_center();
 
 	MCFG_GENERIC_LATCH_8_ADD("soundlatch")
 	MCFG_GENERIC_LATCH_DATA_PENDING_CB(INPUTLINE("audiocpu", 0))
 
-	MCFG_OKIM6295_ADD("oki1", 8000000/8, PIN7_HIGH) /* 1 Mhz, pin 7 high */
+	MCFG_DEVICE_ADD("oki1", OKIM6295, 8000000/8, okim6295_device::PIN7_HIGH) /* 1 Mhz, pin 7 high */
 	MCFG_DEVICE_ADDRESS_MAP(0, oki1_map)
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 1.0)
 
@@ -4252,7 +4250,7 @@ MACHINE_CONFIG_START(nmk16_state::strahl)
 	MCFG_VIDEO_START_OVERRIDE(nmk16_state,strahl)
 
 	/* sound hardware */
-	MCFG_SPEAKER_STANDARD_MONO("mono")
+	SPEAKER(config, "mono").front_center();
 
 	MCFG_NMK004_ADD("nmk004", 8000000)
 	MCFG_NMK004_RESET_CB(INPUTLINE("maincpu", INPUT_LINE_RESET))
@@ -4264,11 +4262,11 @@ MACHINE_CONFIG_START(nmk16_state::strahl)
 	MCFG_SOUND_ROUTE(2, "mono", 0.50)
 	MCFG_SOUND_ROUTE(3, "mono", 1.20)
 
-	MCFG_OKIM6295_ADD("oki1", 16000000/4, PIN7_LOW)
+	MCFG_DEVICE_ADD("oki1", OKIM6295, 16000000/4, okim6295_device::PIN7_LOW)
 	MCFG_DEVICE_ADDRESS_MAP(0, oki1_map)
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 0.10)
 
-	MCFG_OKIM6295_ADD("oki2", 16000000/4, PIN7_LOW)
+	MCFG_DEVICE_ADD("oki2", OKIM6295, 16000000/4, okim6295_device::PIN7_LOW)
 	MCFG_DEVICE_ADDRESS_MAP(0, oki2_map)
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 0.10)
 MACHINE_CONFIG_END
@@ -4292,7 +4290,7 @@ MACHINE_CONFIG_START(nmk16_state::hachamf)
 	MCFG_VIDEO_START_OVERRIDE(nmk16_state,macross)
 
 	/* sound hardware */
-	MCFG_SPEAKER_STANDARD_MONO("mono")
+	SPEAKER(config, "mono").front_center();
 
 	MCFG_NMK004_ADD("nmk004", 8000000)
 	MCFG_NMK004_RESET_CB(INPUTLINE("maincpu", INPUT_LINE_RESET))
@@ -4304,11 +4302,11 @@ MACHINE_CONFIG_START(nmk16_state::hachamf)
 	MCFG_SOUND_ROUTE(2, "mono", 0.50)
 	MCFG_SOUND_ROUTE(3, "mono", 1.20)
 
-	MCFG_OKIM6295_ADD("oki1", 16000000/4, PIN7_LOW)
+	MCFG_DEVICE_ADD("oki1", OKIM6295, 16000000/4, okim6295_device::PIN7_LOW)
 	MCFG_DEVICE_ADDRESS_MAP(0, oki1_map)
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 0.10)
 
-	MCFG_OKIM6295_ADD("oki2", 16000000/4, PIN7_LOW)
+	MCFG_DEVICE_ADD("oki2", OKIM6295, 16000000/4, okim6295_device::PIN7_LOW)
 	MCFG_DEVICE_ADDRESS_MAP(0, oki2_map)
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 0.10)
 MACHINE_CONFIG_END
@@ -4338,7 +4336,7 @@ MACHINE_CONFIG_START(nmk16_state::macross)
 	MCFG_VIDEO_START_OVERRIDE(nmk16_state,macross)
 
 	/* sound hardware */
-	MCFG_SPEAKER_STANDARD_MONO("mono")
+	SPEAKER(config, "mono").front_center();
 
 	MCFG_NMK004_ADD("nmk004", 8000000)
 	MCFG_NMK004_RESET_CB(INPUTLINE("maincpu", INPUT_LINE_RESET))
@@ -4350,11 +4348,11 @@ MACHINE_CONFIG_START(nmk16_state::macross)
 	MCFG_SOUND_ROUTE(2, "mono", 0.50)
 	MCFG_SOUND_ROUTE(3, "mono", 1.20)
 
-	MCFG_OKIM6295_ADD("oki1", 16000000/4, PIN7_LOW)
+	MCFG_DEVICE_ADD("oki1", OKIM6295, 16000000/4, okim6295_device::PIN7_LOW)
 	MCFG_DEVICE_ADDRESS_MAP(0, oki1_map)
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 0.10)
 
-	MCFG_OKIM6295_ADD("oki2", 16000000/4, PIN7_LOW)
+	MCFG_DEVICE_ADD("oki2", OKIM6295, 16000000/4, okim6295_device::PIN7_LOW)
 	MCFG_DEVICE_ADDRESS_MAP(0, oki2_map)
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 0.10)
 MACHINE_CONFIG_END
@@ -4378,7 +4376,7 @@ MACHINE_CONFIG_START(nmk16_state::blkheart)
 	MCFG_VIDEO_START_OVERRIDE(nmk16_state,macross)
 
 	/* sound hardware */
-	MCFG_SPEAKER_STANDARD_MONO("mono")
+	SPEAKER(config, "mono").front_center();
 
 	MCFG_NMK004_ADD("nmk004", 8000000)
 	MCFG_NMK004_RESET_CB(INPUTLINE("maincpu", INPUT_LINE_RESET))
@@ -4390,11 +4388,11 @@ MACHINE_CONFIG_START(nmk16_state::blkheart)
 	MCFG_SOUND_ROUTE(2, "mono", 0.50)
 	MCFG_SOUND_ROUTE(3, "mono", 1.20)
 
-	MCFG_OKIM6295_ADD("oki1", XTAL(8'000'000)/2, PIN7_LOW) /* verified on pcb */
+	MCFG_DEVICE_ADD("oki1", OKIM6295, XTAL(8'000'000)/2, okim6295_device::PIN7_LOW) /* verified on pcb */
 	MCFG_DEVICE_ADDRESS_MAP(0, oki1_map)
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 0.10)
 
-	MCFG_OKIM6295_ADD("oki2", XTAL(8'000'000)/2, PIN7_LOW) /* verified on pcb */
+	MCFG_DEVICE_ADD("oki2", OKIM6295, XTAL(8'000'000)/2, okim6295_device::PIN7_LOW) /* verified on pcb */
 	MCFG_DEVICE_ADDRESS_MAP(0, oki2_map)
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 0.10)
 MACHINE_CONFIG_END
@@ -4417,7 +4415,7 @@ MACHINE_CONFIG_START(nmk16_state::gunnail)
 	MCFG_VIDEO_START_OVERRIDE(nmk16_state,gunnail)
 
 	/* sound hardware */
-	MCFG_SPEAKER_STANDARD_MONO("mono")
+	SPEAKER(config, "mono").front_center();
 
 	MCFG_NMK004_ADD("nmk004", XTAL(16'000'000)/2) /* verified on pcb */
 	MCFG_NMK004_RESET_CB(INPUTLINE("maincpu", INPUT_LINE_RESET))
@@ -4429,11 +4427,11 @@ MACHINE_CONFIG_START(nmk16_state::gunnail)
 	MCFG_SOUND_ROUTE(2, "mono", 0.50)
 	MCFG_SOUND_ROUTE(3, "mono", 1.20)
 
-	MCFG_OKIM6295_ADD("oki1", XTAL(16'000'000)/4, PIN7_LOW) /* verified on pcb */
+	MCFG_DEVICE_ADD("oki1", OKIM6295, XTAL(16'000'000)/4, okim6295_device::PIN7_LOW) /* verified on pcb */
 	MCFG_DEVICE_ADDRESS_MAP(0, oki1_map)
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 0.10)
 
-	MCFG_OKIM6295_ADD("oki2", XTAL(16'000'000)/4, PIN7_LOW) /* verified on pcb */
+	MCFG_DEVICE_ADD("oki2", OKIM6295, XTAL(16'000'000)/4, okim6295_device::PIN7_LOW) /* verified on pcb */
 	MCFG_DEVICE_ADDRESS_MAP(0, oki2_map)
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 0.10)
 MACHINE_CONFIG_END
@@ -4461,7 +4459,7 @@ MACHINE_CONFIG_START(nmk16_state::macross2)
 	MCFG_VIDEO_START_OVERRIDE(nmk16_state,macross2)
 
 	/* sound hardware */
-	MCFG_SPEAKER_STANDARD_MONO("mono")
+	SPEAKER(config, "mono").front_center();
 
 	MCFG_GENERIC_LATCH_8_ADD("soundlatch")
 	MCFG_GENERIC_LATCH_8_ADD("soundlatch2")
@@ -4473,10 +4471,10 @@ MACHINE_CONFIG_START(nmk16_state::macross2)
 	MCFG_SOUND_ROUTE(2, "mono", 0.50)
 	MCFG_SOUND_ROUTE(3, "mono", 1.20)
 
-	MCFG_OKIM6295_ADD("oki1", 16000000/4, PIN7_LOW)
+	MCFG_DEVICE_ADD("oki1", OKIM6295, 16000000/4, okim6295_device::PIN7_LOW)
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 0.10)
 
-	MCFG_OKIM6295_ADD("oki2", 16000000/4, PIN7_LOW)
+	MCFG_DEVICE_ADD("oki2", OKIM6295, 16000000/4, okim6295_device::PIN7_LOW)
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 0.10)
 
 	MCFG_DEVICE_ADD("nmk112", NMK112, 0)
@@ -4507,7 +4505,7 @@ MACHINE_CONFIG_START(nmk16_state::tdragon2)
 	MCFG_VIDEO_START_OVERRIDE(nmk16_state,macross2)
 
 	/* sound hardware */
-	MCFG_SPEAKER_STANDARD_MONO("mono")
+	SPEAKER(config, "mono").front_center();
 
 	MCFG_GENERIC_LATCH_8_ADD("soundlatch")
 	MCFG_GENERIC_LATCH_8_ADD("soundlatch2")
@@ -4519,10 +4517,10 @@ MACHINE_CONFIG_START(nmk16_state::tdragon2)
 	MCFG_SOUND_ROUTE(2, "mono", 0.50)
 	MCFG_SOUND_ROUTE(3, "mono", 1.20)
 
-	MCFG_OKIM6295_ADD("oki1", 16000000/4, PIN7_LOW)
+	MCFG_DEVICE_ADD("oki1", OKIM6295, 16000000/4, okim6295_device::PIN7_LOW)
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 0.10)
 
-	MCFG_OKIM6295_ADD("oki2", 16000000/4, PIN7_LOW)
+	MCFG_DEVICE_ADD("oki2", OKIM6295, 16000000/4, okim6295_device::PIN7_LOW)
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 0.10)
 
 	MCFG_DEVICE_ADD("nmk112", NMK112, 0)
@@ -4560,7 +4558,7 @@ MACHINE_CONFIG_START(nmk16_state::raphero)
 	MCFG_VIDEO_START_OVERRIDE(nmk16_state,raphero)
 
 	/* sound hardware */
-	MCFG_SPEAKER_STANDARD_MONO("mono")
+	SPEAKER(config, "mono").front_center();
 
 	MCFG_GENERIC_LATCH_8_ADD("soundlatch")
 	MCFG_GENERIC_LATCH_8_ADD("soundlatch2")
@@ -4572,10 +4570,10 @@ MACHINE_CONFIG_START(nmk16_state::raphero)
 	MCFG_SOUND_ROUTE(2, "mono", 0.50)
 	MCFG_SOUND_ROUTE(3, "mono", 1.20)
 
-	MCFG_OKIM6295_ADD("oki1", 16000000/4, PIN7_LOW)
+	MCFG_DEVICE_ADD("oki1", OKIM6295, 16000000/4, okim6295_device::PIN7_LOW)
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 0.10)
 
-	MCFG_OKIM6295_ADD("oki2", 16000000/4, PIN7_LOW)
+	MCFG_DEVICE_ADD("oki2", OKIM6295, 16000000/4, okim6295_device::PIN7_LOW)
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 0.10)
 
 	MCFG_DEVICE_ADD("nmk112", NMK112, 0)
@@ -4602,12 +4600,12 @@ MACHINE_CONFIG_START(nmk16_state::bjtwin)
 	MCFG_VIDEO_START_OVERRIDE(nmk16_state,bjtwin)
 
 	/* sound hardware */
-	MCFG_SPEAKER_STANDARD_MONO("mono")
+	SPEAKER(config, "mono").front_center();
 
-	MCFG_OKIM6295_ADD("oki1", 16000000/4, PIN7_LOW)  /* verified on pcb */
+	MCFG_DEVICE_ADD("oki1", OKIM6295, 16000000/4, okim6295_device::PIN7_LOW)  /* verified on pcb */
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 0.20)
 
-	MCFG_OKIM6295_ADD("oki2", 16000000/4, PIN7_LOW) /* verified on pcb */
+	MCFG_DEVICE_ADD("oki2", OKIM6295, 16000000/4, okim6295_device::PIN7_LOW) /* verified on pcb */
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 0.20)
 
 	MCFG_DEVICE_ADD("nmk112", NMK112, 0)
@@ -4664,7 +4662,7 @@ MACHINE_CONFIG_START(nmk16_state::manybloc)
 	MCFG_VIDEO_START_OVERRIDE(nmk16_state,macross)
 
 	/* sound hardware */
-	MCFG_SPEAKER_STANDARD_MONO("mono")
+	SPEAKER(config, "mono").front_center();
 
 	MCFG_GENERIC_LATCH_8_ADD("soundlatch")
 	MCFG_GENERIC_LATCH_8_ADD("soundlatch2")
@@ -4676,11 +4674,11 @@ MACHINE_CONFIG_START(nmk16_state::manybloc)
 	MCFG_SOUND_ROUTE(2, "mono", 0.50)
 	MCFG_SOUND_ROUTE(3, "mono", 1.20)
 
-	MCFG_OKIM6295_ADD("oki1", 16000000/4, PIN7_LOW)
+	MCFG_DEVICE_ADD("oki1", OKIM6295, 16000000/4, okim6295_device::PIN7_LOW)
 	MCFG_DEVICE_ADDRESS_MAP(0, oki1_map)
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 0.10)
 
-	MCFG_OKIM6295_ADD("oki2", 16000000/4, PIN7_LOW)
+	MCFG_DEVICE_ADD("oki2", OKIM6295, 16000000/4, okim6295_device::PIN7_LOW)
 	MCFG_DEVICE_ADDRESS_MAP(0, oki2_map)
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 0.10)
 MACHINE_CONFIG_END
@@ -5128,20 +5126,20 @@ static const gfx_layout layout_16x16x4_swapped =
 };
 
 static GFXDECODE_START( grdnstrm )
-	GFXDECODE_ENTRY( "fgtile", 0, layout_8x8x4,   256*2, 16 ) // [2] Layer 1
-	GFXDECODE_ENTRY( "bgtile", 0, layout_16x16x8, 256*0, 1 ) // [1] Layer 0
+	GFXDECODE_ENTRY( "fgtile",  0, layout_8x8x4,   256*2, 16 ) // [2] Layer 1
+	GFXDECODE_ENTRY( "bgtile",  0, layout_16x16x8, 256*0, 1 ) // [1] Layer 0
 	GFXDECODE_ENTRY( "sprites", 0, layout_16x16x4, 256*1, 16 ) // [0] Sprites
 GFXDECODE_END
 
 static GFXDECODE_START( stagger1 )
-	GFXDECODE_ENTRY( "fgtile", 0, layout_8x8x4,   256*2, 16 ) // [2] Layer 1
-	GFXDECODE_ENTRY( "bgtile", 0, layout_16x16x4, 256*0, 16 ) // [1] Layer 0
+	GFXDECODE_ENTRY( "fgtile",  0, layout_8x8x4,   256*2, 16 ) // [2] Layer 1
+	GFXDECODE_ENTRY( "bgtile",  0, layout_16x16x4, 256*0, 16 ) // [1] Layer 0
 	GFXDECODE_ENTRY( "sprites", 0, layout_16x16x4, 256*1, 16 ) // [0] Sprites
 GFXDECODE_END
 
 static GFXDECODE_START( redhawkb )
-	GFXDECODE_ENTRY( "fgtile", 0, layout_8x8x4,           256*2, 16 ) // [2] Layer 1
-	GFXDECODE_ENTRY( "bgtile", 0, layout_16x16x4_swapped, 256*0, 16 ) // [1] Layer 0
+	GFXDECODE_ENTRY( "fgtile",  0, layout_8x8x4,           256*2, 16 ) // [2] Layer 1
+	GFXDECODE_ENTRY( "bgtile",  0, layout_16x16x4_swapped, 256*0, 16 ) // [1] Layer 0
 	GFXDECODE_ENTRY( "sprites", 0, layout_16x16x4_swapped, 256*1, 16 ) // [0] Sprites
 GFXDECODE_END
 
@@ -5176,17 +5174,18 @@ MACHINE_CONFIG_START(nmk16_state::stagger1)
 	MCFG_VIDEO_START_OVERRIDE(nmk16_state,afega)
 
 	/* sound hardware */
-	MCFG_SPEAKER_STANDARD_STEREO("lspeaker", "rspeaker")
+	SPEAKER(config, "lspeaker").front_left();
+	SPEAKER(config, "rspeaker").front_right();
 
 	MCFG_GENERIC_LATCH_8_ADD("soundlatch")
 	MCFG_GENERIC_LATCH_DATA_PENDING_CB(INPUTLINE("audiocpu", 0))
 
-	MCFG_YM2151_ADD("ymsnd", XTAL(4'000'000)) /* verified on pcb */
+	MCFG_DEVICE_ADD("ymsnd", YM2151, XTAL(4'000'000)) /* verified on pcb */
 	MCFG_YM2151_IRQ_HANDLER(INPUTLINE("audiocpu", 0))
 	MCFG_SOUND_ROUTE(0, "lspeaker", 0.30)
 	MCFG_SOUND_ROUTE(1, "rspeaker", 0.30)
 
-	MCFG_OKIM6295_ADD("oki1", XTAL(4'000'000)/4, PIN7_HIGH) /* verified on pcb */
+	MCFG_DEVICE_ADD("oki1", OKIM6295, XTAL(4'000'000)/4, okim6295_device::PIN7_HIGH) /* verified on pcb */
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "lspeaker", 0.70)
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "rspeaker", 0.70)
 MACHINE_CONFIG_END
@@ -5266,15 +5265,15 @@ MACHINE_CONFIG_START(nmk16_state::firehawk)
 	MCFG_VIDEO_START_OVERRIDE(nmk16_state,firehawk)
 
 	/* sound hardware */
-	MCFG_SPEAKER_STANDARD_MONO("mono")
+	SPEAKER(config, "mono").front_center();
 
 	MCFG_GENERIC_LATCH_8_ADD("soundlatch")
 	MCFG_GENERIC_LATCH_DATA_PENDING_CB(INPUTLINE("audiocpu", 0))
 
-	MCFG_OKIM6295_ADD("oki1", 1000000, PIN7_HIGH)
+	MCFG_DEVICE_ADD("oki1", OKIM6295, 1000000, okim6295_device::PIN7_HIGH)
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 1.0)
 
-	MCFG_OKIM6295_ADD("oki2", 1000000, PIN7_HIGH)
+	MCFG_DEVICE_ADD("oki2", OKIM6295, 1000000, okim6295_device::PIN7_HIGH)
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 1.0)
 MACHINE_CONFIG_END
 
@@ -5307,12 +5306,12 @@ MACHINE_CONFIG_START(nmk16_state::twinactn)
 	MCFG_VIDEO_START_OVERRIDE(nmk16_state,macross)
 
 	/* sound hardware */
-	MCFG_SPEAKER_STANDARD_MONO("mono")
+	SPEAKER(config, "mono").front_center();
 
 	MCFG_GENERIC_LATCH_8_ADD("soundlatch")
 	MCFG_GENERIC_LATCH_DATA_PENDING_CB(INPUTLINE("audiocpu", 0))
 
-	MCFG_OKIM6295_ADD("oki1", 1000000, PIN7_HIGH)
+	MCFG_DEVICE_ADD("oki1", OKIM6295, 1000000, okim6295_device::PIN7_HIGH)
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 1.0)
 MACHINE_CONFIG_END
 
@@ -8046,8 +8045,8 @@ GAME( 2000, mangchi,  0,        popspops, mangchi,  nmk16_state, bubl2000,  ROT0
 // these two are very similar games, but the exact parent/clone relationship is unknown
 GAME( 2000, spec2k,   0,       spec2k,   spec2k,   nmk16_state,  spec2k,    ROT270,             "Yona Tech",             "Spectrum 2000 (vertical)", MACHINE_IMPERFECT_GRAPHICS ) // the ships sometimes scroll off the screen if you insert a coin during the attract demo?  verify it doesn't happen on real hw(!)
 GAME( 2000, spec2kh,  spec2k,  spec2k,   spec2k,   nmk16_state,  spec2k,    ORIENTATION_FLIP_Y, "Yona Tech",             "Spectrum 2000 (horizontal, buggy) (Europe)", 0 ) // this has odd bugs even on real hardware, eg glitchy 3 step destruction sequence of some larger enemies
-GAME( 2001, firehawk, spec2k,  firehawk, firehawk, nmk16_state,  0,         ORIENTATION_FLIP_Y, "ESD",                   "Fire Hawk (horizontal)", 0 )
-GAME( 2001, firehawkv,spec2k,  firehawk, firehawkv,nmk16_state,  0,         ORIENTATION_FLIP_Y, "ESD",                   "Fire Hawk (switchable orientation)", MACHINE_NOT_WORKING ) // incomplete dump, vertical mode gfx not dumped
+GAME( 2001, firehawk, spec2k,  firehawk, firehawk, nmk16_state,  0,         ORIENTATION_FLIP_Y, "ESD",                   "Fire Hawk (World) / Huohu Chuanshuo (China) (horizontal)", 0 )
+GAME( 2001, firehawkv,spec2k,  firehawk, firehawkv,nmk16_state,  0,         ORIENTATION_FLIP_Y, "ESD",                   "Fire Hawk (World) / Huohu Chuanshuo (China) (switchable orientation)", MACHINE_NOT_WORKING ) // incomplete dump, vertical mode gfx not dumped
 
 // bee-oh board - different display / interrupt timing to others?
 GAME( 1991, manybloc, 0,        manybloc, manybloc, nmk16_state, tharrier,  ROT270,             "Bee-Oh",                "Many Block", MACHINE_NO_COCKTAIL | MACHINE_IMPERFECT_SOUND )

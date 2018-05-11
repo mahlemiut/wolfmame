@@ -362,14 +362,15 @@ MACHINE_CONFIG_START(funkyjet_state::funkyjet)
 	MCFG_DECO_SPRITE_GFXDECODE("gfxdecode")
 
 	/* sound hardware */
-	MCFG_SPEAKER_STANDARD_STEREO("lspeaker", "rspeaker")
+	SPEAKER(config, "lspeaker").front_left();
+	SPEAKER(config, "rspeaker").front_right();
 
-	MCFG_YM2151_ADD("ymsnd", XTAL(32'220'000)/9)
+	MCFG_DEVICE_ADD("ymsnd", YM2151, XTAL(32'220'000)/9)
 	MCFG_YM2151_IRQ_HANDLER(INPUTLINE("audiocpu", 1)) // IRQ2
 	MCFG_SOUND_ROUTE(0, "lspeaker", 0.45)
 	MCFG_SOUND_ROUTE(1, "rspeaker", 0.45)
 
-	MCFG_OKIM6295_ADD("oki", XTAL(28'000'000)/28, PIN7_HIGH)
+	MCFG_DEVICE_ADD("oki", OKIM6295, XTAL(28'000'000)/28, okim6295_device::PIN7_HIGH)
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "lspeaker", 0.50)
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "rspeaker", 0.50)
 MACHINE_CONFIG_END
@@ -459,7 +460,7 @@ DRIVER_INIT_MEMBER(funkyjet_state,funkyjet)
 
 /******************************************************************************/
 
-GAME( 1992, funkyjet,  0,        funkyjet, funkyjet,  funkyjet_state, funkyjet, ROT0, "Data East (Mitchell license)", "Funky Jet (World, rev 1)", MACHINE_SUPPORTS_SAVE )
-GAME( 1992, funkyjeta, funkyjet, funkyjet, funkyjet,  funkyjet_state, funkyjet, ROT0, "Data East (Mitchell license)", "Funky Jet (World)", MACHINE_SUPPORTS_SAVE )
-GAME( 1992, funkyjetj, funkyjet, funkyjet, funkyjetj, funkyjet_state, funkyjet, ROT0, "Data East Corporation", "Funky Jet (Japan, rev 2)", MACHINE_SUPPORTS_SAVE )
+GAME( 1992, funkyjet,  0,        funkyjet, funkyjet,  funkyjet_state, funkyjet, ROT0, "Mitchell", "Funky Jet (World, rev 1)", MACHINE_SUPPORTS_SAVE )
+GAME( 1992, funkyjeta, funkyjet, funkyjet, funkyjet,  funkyjet_state, funkyjet, ROT0, "Mitchell", "Funky Jet (World)", MACHINE_SUPPORTS_SAVE )
+GAME( 1992, funkyjetj, funkyjet, funkyjet, funkyjetj, funkyjet_state, funkyjet, ROT0, "Mitchell (Data East Corporation license)", "Funky Jet (Japan, rev 2)", MACHINE_SUPPORTS_SAVE )
 GAME( 1995, sotsugyo,  0,        funkyjet, sotsugyo,  funkyjet_state, funkyjet, ROT0, "Mitchell (Atlus license)", "Sotsugyo Shousho", MACHINE_SUPPORTS_SAVE )

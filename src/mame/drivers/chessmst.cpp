@@ -136,7 +136,7 @@ INPUT_CHANGED_MEMBER(chessmst_state::view_monitor_button)
 	// pressing both VIEW and MONITOR buttons causes a reset
 	if ((m_extra->read() & 0x03) == 0x03)
 	{
-		m_maincpu->set_input_line(INPUT_LINE_RESET, PULSE_LINE);
+		m_maincpu->pulse_input_line(INPUT_LINE_RESET, attotime::zero);
 		machine_reset();
 	}
 }
@@ -490,7 +490,7 @@ ROM_END
 
 /* Driver */
 
-//    YEAR  NAME        PARENT    COMPAT  MACHINE     INPUT       STATE           INIT  COMPANY                       FULLNAME                FLAGS
-COMP( 1984, chessmst,   0,        0,      chessmst,   chessmst,   chessmst_state, 0,    "VEB Mikroelektronik Erfurt", "Chess-Master (set 1)", MACHINE_NOT_WORKING | MACHINE_CLICKABLE_ARTWORK )
-COMP( 1984, chessmsta,  chessmst, 0,      chessmsta,  chessmst,   chessmst_state, 0,    "VEB Mikroelektronik Erfurt", "Chess-Master (set 2)", MACHINE_NOT_WORKING | MACHINE_CLICKABLE_ARTWORK )
-COMP( 1987, chessmstdm, 0,        0,      chessmstdm, chessmstdm, chessmst_state, 0,    "VEB Mikroelektronik Erfurt", "Chess-Master Diamond", MACHINE_NOT_WORKING | MACHINE_CLICKABLE_ARTWORK )
+//    YEAR  NAME        PARENT    COMPAT  MACHINE     INPUT       CLASS           INIT        COMPANY                       FULLNAME                FLAGS
+COMP( 1984, chessmst,   0,        0,      chessmst,   chessmst,   chessmst_state, empty_init, "VEB Mikroelektronik Erfurt", "Chess-Master (set 1)", MACHINE_NOT_WORKING | MACHINE_CLICKABLE_ARTWORK )
+COMP( 1984, chessmsta,  chessmst, 0,      chessmsta,  chessmst,   chessmst_state, empty_init, "VEB Mikroelektronik Erfurt", "Chess-Master (set 2)", MACHINE_NOT_WORKING | MACHINE_CLICKABLE_ARTWORK )
+COMP( 1987, chessmstdm, 0,        0,      chessmstdm, chessmstdm, chessmst_state, empty_init, "VEB Mikroelektronik Erfurt", "Chess-Master Diamond", MACHINE_NOT_WORKING | MACHINE_CLICKABLE_ARTWORK )

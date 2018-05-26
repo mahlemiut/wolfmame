@@ -320,7 +320,7 @@ WRITE_LINE_MEMBER( pv2000_state::pv2000_vdp_interrupt )
 {
 	// only if it goes up
 	if (state && !m_last_state)
-		m_maincpu->set_input_line(INPUT_LINE_NMI, PULSE_LINE);
+		m_maincpu->pulse_input_line(INPUT_LINE_NMI, attotime::zero);
 
 	m_last_state = state;
 
@@ -430,5 +430,5 @@ ROM_END
 
 /* System Drivers */
 
-//    YEAR  NAME     PARENT  COMPAT  MACHINE  INPUT   STATE           INIT COMPANY   FULLNAME    FLAGS
-CONS( 1983, pv2000,  0,      0,      pv2000,  pv2000, pv2000_state,   0,   "Casio",  "PV-2000",  MACHINE_NOT_WORKING )
+//    YEAR  NAME    PARENT  COMPAT  MACHINE  INPUT   CLASS         INIT        COMPANY   FULLNAME    FLAGS
+CONS( 1983, pv2000, 0,      0,      pv2000,  pv2000, pv2000_state, empty_init, "Casio",  "PV-2000",  MACHINE_NOT_WORKING )

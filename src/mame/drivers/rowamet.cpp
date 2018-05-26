@@ -196,7 +196,7 @@ WRITE8_MEMBER( rowamet_state::io_w )
 		if (cmd != m_sndcmd)
 		{
 			m_sndcmd = cmd;
-			m_cpu2->set_input_line(INPUT_LINE_NMI, PULSE_LINE);
+			m_cpu2->pulse_input_line(INPUT_LINE_NMI, attotime::zero);
 		}
 	}
 }
@@ -260,4 +260,4 @@ ROM_END
 /-------------------------------------------------------------------*/
 
 
-GAME(198?, heavymtl, 0, rowamet, rowamet, rowamet_state, 0,  ROT0,  "Rowamet", "Heavy Metal", MACHINE_MECHANICAL | MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND )
+GAME(198?, heavymtl, 0, rowamet, rowamet, rowamet_state, empty_init, ROT0, "Rowamet", "Heavy Metal", MACHINE_MECHANICAL | MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND )

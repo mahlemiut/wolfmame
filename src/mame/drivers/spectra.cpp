@@ -182,7 +182,7 @@ WRITE8_MEMBER( spectra_state::portb_w )
 TIMER_DEVICE_CALLBACK_MEMBER( spectra_state::nmitimer)
 {
 	if (m_t_c > 0x10)
-		m_maincpu->set_input_line(INPUT_LINE_NMI, PULSE_LINE);
+		m_maincpu->pulse_input_line(INPUT_LINE_NMI, attotime::zero);
 	else
 		m_t_c++;
 }
@@ -279,4 +279,4 @@ ROM_START(spectra)
 ROM_END
 
 
-GAME(1979,  spectra,  0,  spectra,  spectra, spectra_state, 0,  ROT0,  "Valley", "Spectra IV", MACHINE_MECHANICAL | MACHINE_NOT_WORKING )
+GAME(1979,  spectra,  0,  spectra,  spectra, spectra_state, empty_init, ROT0, "Valley", "Spectra IV", MACHINE_MECHANICAL | MACHINE_NOT_WORKING )

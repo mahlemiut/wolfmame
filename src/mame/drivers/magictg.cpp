@@ -826,7 +826,7 @@ WRITE16_MEMBER( magictg_state::adsp_control_w )
 				m_adsp_regs.bdma_control |= ((src_addr >> 14) & 0xff) << 8;
 
 				if (m_adsp_regs.bdma_control & 8)
-					m_adsp->set_input_line(INPUT_LINE_RESET, PULSE_LINE);
+					m_adsp->pulse_input_line(INPUT_LINE_RESET, attotime::zero);
 			}
 			break;
 		}
@@ -1027,5 +1027,5 @@ ROM_END
  *
  *************************************/
 
-GAME( 1997, magictg,  0,       magictg, magictg, magictg_state, 0, ROT0, "Acclaim", "Magic the Gathering: Armageddon (set 1)", MACHINE_NOT_WORKING | MACHINE_NO_SOUND )
-GAME( 1997, magictga, magictg, magictg, magictg, magictg_state, 0, ROT0, "Acclaim", "Magic the Gathering: Armageddon (set 2)", MACHINE_NOT_WORKING | MACHINE_NO_SOUND )
+GAME( 1997, magictg,  0,       magictg, magictg, magictg_state, empty_init, ROT0, "Acclaim", "Magic the Gathering: Armageddon (set 1)", MACHINE_NOT_WORKING | MACHINE_NO_SOUND )
+GAME( 1997, magictga, magictg, magictg, magictg, magictg_state, empty_init, ROT0, "Acclaim", "Magic the Gathering: Armageddon (set 2)", MACHINE_NOT_WORKING | MACHINE_NO_SOUND )

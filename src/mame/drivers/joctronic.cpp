@@ -226,7 +226,7 @@ WRITE8_MEMBER(joctronic_state::soundlatch_nmi_w)
 
 WRITE8_MEMBER(joctronic_state::soundlatch_nmi_pulse_w)
 {
-	m_soundcpu->set_input_line(INPUT_LINE_NMI, PULSE_LINE);
+	m_soundcpu->pulse_input_line(INPUT_LINE_NMI, attotime::zero);
 	m_soundlatch = data;
 }
 
@@ -485,7 +485,7 @@ ROM_START(slalom03)
 ROM_END
 
 
-GAME( 1986, punkywil, 0, joctronic, joctronic, joctronic_state, 0, ROT0, "Joctronic", "Punky Willy",     MACHINE_IS_SKELETON_MECHANICAL )
-GAME( 1986, walkyria, 0, joctronic, joctronic, joctronic_state, 0, ROT0, "Joctronic", "Walkyria",        MACHINE_IS_SKELETON_MECHANICAL )
-GAME( 1987, bldyrolr, 0, bldyrolr,  joctronic, joctronic_state, 0, ROT0, "Playbar",   "Bloody Roller",   MACHINE_IS_SKELETON_MECHANICAL )
-GAME( 1988, slalom03, 0, slalom03,  joctronic, joctronic_state, 0, ROT0, "Stargame",  "Slalom Code 0.3", MACHINE_IS_SKELETON_MECHANICAL )
+GAME( 1986, punkywil, 0, joctronic, joctronic, joctronic_state, empty_init, ROT0, "Joctronic", "Punky Willy",     MACHINE_IS_SKELETON_MECHANICAL )
+GAME( 1986, walkyria, 0, joctronic, joctronic, joctronic_state, empty_init, ROT0, "Joctronic", "Walkyria",        MACHINE_IS_SKELETON_MECHANICAL )
+GAME( 1987, bldyrolr, 0, bldyrolr,  joctronic, joctronic_state, empty_init, ROT0, "Playbar",   "Bloody Roller",   MACHINE_IS_SKELETON_MECHANICAL )
+GAME( 1988, slalom03, 0, slalom03,  joctronic, joctronic_state, empty_init, ROT0, "Stargame",  "Slalom Code 0.3", MACHINE_IS_SKELETON_MECHANICAL )

@@ -281,10 +281,10 @@ WRITE8_MEMBER( tiki100_state::system_w )
 	if (floppy) floppy->mon_w(!BIT(data, 6));
 
 	/* GRAFIKK key led */
-	output().set_led_value(1, BIT(data, 5));
+	m_leds[0] = BIT(data, 5);
 
 	/* LOCK key led */
-	output().set_led_value(2, BIT(data, 7));
+	m_leds[1] = BIT(data, 7);
 
 	/* bankswitch */
 	m_rome = BIT(data, 2);
@@ -671,6 +671,8 @@ WRITE_LINE_MEMBER( tiki100_state::busrq_w )
 
 void tiki100_state::machine_start()
 {
+	m_leds.resolve();
+
 	/* allocate video RAM */
 	m_video_ram.allocate(TIKI100_VIDEORAM_SIZE);
 
@@ -810,6 +812,6 @@ ROM_END
 
 /* System Drivers */
 
-//    YEAR  NAME        PARENT      COMPAT  MACHINE     INPUT    STATE          INIT    COMPANY             FULLNAME        FLAGS
-COMP( 1984, kontiki,    0,          0,      tiki100,    tiki100, tiki100_state, 0,      "Kontiki Data A/S", "KONTIKI 100",  MACHINE_SUPPORTS_SAVE )
-COMP( 1984, tiki100,    kontiki,    0,      tiki100,    tiki100, tiki100_state, 0,      "Tiki Data A/S",    "TIKI 100",     MACHINE_SUPPORTS_SAVE )
+//    YEAR  NAME     PARENT   COMPAT  MACHINE  INPUT    CLASS          INIT        COMPANY             FULLNAME        FLAGS
+COMP( 1984, kontiki, 0,       0,      tiki100, tiki100, tiki100_state, empty_init, "Kontiki Data A/S", "KONTIKI 100",  MACHINE_SUPPORTS_SAVE )
+COMP( 1984, tiki100, kontiki, 0,      tiki100, tiki100, tiki100_state, empty_init, "Tiki Data A/S",    "TIKI 100",     MACHINE_SUPPORTS_SAVE )

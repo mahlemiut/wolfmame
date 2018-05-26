@@ -137,7 +137,7 @@ WRITE8_MEMBER(bottom9_state::bottom9_sh_irqtrigger_w)
 INTERRUPT_GEN_MEMBER(bottom9_state::bottom9_sound_interrupt)
 {
 	if (m_nmienable)
-		device.execute().set_input_line(INPUT_LINE_NMI, PULSE_LINE);
+		device.execute().pulse_input_line(INPUT_LINE_NMI, attotime::zero);
 }
 
 WRITE8_MEMBER(bottom9_state::nmi_enable_w)
@@ -536,6 +536,6 @@ ROM_END
 
 
 
-GAME( 1989, bottom9,  0,       bottom9, bottom9,  bottom9_state, 0, ROT0, "Konami", "Bottom of the Ninth (version T)", MACHINE_SUPPORTS_SAVE )
-GAME( 1989, bottom9n, bottom9, bottom9, bottom9,  bottom9_state, 0, ROT0, "Konami", "Bottom of the Ninth (version N)", MACHINE_SUPPORTS_SAVE )
-GAME( 1989, mstadium, bottom9, bottom9, mstadium, bottom9_state, 0, ROT0, "Konami", "Main Stadium (Japan)", MACHINE_SUPPORTS_SAVE )
+GAME( 1989, bottom9,  0,       bottom9, bottom9,  bottom9_state, empty_init, ROT0, "Konami", "Bottom of the Ninth (version T)", MACHINE_SUPPORTS_SAVE )
+GAME( 1989, bottom9n, bottom9, bottom9, bottom9,  bottom9_state, empty_init, ROT0, "Konami", "Bottom of the Ninth (version N)", MACHINE_SUPPORTS_SAVE )
+GAME( 1989, mstadium, bottom9, bottom9, mstadium, bottom9_state, empty_init, ROT0, "Konami", "Main Stadium (Japan)", MACHINE_SUPPORTS_SAVE )

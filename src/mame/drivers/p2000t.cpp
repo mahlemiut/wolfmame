@@ -91,7 +91,7 @@ PALETTE_INIT_MEMBER(p2000m_state,p2000m)
 	palette.set_pen_color(3,rgb_t::white()); /* white */
 }
 
-static GFXDECODE_START( p2000m )
+static GFXDECODE_START( gfx_p2000m )
 	GFXDECODE_ENTRY( "gfx1", 0x0000, p2000m_charlayout, 0, 2 )
 GFXDECODE_END
 
@@ -265,7 +265,7 @@ MACHINE_CONFIG_START(p2000m_state::p2000m)
 	MCFG_SCREEN_UPDATE_DRIVER(p2000m_state, screen_update_p2000m)
 	MCFG_SCREEN_PALETTE("palette")
 
-	MCFG_GFXDECODE_ADD("gfxdecode", "palette", p2000m)
+	MCFG_DEVICE_ADD("gfxdecode", GFXDECODE, "palette", gfx_p2000m)
 	MCFG_PALETTE_ADD("palette", 4)
 	MCFG_PALETTE_INIT_OWNER(p2000m_state,p2000m)
 
@@ -291,6 +291,6 @@ ROM_START(p2000m)
 	ROM_LOAD("p2000.chr", 0x0140, 0x08c0, BAD_DUMP CRC(78c17e3e) SHA1(4e1c59dc484505de1dc0b1ba7e5f70a54b0d4ccc))
 ROM_END
 
-//      YEAR    NAME    PARENT  COMPAT  MACHINE     INPUT   STATE         INIT  COMPANY    FULLNAME          FLAGS
-COMP ( 1980,    p2000t, 0,      0,      p2000t,     p2000t, p2000t_state, 0,    "Philips", "Philips P2000T", 0 )
-COMP ( 1980,    p2000m, p2000t, 0,      p2000m,     p2000t, p2000m_state, 0,    "Philips", "Philips P2000M", 0 )
+//    YEAR  NAME    PARENT  COMPAT  MACHINE  INPUT   CLASS         INIT        COMPANY    FULLNAME          FLAGS
+COMP( 1980, p2000t, 0,      0,      p2000t,  p2000t, p2000t_state, empty_init, "Philips", "Philips P2000T", 0 )
+COMP( 1980, p2000m, p2000t, 0,      p2000m,  p2000t, p2000m_state, empty_init, "Philips", "Philips P2000M", 0 )

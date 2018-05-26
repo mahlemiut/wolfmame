@@ -163,7 +163,7 @@ static const gfx_layout pk8020_charlayout =
 	8*16                    /* every char takes 16 bytes */
 };
 
-static GFXDECODE_START( pk8020 )
+static GFXDECODE_START( gfx_pk8020 )
 	GFXDECODE_ENTRY( "gfx1", 0x0000, pk8020_charlayout, 0, 4 )
 GFXDECODE_END
 
@@ -207,7 +207,7 @@ MACHINE_CONFIG_START(pk8020_state::pk8020)
 	MCFG_SCREEN_UPDATE_DRIVER(pk8020_state, screen_update_pk8020)
 	MCFG_SCREEN_PALETTE("palette")
 
-	MCFG_GFXDECODE_ADD("gfxdecode", "palette", pk8020)
+	MCFG_DEVICE_ADD("gfxdecode", GFXDECODE, "palette", gfx_pk8020)
 	MCFG_PALETTE_ADD("palette", 16)
 	MCFG_PALETTE_INIT_OWNER(pk8020_state, pk8020)
 
@@ -314,8 +314,8 @@ ROM_END
 
 /* Driver */
 
-/*    YEAR  NAME     PARENT  COMPAT  MACHINE     INPUT   STATE         INIT    COMPANY      FULLNAME         FLAGS */
-COMP( 1987, korvet,  0,      0,      pk8020,     pk8020, pk8020_state, 0,      "<unknown>", "PK8020 Korvet", 0)
-COMP( 1987, neiva,   korvet, 0,      pk8020,     pk8020, pk8020_state, 0,      "<unknown>", "PK8020 Neiva",  0)
-COMP( 1987, kontur,  korvet, 0,      pk8020,     pk8020, pk8020_state, 0,      "<unknown>", "PK8020 Kontur", 0)
-COMP( 1987, bk8t,    korvet, 0,      pk8020,     pk8020, pk8020_state, 0,      "<unknown>", "BK-8T",         0)
+/*    YEAR  NAME    PARENT  COMPAT  MACHINE  INPUT   CLASS         INIT        COMPANY      FULLNAME         FLAGS */
+COMP( 1987, korvet, 0,      0,      pk8020,  pk8020, pk8020_state, empty_init, "<unknown>", "PK8020 Korvet", 0)
+COMP( 1987, neiva,  korvet, 0,      pk8020,  pk8020, pk8020_state, empty_init, "<unknown>", "PK8020 Neiva",  0)
+COMP( 1987, kontur, korvet, 0,      pk8020,  pk8020, pk8020_state, empty_init, "<unknown>", "PK8020 Kontur", 0)
+COMP( 1987, bk8t,   korvet, 0,      pk8020,  pk8020, pk8020_state, empty_init, "<unknown>", "BK-8T",         0)

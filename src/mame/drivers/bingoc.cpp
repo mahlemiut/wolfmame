@@ -109,7 +109,7 @@ READ8_MEMBER(bingoc_state::sound_test_r)
 WRITE16_MEMBER(bingoc_state::main_sound_latch_w)
 {
 	m_soundlatch->write(space,0,data&0xff);
-	m_soundcpu->set_input_line(INPUT_LINE_NMI, PULSE_LINE);
+	m_soundcpu->pulse_input_line(INPUT_LINE_NMI, attotime::zero);
 }
 #endif
 
@@ -242,4 +242,4 @@ ROM_START( bingoc )
 	ROM_COPY( "upd",       0x20000, 0x00000, 0x20000 )
 ROM_END
 
-GAME( 1989, bingoc,  0,    bingoc, bingoc, bingoc_state,  0, ROT0, "Sega", "Bingo Circus (Rev. A 891001)", MACHINE_NOT_WORKING )
+GAME( 1989, bingoc, 0, bingoc, bingoc, bingoc_state, empty_init, ROT0, "Sega", "Bingo Circus (Rev. A 891001)", MACHINE_NOT_WORKING )

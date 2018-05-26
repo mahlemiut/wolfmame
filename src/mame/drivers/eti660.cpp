@@ -178,7 +178,7 @@ WRITE_LINE_MEMBER( eti660_state::q_w )
 	m_cti->aoe_w(state);
 
 	/* PULSE led */
-	output().set_led_value(LED_PULSE, state);
+	m_led[LED_PULSE] = state ? 1 : 0;
 
 	/* tape output */
 	m_cassette->output(state ? 1.0 : -1.0);
@@ -263,6 +263,8 @@ void eti660_state::machine_reset()
 
 void eti660_state::machine_start()
 {
+	m_led.resolve();
+
 	save_item(NAME(m_color_ram));
 }
 
@@ -351,5 +353,5 @@ ROM_START( eti660 )
 	ROM_LOAD( "eti660.bin", 0x0000, 0x0400, CRC(811dfa62) SHA1(c0c4951e02f873f15560bdc3f35cdf3f99653922) )
 ROM_END
 
-//    YEAR  NAME        PARENT  COMPAT  MACHINE     INPUT   CLASS            INIT  COMPANY                             FULLNAME    FLAGS
-COMP( 1981, eti660,     0,      0,      eti660,     eti660, eti660_state,    0,    "Electronics Today International",  "ETI-660",  0 )
+//    YEAR  NAME    PARENT  COMPAT  MACHINE  INPUT   CLASS         INIT        COMPANY                            FULLNAME   FLAGS
+COMP( 1981, eti660, 0,      0,      eti660,  eti660, eti660_state, empty_init, "Electronics Today International", "ETI-660", 0 )

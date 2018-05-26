@@ -321,7 +321,7 @@ WRITE8_MEMBER( ngp_state::ngp_io_w )
 		break;
 
 	case 0x3a:  /* Trigger Z80 NMI */
-		m_z80->set_input_line(INPUT_LINE_NMI, PULSE_LINE );
+		m_z80->pulse_input_line(INPUT_LINE_NMI, attotime::zero);
 		break;
 	}
 	m_io_reg[offset] = data;
@@ -905,6 +905,6 @@ ROM_START( ngpc )
 ROM_END
 
 
-//    YEAR  NAME  PARENT COMPAT MACHINE INPUT STATE      INIT COMPANY  FULLNAME               FLAGS
-CONS( 1998, ngp,  0,     0,     ngp,    ngp,  ngp_state, 0,   "SNK",   "NeoGeo Pocket",       MACHINE_SUPPORTS_SAVE )
-CONS( 1999, ngpc, ngp,   0,     ngpc,   ngp,  ngp_state, 0,   "SNK",   "NeoGeo Pocket Color", MACHINE_SUPPORTS_SAVE )
+//    YEAR  NAME  PARENT  COMPAT  MACHINE  INPUT  STATE      INIT        COMPANY  FULLNAME               FLAGS
+CONS( 1998, ngp,  0,      0,      ngp,     ngp,   ngp_state, empty_init, "SNK",   "NeoGeo Pocket",       MACHINE_SUPPORTS_SAVE )
+CONS( 1999, ngpc, ngp,    0,      ngpc,    ngp,   ngp_state, empty_init, "SNK",   "NeoGeo Pocket Color", MACHINE_SUPPORTS_SAVE )

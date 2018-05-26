@@ -637,6 +637,7 @@ MACHINES["INPUT_MERGER"] = true
 MACHINES["ADC0844"] = true
 MACHINES["28FXXX"] = true
 -- MACHINES["GEN_FIFO"] = true
+MACHINES["Z80DAISY"] = true
 
 --------------------------------------------------
 -- specify available bus cores
@@ -2722,6 +2723,8 @@ files {
 createMESSProjects(_target, _subtarget, "poly")
 files {
 	MAME_DIR .. "src/mame/drivers/poly.cpp",
+	MAME_DIR .. "src/mame/includes/poly.h",
+	MAME_DIR .. "src/mame/machine/poly.cpp",
 	MAME_DIR .. "src/mame/drivers/proteus.cpp",
 }
 

@@ -452,7 +452,7 @@ static const gfx_layout layout_16x16x4 =
 };
 
 
-static GFXDECODE_START( sandscrp )
+static GFXDECODE_START( gfx_sandscrp )
 	GFXDECODE_ENTRY( "gfx1", 0, layout_16x16x4,   0x000, 0x10 ) // [0] Sprites
 	GFXDECODE_ENTRY( "gfx2", 0, layout_16x16x4_2, 0x400, 0x40 ) // [1] Layers
 GFXDECODE_END
@@ -488,7 +488,7 @@ MACHINE_CONFIG_START(sandscrp_state::sandscrp)
 	MCFG_SCREEN_VBLANK_CALLBACK(WRITELINE(*this, sandscrp_state, screen_vblank))
 	MCFG_SCREEN_PALETTE("palette")
 
-	MCFG_GFXDECODE_ADD("gfxdecode", "palette", sandscrp)
+	MCFG_DEVICE_ADD("gfxdecode", GFXDECODE, "palette", gfx_sandscrp)
 	MCFG_PALETTE_ADD("palette", 2048)
 	MCFG_PALETTE_FORMAT(xGGGGGRRRRRBBBBB)
 
@@ -590,6 +590,6 @@ ROM_START( sandscrpb ) /* Different rev PCB */
 ROM_END
 
 
-GAME( 1992, sandscrp,  0,        sandscrp, sandscrp, sandscrp_state, 0,          ROT90, "Face",   "Sand Scorpion", MACHINE_SUPPORTS_SAVE )
-GAME( 1992, sandscrpa, sandscrp, sandscrp, sandscrp, sandscrp_state, 0,          ROT90, "Face",   "Sand Scorpion (Earlier)", MACHINE_SUPPORTS_SAVE )
-GAME( 1992, sandscrpb, sandscrp, sandscrp, sandscrp, sandscrp_state, 0,          ROT90, "Face",   "Kuai Da Shizi Huangdi (China?, Revised Hardware)", MACHINE_SUPPORTS_SAVE )
+GAME( 1992, sandscrp,  0,        sandscrp, sandscrp, sandscrp_state, empty_init, ROT90, "Face",   "Sand Scorpion", MACHINE_SUPPORTS_SAVE )
+GAME( 1992, sandscrpa, sandscrp, sandscrp, sandscrp, sandscrp_state, empty_init, ROT90, "Face",   "Sand Scorpion (Earlier)", MACHINE_SUPPORTS_SAVE )
+GAME( 1992, sandscrpb, sandscrp, sandscrp, sandscrp, sandscrp_state, empty_init, ROT90, "Face",   "Kuai Da Shizi Huangdi (China?, Revised Hardware)", MACHINE_SUPPORTS_SAVE )

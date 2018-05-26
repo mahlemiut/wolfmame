@@ -194,17 +194,6 @@ INPUT_CHANGED_MEMBER(cdi_state::mcu_input)
 }
 
 static INPUT_PORTS_START( cdi )
-	PORT_START("MOUSEX")
-	PORT_BIT(0x3ff, 0x000, IPT_MOUSE_X) PORT_SENSITIVITY(100) PORT_MINMAX(0x000, 0x3ff) PORT_KEYDELTA(2) PORT_CHANGED_MEMBER("slave_hle", cdislave_device, mouse_update, 0)
-
-	PORT_START("MOUSEY")
-	PORT_BIT(0x3ff, 0x000, IPT_MOUSE_Y) PORT_SENSITIVITY(100) PORT_MINMAX(0x000, 0x3ff) PORT_KEYDELTA(2) PORT_CHANGED_MEMBER("slave_hle", cdislave_device, mouse_update, 0)
-
-	PORT_START("MOUSEBTN")
-	PORT_BIT(0x01, IP_ACTIVE_HIGH, IPT_BUTTON1) PORT_CODE(MOUSECODE_BUTTON1) PORT_NAME("Mouse Button 1") PORT_CHANGED_MEMBER("slave_hle", cdislave_device, mouse_update, 0)
-	PORT_BIT(0x02, IP_ACTIVE_HIGH, IPT_BUTTON2) PORT_CODE(MOUSECODE_BUTTON2) PORT_NAME("Mouse Button 2") PORT_CHANGED_MEMBER("slave_hle", cdislave_device, mouse_update, 0)
-	PORT_BIT(0xfc, IP_ACTIVE_HIGH, IPT_UNUSED)
-
 	PORT_START("DEBUG")
 	PORT_CONFNAME( 0x01, 0x00, "Plane A Disable")
 	PORT_CONFSETTING(    0x00, DEF_STR( Off ) )
@@ -235,17 +224,6 @@ static INPUT_PORTS_START( cdi )
 INPUT_PORTS_END
 
 static INPUT_PORTS_START( cdimono2 )
-	PORT_START("MOUSEX")
-	PORT_BIT(0x3ff, 0x000, IPT_MOUSE_X) PORT_SENSITIVITY(100) PORT_MINMAX(0x000, 0x3ff) PORT_KEYDELTA(2) //PORT_CHANGED_MEMBER("slave_hle", cdislave_device, mouse_update, 0)
-
-	PORT_START("MOUSEY")
-	PORT_BIT(0x3ff, 0x000, IPT_MOUSE_Y) PORT_SENSITIVITY(100) PORT_MINMAX(0x000, 0x3ff) PORT_KEYDELTA(2) //PORT_CHANGED_MEMBER("slave_hle", cdislave_device, mouse_update, 0)
-
-	PORT_START("MOUSEBTN")
-	PORT_BIT(0x01, IP_ACTIVE_HIGH, IPT_BUTTON1) PORT_CODE(MOUSECODE_BUTTON1) PORT_NAME("Mouse Button 1") //PORT_CHANGED_MEMBER("slave_hle", cdislave_device, mouse_update, 0)
-	PORT_BIT(0x02, IP_ACTIVE_HIGH, IPT_BUTTON2) PORT_CODE(MOUSECODE_BUTTON2) PORT_NAME("Mouse Button 2") //PORT_CHANGED_MEMBER("slave_hle", cdislave_device, mouse_update, 0)
-	PORT_BIT(0xfc, IP_ACTIVE_HIGH, IPT_UNUSED)
-
 	PORT_START("DEBUG")
 	PORT_CONFNAME( 0x01, 0x00, "Plane A Disable")
 	PORT_CONFSETTING(    0x00, DEF_STR( Off ) )
@@ -311,9 +289,6 @@ MACHINE_RESET_MEMBER( cdi_state, cdimono1 )
 	memset(m_slave_io_regs, 0, 0x20);
 
 	m_maincpu->reset();
-
-	m_dmadac[0] = machine().device<dmadac_sound_device>("dac1");
-	m_dmadac[1] = machine().device<dmadac_sound_device>("dac2");
 }
 
 MACHINE_RESET_MEMBER( cdi_state, cdimono2 )
@@ -323,9 +298,6 @@ MACHINE_RESET_MEMBER( cdi_state, cdimono2 )
 	memcpy(dst, src, 0x8);
 
 	m_maincpu->reset();
-
-	m_dmadac[0] = machine().device<dmadac_sound_device>("dac1");
-	m_dmadac[1] = machine().device<dmadac_sound_device>("dac2");
 }
 
 MACHINE_RESET_MEMBER( cdi_state, quizard1 )
@@ -801,6 +773,8 @@ MACHINE_CONFIG_START(cdi_state::cdimono1_base)
 	MCFG_DEFAULT_LAYOUT(layout_cdi)
 
 	MCFG_CDI68070_ADD("scc68070")
+	MCFG_CDI68070_CPU_TAG("maincpu")
+
 	MCFG_CDICDIC_ADD("cdic")
 	MCFG_CDISLAVE_ADD("slave_hle")
 
@@ -850,6 +824,7 @@ MACHINE_CONFIG_START(cdi_state::cdimono2)
 	MCFG_MACHINE_RESET_OVERRIDE( cdi_state, cdimono2 )
 
 	MCFG_CDI68070_ADD("scc68070")
+	MCFG_CDI68070_CPU_TAG("maincpu")
 	MCFG_DEVICE_ADD("servo", M68HC05EG, 2000000) /* Unknown clock speed, docs say 2MHz internal clock */
 	MCFG_DEVICE_PROGRAM_MAP(cdimono2_servo_mem)
 	MCFG_DEVICE_ADD("slave", M68HC05EG, 2000000) /* Unknown clock speed, docs say 2MHz internal clock */
@@ -905,6 +880,7 @@ MACHINE_CONFIG_START(cdi_state::cdi910)
 	MCFG_MACHINE_RESET_OVERRIDE( cdi_state, cdimono2 )
 
 	MCFG_CDI68070_ADD("scc68070")
+	MCFG_CDI68070_CPU_TAG("maincpu")
 	MCFG_DEVICE_ADD("servo", M68HC05EG, 2000000) /* Unknown clock speed, docs say 2MHz internal clock */
 	MCFG_DEVICE_PROGRAM_MAP(cdimono2_servo_mem)
 	MCFG_DEVICE_ADD("slave", M68HC05EG, 2000000) /* Unknown clock speed, docs say 2MHz internal clock */
@@ -1287,31 +1263,30 @@ ROM_END
 *      Game driver(s)    *
 *************************/
 
-/*    YEAR  NAME      PARENT    COMPAT    MACHINE   INPUT     DEVICE     INIT      COMPANY     FULLNAME */
-
+/*    YEAR  NAME      PARENT  COMPAT  MACHINE   INPUT     CLASS      INIT        COMPANY         FULLNAME */
 // BIOS / System
-CONS( 1991, cdimono1, 0,        0,        cdimono1, cdi,      cdi_state, 0,        "Philips",  "CD-i (Mono-I) (PAL)",   MACHINE_IMPERFECT_GRAPHICS | MACHINE_IMPERFECT_SOUND | MACHINE_SUPPORTS_SAVE  )
-CONS( 1991, cdimono2, 0,        0,        cdimono2, cdimono2, cdi_state, 0,        "Philips",  "CD-i (Mono-II) (NTSC)",   MACHINE_NOT_WORKING )
-CONS( 1991, cdi910,   0,        0,        cdi910,   cdimono2, cdi_state, 0,        "Philips",  "CD-i 910-17P Mini-MMC (PAL)",   MACHINE_NOT_WORKING  )
-CONS( 1991, cdi490a,  0,        0,        cdimono1, cdi,      cdi_state, 0,        "Philips",  "CD-i 490",   MACHINE_NOT_WORKING  )
+CONS( 1991, cdimono1, 0,      0,      cdimono1, cdi,      cdi_state, empty_init, "Philips",      "CD-i (Mono-I) (PAL)",   MACHINE_IMPERFECT_GRAPHICS | MACHINE_IMPERFECT_SOUND | MACHINE_SUPPORTS_SAVE  )
+CONS( 1991, cdimono2, 0,      0,      cdimono2, cdimono2, cdi_state, empty_init, "Philips",      "CD-i (Mono-II) (NTSC)",   MACHINE_NOT_WORKING )
+CONS( 1991, cdi910,   0,      0,      cdi910,   cdimono2, cdi_state, empty_init, "Philips",      "CD-i 910-17P Mini-MMC (PAL)",   MACHINE_NOT_WORKING  )
+CONS( 1991, cdi490a,  0,      0,      cdimono1, cdi,      cdi_state, empty_init, "Philips",      "CD-i 490",   MACHINE_NOT_WORKING  )
 
 // The Quizard games are RETAIL CD-i units, with additional JAMMA adapters & dongles for protection, hence being 'clones' of the system.
+/*    YEAR  NAME         PARENT    MACHINE        INPUT     DEVICE     INIT         MONITOR     COMPANY         FULLNAME */
+GAME( 1995, cdibios,     0,        cdimono1_base, quizard,  cdi_state, empty_init,  ROT0,       "Philips",      "CD-i (Mono-I) (PAL) BIOS", MACHINE_IMPERFECT_SOUND | MACHINE_IMPERFECT_GRAPHICS | MACHINE_IS_BIOS_ROOT )
 
-GAME( 1995, cdibios,  0,               cdimono1_base,  quizard, cdi_state,      0, ROT0,     "Philips",      "CD-i (Mono-I) (PAL) BIOS", MACHINE_IMPERFECT_SOUND | MACHINE_IMPERFECT_GRAPHICS | MACHINE_IS_BIOS_ROOT )
+GAME( 1995, quizard,     cdibios,  quizard1,      quizard,  cdi_state, empty_init,  ROT0,       "TAB Austria",  "Quizard (v1.8)", MACHINE_IMPERFECT_SOUND | MACHINE_UNEMULATED_PROTECTION )
+GAME( 1995, quizard_17,  quizard,  quizard1,      quizard,  cdi_state, empty_init,  ROT0,       "TAB Austria",  "Quizard (v1.7)", MACHINE_IMPERFECT_SOUND | MACHINE_UNEMULATED_PROTECTION )
+GAME( 1995, quizard_12,  quizard,  quizard1,      quizard,  cdi_state, empty_init,  ROT0,       "TAB Austria",  "Quizard (v1.2)", MACHINE_IMPERFECT_SOUND | MACHINE_UNEMULATED_PROTECTION )
+GAME( 1995, quizard_10,  quizard,  quizard1,      quizard,  cdi_state, empty_init,  ROT0,       "TAB Austria",  "Quizard (v1.0)", MACHINE_IMPERFECT_SOUND | MACHINE_UNEMULATED_PROTECTION )
 
-GAME( 1995, quizard,     cdibios,      quizard1,       quizard, cdi_state,      0, ROT0,     "TAB Austria",  "Quizard (v1.8)", MACHINE_IMPERFECT_SOUND | MACHINE_UNEMULATED_PROTECTION )
-GAME( 1995, quizard_17,  quizard,      quizard1,       quizard, cdi_state,      0, ROT0,     "TAB Austria",  "Quizard (v1.7)", MACHINE_IMPERFECT_SOUND | MACHINE_UNEMULATED_PROTECTION )
-GAME( 1995, quizard_12,  quizard,      quizard1,       quizard, cdi_state,      0, ROT0,     "TAB Austria",  "Quizard (v1.2)", MACHINE_IMPERFECT_SOUND | MACHINE_UNEMULATED_PROTECTION )
-GAME( 1995, quizard_10,  quizard,      quizard1,       quizard, cdi_state,      0, ROT0,     "TAB Austria",  "Quizard (v1.0)", MACHINE_IMPERFECT_SOUND | MACHINE_UNEMULATED_PROTECTION )
-
-GAME( 1995, quizard2,    cdibios,      quizard2,       quizard, cdi_state,      0, ROT0,     "TAB Austria",  "Quizard 2 (v2.3)", MACHINE_IMPERFECT_SOUND | MACHINE_UNEMULATED_PROTECTION )
-GAME( 1995, quizard2_22, quizard2,     quizard2,       quizard, cdi_state,      0, ROT0,     "TAB Austria",  "Quizard 2 (v2.2)", MACHINE_IMPERFECT_SOUND | MACHINE_UNEMULATED_PROTECTION )
+GAME( 1995, quizard2,    cdibios,  quizard2,      quizard,  cdi_state, empty_init,  ROT0,       "TAB Austria",  "Quizard 2 (v2.3)", MACHINE_IMPERFECT_SOUND | MACHINE_UNEMULATED_PROTECTION )
+GAME( 1995, quizard2_22, quizard2, quizard2,      quizard,  cdi_state, empty_init,  ROT0,       "TAB Austria",  "Quizard 2 (v2.2)", MACHINE_IMPERFECT_SOUND | MACHINE_UNEMULATED_PROTECTION )
 
 // Quizard 3 and 4 will hang after inserting a coin (incomplete protection sims?)
 
-GAME( 1995, quizard3,    cdibios,      quizard3,       quizard, cdi_state,      0, ROT0,     "TAB Austria",  "Quizard 3 (v3.4)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND | MACHINE_UNEMULATED_PROTECTION )
-GAME( 1996, quizard3_32, quizard3,     quizard3,       quizard, cdi_state,      0, ROT0,     "TAB Austria",  "Quizard 3 (v3.2)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND | MACHINE_UNEMULATED_PROTECTION )
+GAME( 1995, quizard3,    cdibios,  quizard3,      quizard,  cdi_state, empty_init,  ROT0,       "TAB Austria",  "Quizard 3 (v3.4)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND | MACHINE_UNEMULATED_PROTECTION )
+GAME( 1996, quizard3_32, quizard3, quizard3,      quizard,  cdi_state, empty_init,  ROT0,       "TAB Austria",  "Quizard 3 (v3.2)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND | MACHINE_UNEMULATED_PROTECTION )
 
-GAME( 1998, quizard4,    cdibios,      quizard4,       quizard, cdi_state,      0, ROT0,     "TAB Austria",  "Quizard 4 Rainbow (v4.2)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND | MACHINE_UNEMULATED_PROTECTION )
-GAME( 1998, quizard4_41, quizard4,     quizard4,       quizard, cdi_state,      0, ROT0,     "TAB Austria",  "Quizard 4 Rainbow (v4.1)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND | MACHINE_UNEMULATED_PROTECTION )
-GAME( 1997, quizard4_40, quizard4,     quizard4,       quizard, cdi_state,      0, ROT0,     "TAB Austria",  "Quizard 4 Rainbow (v4.0)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND | MACHINE_UNEMULATED_PROTECTION )
+GAME( 1998, quizard4,    cdibios,  quizard4,      quizard,  cdi_state, empty_init,  ROT0,       "TAB Austria",  "Quizard 4 Rainbow (v4.2)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND | MACHINE_UNEMULATED_PROTECTION )
+GAME( 1998, quizard4_41, quizard4, quizard4,      quizard,  cdi_state, empty_init,  ROT0,       "TAB Austria",  "Quizard 4 Rainbow (v4.1)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND | MACHINE_UNEMULATED_PROTECTION )
+GAME( 1997, quizard4_40, quizard4, quizard4,      quizard,  cdi_state, empty_init,  ROT0,       "TAB Austria",  "Quizard 4 Rainbow (v4.0)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND | MACHINE_UNEMULATED_PROTECTION )

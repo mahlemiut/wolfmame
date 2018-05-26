@@ -824,7 +824,7 @@ READ8_MEMBER(vis_state::sysctl_r)
 WRITE8_MEMBER(vis_state::sysctl_w)
 {
 	if(BIT(data, 0) && !BIT(m_sysctl, 0))
-		m_maincpu->set_input_line(INPUT_LINE_RESET, PULSE_LINE);
+		m_maincpu->pulse_input_line(INPUT_LINE_RESET, attotime::zero);
 	//m_maincpu->set_input_line(INPUT_LINE_A20, BIT(data, 1) ? CLEAR_LINE : ASSERT_LINE);
 	m_sysctl = data;
 }
@@ -916,4 +916,4 @@ ROM_START(vis)
 	ROM_LOAD( "p513bk1b.bin", 0x80000, 0x80000, CRC(e18239c4) SHA1(a0262109e10a07a11eca43371be9978fff060bc5))
 ROM_END
 
-COMP ( 1992, vis,  0, 0, vis, vis, vis_state, 0, "Tandy/Memorex", "Video Information System MD-2500", MACHINE_IMPERFECT_GRAPHICS | MACHINE_IMPERFECT_SOUND )
+COMP( 1992, vis, 0, 0, vis, vis, vis_state, empty_init, "Tandy/Memorex", "Video Information System MD-2500", MACHINE_IMPERFECT_GRAPHICS | MACHINE_IMPERFECT_SOUND )

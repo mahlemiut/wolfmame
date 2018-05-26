@@ -639,7 +639,7 @@ INPUT_PORTS_END
 
 INTERRUPT_GEN_MEMBER(ttchamp_state::irq)/* right? */
 {
-	device.execute().set_input_line(INPUT_LINE_NMI, PULSE_LINE);
+	device.execute().pulse_input_line(INPUT_LINE_NMI, attotime::zero);
 }
 
 MACHINE_CONFIG_START(ttchamp_state::ttchamp)
@@ -699,5 +699,5 @@ ROM_END
 
 
 // only the graphics differ between the two sets, code section is the same
-GAME( 1995, ttchamp, 0,        ttchamp, ttchamp, ttchamp_state, 0, ROT0,  "Gamart",                               "Table Tennis Champions",                               MACHINE_SUPPORTS_SAVE ) // this has various advertising boards, including 'Electronic Devices' and 'Deniam'
-GAME( 1995, ttchampa,ttchamp,  ttchamp, ttchamp, ttchamp_state, 0, ROT0,  "Gamart (Palencia Elektronik license)", "Table Tennis Champions (Palencia Elektronik license)", MACHINE_SUPPORTS_SAVE ) // this only has Palencia Elektronik advertising boards
+GAME( 1995, ttchamp, 0,        ttchamp, ttchamp, ttchamp_state, empty_init, ROT0,  "Gamart",                               "Table Tennis Champions",                               MACHINE_SUPPORTS_SAVE ) // this has various advertising boards, including 'Electronic Devices' and 'Deniam'
+GAME( 1995, ttchampa,ttchamp,  ttchamp, ttchamp, ttchamp_state, empty_init, ROT0,  "Gamart (Palencia Elektronik license)", "Table Tennis Champions (Palencia Elektronik license)", MACHINE_SUPPORTS_SAVE ) // this only has Palencia Elektronik advertising boards

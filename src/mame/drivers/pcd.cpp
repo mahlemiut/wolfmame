@@ -172,7 +172,7 @@ READ8_MEMBER( pcd_state::nmi_io_r )
 		return 0;
 	logerror("%s: unmapped %s %04x\n", machine().describe_context(), space.name(), offset);
 	m_stat |= 0xfd;
-	m_maincpu->set_input_line(INPUT_LINE_NMI, PULSE_LINE);
+	m_maincpu->pulse_input_line(INPUT_LINE_NMI, attotime::zero);
 	return 0;
 }
 
@@ -182,7 +182,7 @@ WRITE8_MEMBER( pcd_state::nmi_io_w )
 		return;
 	logerror("%s: unmapped %s %04x\n", machine().describe_context(), space.name(), offset);
 	m_stat |= 0xfd;
-	m_maincpu->set_input_line(INPUT_LINE_NMI, PULSE_LINE);
+	m_maincpu->pulse_input_line(INPUT_LINE_NMI, attotime::zero);
 }
 
 READ8_MEMBER( pcd_state::rtc_r )
@@ -620,5 +620,5 @@ ROM_END
 //  GAME DRIVERS
 //**************************************************************************
 
-COMP( 1984, pcd, 0,   0, pcd, 0,   pcd_state, 0, "Siemens", "PC-D", MACHINE_NOT_WORKING )
-COMP( 1984, pcx, pcd, 0, pcx, pcx, pcd_state, 0, "Siemens", "PC-X", MACHINE_NOT_WORKING )
+COMP( 1984, pcd, 0,   0, pcd, 0,   pcd_state, empty_init, "Siemens", "PC-D", MACHINE_NOT_WORKING )
+COMP( 1984, pcx, pcd, 0, pcx, pcx, pcd_state, empty_init, "Siemens", "PC-X", MACHINE_NOT_WORKING )

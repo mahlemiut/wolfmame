@@ -11066,6 +11066,7 @@ aar_101                         //
 btmn_101                        //
 btmn_103                        //
 btmn_106                        //
+btmn_f13                        //
 btmn_g13                        //
 ckpt_a17                        //
 gnr_300                         //
@@ -11157,8 +11158,8 @@ deadang                         // (c) 1988 Seibu Kaihatsu
 ghunter                         // (c) 1988 Seibu Kaihatsu
 ghunters                        // (c) 1988 Seibu Kaihatsu + Segasa/Sonic license
 leadang                         // (c) 1988 Seibu Kaihatsu
-popnrun							// (c) 1987 Seibu Kaihatsu + Yukai Tsukai
-popnruna						// (c) 1987 Seibu Kaihatsu + Yukai Tsukai
+popnrun                         // (c) 1987 Seibu Kaihatsu + Yukai Tsukai
+popnruna                        // (c) 1987 Seibu Kaihatsu + Yukai Tsukai
 
 @source:dec0.cpp
 automat                         // bootleg
@@ -15566,6 +15567,7 @@ istellar                        // (c) 1983 Funai / Gakken
 
 @source:istrebiteli.cpp
 istreb                          //
+motogonki                       //
 
 @source:iteagle.cpp
 bbh2sp                          //
@@ -17731,6 +17733,7 @@ hypbbc2pk                       // 1999 - Hyper Bishi Bashi Champ - 2 Player (GX
 hyperbbc                        // 1998 - Hyper Bishi Bashi (GQ876 VER. EAA)
 hyperbbca                       // 1998 - Hyper Bishi Bashi (GQ876 VER. AAA)
 hyperbbck                       // 1998 - Hyper Bishi Bashi (GE876 VER. KAA)
+jppyex98                        // 1998 - Jikkyou Powerful Pro Yakyuu EX '98 (GC811 VER. JAA)
 konam80a                        // 1998 - Konami 80's AC Special (GC826 VER. AAA)
 konam80j                        // 1998 - Konami 80's Gallery (GC826 VER. JAA)
 konam80k                        // 1998 - Konami 80's AC Special (GC826 VER. KAA)
@@ -28125,6 +28128,7 @@ cx5m128                         //
 cx5m2                           //
 cx7m                            // 1986 MSX2
 cx7m128                         // 1986 MSX2
+dgnmsx                          // 1985 MSX
 dpc100                          // 1984 MSX Korea
 dpc180                          // 1984 MSX Korea
 dpc200                          // 1984 MSX Korea
@@ -29576,6 +29580,7 @@ imekura                         // (c) 1994 SPHINX/AV JAPAN
 janbari                         // (c) 1992 Nichibutsu/Yubis/AV JAPAN
 jituroku                        // (c) 1993 Windom
 koinomp                         // (c) 1992
+ldquiz4                         // (c) 1992
 mjanbari                        // (c) 1992 Nichibutsu/Yubis/AV JAPAN
 mjegolf                         // (c) 1994 FUJIC/AV JAPAN
 mjgottsu                        // (c) 1991
@@ -34200,6 +34205,9 @@ ochaken                         //
 segasp                          //
 tetgiano                        //
 tetgiant                        //
+
+@source:segattl.cpp
+fonz                            //
 
 @source:segaufo.cpp
 newufo                          //

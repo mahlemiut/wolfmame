@@ -149,12 +149,19 @@ CN1 standard DB15 VGA connector (15KHz)
 class pntnpuzl_state : public driver_device
 {
 public:
-	pntnpuzl_state(const machine_config &mconfig, device_type type, const char *tag)
-		: driver_device(mconfig, type, tag),
+	pntnpuzl_state(const machine_config &mconfig, device_type type, const char *tag) :
+		driver_device(mconfig, type, tag),
 		m_maincpu(*this,"maincpu"),
 		m_via(*this, "via")
 	{ }
 
+	void pntnpuzl(machine_config &config);
+
+	void init_pip();
+
+	DECLARE_INPUT_CHANGED_MEMBER(coin_inserted);
+
+private:
 	uint16_t m_pntpzl_200000;
 	uint16_t m_serial;
 	uint16_t m_serial_out;
@@ -169,10 +176,7 @@ public:
 	DECLARE_READ16_MEMBER(irq1_ack_r);
 	DECLARE_READ16_MEMBER(irq2_ack_r);
 	DECLARE_READ16_MEMBER(irq4_ack_r);
-	DECLARE_INPUT_CHANGED_MEMBER(coin_inserted);
-	void init_pip();
 	required_device<via6522_device> m_via;
-	void pntnpuzl(machine_config &config);
 	void mcu_map(address_map &map);
 	void pntnpuzl_map(address_map &map);
 };

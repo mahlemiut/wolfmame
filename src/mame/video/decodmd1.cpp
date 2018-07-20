@@ -206,7 +206,7 @@ MACHINE_CONFIG_START(decodmd_type1_device::device_add_mconfig)
 
 	MCFG_TIMER_DRIVER_ADD_PERIODIC("nmi_timer", decodmd_type1_device, dmd_nmi, attotime::from_hz(2000))  // seems a lot
 
-	MCFG_DEFAULT_LAYOUT(layout_lcd)
+	config.set_default_layout(layout_lcd);
 
 	MCFG_SCREEN_ADD("dmd",LCD)
 	MCFG_SCREEN_SIZE(128, 16)
@@ -217,13 +217,13 @@ MACHINE_CONFIG_START(decodmd_type1_device::device_add_mconfig)
 	MCFG_RAM_ADD(RAM_TAG)
 	MCFG_RAM_DEFAULT_SIZE("8K")
 
-	MCFG_DEVICE_ADD("bitlatch", HC259, 0) // U4
-	MCFG_ADDRESSABLE_LATCH_PARALLEL_OUT_CB(MEMBANK("dmdbank1")) MCFG_DEVCB_MASK(0x07) MCFG_DEVCB_INVERT
-	MCFG_ADDRESSABLE_LATCH_Q3_OUT_CB(WRITELINE(*this, decodmd_type1_device, blank_w))
-	MCFG_ADDRESSABLE_LATCH_Q4_OUT_CB(WRITELINE(*this, decodmd_type1_device, status_w))
-	MCFG_ADDRESSABLE_LATCH_Q5_OUT_CB(WRITELINE(*this, decodmd_type1_device, rowdata_w))
-	MCFG_ADDRESSABLE_LATCH_Q6_OUT_CB(WRITELINE(*this, decodmd_type1_device, rowclock_w))
-	MCFG_ADDRESSABLE_LATCH_Q7_OUT_CB(WRITELINE(*this, decodmd_type1_device, test_w))
+	HC259(config, m_bitlatch); // U4
+	m_bitlatch->parallel_out_cb().set_membank(m_rombank1).mask(0x07).invert();
+	m_bitlatch->q_out_cb<3>().set(FUNC(decodmd_type1_device::blank_w));
+	m_bitlatch->q_out_cb<4>().set(FUNC(decodmd_type1_device::status_w));
+	m_bitlatch->q_out_cb<5>().set(FUNC(decodmd_type1_device::rowdata_w));
+	m_bitlatch->q_out_cb<6>().set(FUNC(decodmd_type1_device::rowclock_w));
+	m_bitlatch->q_out_cb<7>().set(FUNC(decodmd_type1_device::test_w));
 MACHINE_CONFIG_END
 
 

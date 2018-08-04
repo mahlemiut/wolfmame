@@ -599,6 +599,8 @@ if (CPUS["H8"]~=null) then
 		MAME_DIR .. "src/devices/cpu/h8/h83337.h",
 		MAME_DIR .. "src/devices/cpu/h8/h83002.cpp",
 		MAME_DIR .. "src/devices/cpu/h8/h83002.h",
+		MAME_DIR .. "src/devices/cpu/h8/h83003.cpp",
+		MAME_DIR .. "src/devices/cpu/h8/h83003.h",
 		MAME_DIR .. "src/devices/cpu/h8/h83006.cpp",
 		MAME_DIR .. "src/devices/cpu/h8/h83006.h",
 		MAME_DIR .. "src/devices/cpu/h8/h83008.cpp",
@@ -1263,8 +1265,10 @@ if (CPUS["MIPS"]~=null) then
 		MAME_DIR .. "src/devices/cpu/mips/mips3fe.cpp",
 		MAME_DIR .. "src/devices/cpu/mips/mips3fe.h",
 		MAME_DIR .. "src/devices/cpu/mips/mips3drc.cpp",
-		MAME_DIR .. "src/devices/cpu/mips/sonyvu.cpp",
-		MAME_DIR .. "src/devices/cpu/mips/sonyvu.h",
+		MAME_DIR .. "src/devices/cpu/mips/ps2vu.cpp",
+		MAME_DIR .. "src/devices/cpu/mips/ps2vu.h",
+		MAME_DIR .. "src/devices/cpu/mips/ps2vif1.cpp",
+		MAME_DIR .. "src/devices/cpu/mips/ps2vif1.h",
 	}
 end
 
@@ -2381,6 +2385,11 @@ end
 if (CPUS["TLCS870"]~=null) then
 	files {
 		MAME_DIR .. "src/devices/cpu/tlcs870/tlcs870.cpp",
+		MAME_DIR .. "src/devices/cpu/tlcs870/tlcs870_ops.cpp",
+		MAME_DIR .. "src/devices/cpu/tlcs870/tlcs870_ops_reg.cpp",
+		MAME_DIR .. "src/devices/cpu/tlcs870/tlcs870_ops_src.cpp",
+		MAME_DIR .. "src/devices/cpu/tlcs870/tlcs870_ops_dst.cpp",
+		MAME_DIR .. "src/devices/cpu/tlcs870/tlcs870_ops_helper.cpp",
 		MAME_DIR .. "src/devices/cpu/tlcs870/tlcs870.h",
 	}
 end

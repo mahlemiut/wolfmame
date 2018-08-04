@@ -271,6 +271,7 @@ SOUNDS["MEA8000"] = true
 SOUNDS["DAVE"] = true
 --SOUNDS["LC7535"] = true
 SOUNDS["UPD934G"] = true
+SOUNDS["IOPSPU"] = true
 
 --------------------------------------------------
 -- specify available video cores
@@ -360,6 +361,8 @@ VIDEOS["MGA2064W"] = true
 VIDEOS["PPU2C0X"] = true
 VIDEOS["DP8510"] = true
 VIDEOS["MB88303"] = true
+VIDEOS["PS2GS"] = true
+VIDEOS["PS2GIF"] = true
 
 --------------------------------------------------
 -- specify available machine cores
@@ -642,6 +645,17 @@ MACHINES["ADC0844"] = true
 MACHINES["28FXXX"] = true
 -- MACHINES["GEN_FIFO"] = true
 MACHINES["Z80DAISY"] = true
+MACHINES["PS2DMAC"] = true
+MACHINES["PS2INTC"] = true
+MACHINES["PS2MC"] = true
+MACHINES["PS2PAD"] = true
+MACHINES["PS2SIF"] = true
+MACHINES["PS2TIMER"] = true
+MACHINES["IOPCDVD"] = true
+MACHINES["IOPDMA"] = true
+MACHINES["IOPINTC"] = true
+MACHINES["IOPSIO2"] = true
+MACHINES["IOPTIMER"] = true
 
 --------------------------------------------------
 -- specify available bus cores
@@ -2149,6 +2163,7 @@ files {
 	MAME_DIR .. "src/mame/drivers/mephisto.cpp",
 	MAME_DIR .. "src/mame/drivers/mephisto_montec.cpp",
 	MAME_DIR .. "src/mame/drivers/mmodular.cpp",
+	MAME_DIR .. "src/mame/drivers/modena.cpp",
 	MAME_DIR .. "src/mame/drivers/polgar.cpp",
 	MAME_DIR .. "src/mame/drivers/risc2500.cpp",
 	MAME_DIR .. "src/mame/drivers/stratos.cpp",
@@ -3064,36 +3079,6 @@ files {
 	MAME_DIR .. "src/mame/drivers/pve500.cpp",
 	MAME_DIR .. "src/mame/drivers/smc777.cpp",
 	MAME_DIR .. "src/mame/drivers/ps2sony.cpp",
-	MAME_DIR .. "src/mame/machine/ps2dma.cpp",
-	MAME_DIR .. "src/mame/machine/ps2dma.h",
-	MAME_DIR .. "src/mame/machine/ps2gif.cpp",
-	MAME_DIR .. "src/mame/machine/ps2gif.h",
-	MAME_DIR .. "src/mame/machine/ps2intc.cpp",
-	MAME_DIR .. "src/mame/machine/ps2intc.h",
-	MAME_DIR .. "src/mame/machine/ps2mc.cpp",
-	MAME_DIR .. "src/mame/machine/ps2mc.h",
-	MAME_DIR .. "src/mame/machine/ps2pad.cpp",
-	MAME_DIR .. "src/mame/machine/ps2pad.h",
-	MAME_DIR .. "src/mame/machine/ps2sif.cpp",
-	MAME_DIR .. "src/mame/machine/ps2sif.h",
-	MAME_DIR .. "src/mame/machine/ps2timer.cpp",
-	MAME_DIR .. "src/mame/machine/ps2timer.h",
-	MAME_DIR .. "src/mame/machine/ps2vif1.cpp",
-	MAME_DIR .. "src/mame/machine/ps2vif1.h",
-	MAME_DIR .. "src/mame/machine/iopcdvd.cpp",
-	MAME_DIR .. "src/mame/machine/iopcdvd.h",
-	MAME_DIR .. "src/mame/machine/iopdma.cpp",
-	MAME_DIR .. "src/mame/machine/iopdma.h",
-	MAME_DIR .. "src/mame/machine/iopintc.cpp",
-	MAME_DIR .. "src/mame/machine/iopintc.h",
-	MAME_DIR .. "src/mame/machine/iopsio2.cpp",
-	MAME_DIR .. "src/mame/machine/iopsio2.h",
-	MAME_DIR .. "src/mame/machine/ioptimer.cpp",
-	MAME_DIR .. "src/mame/machine/ioptimer.h",
-	MAME_DIR .. "src/mame/audio/iopspu.cpp",
-	MAME_DIR .. "src/mame/audio/iopspu.h",
-	MAME_DIR .. "src/mame/video/ps2gs.cpp",
-	MAME_DIR .. "src/mame/video/ps2gs.h",
 }
 
 createMESSProjects(_target, _subtarget, "sord")
@@ -3616,6 +3601,7 @@ files {
 	MAME_DIR .. "src/mame/drivers/besta.cpp",
 	MAME_DIR .. "src/mame/drivers/bitgraph.cpp",
 	MAME_DIR .. "src/mame/drivers/bpmmicro.cpp",
+	MAME_DIR .. "src/mame/drivers/blw700i.cpp",
 	MAME_DIR .. "src/mame/drivers/br8641.cpp",
 	MAME_DIR .. "src/mame/drivers/busicom.cpp",
 	MAME_DIR .. "src/mame/includes/busicom.h",
@@ -3686,7 +3672,6 @@ files {
 	MAME_DIR .. "src/mame/drivers/imsai.cpp",
 	MAME_DIR .. "src/mame/drivers/indiana.cpp",
 	MAME_DIR .. "src/mame/drivers/itt3030.cpp",
-	MAME_DIR .. "src/mame/drivers/jade.cpp",
 	MAME_DIR .. "src/mame/drivers/jonos.cpp",
 	MAME_DIR .. "src/mame/drivers/konin.cpp",
 	MAME_DIR .. "src/mame/drivers/kron.cpp",
@@ -3781,6 +3766,7 @@ files {
 	MAME_DIR .. "src/mame/drivers/tsispch.cpp",
 	MAME_DIR .. "src/mame/includes/tsispch.h",
 	MAME_DIR .. "src/mame/drivers/tti.cpp",
+	MAME_DIR .. "src/mame/drivers/unkz80.cpp",
 	MAME_DIR .. "src/mame/drivers/unistar.cpp",
 	MAME_DIR .. "src/mame/drivers/v6809.cpp",
 	MAME_DIR .. "src/mame/drivers/vector4.cpp",

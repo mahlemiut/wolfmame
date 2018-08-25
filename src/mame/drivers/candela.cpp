@@ -6,7 +6,7 @@
  *---------------------------
  * The Candela computer was designed to be the big breakthough and developed by Candela Data AB, "a Didact Company".
  * The Candela system was based around a main unit that could run OS-9 or Flex and a terminal unit that had a
- * proprietory software including CDBASIC. The Candela system lost the battle of the Swedish schools to
+ * proprietary software including CDBASIC. The Candela system lost the battle of the Swedish schools to
  * the Compis computer by TeleNova which was based on CP/M initially.  Later both lost to IBM PC as we know.
  * Candela Data continued to sell their system to the swedish industry without major successes despite great
  * innovation and spririt.
@@ -719,8 +719,7 @@ MACHINE_CONFIG_START(can09_state::can09)
 	MCFG_DEVICE_PROGRAM_MAP(can09_map)
 
 	/* RAM banks */
-	MCFG_RAM_ADD(RAM_TAG)
-	MCFG_RAM_DEFAULT_SIZE("768K")
+	RAM(config, RAM_TAG).set_default_size("768K");
 
 	// CRTC  init
 	MCFG_MC6845_ADD("crtc", H46505, "screen", CAN09_CPU_CLOCK) // TODO: Check actual clock source, An 8MHz UKI crystal is also nearby

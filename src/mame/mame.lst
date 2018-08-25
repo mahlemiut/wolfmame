@@ -1160,6 +1160,7 @@ ambushj                         // (c) 1983 Nippon Amuse license
 ambushv                         // (c) 1983 Volt Electronics license
 dkong3abl                       // bootleg
 mariobl                         // bootleg
+mariobla						// bootleg
 
 @source:amerihok.cpp
 amerihok                        //
@@ -10822,6 +10823,9 @@ spacefrt                        // (c) 1981 Century
 superbik                        // (c) 1983 Century
 wallst                          // (c) 1982 Century
 
+@source:cwheel.cpp
+cwheel							// (c) 19?? Gamebar
+
 @source:cxgz80.cpp
 ch2001                          //
 
@@ -11284,6 +11288,7 @@ hvysmsh                         // MBG (c) 1993 Data East Corporation (World)
 hvysmsha                        // MBG (c) 1993 Data East Corporation (Asia)
 hvysmshj                        // MBG (c) 1993 Data East Corporation (Japan)
 wcvol95                         // MBX (c) 1993 Data East
+wcvol95j                        // MBX (c) 1993 Data East
 wcvol95x                        // ?
 
 @source:deco32.cpp
@@ -11793,6 +11798,9 @@ ec1847                          //
 @source:ec65.cpp
 ec65                            //
 ec65k                           //
+
+@source:ec7915.cpp
+ec7915                          //
 
 @source:ecoinf1.cpp
 ec_bar5                         // Bar 5 (older PCB) (Electrocoin)
@@ -12468,6 +12476,7 @@ strvmstr                        // (c) 1986 Enerdyne Technologies Inc
 @source:eurocom2.cpp
 eurocom2                        //
 waveterm                        //
+microtrol                       //
 
 @source:europc.cpp
 europc                          // 1988 Schneider Euro PC (CGA or Hercules)
@@ -15347,6 +15356,9 @@ ibm5160                         // 1982 IBM XT 5160
 @source:ibmpcjr.cpp
 ibmpcjr                         // 1984 IBM PC Jr
 ibmpcjx                         // 1985 IBM PC JX
+
+@source:icebox.cpp
+icebox                          // Nutting Icebox
 
 @source:icatel.cpp
 icatel                          //
@@ -18642,6 +18654,7 @@ mastboyia                       // (c) 1991 - No Ref on the PCB
 
 @source:mastboyo.cpp
 mastboyo                        // (c) 1987 - No Ref on the PCB
+mastboyoa                       // (c) 1987 - No Ref on the PCB
 
 @source:matmania.cpp
 excthour                        // TA-0015 (c) 1985 + Taito license
@@ -21661,6 +21674,9 @@ mosaica                         // (c) 1990 Space + Fuuki license
 @source:mouser.cpp
 mouser                          // UPL-83001 (c) 1983
 mouserc                         // UPL-83001 (c) 1983
+
+@source:mpc3000.cpp
+mpc3000
 
 @source:mpf1.cpp
 mpf1                            // 1979 Multitech Micro Professor 1
@@ -29241,6 +29257,7 @@ alpilot                         // 1999.?? Airline Pilots (World, Rev B)
 anmlbskt                        // 2005.01 Animal Basket (date is inside of ROM, probably earlier than release)
 anmlbskta                       // 2005.01 Animal Basket (date is inside of ROM, probably earlier than release)
 asndynmt                        // 2007.07 Dynamite Deka EX - Asian dynamite
+asndynmto                       // 2007.07 Dynamite Deka EX - Asian dynamite (older)
 ausfache                        // 2008.02.20 Akatsuki Blitzkampf Ausf. Achse
 awbios                          // 2002.?? Atomiswave BIOS
 azumanga                        // 2002.12 Azumanga Daiou Puzzle Bobble
@@ -30263,6 +30280,9 @@ vandykejal2                     // UPL-90064 (c) Jaleco
 
 @source:nmkmedal.cpp
 trocana                         // NTC / NMK
+
+@source:nightmare.cpp
+nightmare						// (c) 1982 E.F.O.
 
 @source:nokia_3310.cpp
 noki3210                        //
@@ -32815,6 +32835,7 @@ raiden2g                        // (c) 1993 Seibu Kaihatsu + Tuning license
 raiden2hk                       // (c) 1993 Seibu Kaihatsu + Metrotainment license
 raiden2i                        // (c) 1993 Seibu Kaihatsu
 raiden2j                        // (c) 1993 Seibu Kaihatsu
+raiden2k                        // (c) 1993 Seibu Kaihatsu
 raiden2nl                       // (c) 1993 Seibu Kaihatsu
 raiden2sw                       // (c) 1993 Seibu Kaihats
 raiden2u                        // (c) 1993 Seibu Kaihatsu + Fabtek license
@@ -33890,6 +33911,7 @@ astrob                          // (c) 1981
 astrob1                         // (c) 1981
 astrob2                         // (c) 1981
 astrob2a                        // (c) 1981
+astrob2b                        // (c) 1981
 astrobg                         // (c) 1981
 monsterb                        // (c) 1982
 monsterb2                       // (c) 1982
@@ -35543,6 +35565,7 @@ tetfight                        // (c) 2001 Sego
 @source:sshangha.cpp
 sshangha                        // (c) 1992 Hot-B
 sshanghab                       // bootleg
+sshanghaj                       // (c) 1992 Hot-B
 
 @source:sshot.cpp
 gunchamps                       // (c) 1980 Model Racing (sshot.cpp)
@@ -36900,10 +36923,8 @@ t4490                           // Terco 4490 Mill CNC Control (c) 1986
 
 @source:terminal.cpp
 7951om                          //
-a1010                           //
 alcat258                        //
 alcat7100                       //
-ec7915                          //
 facit4440                       //
 feap90                          //
 ikt5a                           //
@@ -36912,7 +36933,6 @@ loewe715                        //
 loewed                          //
 t3210                           //
 teleguide                       //
-vdm79322                        //
 
 @source:terracre.cpp
 amatelas                        // (c) 1986
@@ -36947,6 +36967,9 @@ tetrisp2                        // (c) 1997 Jaleco
 tetrisp2j                       // (c) 1997 Jaleco
 tetrisp2ja                      // (c) 1997 Jaleco
 vjdash                          // (c) 1999 Jaleco
+
+@source:textelcomp.cpp
+a1010                           //
 
 @source:tg100.cpp
 tg100                           // (c) 1991
@@ -37978,6 +38001,7 @@ vaportra3                       // MAA (c) 1989 Data East Corporation (World)
 vaportrau                       // MAA (c) 1989 Data East Corporation (US)
 
 @source:vastar.cpp
+dogfightp                       // (c) 1983 Orca
 pprobe                          // Kyugo?
 vastar                          // (c) 1983 Sesame Japan
 vastar2                         // (c) 1983 Sesame Japan
@@ -38033,6 +38057,9 @@ vcs80                           //
 @source:vd.cpp
 break86                         //
 papillon                        //
+
+@source:vdm7932x.cpp
+vdm79322                        //
 
 @source:vector06.cpp
 krista2                         //
@@ -38176,6 +38203,12 @@ fortune1                        // (c) 1984 IGT
 videocba                        // (c) 1987 InterFlip
 videodad                        // (c) 1987 InterFlip
 videopkr                        // (c) 1984 InterFlip
+
+@source:videosaa.cpp
+jokrlady                        //
+ladygum                         //
+paradar                         //
+winner                          //
 
 @source:vigilant.cpp
 buccanrs                        // (c) 1989 Duintronic
@@ -38487,6 +38520,7 @@ pac90                           // bootleg
 twcup90                            // (c) 1989 Tecmo
 twcup90a                           // (c) 1989 Tecmo
 twcup90b                           // (c) 1989 Tecmo
+twcup90c                           // (c) 1989 Tecmo
 twcup90t                           // (c) 1989 Tecmo
 
 @source:wc90b.cpp
@@ -38507,11 +38541,12 @@ welltris                        // (c) 1991 Video System Co. (Japan)
 welltrisj                       // (c) 1991 Video System Co. (Japan)
 
 @source:wgp.cpp
-wgp                             // C32 (c) 1989 Taito America Corporation (US)
+wgp                             // C32 (c) 1989 Taito Corporation Japan (World)
 wgp2                            // C73 (c) 1990 Taito Corporation (Japan)
 wgpj                            // C32 (c) 1989 Taito Corporation (Japan)
 wgpjoy                          // C32 (c) 1989 Taito Corporation (Japan)
 wgpjoya                         // C32 (c) 1989 Taito Corporation (Japan)
+wgpu                            // C32 (c) 1989 Taito America Corporation (US)
 
 @source:wheelfir.cpp
 wheelfir                        // (c) 199? TCH
@@ -39277,6 +39312,9 @@ wwfsstaru7                      // TA-0024 (c) 1989 (US, newer)
 wwfsstaru6                      // TA-0024 (c) 1989 (US)
 wwfsstaru4                      // TA-0024 (c) 1989 (US)
 
+@source:wy100.cpp
+wy100                           // WY-100
+
 @source:wyse.cpp
 wy50                            // WY-50
 wy55                            // WY-55
@@ -39444,6 +39482,9 @@ z1013a2                         //
 z1013k69                        //
 z1013k76                        //
 z1013s60                        //
+
+@source:z29.cpp
+z29                             //
 
 @source:z80dev.cpp
 z80dev                          //

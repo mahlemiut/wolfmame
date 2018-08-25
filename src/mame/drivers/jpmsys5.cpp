@@ -236,7 +236,7 @@ WRITE16_MEMBER(jpmsys5_state::jpm_upd7759_w)
 	{
 		case 0:
 		{
-			m_upd7759->port_w(space, 0, data & 0xff);
+			m_upd7759->port_w(data & 0xff);
 			m_upd7759->start_w(0);
 			m_upd7759->start_w(1);
 			break;
@@ -251,8 +251,8 @@ WRITE16_MEMBER(jpmsys5_state::jpm_upd7759_w)
 		}
 		case 2:
 		{
-			m_upd7759->reset_w(~data & 0x04);
-			m_upd7759->set_bank_base((data & 2) ? 0x20000 : 0);
+			m_upd7759->reset_w(!BIT(data, 2));
+			m_upd7759->set_rom_bank(BIT(data, 1));
 			break;
 		}
 		default:
@@ -609,7 +609,7 @@ MACHINE_CONFIG_START(jpmsys5v_state::jpmsys5v)
 	acia_clock.signal_handler().append(m_acia6850[2], FUNC(acia6850_device::write_txc));
 	acia_clock.signal_handler().append(m_acia6850[2], FUNC(acia6850_device::write_rxc));
 
-	MCFG_NVRAM_ADD_0FILL("nvram")
+	NVRAM(config, "nvram", nvram_device::DEFAULT_ALL_0);
 
 	MCFG_S16LF01_ADD("vfd",0)//for debug ports
 
@@ -830,7 +830,7 @@ MACHINE_CONFIG_START(jpmsys5_state::jpmsys5_ym)
 	acia_clock.signal_handler().append(m_acia6850[2], FUNC(acia6850_device::write_txc));
 	acia_clock.signal_handler().append(m_acia6850[2], FUNC(acia6850_device::write_rxc));
 
-	MCFG_NVRAM_ADD_0FILL("nvram")
+	NVRAM(config, "nvram", nvram_device::DEFAULT_ALL_0);
 	MCFG_S16LF01_ADD("vfd",0)
 
 	SPEAKER(config, "mono").front_center();
@@ -888,7 +888,7 @@ MACHINE_CONFIG_START(jpmsys5_state::jpmsys5)
 	acia_clock.signal_handler().append(m_acia6850[2], FUNC(acia6850_device::write_txc));
 	acia_clock.signal_handler().append(m_acia6850[2], FUNC(acia6850_device::write_rxc));
 
-	MCFG_NVRAM_ADD_0FILL("nvram")
+	NVRAM(config, "nvram", nvram_device::DEFAULT_ALL_0);
 	MCFG_S16LF01_ADD("vfd",0)
 
 	SPEAKER(config, "mono").front_center();

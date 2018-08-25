@@ -503,7 +503,6 @@ Reference video: https://www.youtube.com/watch?v=R5OeC6Wc_yI
 #include "emu.h"
 #include "includes/williams.h"
 
-#include "machine/74157.h"
 #include "machine/input_merger.h"
 #include "machine/nvram.h"
 #include "sound/dac.h"
@@ -1493,7 +1492,7 @@ MACHINE_CONFIG_START(williams_state::williams)
 	MCFG_DEVICE_PROGRAM_MAP(sound_map)
 
 	MCFG_MACHINE_START_OVERRIDE(williams_state,williams)
-	MCFG_NVRAM_ADD_0FILL("nvram") // 5101 (Defender), 5114 or 6514 (later games) + battery
+	NVRAM(config, "nvram", nvram_device::DEFAULT_ALL_0); // 5101 (Defender), 5114 or 6514 (later games) + battery
 
 	// set a timer to go off every 32 scanlines, to toggle the VA11 line and update the screen
 	MCFG_TIMER_DRIVER_ADD_SCANLINE("scan_timer", williams_state, williams_va11_callback, "screen", 0, 32)
@@ -1555,12 +1554,7 @@ MACHINE_CONFIG_START(williams_state::defender)
 	MCFG_DEVICE_MODIFY("soundcpu")
 	MCFG_DEVICE_PROGRAM_MAP(defender_sound_map)
 
-	MCFG_DEVICE_ADD("bankc000", ADDRESS_MAP_BANK, 0)
-	MCFG_DEVICE_PROGRAM_MAP(defender_bankc000_map)
-	MCFG_ADDRESS_MAP_BANK_ENDIANNESS(ENDIANNESS_BIG)
-	MCFG_ADDRESS_MAP_BANK_DATA_WIDTH(8)
-	MCFG_ADDRESS_MAP_BANK_ADDR_WIDTH(16)
-	MCFG_ADDRESS_MAP_BANK_STRIDE(0x1000)
+	ADDRESS_MAP_BANK(config, "bankc000").set_map(&williams_state::defender_bankc000_map).set_options(ENDIANNESS_BIG, 8, 16, 0x1000);
 
 	MCFG_MACHINE_START_OVERRIDE(williams_state,defender)
 	MCFG_MACHINE_RESET_OVERRIDE(williams_state,defender)
@@ -1592,13 +1586,13 @@ MACHINE_CONFIG_START(williams_state::williams_muxed)
 	m_pia[0]->cb2_handler().set("mux_0", FUNC(ls157_device::select_w));
 	m_pia[0]->cb2_handler().append("mux_1", FUNC(ls157_device::select_w));
 
-	MCFG_DEVICE_ADD("mux_0", LS157, 0) // IC3 on interface board (actually LS257 with OC tied low)
-	MCFG_74157_A_IN_CB(IOPORT("INP2"))
-	MCFG_74157_B_IN_CB(IOPORT("INP1"))
+	LS157(config, m_mux0, 0); // IC3 on interface board (actually LS257 with OC tied low)
+	m_mux0->a_in_callback().set_ioport("INP2");
+	m_mux0->b_in_callback().set_ioport("INP1");
 
-	MCFG_DEVICE_ADD("mux_1", LS157, 0) // IC4 on interface board (actually LS257 with OC tied low)
-	MCFG_74157_A_IN_CB(IOPORT("INP2A"))
-	MCFG_74157_B_IN_CB(IOPORT("INP1A"))
+	LS157(config, m_mux1, 0); // IC4 on interface board (actually LS257 with OC tied low)
+	m_mux1->a_in_callback().set_ioport("INP2A");
+	m_mux1->b_in_callback().set_ioport("INP1A");
 MACHINE_CONFIG_END
 
 
@@ -1689,9 +1683,9 @@ MACHINE_CONFIG_START(blaster_state::blastkit)
 
 	// All multiplexers on Blaster interface board are really LS257 with OC tied to GND (which is equivalent to LS157)
 
-	MCFG_DEVICE_ADD("mux_a", LS157_X2, 0)
-	MCFG_74157_A_IN_CB(IOPORT("IN3"))
-	MCFG_74157_B_IN_CB(READ8(*this, williams_state, williams_49way_port_0_r))
+	LS157_X2(config, m_muxa, 0);
+	m_muxa->a_in_callback().set_ioport("IN3");
+	m_muxa->b_in_callback().set(FUNC(williams_state::williams_49way_port_0_r));
 MACHINE_CONFIG_END
 
 
@@ -1708,13 +1702,13 @@ MACHINE_CONFIG_START(blaster_state::blaster)
 	m_pia[0]->cb2_handler().set("mux_a", FUNC(ls157_x2_device::select_w));
 	m_pia[0]->cb2_handler().append("mux_b", FUNC(ls157_device::select_w));
 
-	MCFG_DEVICE_MODIFY("mux_a") // IC7 (for PA0-PA3) + IC5 (for PA4-PA7)
-	MCFG_74157_A_IN_CB(READ8(*this, williams_state, williams_49way_port_0_r))
-	MCFG_74157_B_IN_CB(IOPORT("IN3"))
+	// IC7 (for PA0-PA3) + IC5 (for PA4-PA7)
+	m_muxa->a_in_callback().set(FUNC(williams_state::williams_49way_port_0_r));
+	m_muxa->b_in_callback().set_ioport("IN3");
 
-	MCFG_DEVICE_ADD("mux_b", LS157, 0) // IC3
-	MCFG_74157_A_IN_CB(IOPORT("INP1"))
-	MCFG_74157_B_IN_CB(IOPORT("INP2"))
+	LS157(config, m_muxb, 0); // IC3
+	m_muxb->a_in_callback().set_ioport("INP1");
+	m_muxb->b_in_callback().set_ioport("INP2");
 
 	MCFG_INPUT_MERGER_ANY_HIGH("soundirq_b")
 	MCFG_INPUT_MERGER_OUTPUT_HANDLER(INPUTLINE("soundcpu_b", M6808_IRQ_LINE))
@@ -1752,16 +1746,11 @@ MACHINE_CONFIG_START(williams2_state::williams2)
 	MCFG_DEVICE_ADD("soundcpu", M6808, MASTER_CLOCK/3) /* yes, this is different from the older games */
 	MCFG_DEVICE_PROGRAM_MAP(williams2_sound_map)
 
-	MCFG_DEVICE_ADD("bank8000", ADDRESS_MAP_BANK, 0)
-	MCFG_DEVICE_PROGRAM_MAP(williams2_bank8000_map)
-	MCFG_ADDRESS_MAP_BANK_ENDIANNESS(ENDIANNESS_BIG)
-	MCFG_ADDRESS_MAP_BANK_DATA_WIDTH(8)
-	MCFG_ADDRESS_MAP_BANK_ADDR_WIDTH(12)
-	MCFG_ADDRESS_MAP_BANK_STRIDE(0x0800)
+	ADDRESS_MAP_BANK(config, "bank8000").set_map(&williams2_state::williams2_bank8000_map).set_options(ENDIANNESS_BIG, 8, 12, 0x800);
 
 	MCFG_MACHINE_START_OVERRIDE(williams2_state,williams2)
 	MCFG_MACHINE_RESET_OVERRIDE(williams2_state,williams2)
-	MCFG_NVRAM_ADD_0FILL("nvram") // 5114 + battery
+	NVRAM(config, "nvram", nvram_device::DEFAULT_ALL_0); // 5114 + battery
 
 	// set a timer to go off every 32 scanlines, to toggle the VA11 line and update the screen
 	MCFG_TIMER_DRIVER_ADD_SCANLINE("scan_timer", williams2_state, williams2_va11_callback, "screen", 0, 32)
@@ -1820,9 +1809,9 @@ MACHINE_CONFIG_START(williams2_state::inferno)
 	m_pia[0]->readpa_handler().set("mux", FUNC(ls157_x2_device::output_r));
 	m_pia[0]->ca2_handler().set("mux", FUNC(ls157_x2_device::select_w));
 
-	MCFG_DEVICE_ADD("mux", LS157_X2, 0) // IC45 (for PA4-PA7) + IC46 (for PA0-PA3) on CPU board
-	MCFG_74157_A_IN_CB(IOPORT("INP1"))
-	MCFG_74157_B_IN_CB(IOPORT("INP2"))
+	LS157_X2(config, m_mux, 0); // IC45 (for PA4-PA7) + IC46 (for PA0-PA3) on CPU board
+	m_mux->a_in_callback().set_ioport("INP1");
+	m_mux->b_in_callback().set_ioport("INP2");
 MACHINE_CONFIG_END
 
 
@@ -1862,9 +1851,9 @@ MACHINE_CONFIG_START(tshoot_state::tshoot)
 	MCFG_DEVICE_MODIFY("pia_2")
 	m_pia[2]->cb2_handler().set(FUNC(tshoot_state::maxvol_w));
 
-	MCFG_DEVICE_ADD("mux", LS157_X2, 0) // U2 + U3 on interface board
-	MCFG_74157_A_IN_CB(IOPORT("INP1"))
-	MCFG_74157_B_IN_CB(IOPORT("INP2"))
+	LS157_X2(config, m_mux, 0); // U2 + U3 on interface board
+	m_mux->a_in_callback().set_ioport("INP1");
+	m_mux->b_in_callback().set_ioport("INP2");
 MACHINE_CONFIG_END
 
 
@@ -1893,9 +1882,9 @@ MACHINE_CONFIG_START(joust2_state::joust2)
 	m_pia[1]->irqa_handler().set("mainirq", FUNC(input_merger_any_high_device::in_w<0>));
 	m_pia[1]->irqb_handler().set("mainirq", FUNC(input_merger_any_high_device::in_w<1>));
 
-	MCFG_DEVICE_ADD("mux", LS157, 0)
-	MCFG_74157_A_IN_CB(IOPORT("INP1"))
-	MCFG_74157_B_IN_CB(IOPORT("INP2"))
+	LS157(config, m_mux, 0);
+	m_mux->a_in_callback().set_ioport("INP1");
+	m_mux->b_in_callback().set_ioport("INP2");
 MACHINE_CONFIG_END
 
 

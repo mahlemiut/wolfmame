@@ -33,6 +33,51 @@ class st6228_device : public cpu_device
 public:
 	st6228_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock);
 
+	template <unsigned Bit> auto port_a()
+	{
+		static_assert(Bit < 6, "ST6228 port A bit must be in the range 0..5\n");
+		return m_porta_out[Bit].bind();
+	}
+	template <unsigned Bit> auto port_b()
+	{
+		static_assert(Bit >= 4 && Bit <= 6, "ST6228 port B bit must be in the range 4..6\n");
+		return m_portb_out[Bit - 4].bind();
+	}
+	template <unsigned Bit> auto port_c()
+	{
+		static_assert(Bit >= 4 && Bit <= 7, "ST6228 port C bit must be in the range 4..7\n");
+		return m_portc_out[Bit - 4].bind();
+	}
+	template <unsigned Bit> auto port_d()
+	{
+		static_assert(Bit >= 1 && Bit <= 7, "ST6228 port D bit must be in the range 1..7\n");
+		return m_portd_out[Bit - 1].bind();
+	}
+
+	DECLARE_WRITE_LINE_MEMBER(porta0_w);
+	DECLARE_WRITE_LINE_MEMBER(porta1_w);
+	DECLARE_WRITE_LINE_MEMBER(porta2_w);
+	DECLARE_WRITE_LINE_MEMBER(porta3_w);
+	DECLARE_WRITE_LINE_MEMBER(porta4_w);
+	DECLARE_WRITE_LINE_MEMBER(porta5_w);
+
+	DECLARE_WRITE_LINE_MEMBER(portb4_w);
+	DECLARE_WRITE_LINE_MEMBER(portb5_w);
+	DECLARE_WRITE_LINE_MEMBER(portb6_w);
+
+	DECLARE_WRITE_LINE_MEMBER(portc4_w);
+	DECLARE_WRITE_LINE_MEMBER(portc5_w);
+	DECLARE_WRITE_LINE_MEMBER(portc6_w);
+	DECLARE_WRITE_LINE_MEMBER(portc7_w);
+
+	DECLARE_WRITE_LINE_MEMBER(portd1_w);
+	DECLARE_WRITE_LINE_MEMBER(portd2_w);
+	DECLARE_WRITE_LINE_MEMBER(portd3_w);
+	DECLARE_WRITE_LINE_MEMBER(portd4_w);
+	DECLARE_WRITE_LINE_MEMBER(portd5_w);
+	DECLARE_WRITE_LINE_MEMBER(portd6_w);
+	DECLARE_WRITE_LINE_MEMBER(portd7_w);
+
 protected:
 	// device-level overrides
 	virtual void device_start() override;
@@ -60,6 +105,13 @@ protected:
 
 	void unimplemented_opcode(uint8_t op);
 	void tick_timers(int cycles);
+	void update_port_mode(uint8_t index, uint8_t changed);
+	void set_port_output_bit(uint8_t index, uint8_t bit, uint8_t state);
+
+	DECLARE_READ8_MEMBER(program_rombank_r);
+	DECLARE_READ8_MEMBER(data_rombank_r);
+	DECLARE_WRITE8_MEMBER(rambank_w);
+	DECLARE_READ8_MEMBER(rambank_r);
 
 	DECLARE_WRITE8_MEMBER(regs_w);
 	DECLARE_READ8_MEMBER(regs_r);
@@ -84,47 +136,47 @@ protected:
 
 	enum
 	{
-		PROGRAM_ROM_START		= 0x40,
-		REGS_START				= 0x80,
-		REG_X 					= 0x80,
-		REG_Y 					= 0x81,
-		REG_V 					= 0x82,
-		REG_W 					= 0x83,
-		DATA_RAM_START 			= 0x84,
-		REG_PORTA_DATA			= 0xc0,
-		REG_PORTB_DATA			= 0xc1,
-		REG_PORTC_DATA			= 0xc2,
-		REG_PORTD_DATA			= 0xc3,
-		REG_PORTA_DIR			= 0xc4,
-		REG_PORTB_DIR			= 0xc5,
-		REG_PORTC_DIR			= 0xc6,
-		REG_PORTD_DIR			= 0xc7,
-		REG_INT_OPTION			= 0xc8,
-		REG_DATA_ROM_WINDOW		= 0xc9,
-		REG_ROM_BANK_SELECT		= 0xca,
-		REG_RAM_BANK_SELECT		= 0xcb,
-		REG_PORTA_OPTION		= 0xcc,
-		REG_PORTB_OPTION		= 0xcd,
-		REG_PORTC_OPTION		= 0xce,
-		REG_PORTD_OPTION		= 0xcf,
-		REG_AD_DATA				= 0xd0,
-		REG_AD_CONTROL			= 0xd1,
-		REG_TIMER_PRESCALE		= 0xd2,
-		REG_TIMER_COUNT			= 0xd3,
-		REG_TIMER_CONTROL		= 0xd4,
-		REG_UART_DATA			= 0xd6,
-		REG_UART_CONTROL		= 0xd7,
-		REG_WATCHDOG			= 0xd8,
-		REG_INT_POLARITY		= 0xda,
-		REG_SPI_INT_DISABLE		= 0xdc,
-		REG_SPI_DATA			= 0xdd,
-		REG_ARTIMER_MODE		= 0xe5,
-		REG_ARTIMER_ARCS0		= 0xe6,
-		REG_ARTIMER_ARCS1		= 0xe7,
-		REG_ARTIMER_RELOAD		= 0xe9,
-		REG_ARTIMER_COMPARE		= 0xea,
-		REG_ARTIMER_LOAD		= 0xeb,
-		REG_A					= 0xff
+		PROGRAM_ROM_START       = 0x40,
+		REGS_START              = 0x80,
+		REG_X                   = 0x80,
+		REG_Y                   = 0x81,
+		REG_V                   = 0x82,
+		REG_W                   = 0x83,
+		DATA_RAM_START          = 0x84,
+		REG_PORTA_DATA          = 0xc0,
+		REG_PORTB_DATA          = 0xc1,
+		REG_PORTC_DATA          = 0xc2,
+		REG_PORTD_DATA          = 0xc3,
+		REG_PORTA_DIR           = 0xc4,
+		REG_PORTB_DIR           = 0xc5,
+		REG_PORTC_DIR           = 0xc6,
+		REG_PORTD_DIR           = 0xc7,
+		REG_INT_OPTION          = 0xc8,
+		REG_DATA_ROM_WINDOW     = 0xc9,
+		REG_ROM_BANK_SELECT     = 0xca,
+		REG_RAM_BANK_SELECT     = 0xcb,
+		REG_PORTA_OPTION        = 0xcc,
+		REG_PORTB_OPTION        = 0xcd,
+		REG_PORTC_OPTION        = 0xce,
+		REG_PORTD_OPTION        = 0xcf,
+		REG_AD_DATA             = 0xd0,
+		REG_AD_CONTROL          = 0xd1,
+		REG_TIMER_PRESCALE      = 0xd2,
+		REG_TIMER_COUNT         = 0xd3,
+		REG_TIMER_CONTROL       = 0xd4,
+		REG_UART_DATA           = 0xd6,
+		REG_UART_CONTROL        = 0xd7,
+		REG_WATCHDOG            = 0xd8,
+		REG_INT_POLARITY        = 0xda,
+		REG_SPI_INT_DISABLE     = 0xdc,
+		REG_SPI_DATA            = 0xdd,
+		REG_ARTIMER_MODE        = 0xe5,
+		REG_ARTIMER_ARCS0       = 0xe6,
+		REG_ARTIMER_ARCS1       = 0xe7,
+		REG_ARTIMER_RELOAD      = 0xe9,
+		REG_ARTIMER_COMPARE     = 0xea,
+		REG_ARTIMER_LOAD        = 0xeb,
+		REG_A                   = 0xff
 	};
 
 	enum
@@ -146,8 +198,16 @@ protected:
 
 	enum
 	{
-		FLAG_C	= 0x01,
-		FLAG_Z	= 0x02
+		FLAG_C  = 0x01,
+		FLAG_Z  = 0x02
+	};
+
+	enum
+	{
+		PORT_A = 0,
+		PORT_B,
+		PORT_C,
+		PORT_D
 	};
 
 	// CPU registers
@@ -167,12 +227,26 @@ protected:
 	const address_space_config m_program_config;
 	const address_space_config m_data_config;
 
+	devcb_write_line m_porta_out[6];
+	devcb_write_line m_portb_out[3];
+	devcb_write_line m_portc_out[4];
+	devcb_write_line m_portd_out[7];
+
+	uint8_t m_port_dir[4];
+	uint8_t m_port_option[4];
+	uint8_t m_port_data[4];
+	uint8_t m_port_pullup[4];
+	uint8_t m_port_analog[4];
+	uint8_t m_port_input[4];
+	uint8_t m_port_irq_enable[4];
+
 	address_space *m_program;
 	address_space *m_data;
 
-	required_memory_bank m_rambank;
-	required_memory_bank m_program_rombank;
-	required_memory_bank m_data_rombank;
+	// FIXME: memory banks do not currently work with internal maps.
+	//required_memory_bank m_rambank;
+	//required_memory_bank m_program_rombank;
+	//required_memory_bank m_data_rombank;
 	required_memory_region m_rom;
 };
 

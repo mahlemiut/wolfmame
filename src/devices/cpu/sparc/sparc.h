@@ -11,7 +11,7 @@
 
 #include "sparcdasm.h"
 
-#define SPARCV8         (0)
+#define SPARCV8         (1)
 #define LOG_FCODES      (0)
 
 #if LOG_FCODES
@@ -26,6 +26,19 @@ class mb86901_device : public cpu_device, protected sparc_disassembler::config
 {
 public:
 	mb86901_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock);
+
+	enum
+	{
+		AS_COUNT = 32,
+
+		AS_START = 128,
+		AS_END = AS_START + (AS_COUNT - 1)
+	};
+
+	template <typename T> void set_asi_addrmap(int asi, T &&obj)
+	{
+		set_addrmap(asi + AS_START, std::forward<T>(obj));
+	}
 
 	// device-level overrides
 	virtual void device_start() override;
@@ -48,8 +61,9 @@ public:
 	// device_state_interface overrides
 	virtual void state_string_export(const device_state_entry &entry, std::string &str) const override;
 
-	uint8_t get_asi() { return m_asi; }
+	uint8_t get_asi() { return 0; }
 	uint32_t pc() { return m_pc; }
+	void set_mae() { m_mae = 1; }
 
 	void add_asi_desc(std::function<void (sparc_disassembler *)> f) { m_asi_desc_adder = f; }
 
@@ -95,7 +109,7 @@ protected:
 	void execute_trap();
 
 	void complete_instruction_execution(uint32_t op);
-	void dispatch_instruction(uint32_t op);
+	inline void dispatch_instruction(uint32_t op);
 	void complete_fp_execution(uint32_t /*op*/);
 	void execute_step();
 
@@ -109,7 +123,10 @@ protected:
 #endif
 
 	// address spaces
-	const address_space_config m_program_config;
+	std::string m_asi_names[AS_COUNT];
+	address_space_config m_asi_config[AS_COUNT];
+	memory_access_cache<2, 0, ENDIANNESS_BIG> *m_access_cache[AS_COUNT];
+    address_space_config m_default_config;
 
 	// memory access
 	uint32_t read_sized_word(uint8_t asi, uint32_t address, int size);
@@ -196,9 +213,6 @@ protected:
 	// register windowing helpers
 	uint32_t* m_regs[32];
 
-	// addressing helpers
-	uint8_t m_asi;
-
 	// other internal states
 	bool m_privileged_asr[32];
 	bool m_illegal_instruction_asr[32];
@@ -206,12 +220,13 @@ protected:
 	bool m_annul;
 	bool m_hold_bus;
 	int m_icount;
+	int m_fetch_space;
 
 	// debugger helpers
 	uint32_t m_dbgregs[24];
 
 	// address spaces
-	address_space *m_program;
+	address_space *m_space[32];
 
 #if LOG_FCODES
 	uint32_t m_ss1_next_pc;

@@ -784,13 +784,13 @@ MACHINE_CONFIG_START(maygay1b_state::maygay_m1)
 	pia.writepb_handler().set(FUNC(maygay1b_state::m1_pia_portb_w));
 
 	hc259_device &mainlatch(HC259(config, "mainlatch")); // U29
-	mainlatch.q_out_cb<0>().set(FUNC(maygay1b_state::ramen_w));		// m_RAMEN
-	mainlatch.q_out_cb<1>().set(FUNC(maygay1b_state::alarmen_w));	// AlarmEn
-	mainlatch.q_out_cb<2>().set(FUNC(maygay1b_state::nmien_w));		// Enable
-	mainlatch.q_out_cb<3>().set(FUNC(maygay1b_state::rts_w));		// RTS
-	mainlatch.q_out_cb<4>().set(FUNC(maygay1b_state::psurelay_w));	// PSURelay
-	mainlatch.q_out_cb<5>().set(FUNC(maygay1b_state::wdog_w));		// WDog
-	mainlatch.q_out_cb<6>().set(FUNC(maygay1b_state::srsel_w));		// Srsel
+	mainlatch.q_out_cb<0>().set(FUNC(maygay1b_state::ramen_w));     // m_RAMEN
+	mainlatch.q_out_cb<1>().set(FUNC(maygay1b_state::alarmen_w));   // AlarmEn
+	mainlatch.q_out_cb<2>().set(FUNC(maygay1b_state::nmien_w));     // Enable
+	mainlatch.q_out_cb<3>().set(FUNC(maygay1b_state::rts_w));       // RTS
+	mainlatch.q_out_cb<4>().set(FUNC(maygay1b_state::psurelay_w));  // PSURelay
+	mainlatch.q_out_cb<5>().set(FUNC(maygay1b_state::wdog_w));      // WDog
+	mainlatch.q_out_cb<6>().set(FUNC(maygay1b_state::srsel_w));     // Srsel
 
 	MCFG_S16LF01_ADD("vfd",0)
 	SPEAKER(config, "lspeaker").front_left();
@@ -811,16 +811,16 @@ MACHINE_CONFIG_START(maygay1b_state::maygay_m1)
 
 	MCFG_TIMER_DRIVER_ADD_PERIODIC("nmitimer", maygay1b_state, maygay1b_nmitimer_callback, attotime::from_hz(75)) // freq?
 
-	MCFG_DEVICE_ADD("i8279", I8279, M1_MASTER_CLOCK/4)    // unknown clock
-	MCFG_I8279_OUT_SL_CB(WRITE8(*this, maygay1b_state, scanlines_w))   // scan SL lines
-	MCFG_I8279_OUT_DISP_CB(WRITE8(*this, maygay1b_state, lamp_data_w))     // display A&B
-	MCFG_I8279_IN_RL_CB(READ8(*this, maygay1b_state, kbd_r))           // kbd RL lines
+	i8279_device &kbdc(I8279(config, "i8279", M1_MASTER_CLOCK/4));		// unknown clock
+	kbdc.out_sl_callback().set(FUNC(maygay1b_state::scanlines_w));		// scan SL lines
+	kbdc.out_disp_callback().set(FUNC(maygay1b_state::lamp_data_w));	// display A&B
+	kbdc.in_rl_callback().set(FUNC(maygay1b_state::kbd_r));				// kbd RL lines
 
 #ifndef USE_MCU
 	// on M1B there is a 2nd i8279, on M1 / M1A a 8051 handles this task!
-	MCFG_DEVICE_ADD("i8279_2", I8279, M1_MASTER_CLOCK/4)        // unknown clock
-	MCFG_I8279_OUT_SL_CB(WRITE8(*this, maygay1b_state, scanlines_2_w))   // scan SL lines
-	MCFG_I8279_OUT_DISP_CB(WRITE8(*this, maygay1b_state, lamp_data_2_w))       // display A&B
+	i8279_device &kbdc2(I8279(config, "i8279_2", M1_MASTER_CLOCK/4));	// unknown clock
+	kbdc2.out_sl_callback().set(FUNC(maygay1b_state::scanlines_2_w));	// scan SL lines
+	kbdc2.out_disp_callback().set(FUNC(maygay1b_state::lamp_data_2_w));	// display A&B
 #endif
 
 	MCFG_DEVICE_ADD("reel0", REEL, STARPOINT_48STEP_REEL, 1, 3, 0x09, 4)

@@ -81,7 +81,7 @@
 #define WIM                 m_wim
 #define TBR                 m_tbr
 
-#define OP_NS	(op & 0xc0000000)
+#define OP_NS   (op & 0xc0000000)
 
 #define OP      (op >> 30)
 #define OP2     ((op >> 22) & 7)
@@ -105,7 +105,7 @@
 #define SHCNT32 (op & 31)
 #define SHCNT64 (op & 63)
 #define IAMODE  (op & 0x7)
-#define USEIMM  ((op >> 13) & 1)
+#define USEIMM  (op & (1 << 13))
 #define USEEXT  ((op >> 12) & 1)
 
 
@@ -155,10 +155,10 @@
 #define OP_ALU      u32(2)
 #define OP_LDST     u32(3)
 
-#define OP_TYPE0_NS	(OP_TYPE0 << 30)
-#define OP_CALL_NS	(OP_CALL << 30)
-#define OP_ALU_NS	(OP_ALU << 30)
-#define OP_LDST_NS	(OP_LDST << 30)
+#define OP_TYPE0_NS (OP_TYPE0 << 30)
+#define OP_CALL_NS  (OP_CALL << 30)
+#define OP_ALU_NS   (OP_ALU << 30)
+#define OP_LDST_NS  (OP_LDST << 30)
 
 #define OP2_UNIMP   0
 #define OP2_BICC    2

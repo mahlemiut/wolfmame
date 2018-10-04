@@ -9777,6 +9777,7 @@ spacewar                        // (c) 1977
 speedfrk                        // (c) 1979 Vectorbeam
 starcas                         // (c) 1980
 starcas1                        // (c) 1980
+starcasc                        // (c) 1980
 starcase                        // (c) 1980 Cinematronics (Mottoeis license)
 starcasp                        // (c) 1980 prototype
 starhawk                        // (c) 1979
@@ -9807,6 +9808,7 @@ circusce                        // GX380 (c) 1984 + Centuri license
 @source:cischeat.cpp
 armchmp2                        // (c) 1992 Jaleco
 armchmp2o                       // (c) 1992 Jaleco
+armchmp2o2                      // (c) 1992 Jaleco
 bigrun                          // (c) 1989 Jaleco
 captflag                        // (c) 1993 Jaleco
 cischeat                        // (c) 1990 Jaleco
@@ -12645,6 +12647,9 @@ royalpk2                        //
 @source:facit4440.cpp
 facit4440                       // 1984
 
+@source:falco5220.cpp
+falco5220                       // 1987
+
 @source:famibox.cpp
 famibox                         // 1986
 
@@ -13462,8 +13467,9 @@ victorycb                       // (c) Comsoft (bootleg)
 warofbug                        // (c) 1981 Armenia
 warofbugg                       // German Version
 warofbugu                       // (c) 1981 Armenia
-zerotime                        // hack
-zerotimed                       // hack
+zerotime                        // hack (Petaco S.A.)
+zerotimed                       // hack (Datamat)
+zerotimemc                      // hack (Marti Colls)
 zigzagb                         // (c) 1982 LAX (bootleg)
 zigzagb2                        // (c) 1982 LAX (bootleg)
 
@@ -15174,9 +15180,10 @@ sams64_2                        // 005 1998/10/16 Samurai Shodown: Warrior's Rag
 xrally                          // 003 1998/05/13 Xtreme Rally / Off Beat Racer!
 
 @source:holeland.cpp
-crzrally                        // (c) 1985
-crzrallya                       // (c) 1985
-crzrallyg                       // (c) 1985
+crzrally                        // (c) 1985 Tecfri
+crzrallya                       // (c) 1985 Tecfri
+crzrallyg                       // (c) 1985 Gecas
+crzrallyrf                      // (c) 1985 Recreativos Franco
 holeland                        // (c) 1984
 holeland2                       // (c) 1984
 
@@ -15784,6 +15791,7 @@ pegglet                         // (c) 1991 Strata/Incredible Technologies
 pokrdice                        // (c) 1991 Strata/Incredible Technologies
 rimrockn                        // (c) 1991 Strata/Incredible Technologies
 rimrockn12                      // (c) 1991 Strata/Incredible Technologies
+rimrockn12b                     // bootleg
 rimrockn16                      // (c) 1991 Strata/Incredible Technologies
 rimrockn20                      // (c) 1991 Strata/Incredible Technologies
 slikshot                        // (c) 1990 Grand Products/Incredible Technologies
@@ -15837,6 +15845,8 @@ euro2k2s                        // (c) 2002 Nazionale Elettronica
 laperla                         // (c) 2002 Nazionale Elettronica
 laperlag                        // (c) 2001 Nazionale Elettronica
 mnumber                         // (c) 200? M.M. - B.R.L.
+wcup                            // (c) 2001 Nazionale Elettronica
+wcup14                          // (c) 2001 Nazionale Elettronica
 
 @source:itt3030.cpp
 itt3030                         //
@@ -18010,6 +18020,7 @@ grainbow                        // (c) 1993 Banpresto
 grainbowk                       // (c) 1993 Banpresto
 heatbrl                         // (c) 1992 Tad (World version 3)
 heatbrl2                        // (c) 1992 Tad (World version 2)
+heatbrl3                        // (c) 1992 Tad (World version ?)
 heatbrle                        // (c) 1992 Tad (Electronic Devices license)
 heatbrlo                        // (c) 1992 Tad (World)
 heatbrlu                        // (c) 1992 Tad (US)
@@ -29154,7 +29165,7 @@ finallapjb                      // 87.12 Final Lap
 finallapjc                      // 87.12 Final Lap
 finehour                        // (c) 1989 (Japan)
 fourtrax                        // 89.11
-fourtraxj						// 89.11
+fourtraxj                       // 89.11
 fourtraxa                       // 89.11
 gollygho                        // 91.7  Golly Ghost
 kyukaidk                        // (c) 1990 (Japan, new version)
@@ -30287,7 +30298,8 @@ mustangs                        // UPL-90058 (c) 1990 UPL + Seoul Trading
 nouryoku                        // (c) 1995 Tecmo
 nouryokup                       // (c) 1995 Tecmo
 popspops                        // (c) 1999
-raphero                         // (c) 1994 Media Trading Corp
+raphero                         // (c) 1994 NMK
+rapheroa                        // (c) 1994 Media Trading Corp
 redfoxwp2                       // (c) 1998 (China)
 redfoxwp2a                      // (c) 1998 (China)
 redhawk                         // (c) 1997 New Vision Ent. license
@@ -30636,6 +30648,7 @@ clubpacm                        // Miky SRL
 clubpacma                       // Miky SRL
 clubpacmb                       // Miky SRL
 crockman                        // 1980 bootleg (RENE PIERRE)
+crockmnf                        // bootleg (Marti Colls / Falgas)
 crush                           // (c) 1981 Kural Samno Electric Ltd
 crush2                          // (c) 1981 Kural Esco Electric Ltd - bootleg?
 crush3                          // Kural Electric Ltd
@@ -30672,6 +30685,7 @@ mrtnt                           // (c) 1983 Telko
 mschamp                         // hack by RAYGLO MFG "Zola-Puc" (c) 1992/1993
 mschamps                        // hack (hack of the Rayglo hack?)
 msheartb                        // hack
+mspacmbmc                       // bootleg (Marti Colls / Falgas)
 mspacii                         // bootleg
 mspacii2                        // bootleg
 mspacmab                        // bootleg
@@ -30731,6 +30745,7 @@ superabc                        // hack
 superabco                       // hack
 theglobp                        // (c) 1983 Epos Corporation
 titanpac                        // hack
+pacmanfm                        // bootleg (FAMARE S.A.)
 vanvan                          // (c) 1983 Sanritsu
 vanvanb                         // (c) 1983 Karateco (bootleg?)
 vanvank                         // (c) 1983 Karateco (bootleg?)
@@ -31842,7 +31857,8 @@ condor                          // bootleg (Sidam)
 condorn                         // bootleg (S C Novar)
 falcon                          // bootleg
 falconz                         // bootleg
-fenix                           // bootleg
+fenix                           // bootleg (Orio)
+fenixn                          // bootleg (Niemer)
 griffon                         // bootleg (Videotron)
 griffono                        // bootleg (Olympia)
 nextfase                        // bootleg
@@ -31968,9 +31984,10 @@ neiva                           //
 pkscram                         // (c) 1993 Cosmo Electronics Corporation
 
 @source:pktgaldx.cpp
-pktgaldx                        // MAZ (c) 1993 Data East (Euro v3.00)
+pktgaldx                        // MAZ (c) 1992 Data East (Euro v3.00)
+pktgaldxa                       // MAZ (c) 1992 Data East (Asia v3.00)
 pktgaldxb                       // bootleg
-pktgaldxj                       // MAZ (c) 1993
+pktgaldxj                       // MAZ (c) 1993 Nihon System inc (Japan v3.00)
 
 @source:plan80.cpp
 plan80                          //
@@ -33338,6 +33355,7 @@ diner_l1                        //
 diner_l2                        //
 diner_l3                        //
 diner_l4                        //
+diner_p0                        //
 gs_la3                          //
 gs_lg6                          //
 gs_lu3                          //
@@ -36284,7 +36302,7 @@ teddybbo                        // 834-5712 (c) 1985 (S1)
 teddybbobl                      // bootleg
 thetogyu                        // 834-5478 (c) 1984 Sega / Coreland (S1)
 tokisens                        // (c) 1987
-tokisensa						//
+tokisensa                       //
 ufosensi                        // 834-6659 (S2)
 ufosensib                       // bootleg
 upndown                         // (c) 1983 (S1)
@@ -38165,6 +38183,7 @@ vendetta2pw                     // GX081 (c) 1991 (World)
 vendettan                       // GX081 (c) 1991 (Japan)
 vendettar                       // GX081 (c) 1991 (World)
 vendettaz                       // GX081 (c) 1991 (World)
+vendettaun                      // GX081 (c) 1991 (World)
 
 @source:vertigo.cpp
 topgunnr                        // (c) 1986
@@ -38278,13 +38297,13 @@ vigilanto                       // (c) 1988 (US)
 
 @source:vii.cpp
 batmantv                        // The Batman, 2004
-vii                             // Chintendo / KenSingTon / Jungle Soft / Siatronics Vii
+vii                             // KenSingTon / Jungle Soft / Siatronics Vii
 vsmile                          //
 vsmileb                         //
 vsmilef                         //
 vsmileg                         //
 walle                           //
-wireless                        // Wireless
+wrlshunt                        // Wireless: Hunting Video Game System
 wirels60                        // Wireless 60
 wlsair60                        // Wireless Air 60
 zone40                          // Zone 40
@@ -39095,6 +39114,7 @@ cc_104                          //
 cc_12                           //
 cc_13                           //
 congo_11                        //
+congo_11s10                     //
 congo_13                        //
 congo_20                        //
 congo_21                        //
@@ -39301,6 +39321,7 @@ fs_sp2                          //
 i500_10r                        //
 i500_11b                        //
 i500_11r                        //
+jb_04a                          //
 jb_10b                          //
 jb_10r                          //
 jm_05r                          //

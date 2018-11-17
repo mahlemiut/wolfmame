@@ -1,5 +1,6 @@
 3do.cpp
 4004clk.cpp
+4d20.cpp
 4dpi.cpp
 68ksbc.cpp
 a2600.cpp
@@ -25,6 +26,7 @@ agat.cpp
 aim65.cpp
 aim65_40.cpp
 akaiax80.cpp
+alcat7100.cpp
 alesis.cpp
 alesis_qs.cpp
 alphasma.cpp
@@ -152,6 +154,7 @@ cortex.cpp
 cosmicos.cpp
 cp1.cpp
 craft.cpp
+crimson.cpp
 crvision.cpp
 ct486.cpp
 cvicny.cpp
@@ -223,6 +226,7 @@ exelv.cpp
 exp85.cpp
 facit4440.cpp
 falco5220.cpp
+falcots.cpp
 fanucs15.cpp
 fanucspmg.cpp
 fb01.cpp
@@ -362,6 +366,7 @@ krz2000.cpp
 kyocera.cpp
 laser3k.cpp
 lb186.cpp
+lb4.cpp
 lc80.cpp
 lcmate2.cpp
 leapster.cpp
@@ -472,6 +477,7 @@ nakajies.cpp
 nanos.cpp
 nascom1.cpp
 nc.cpp
+ncd17c.cpp
 nds.cpp
 neogeocd.cpp
 nes.cpp
@@ -487,7 +493,9 @@ novag6502.cpp
 novag68k.cpp
 novagf8.cpp
 novagmcs48.cpp
+o2.cpp
 ob68k1a.cpp
+octane.cpp
 octopus.cpp
 odyssey2.cpp
 okean240.cpp
@@ -722,6 +730,7 @@ ti630.cpp
 ti74.cpp
 ti85.cpp
 ti89.cpp
+ti931.cpp
 ti99_2.cpp
 ti99_4p.cpp
 ti99_4x.cpp
@@ -802,7 +811,6 @@ vixen.cpp
 vk100.cpp
 votrpss.cpp
 votrtnt.cpp
-vp122.cpp
 vp415.cpp
 vp60.cpp
 vsmilepro.cpp

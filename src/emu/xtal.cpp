@@ -2,7 +2,7 @@
 // copyright-holders:Nicola Salmoria
 /*************************************************************************
 
-    xtal.h
+    xtal.cpp
 
     Documentation and consistent naming for known existing crystals.
 
@@ -201,6 +201,7 @@ const double XTAL::known_xtals[] = {
 	 14'976'000, /* 14.976_MHz_XTAL        CIT-101 80-column display clock */
 	 15'000'000, /* 15_MHz_XTAL            Sinclair QL, Amusco Poker */
 	 15'148'800, /* 15.1488_MHz_XTAL       Zentec 9002/9003 */
+	 15'206'400, /* 15.2064_MHz_XTAL       Falco TS-1 */
 	 15'288'000, /* 15.288_MHz_XTAL        DEC VT220 80-column display clock */
 	 15'300'720, /* 15.30072_MHz_XTAL      Microterm 420 */
 	 15'360'000, /* 15.36_MHz_XTAL         Visual 1050 */
@@ -378,6 +379,7 @@ const double XTAL::known_xtals[] = {
 	 87'183'360, /* 87.18336_MHz_XTAL      AT&T 630 MTG */
 	100'000'000, /* 100_MHz_XTAL           PSX-based Namco System 12, Vegas, Sony ZN1-2-based */
 	101'491'200, /* 101.4912_MHz_XTAL      PSX-based Namco System 10 */
+	108'108'000, /* 108.108_MHz_XTAL       HP 98550 high-res color card */
 	200'000'000  /* 200_MHz_XTAL           Base SH4 CPU (Naomi, Hikaru etc.) */
 };
 

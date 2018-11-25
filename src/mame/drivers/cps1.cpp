@@ -3412,10 +3412,10 @@ MACHINE_CONFIG_START(cps_state::cps1_10MHz)
 	GENERIC_LATCH_8(config, m_soundlatch);
 	GENERIC_LATCH_8(config, m_soundlatch2);
 
-	MCFG_DEVICE_ADD("2151", YM2151, XTAL(3'579'545))  /* verified on pcb */
-	MCFG_YM2151_IRQ_HANDLER(INPUTLINE("audiocpu", 0))
-	MCFG_SOUND_ROUTE(0, "mono", 0.35)
-	MCFG_SOUND_ROUTE(1, "mono", 0.35)
+	ym2151_device &ym2151(YM2151(config, "2151", XTAL(3'579'545)));  /* verified on pcb */
+	ym2151.irq_handler().set_inputline(m_audiocpu, 0);
+	ym2151.add_route(0, "mono", 0.35);
+	ym2151.add_route(1, "mono", 0.35);
 
 	/* CPS PPU is fed by a 16mhz clock,pin 117 outputs a 4mhz clock which is divided by 4 using 2 74ls74 */
 	MCFG_DEVICE_ADD("oki", OKIM6295, XTAL(16'000'000)/4/4, okim6295_device::PIN7_HIGH) // pin 7 can be changed by the game code, see f006 on z80
@@ -7110,7 +7110,7 @@ ROM_END
 ROM_START( sf2uh ) /* same as sf2jh - Street Fighter II: The World Warrior (Japan 910522) except for region byte */
 	ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "sf2u_30h.11e", 0x00000, 0x20000, CRC(fe39ee33) SHA1(22558eb15e035b09b80935a32b8425d91cd79669) )   // == sf2j_30h.11e / sf2e_30g.11e
-	ROM_LOAD16_BYTE( "sf2u_37h.11f", 0x00001, 0x20000, CRC(e4dffbfe) SHA1(79c523d11be8a2b4991221c03020e671f48f5c14) )	// 1 byte difference to sf2j_37h.11f - 0x4C0 == 0x02 vs 0x00 for Japanese set
+	ROM_LOAD16_BYTE( "sf2u_37h.11f", 0x00001, 0x20000, CRC(e4dffbfe) SHA1(79c523d11be8a2b4991221c03020e671f48f5c14) )   // 1 byte difference to sf2j_37h.11f - 0x4C0 == 0x02 vs 0x00 for Japanese set
 	ROM_LOAD16_BYTE( "sf2u_31h.12e", 0x40000, 0x20000, CRC(69a0a301) SHA1(86a3954335310865b14ce8b4e0e4499feb14fc12) )   // == sf2j_31h.12e / sf2e_31g.12e
 	ROM_LOAD16_BYTE( "sf2u_38h.12f", 0x40001, 0x20000, CRC(a659f678) SHA1(f3b99ebaa59edb889498cf5c9d7ceb939da1dedc) )   // == sf2j_38h.12f
 	ROM_LOAD16_BYTE( "sf2u_28h.9e",  0x80000, 0x20000, CRC(8a5c8ee0) SHA1(a6df46e96bf7596665177b18213a3aee4cc7c378) )   // == sf2j_28h.9e

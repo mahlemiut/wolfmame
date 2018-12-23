@@ -761,20 +761,7 @@ void konamim2_state::m2_map(address_map &map)
 	map(0x37a00020, 0x37a0003f).rw(FUNC(konamim2_state::konami_io0_r), FUNC(konamim2_state::konami_io0_w));
 	map(0x37c00010, 0x37c0001f).rw(FUNC(konamim2_state::konami_sio_r), FUNC(konamim2_state::konami_sio_w));
 	map(0x37e00000, 0x37e0000f).rw(FUNC(konamim2_state::konami_io1_r), FUNC(konamim2_state::konami_io1_w));
-	map(0x3f000000, 0x3fffffff).rw(FUNC(konamim2_state::konami_ide_r), FUNC(konamim2_state::konami_ide_w)); // Endian flipped???
-//  map(0x3f000000, 0x3fffffff).rw("ata", FUNC(ata_interface_device::read_cs0), FUNC(ata_interface_device::write_cs0));
-
-#if 0
-	map(0x36c00000, 0x36cfffff).rw(m48t58_r, m48t58_w)
-	map(0x37200000, 0x37200003).w(led_w)
-	map(0x37400000, 0x37400003).w(eeprom_w)
-	map(0x37600000, 0x37600000).w(atapi_dma_w)
-	map(0x37a00000, 0x37a0003f).rw(kacio_r, kacio_w)
-	map(0x37c00010, 0x37c0001f).rw(sio_r, sio_w)            // Konami 11k
-	map(0x37e00000, 0x37e0000f).rw(port_r, port_w)      // Konami? - 37e00006 = Read
-	map(0x3e000000, 0x3effffff).rw(ymz0_r, ymz0_w)          // Konami - Evil Night / Total Vice
-	map(0x3e900000, 0x3e9fffff).rw(ymz1_r, ymz1_w)          // Konami
-#endif
+	map(0x3f000000, 0x3fffffff).rw(FUNC(konamim2_state::konami_ide_r), FUNC(konamim2_state::konami_ide_w));
 }
 
 
@@ -1134,8 +1121,8 @@ INPUT_PORTS_END
 
 void konamim2_state::cr589_config(device_t *device)
 {
-	device->subdevice<cdda_device>("cdda")->add_route(0, ":lspeaker", 0.2);
-	device->subdevice<cdda_device>("cdda")->add_route(1, ":rspeaker", 0.2);
+	device->subdevice<cdda_device>("cdda")->add_route(0, ":lspeaker", 0.5);
+	device->subdevice<cdda_device>("cdda")->add_route(1, ":rspeaker", 0.5);
 	device = device->subdevice("cdda");
 }
 
@@ -1184,8 +1171,8 @@ void konamim2_state::konamim2(machine_config &config)
 	SPEAKER(config, "rspeaker").front_right();
 
 	// TODO!
-	DAC_16BIT_R2R_TWOS_COMPLEMENT(config, m_ldac, 0).add_route(ALL_OUTPUTS, "lspeaker", 2.0);
-	DAC_16BIT_R2R_TWOS_COMPLEMENT(config, m_rdac, 0).add_route(ALL_OUTPUTS, "rspeaker", 2.0); // FIXME
+	DAC_16BIT_R2R_TWOS_COMPLEMENT(config, m_ldac, 0).add_route(ALL_OUTPUTS, "lspeaker", 1.0);
+	DAC_16BIT_R2R_TWOS_COMPLEMENT(config, m_rdac, 0).add_route(ALL_OUTPUTS, "rspeaker", 1.0);
 
 	voltage_regulator_device &vref(VOLTAGE_REGULATOR(config, "vref", 0));
 	vref.set_output(5.0);
@@ -1304,8 +1291,8 @@ ROM_START( polystar )
 	ROM_REGION16_BE( 0x80, "eeprom", 0 ) /* EEPROM default contents */
 	ROM_LOAD( "93c46.7k", 0x000000, 0x000080, CRC(fab5a203) SHA1(153e22aa8cfce80b77ba200957685f796fc99b1c) )
 
-	DISK_REGION( "cdrom" )
-	DISK_IMAGE( "623jaa02", 0, SHA1(e7d9e628a3e0e085e084e4e3630fa5e3a7345547) )
+	DISK_REGION( "cdrom" ) // Has 1s of silence near the start of the first audio track
+	DISK_IMAGE( "623jaa02", 0, BAD_DUMP SHA1(e7d9e628a3e0e085e084e4e3630fa5e3a7345547) )
 ROM_END
 
 ROM_START( btltryst )

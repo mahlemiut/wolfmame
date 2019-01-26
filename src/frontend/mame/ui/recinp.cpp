@@ -73,7 +73,6 @@ ui_menu_record_inp::~ui_menu_record_inp()
 {
 //	menu::menu_stack->reset(reset_options::SELECT_FIRST);
 //	save_ui_options(machine());
-	ui_globals::switch_image = true;
 }
 
 //-------------------------------------------------
@@ -233,7 +232,6 @@ ui_menu_playback_inp::ui_menu_playback_inp(mame_ui_manager &mui, render_containe
 
 ui_menu_playback_inp::~ui_menu_playback_inp()
 {
-	ui_globals::switch_image = true;
 }
 
 //-------------------------------------------------

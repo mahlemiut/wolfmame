@@ -24,10 +24,10 @@
 #include "plib/pstate.h"
 #include "plib/pstream.h"
 
-#include "netlist_types.h"
+#include "nltypes.h"
 #include "nl_errstr.h"
 #include "nl_lists.h"
-#include "nl_time.h"
+#include "plib/ptime.h"
 
 //============================================================
 //  MACROS / New Syntax
@@ -1164,7 +1164,7 @@ namespace netlist
 		virtual bool is_timestep() const { return false; }
 
 	private:
-		bool 			m_hint_deactivate;
+		bool            m_hint_deactivate;
 		state_var_s32   m_active_outputs;
 	};
 
@@ -1675,7 +1675,7 @@ namespace netlist
 	{
 		nl_assert(terminal_state() != STATE_INP_PASSIVE);
 		//if (net().Q() != m_Q)
-		//	printf("term: %s, %d %d TS %d\n", this->name().c_str(), net().Q(), m_Q, terminal_state());
+		//  printf("term: %s, %d %d TS %d\n", this->name().c_str(), net().Q(), m_Q, terminal_state());
 #if USE_COPY_INSTEAD_OF_REFERENCE
 		return m_Q;
 #else

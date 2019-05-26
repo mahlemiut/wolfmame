@@ -721,10 +721,10 @@ void menu_select_launch::inkey_navigation()
 	switch (get_focus())
 	{
 	case focused_menu::MAIN:
-		if (selected <= visible_items)
+		if (selected_index() <= visible_items)
 		{
 			m_prev_selected = get_selection_ref();
-			selected = visible_items + 1;
+			set_selected_index(visible_items + 1);
 		}
 		else
 		{
@@ -733,9 +733,9 @@ void menu_select_launch::inkey_navigation()
 
 			else if (ui_globals::panels_status == HIDE_BOTH)
 			{
-				for (int x = 0; x < item.size(); ++x)
-					if (item[x].ref == m_prev_selected)
-						selected = x;
+				for (int x = 0; x < item_count(); ++x)
+					if (item(x).ref == m_prev_selected)
+						set_selected_index(x);
 			}
 			else
 			{
@@ -817,14 +817,14 @@ void menu_select_launch::draw_common_arrow(float origx1, float origy1, float ori
 	{
 		ui().draw_textured_box(container(), ar_x0 + 0.01f, ar_y0, ar_x1 - 0.01f, ar_y1, UI_MOUSEOVER_BG_COLOR, rgb_t(43, 43, 43),
 				hilight_main_texture(), PRIMFLAG_BLENDMODE(BLENDMODE_ALPHA) | PRIMFLAG_TEXWRAP(1));
-		hover = HOVER_UI_RIGHT;
+		set_hover(HOVER_UI_RIGHT);
 		fgcolor_right = UI_MOUSEOVER_COLOR;
 	}
 	else if (mouse_in_rect(al_x0, al_y0, al_x1, al_y1) && current != dmin)
 	{
 		ui().draw_textured_box(container(), al_x0 + 0.01f, al_y0, al_x1 - 0.01f, al_y1, UI_MOUSEOVER_BG_COLOR, rgb_t(43, 43, 43),
 				hilight_main_texture(), PRIMFLAG_BLENDMODE(BLENDMODE_ALPHA) | PRIMFLAG_TEXWRAP(1));
-		hover = HOVER_UI_LEFT;
+		set_hover(HOVER_UI_LEFT);
 		fgcolor_left = UI_MOUSEOVER_COLOR;
 	}
 
@@ -856,7 +856,7 @@ void menu_select_launch::draw_info_arrow(int ub, float origx1, float origx2, flo
 	{
 		ui().draw_textured_box(container(), origx1 + 0.01f, oy1, origx2 - 0.01f, oy1 + (line_height * text_size), UI_MOUSEOVER_BG_COLOR,
 				rgb_t(43, 43, 43), hilight_main_texture(), PRIMFLAG_BLENDMODE(BLENDMODE_ALPHA) | PRIMFLAG_TEXWRAP(1));
-		hover = (!ub) ? HOVER_DAT_UP : HOVER_DAT_DOWN;
+		set_hover((!ub) ? HOVER_DAT_UP : HOVER_DAT_DOWN);
 		fgcolor = UI_MOUSEOVER_COLOR;
 	}
 
@@ -939,7 +939,7 @@ float menu_select_launch::draw_left_panel(
 		{
 			bgcolor = UI_MOUSEOVER_BG_COLOR;
 			fgcolor = UI_MOUSEOVER_COLOR;
-			hover = HOVER_FILTER_FIRST + filter;
+			set_hover(HOVER_FILTER_FIRST + filter);
 			highlight(x1, y1, x2, y1 + line_height_max, bgcolor);
 		}
 
@@ -985,7 +985,7 @@ float menu_select_launch::draw_left_panel(
 	if (mouse_in_rect(x1, y1, x2, y2))
 	{
 		fgcolor = UI_MOUSEOVER_COLOR;
-		hover = HOVER_LPANEL_ARROW;
+		set_hover(HOVER_LPANEL_ARROW);
 	}
 
 	draw_arrow(ar_x0, ar_y0, ar_x1, ar_y1, fgcolor, ROT90 ^ ORIENTATION_FLIP_X);
@@ -1205,7 +1205,7 @@ void menu_select_launch::draw_toolbar(float x1, float y1, float x2, float y2)
 			rgb_t color(0xEFEFEFEF);
 			if (mouse_in_rect(x1, y1, x2, y2))
 			{
-				hover = HOVER_B_FAV + z;
+				set_hover(HOVER_B_FAV + z);
 				color = rgb_t::white();
 				float ypos = y2 + ui().get_line_height() + 2.0f * UI_BOX_TB_BORDER;
 				ui().draw_text_box(container(), _(hover_msg[z]), ui::text_layout::CENTER, 0.5f, ypos, UI_BACKGROUND_COLOR);
@@ -1303,7 +1303,7 @@ void menu_select_launch::handle_keys(uint32_t flags, int &iptkey)
 	bool const ignorepause = stack_has_special_main_menu();
 
 	// bail if no items
-	if (item.size() == 0)
+	if (item_count() == 0)
 		return;
 
 	// if we hit select, return true or pop the stack, depending on the item
@@ -1384,14 +1384,14 @@ void menu_select_launch::handle_keys(uint32_t flags, int &iptkey)
 			m_topline_datsview--;
 			return;
 		}
-		else if (selected == visible_items + 1 || is_first_selected() || m_ui_error)
+		else if (selected_index() == visible_items + 1 || is_first_selected() || m_ui_error)
 		{
 			return;
 		}
 
-		selected--;
+		set_selected_index(selected_index() - 1);
 
-		if (selected == top_line && top_line != 0)
+		if (selected_index() == top_line && top_line != 0)
 			top_line--;
 	}
 
@@ -1407,13 +1407,13 @@ void menu_select_launch::handle_keys(uint32_t flags, int &iptkey)
 			m_topline_datsview++;
 			return;
 		}
-		else if (is_last_selected() || selected == visible_items - 1 || m_ui_error)
+		else if (is_last_selected() || selected_index() == visible_items - 1 || m_ui_error)
 		{
 			return;
 		}
 
-		selected++;
-		if (selected == top_line + m_visible_items + (top_line != 0))
+		set_selected_index(selected_index() + 1);
+		if (selected_index() == top_line + m_visible_items + (top_line != 0))
 			top_line++;
 	}
 
@@ -1427,12 +1427,9 @@ void menu_select_launch::handle_keys(uint32_t flags, int &iptkey)
 			return;
 		}
 
-		if (selected < visible_items && !m_ui_error)
+		if (selected_index() < visible_items && !m_ui_error)
 		{
-			selected -= m_visible_items;
-
-			if (selected < 0)
-				selected = 0;
+			set_selected_index(std::max(selected_index() - m_visible_items, 0));
 
 			top_line -= m_visible_items - (top_line + m_visible_lines == visible_items);
 		}
@@ -1448,12 +1445,9 @@ void menu_select_launch::handle_keys(uint32_t flags, int &iptkey)
 			return;
 		}
 
-		if (selected < visible_items && !m_ui_error)
+		if (selected_index() < visible_items && !m_ui_error)
 		{
-			selected += m_visible_lines - 2 + (selected == 0);
-
-			if (selected >= visible_items)
-				selected = visible_items - 1;
+			set_selected_index(std::min(selected_index() + m_visible_lines - 2 + (selected_index() == 0), visible_items - 1));
 
 			top_line += m_visible_lines - 2;
 		}
@@ -1472,11 +1466,8 @@ void menu_select_launch::handle_keys(uint32_t flags, int &iptkey)
 			return;
 		}
 
-		if (selected < visible_items && !m_ui_error)
-		{
-			selected = 0;
-			top_line = 0;
-		}
+		if (selected_index() < visible_items && !m_ui_error)
+			select_first_item();
 	}
 
 	// end goes to the last
@@ -1492,8 +1483,8 @@ void menu_select_launch::handle_keys(uint32_t flags, int &iptkey)
 			return;
 		}
 
-		if (selected < visible_items && !m_ui_error)
-			selected = top_line = visible_items - 1;
+		if (selected_index() < visible_items && !m_ui_error)
+			set_selected_index(top_line = visible_items - 1);
 	}
 
 	// pause enables/disables pause
@@ -1536,7 +1527,7 @@ void menu_select_launch::handle_events(uint32_t flags, event &ev)
 		int32_t target_x, target_y;
 		bool button;
 		render_target *const mouse_target = machine().ui_input().find_mouse(&target_x, &target_y, &button);
-		if (mouse_target && button && (hover == HOVER_ARROW_DOWN || hover == HOVER_ARROW_UP))
+		if (mouse_target && button && (hover() == HOVER_ARROW_DOWN || hover() == HOVER_ARROW_UP))
 		{
 			if (pressed)
 				machine().ui_input().push_mouse_down_event(mouse_target, target_x, target_y);
@@ -1563,38 +1554,34 @@ void menu_select_launch::handle_events(uint32_t flags, event &ev)
 			}
 			else
 			{
-				if (hover >= 0 && hover < item.size())
+				if (hover() >= 0 && hover() < item_count())
 				{
-					if (hover >= visible_items - 1 && selected < visible_items)
+					if (hover() >= visible_items - 1 && selected_index() < visible_items)
 						m_prev_selected = get_selection_ref();
-					selected = hover;
+					set_selected_index(hover());
 					m_focus = focused_menu::MAIN;
 				}
-				else if (hover == HOVER_ARROW_UP)
+				else if (hover() == HOVER_ARROW_UP)
 				{
-					selected -= m_visible_items;
-					if (selected < 0)
-						selected = 0;
+					set_selected_index(std::max(selected_index() - m_visible_items, 0));
 					top_line -= m_visible_items - (top_line + m_visible_lines == visible_items);
 					set_pressed();
 				}
-				else if (hover == HOVER_ARROW_DOWN)
+				else if (hover() == HOVER_ARROW_DOWN)
 				{
-					selected += m_visible_lines - 2 + (selected == 0);
-					if (selected >= visible_items)
-						selected = visible_items - 1;
+					set_selected_index(std::min(selected_index() + m_visible_lines - 2 + (selected_index() == 0), visible_items - 1));
 					top_line += m_visible_lines - 2;
 					set_pressed();
 				}
-				else if (hover == HOVER_UI_RIGHT)
+				else if (hover() == HOVER_UI_RIGHT)
 					ev.iptkey = IPT_UI_RIGHT;
-				else if (hover == HOVER_UI_LEFT)
+				else if (hover() == HOVER_UI_LEFT)
 					ev.iptkey = IPT_UI_LEFT;
-				else if (hover == HOVER_DAT_DOWN)
+				else if (hover() == HOVER_DAT_DOWN)
 					m_topline_datsview += m_right_visible_lines - 1;
-				else if (hover == HOVER_DAT_UP)
+				else if (hover() == HOVER_DAT_UP)
 					m_topline_datsview -= m_right_visible_lines - 1;
-				else if (hover == HOVER_LPANEL_ARROW)
+				else if (hover() == HOVER_LPANEL_ARROW)
 				{
 					if (ui_globals::panels_status == HIDE_LEFT_PANEL)
 						ui_globals::panels_status = SHOW_PANELS;
@@ -1605,7 +1592,7 @@ void menu_select_launch::handle_events(uint32_t flags, event &ev)
 					else if (ui_globals::panels_status == HIDE_RIGHT_PANEL)
 						ui_globals::panels_status = HIDE_BOTH;
 				}
-				else if (hover == HOVER_RPANEL_ARROW)
+				else if (hover() == HOVER_RPANEL_ARROW)
 				{
 					if (ui_globals::panels_status == HIDE_RIGHT_PANEL)
 						ui_globals::panels_status = SHOW_PANELS;
@@ -1616,30 +1603,30 @@ void menu_select_launch::handle_events(uint32_t flags, event &ev)
 					else if (ui_globals::panels_status == HIDE_LEFT_PANEL)
 						ui_globals::panels_status = HIDE_BOTH;
 				}
-				else if (hover == HOVER_B_FAV)
+				else if (hover() == HOVER_B_FAV)
 				{
 					ev.iptkey = IPT_UI_FAVORITES;
 					stop = true;
 				}
-				else if (hover == HOVER_B_EXPORT)
+				else if (hover() == HOVER_B_EXPORT)
 				{
 					inkey_export();
 					stop = true;
 				}
-				else if (hover == HOVER_B_DATS)
+				else if (hover() == HOVER_B_DATS)
 				{
 					inkey_dats();
 					stop = true;
 				}
-				else if (hover >= HOVER_RP_FIRST && hover <= HOVER_RP_LAST)
+				else if (hover() >= HOVER_RP_FIRST && hover() <= HOVER_RP_LAST)
 				{
-					ui_globals::rpanel = (HOVER_RP_FIRST - hover) * (-1);
+					ui_globals::rpanel = (HOVER_RP_FIRST - hover()) * (-1);
 					stop = true;
 				}
-				else if (hover >= HOVER_FILTER_FIRST && hover <= HOVER_FILTER_LAST)
+				else if (hover() >= HOVER_FILTER_FIRST && hover() <= HOVER_FILTER_LAST)
 				{
 					m_prev_selected = nullptr;
-					m_filter_highlight = hover - HOVER_FILTER_FIRST;
+					m_filter_highlight = hover() - HOVER_FILTER_FIRST;
 					filter_selected();
 					stop = true;
 				}
@@ -1648,9 +1635,9 @@ void menu_select_launch::handle_events(uint32_t flags, event &ev)
 
 		// if we are hovering over a valid item, fake a UI_SELECT with a double-click
 		case ui_event::MOUSE_DOUBLE_CLICK:
-			if (hover >= 0 && hover < item.size())
+			if (hover() >= 0 && hover() < item_count())
 			{
-				selected = hover;
+				set_selected_index(hover());
 				ev.iptkey = IPT_UI_SELECT;
 			}
 
@@ -1664,28 +1651,26 @@ void menu_select_launch::handle_events(uint32_t flags, event &ev)
 
 		// caught scroll event
 		case ui_event::MOUSE_WHEEL:
-			if (hover >= 0 && hover < item.size() - skip_main_items - 1)
+			if (hover() >= 0 && hover() < item_count() - skip_main_items - 1)
 			{
 				if (local_menu_event.zdelta > 0)
 				{
-					if (selected >= visible_items || is_first_selected() || m_ui_error)
+					if (selected_index() >= visible_items || is_first_selected() || m_ui_error)
 						break;
-					selected -= local_menu_event.num_lines;
-					if (selected < top_line + (top_line != 0))
+					set_selected_index(selected_index() - local_menu_event.num_lines);
+					if (selected_index() < top_line + (top_line != 0))
 						top_line -= local_menu_event.num_lines;
 				}
 				else
 				{
-					if (selected >= visible_items - 1 || m_ui_error)
+					if (selected_index() >= visible_items - 1 || m_ui_error)
 						break;
-					selected += local_menu_event.num_lines;
-					if (selected > visible_items - 1)
-						selected = visible_items - 1;
-					if (selected >= top_line + m_visible_items + (top_line != 0))
+					set_selected_index(std::min(selected_index() + local_menu_event.num_lines, visible_items - 1));
+					if (selected_index() >= top_line + m_visible_items + (top_line != 0))
 						top_line += local_menu_event.num_lines;
 				}
 			}
-			else if (hover == HOVER_INFO_TEXT)
+			else if (hover() == HOVER_INFO_TEXT)
 			{
 				if (local_menu_event.zdelta > 0)
 					m_topline_datsview -= local_menu_event.num_lines;
@@ -1714,9 +1699,9 @@ void menu_select_launch::handle_events(uint32_t flags, event &ev)
 			break;
 
 		case ui_event::MOUSE_RDOWN:
-			if (hover >= 0 && hover < item.size() - skip_main_items - 1)
+			if (hover() >= 0 && hover() < item_count() - skip_main_items - 1)
 			{
-				selected = hover;
+				set_selected_index(hover());
 				m_prev_selected = get_selection_ref();
 				m_focus = focused_menu::MAIN;
 				ev.iptkey = IPT_CUSTOM;
@@ -1775,8 +1760,8 @@ void menu_select_launch::draw(uint32_t flags)
 
 	draw_background();
 
-	hover = item.size() + 1;
-	visible_items = (m_is_swlist) ? item.size() - 2 : item.size() - 2 - skip_main_items;
+	clear_hover();
+	visible_items = (m_is_swlist) ? item_count() - 2 : item_count() - 2 - skip_main_items;
 	float extra_height = (m_is_swlist) ? 2.0f * line_height : (2.0f + skip_main_items) * line_height;
 	float visible_extra_menu_height = get_customtop() + get_custombottom() + extra_height;
 
@@ -1823,14 +1808,14 @@ void menu_select_launch::draw(uint32_t flags)
 		m_visible_lines = visible_items;
 	if (top_line < 0 || is_first_selected())
 		top_line = 0;
-	if (selected < visible_items && top_line + m_visible_lines >= visible_items)
+	if (selected_index() < visible_items && top_line + m_visible_lines >= visible_items)
 		top_line = visible_items - m_visible_lines;
 
 	// determine effective positions taking into account the hilighting arrows
 	float effective_width = visible_width - 2.0f * gutter_width;
 	float effective_left = visible_left + gutter_width;
 
-	if ((m_focus == focused_menu::MAIN) && (selected < visible_items))
+	if ((m_focus == focused_menu::MAIN) && (selected_index() < visible_items))
 		m_prev_selected = nullptr;
 
 	int const n_loop = (std::min)(m_visible_lines, visible_items);
@@ -1838,7 +1823,7 @@ void menu_select_launch::draw(uint32_t flags)
 	{
 		float line_y = visible_top + (float)linenum * line_height;
 		int itemnum = top_line + linenum;
-		const menu_item &pitem = item[itemnum];
+		const menu_item &pitem = item(itemnum);
 		const char *itemtext = pitem.text.c_str();
 		rgb_t fgcolor = UI_TEXT_COLOR;
 		rgb_t bgcolor = UI_TEXT_BG_COLOR;
@@ -1850,7 +1835,7 @@ void menu_select_launch::draw(uint32_t flags)
 
 		// set the hover if this is our item
 		if (mouse_in_rect(line_x0, line_y0, line_x1, line_y1) && is_selectable(pitem))
-			hover = itemnum;
+			set_hover(itemnum);
 
 		if (is_selected(itemnum) && m_focus == focused_menu::MAIN)
 		{
@@ -1864,7 +1849,7 @@ void menu_select_launch::draw(uint32_t flags)
 					bgcolor, rgb_t(43, 43, 43),
 					hilight_main_texture(), PRIMFLAG_BLENDMODE(BLENDMODE_ALPHA) | PRIMFLAG_TEXWRAP(1));
 		}
-		else if (itemnum == hover)
+		else if (itemnum == hover())
 		{
 			// else if the mouse is over this item, draw with a different background
 			fgcolor = fgcolor3 = UI_MOUSEOVER_COLOR;
@@ -1885,8 +1870,8 @@ void menu_select_launch::draw(uint32_t flags)
 			draw_arrow(0.5f * (x1 + x2) - 0.5f * ud_arrow_width, line_y + 0.25f * line_height,
 				0.5f * (x1 + x2) + 0.5f * ud_arrow_width, line_y + 0.75f * line_height, fgcolor, ROT0);
 
-			if (hover == itemnum)
-				hover = HOVER_ARROW_UP;
+			if (hover() == itemnum)
+				set_hover(HOVER_ARROW_UP);
 		}
 		else if (linenum == m_visible_lines - 1 && itemnum != visible_items - 1)
 		{
@@ -1894,8 +1879,8 @@ void menu_select_launch::draw(uint32_t flags)
 			draw_arrow(0.5f * (x1 + x2) - 0.5f * ud_arrow_width, line_y + 0.25f * line_height,
 				0.5f * (x1 + x2) + 0.5f * ud_arrow_width, line_y + 0.75f * line_height, fgcolor, ROT0 ^ ORIENTATION_FLIP_Y);
 
-			if (hover == itemnum)
-				hover = HOVER_ARROW_DOWN;
+			if (hover() == itemnum)
+				set_hover(HOVER_ARROW_DOWN);
 		}
 		else if (pitem.type == menu_item_type::SEPARATOR)
 		{
@@ -1908,7 +1893,7 @@ void menu_select_launch::draw(uint32_t flags)
 			// draw the item centered
 			int const item_invert = pitem.flags & FLAG_INVERT;
 			if (m_has_icons)
-				draw_icon(linenum, item[itemnum].ref, effective_left, line_y);
+				draw_icon(linenum, item(itemnum).ref, effective_left, line_y);
 			ui().draw_text_full(
 					container(),
 					itemtext,
@@ -1935,7 +1920,7 @@ void menu_select_launch::draw(uint32_t flags)
 
 			// draw the item left-justified
 			if (m_has_icons)
-				draw_icon(linenum, item[itemnum].ref, effective_left, line_y);
+				draw_icon(linenum, item(itemnum).ref, effective_left, line_y);
 			ui().draw_text_full(
 					container(),
 					itemtext,
@@ -1955,9 +1940,9 @@ void menu_select_launch::draw(uint32_t flags)
 		}
 	}
 
-	for (size_t count = visible_items; count < item.size(); count++)
+	for (size_t count = visible_items; count < item_count(); count++)
 	{
-		const menu_item &pitem = item[count];
+		const menu_item &pitem = item(count);
 		const char *itemtext = pitem.text.c_str();
 		float line_x0 = x1 + 0.5f * UI_LINE_WIDTH;
 		float line_y0 = line;
@@ -1967,7 +1952,7 @@ void menu_select_launch::draw(uint32_t flags)
 		rgb_t bgcolor = UI_TEXT_BG_COLOR;
 
 		if (mouse_in_rect(line_x0, line_y0, line_x1, line_y1) && is_selectable(pitem))
-			hover = count;
+			set_hover(count);
 
 		// if we're selected, draw with a different background
 		if (is_selected(count) && m_focus == focused_menu::MAIN)
@@ -1978,7 +1963,7 @@ void menu_select_launch::draw(uint32_t flags)
 					hilight_main_texture(), PRIMFLAG_BLENDMODE(BLENDMODE_ALPHA) | PRIMFLAG_TEXWRAP(1));
 		}
 		// else if the mouse is over this item, draw with a different background
-		else if (count == hover)
+		else if (count == hover())
 		{
 			fgcolor = UI_MOUSEOVER_COLOR;
 			bgcolor = UI_MOUSEOVER_BG_COLOR;
@@ -2047,7 +2032,7 @@ void menu_select_launch::draw_right_panel(float origx1, float origy1, float orig
 	if (mouse_in_rect(origx1, origy1, x2, origy2))
 	{
 		fgcolor = UI_MOUSEOVER_COLOR;
-		hover = HOVER_RPANEL_ARROW;
+		set_hover(HOVER_RPANEL_ARROW);
 	}
 
 	if (hide)
@@ -2105,7 +2090,7 @@ float menu_select_launch::draw_right_box_title(float x1, float y1, float x2, flo
 			{
 				bgcolor = UI_MOUSEOVER_BG_COLOR;
 				fgcolor = UI_MOUSEOVER_COLOR;
-				hover = HOVER_RP_FIRST + cells;
+				set_hover(HOVER_RP_FIRST + cells);
 			}
 		}
 
@@ -2520,7 +2505,7 @@ float menu_select_launch::draw_collapsed_left_panel(float x1, float y1, float x2
 	if (mouse_in_rect(x1, y1, x2, y2))
 	{
 		fgcolor = UI_MOUSEOVER_COLOR;
-		hover = HOVER_LPANEL_ARROW;
+		set_hover(HOVER_LPANEL_ARROW);
 	}
 
 	draw_arrow(ar_x0, ar_y0, ar_x1, ar_y1, fgcolor, ROT90);
@@ -2699,7 +2684,7 @@ void menu_select_launch::infos_render(float origx1, float origy1, float origx2, 
 		m_topline_datsview = m_total_lines - r_visible_lines;
 
 	if (mouse_in_rect(origx1 + gutter_width, oy1, origx2 - gutter_width, origy2))
-		hover = HOVER_INFO_TEXT;
+		set_hover(HOVER_INFO_TEXT);
 
 	sc = origx2 - origx1 - (2.0f * gutter_width);
 	for (int r = 0; r < r_visible_lines; ++r)

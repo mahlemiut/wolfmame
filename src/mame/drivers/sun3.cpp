@@ -319,7 +319,6 @@ void sun3_state::ncr5380(device_t *device)
 {
 	devcb_base *devcb;
 	(void)devcb;
-	downcast<ncr5380n_device &>(*device).set_clock(10000000);
 //  downcast<ncr5380n_device &>(*device).drq_handler().set(FUNC(sun3_state::drq_w));
 }
 
@@ -998,7 +997,6 @@ void sun3_state::machine_start()
 
 void sun3_state::machine_reset()
 {
-	m_maincpu->reset();
 	m_enable = 0;
 	m_buserr = 0;
 	m_diag = 1;

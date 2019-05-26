@@ -494,7 +494,7 @@
   These series are running in a derivative hardware with epoxy CPU brick.
   CPU is RP65C02A, with 2x Toshiba TC5565APL-10 RAMs. 1x Intel D27128A ROM.
   and 1x PAL16L8B.
-  
+
   The main program is inside the battery backed RAM, and need to be dumped.
   See more notes below in the ROM loading.
 
@@ -509,13 +509,13 @@
   and waiting for some seconds.
 
   You can see two options...
-  
+
   STOP 1 ---- OPZIONI 1
   STOP 3 ---- OPZIONI 2
 
   OPZIONI 1:
   You can change game parameters for Gioco AB, Play Max, Play Min, Difficolt, Bonus, and Rilancio.
-  
+
   OPZIONI 2:
   You can change game parameters for Tabella Vincite, Velocita Simboli, Control Double, Valore Ticket,
   Limit Credit, and Limit Scarico.
@@ -615,567 +615,6 @@
 
 *****************************************************************************************
 
-  *** Hardware Info ***
-
-  Moved all technical info to the ROM load section...
-
-
-*****************************************************************************************
-
-  *** Driver Updates ***
-
-
-  [2005/09/08]
-  - Added Cuore Uno, Elephant Family and Royal Card.
-
-  [2005/09/19]
-  - Added some clones.
-  - Cleaned up and renamed all sets. Made parent-clone relationship.
-
-  [2005/12/15]
-  - Corrected CPU freq (2 MHz) in cuoreuno and elephfam (both have R65C02P2).
-     (I suspect more games must have their CPU running at 2 MHz).
-  - Corrected videoram and colorram offsets in cuoreuno and elephfam.
-  - To initialize the NVRAM in cuoreuno and elephfam:
-     Start game, press and hold Service1 & Service2, press reset (F3),
-     release Service1 & Service2 and press reset (F3) again.
-
-  [2006/10/18]
-  - Corrected the screen size and visible area to cuoreuno and elephfam based on mc6845 registers.
-  - Added all inputs to cuoreuno and elephfam.
-  - Added test mode DIP switch to cuoreuno and elephfam.
-  - Managed cuoreuno and elephfam inputs to pass the initial checks. Now both games are playable.
-  - Changed the cuoreuno full name to "Cuore 1" (as shown in the attract).
-
-  [2006/10/22-28]
-  - Corrected cuoreuno and elephfam graphics to 4bpp.
-  - Fixed elephfam gfx planes.
-  - Simulated cuoreuno palette based on screenshots.
-  - Simulated elephfam palette based on screenshots.
-
-
-  [2006/11/01 to 2006/12/04]
-
-  ******** REWRITE ********
-
-  - Merged/splitted some machine drivers, memory maps and inputs.
-  - Unified get_bg_tile_info for all games.
-  - Mapped the input buttons in a better format (all games). Keys: 156-QW-ZXCVBNM.
-  - Added proper color PROM decode routines.
-  - Rewrote the technical notes.
-  - Splitted the driver to driver/video.
-
-  - Corrected the screen size and visible area to magiccrd based on mc6845 registers.
-  - Added the remaining 2 GFX planes to magiccrd, but GFX are imperfect (bad decode or bad dump?).
-     Color PROM need to be dumped.
-  - Royalcrd: Added all inputs and DIP switches.
-     Fixed memory map, gfx decode
-     Corrected screen size and visible area based on mc6845 registers.
-     Corrected CPU clock to 2mhz.
-
-  - New game added: Joker Poker. Not working due to use of custom encrypted CPU.
-  - New game added: Royal Card (Slovakia, encrypted). Not working due to use of a custom encrypted CPU.
-  - Fixed jolycdcr gfx to 4bpp.
-  - Other fixes to get jolycdcr running.
-  - Managed royalcdb to work, using the 2nd half of program ROM. (seems to be mapped that way)
-  - Managed jolycdit to work, but with imperfect graphics due to gfx encryption.
-  - Fixed CPU clock to 2MHz. in all remaining games.
-  - Fixed ay8910 frequency based on elephfam audio.
-  - Fixed ay8910 volume in all games to avoid clipping.
-  - Reworked jolycdcr inputs: The game was designed to work only with remote credits.
-     After nvram init, set the payout dip to "manual".
-  - Reworked jolycdit inputs: After nvram init, set the payout dip
-     to "manual" to allow work the remote mode.
-  - Set jolycdat as bigdeal clone. The game has the same layout/behaviour instead of the normal
-     jolly card games, even when they are sharing gfx roms.
-  - Added the bipolar PROM and GAL to jolycdit. Confirmed the GFX ROMs as good dumps.
-  - Added an alternate set of Elephant Family. This one lacks of test mode and doesn't allow
-     to switch between min-max bets through stop1.
-  - Added color PROMs to cuoreuno and elephfam sets but still no routed.
-     Also added PLDs (protected, bad dumps).
-  - Corrected jollycrd screen size and visible area based on mc6845 registers.
-  - Hooked, wired and decoded the color prom in jollycrd sets based on jolycdit redump.
-     Now colors are perfect.
-  - Wired and decoded the color prom in cuoreuno and elephfam sets.
-     Now colors are perfect.
-  - Wired and decoded the color prom in royalcrd. Now colors are perfect.
-  - Hooked, wired and decoded the color prom in bigdeal sets based on jolycdat (jollycrd palette).
-     Colors seems to be correct, but need to check against the real thing.
-     Flagged as IMPERFECT_COLORS till a color PROM dump appear.
-  - Decrypted jolycdit gfx roms.
-  - Added set Jolly Card (Austria, encrypted).
-  - Decrypted jolycdae and managed the planes to show correct colors. The set is working properly.
-
-
-  [2006/12/24]
-  - Fixed some incomplete inputs.
-  - Added new working game: Pool 10.
-  - Added new working game: Tortuga Family.
-  - Added new game: Mongolfier New. Not working due to the lack of MCU emulation.
-  - Added new game: Soccer New. Not working due to the lack of MCU emulation.
-  - Updated technical notes.
-
-  [2007/02/01]
-  - All crystals documented via #defines.
-  - All CPU and sound clocks derived from #defined crystal values.
-  - Added DIPLOCATIONS to all games.
-  - Added a pool10 alternate set.
-  - Added proper tsc87c52 MCU dumps to monglfir and soccernew.
-  - Modified the refresh rate to 60 fps according to some video evidences.
-  - Updated technical notes.
-
-  [2007/02/25]
-  - Added new game: Snooker 10 (Ver 1.11). Preliminary.
-     Properly decoded GFX
-     Proper colors decoded.
-  - Updated technical notes.
-
-  [2007/09/21]
-  - Added new game: Saloon (France, encrypted). Preliminary.
-  - Updated technical notes.
-
-  [2008/02/10]
-  - Switched to XTAL def.
-  - Fixed Magic Card II graphics issues.
-  - Fixed Magic Card II inputs.
-  - Fixed screen and visible area to snooker10.
-  - Renamed set monglfir to mongolnw.
-  - Renamed sets description based on languages instead of countries.
-  - Added new game: Magic Card II (green TAB or Impera board). Not working yet.
-  - Added new game: Magic Card II (blue TAB board, encrypted). Not working yet.
-  - Added new game: Jolly Card (3x3 deal).
-  - Added new game: Jolly Card Professional 2.0 (with 'enter code' screen to boot).
-  - Added new game: Lucky Lady (3x3 deal).
-  - Added new game: Lucky Lady (4x1 aces).
-  - Added new game: Royal Vegas Joker Card (fast deal).
-  - Added new game: Royal Vegas Joker Card (slow deal).
-  - Fixed some years and manufacturers.
-  - Updated technical notes.
-  - Cleaned up the driver.
-
-  [2008/02/22]
-  - Switched the color decoding routines to use resnet code.
-  - Added complete color connections to/from 74ls373 to the source.
-
-  [2008/02/25]
-  - Added new game: Royal Vegas Joker Card (fast deal, english gfx).
-  - Added new game: Jolly Joker.
-  - Added new game: Jolly Joker (50bet).
-  - Added new game: Jolly Card (croatian, set 2).
-  - Added new game: Jolly Card (Evona Electronic)
-  - Added new game: Super Joly 2000 - 3x
-  - Fixed some inputs.
-  - Masked inputs to allow jolyjokra to boot.
-  - Added minor corrections.
-  - Updated technical notes.
-
-  [2008/03/14]
-  - Added proper inputs to jolyc980.
-  - Added temporary patch to allow bypass the "code" screen in jolyc980.
-  - Updated technical notes.
-
-  [2008/03/18]
-  - Added new game: Pot Game (italian).
-  - Updated technical notes.
-
-  [2008/04/18]
-  - Removed the temporary hack to jolyc980.
-  - Updated technical notes regarding Magic Card II & Jolly Card Professional 2.0.
-  - Moved snookr10 to its own driver.
-  - Minor clean-up.
-
-  [2008/04/27]
-  - Fixed AY8910 volume to all games to avoid clips.
-  - Merge bigdeal and funworld machine drivers thanks to the AY8910 rewrite.
-  - Removed old unaccurate commentary about magiccrd tiles.
-
-  [2008/04/29]
-  All CMC italian games:
-  - Added TICKET and HOPPER buttons to allow payout through the SUPER GAME.
-  - Documented the featured SUPER GAME with complete instructions.
-  - Improved DIP switches to properly set the payout system.
-
-  [2008/05/13]
-  - Found the proper algorithm to decrypt the blue TAB PCB.
-  - Replaced the old decryption tables with the proper decryption scheme.
-  - Updated technical notes.
-
-  [2008/07/30]
-  - Added new clone: Pool 10 (italian, set 3).
-  - Updated technical notes.
-
-  [2008/09/12]
-  - Added new clone: Pool 10 (italian, set 4).
-  - Improved lamps layout for all games.
-  - Added Pool 10 pinout and DIP switches info.
-  - Updated technical notes.
-
-  [2008/12/01]
-  - Decripted saloon's program, graphics and color PROM.
-  - Created a new memory map and machine driver for saloon.
-  - Removed set jolycdae (not coming from a real board).
-  - Renamed the sets magiccrd, magiccda and magiccdb, to magicrd2, magicd2a and magicd2b.
-  - Updated technical notes.
-
-  [2008/12/15]
-  - Added new set: Jolly Card (italian, encrypted bootleg).
-     No coins... Only remote credits. After nvram init, set the Payout DIP to 'manual'
-     to allow the remote credits mode to work.
-  - Created inputs from the scratch for jolycdib.
-  - Updated technical notes.
-
-  [2008-12-26]
-  - Correctly setup the MC6845 device for all systems.
-  - Added common MC6845 device interface.
-  - Eliminated the screen size & visible area parameters to Magic Card 2.
-
-  [2009/01/23]
-  - Added new sets: Bottle 10 (italian, set 1 & 2).
-  - Updated technical notes.
-
-  [2009/09/09]
-  - Discovered and documented new features in Jolly Card (Evona Electronics).
-  - Removed the commented hack for joly980 driver init since is not needed anymore.
-  - Fixed a bug introduced with the massive input change, that didn't allow initialize
-     all sets that need the normal procedure to do it.
-  - Updated technical notes.
-
-  [2010/03/01]
-  - Fixed Jolly Joker graphics and colors.
-  - Changed Jolly Joker description to Jolly Joker (98bet).
-  - Added a new croatian set of Jolly Joker with maximum bet = 40.
-  - Moved the hardware description and tech notes to the ROM_LOAD section.
-  - Added a external default NVRAM for Jolly Card Professional 2.0.
-  - Updated technical notes.
-
-  [2010/03/09]
-  - Added external default NVRAM support to the following games:
-     bottle10, bottl10b, elephfam, elephfmb, jollycrd, jolyc3x3,
-     jolyccra, jolyccrb, jolycdev, jolycdib, jolycdit, jolyjokr,
-     jolyjokra, jolyjokrb, lluck3x3, lluck4x1, magicrd2, pool10,
-     pool10b, pool10c, pool10d, potgame, royalcrd, royalcdb,
-     sjcd2kx3, tortufam, vegasfst, vegasfte and vegasslw.
-  - Changed default settings for some games, now that NVRAM is
-     loaded externally.
-
-  [2010/03/15]
-  - Removed all hacks in the rom load section. Now the involved sets
-     are properly loaded in the same way the hardware does.
-  - Replaced hardcoded values on graphics decode routines with proper
-     RGN_FRAC calculations.
-  - Fixed graphics bitplanes to involved games.
-  - Added more hardware/technical info.
-  - Modify the mongolnw machine driver. Now can see it starts.
-  - Added Multi Win, from Fun World. The set is encrypted and use a
-     custom CPU. Seems similar hardware than (multi) Joker Card.
-  - Added Fun World Quiz. Needs proper banking, and both graphics and
-     bipolar PROM redumps.
-  - Added Fun World Quiz description, and hardware notes.
-
-  - Improved inputs for Fun World Quiz.
-  - Proper handlers and banking for Fun World Quiz questions.
-  - Partial decryption for royalcdc and multiwin.
-  - Complete Fun World Quiz DIP switches with dip locations.
-  - Promoted Fun World Quiz to working state.
-  - Added Fun World Quiz bookkeeping instructions notes.
-  - Turned lamps off as default state for all supported game.
-  - Changed default button-lamps layout to selective per game,
-     since some games need different one, and some games lack
-     of lamps at all.
-
-  - Reworked button-lamps layouts per game. Cleaned-up the code.
-  - Added specific button-lamps layout for bigdeal games.
-  - Added specific button-lamps layout for royalcrd & jolycdit,
-     but there is a bug in the d-up select code that lights the
-     wrong lamp. This is a leftover from jollycrd routines.
-  - Flagged vegasfte as MACHINE_NOT_WORKING, since is not receiving
-     any coins or remote credits anymore.
-
-  [2010/03/21]
-  - Added dual-state palette (addressable through PLDs).
-     This allow to choose which half of the palette will be addressed.
-  - Splitted the main machine driver to cover both palette states.
-  - Reworked inputs / DIP switches for vegasslw, vagasfst and vegasfte.
-  - Created new default NVRAM for Royal Vegas Joker Card sets.
-     These need to be configurated to be valid ones. Now vegasfte can
-     receive remote credits, and all three in the family have valid
-     min-max bet value and payout.
-  - Removed the not working flag from vegasfte.
-  - Improved colors for Big Deal sets.
-  - Correct colors for Royal Vegas Joker Card sets.
-
-  - Added a second set of Jolly Card Professional.
-     Documented the code differences.
-  - Added another Royal Vegas Joker Card set, from Mile.
-     These sets aren't intended to work with coins. Only remote credits
-     are allowed. There are external modules that can manage up to 4
-     machines simultaneously, adding/removing/watching credits.
-  - Added default NVRAM to the above sets.
-  - Added proper inputs and DIP switches to vegasmil.
-  - Replaced the jolyc980 default NVRAM with one totally clean.
-     Temporal and total meters are cleared to zero.
-
-  [2010/04/18]
-  - Replaced the Fun World Quiz bad ROMs with good ones.
-  - Fixed the Fun World Quiz graphics and colors.
-  - Cleaned-up the flags for non working games.
-  - Modified the default lamps layout to include the bet lamp.
-  - Cleaned-up the Fun World Quiz inputs.
-  - Added 4 new Royal Card sets. Reworked parent/clone relationship.
-     (delete the old .cfg and .nv files to have them working properly).
-  - Splitted the Royal Card machine driver. This is needed to access
-     different halves of the bipolar PROM.
-  - Now principle Royal Card sets have a working bet button.
-  - Added default NVRAM to the new sets.
-
-  [2011/04/04]
-  - Added 'Witch Royal' from Video Klein. Seems a hybrid game
-     from Witch Card and Royal Card...
-  - Reworked the button-lamps layout to get the hold buttons
-     more centered.
-
-  [2011/10/20]
-  - Added 'Novo Play Multi Card / Club Card' from Admiral/Novomatic.
-     Seems a derivated game from Royal Vegas...
-  - Added proper button-lamps support and layout.
-  - Added default NVRAM, necessary to boot.
-  - Added technical notes.
-
-  [2012/10/11]
-  - Added 'Mega Card (Ver 0263, encrypted)' from Fun World.
-  - Added PCB layout.
-  - GFX are properly decoded.
-
-  [2012/10/27-29]
-  - Added 'Bonus Card (German)' from Fun World.
-  - Added PCB layouts.
-  - Set Big Deal sets and Jolly Card hybrid as clones
-     of Bonus Card.
-  - Cleaned up the code.
-  - Changed company name 'Funworld' to 'Fun World'.
-  - Changed Mega Card to Power Card after check the real hardware running.
-  - Fixed Power Card graphics ROM load..
-  - Moved jolycdat program to Bonus Card, making it parent.
-     This program is a real original Bonus Card program, and the PCB
-     was populated with Jolly Card graphics wrongly. The other Bonus Card set
-     was turned as clone, since has a fake copyright string (hack).
-  - Renamed the internal layout artwork: bigdeal --> bonuscrd.
-  - Default Bonus Card & Big Deal DIP switches positions, that
-    allow boot the system without errors.
-  - Added new Yugoslavian set of Magic Card 2 (Nov/New).
-  - Added default NVRAM, needed to boot properly.
-  - Rearrange the whole Magic Card 2 sets, and improved descriptions.
-  - Added technical notes.
-
-  [2012/11/08-09]
-  - New Pool 10 set, from a Dino 4 encrypted hardware.
-  - Added PCB layout and technical notes.
-  - Decrypted the program data & address.
-  - Decrypted the graphics ROMs address.
-  - Added a default NVRAM.
-  - Added button-lamps layout.
-  - Promoted to working state.
-  - Improved the PCB layout.
-  - Added some technical notes.
-  - Added PLD dumps to bonuscrd and powercrd.
-
-  [2012/11/14]
-  - Added a Jolly Card spanish set from an unknown encrypted
-     PCB 'alla TAB blue board. Graphics are decrypted.
-  - Decrypted the program ROM.
-  - Added button-lamps layout.
-  - Added a default NVRAM.
-  - Promoted to working state.
-
-  [2013/01/15]
-  - Added a Jolly Card (Italian) set from an encrypted blue TAB
-     bootleg board. This one allows to play in both 'remote' and
-    'normal' mode. The game could pay through regular hopper, or
-     through manual switch/button, discharging the credits one
-     by one.
-
-  [2013/04/09]
-  - Added default NVRAM to magicrd2b, magicrd2c and royalcrdp,
-     allowing to boot them. Promoted to working state.
-  - Removed the 'hack' in the Magic Card 2 sets description...
-     Almost all the sets on this driver were hacked in different
-     degrees. Not proof that these were released as originals,
-     or just a hack.
-
-  [2013/12/25]
-  - Added default NVRAM to mongolnw and soccernw, allowing boot them.
-     Both games are promoted to working state, but flagged as 'game
-     unemulated protection' due to the lack of MCU emulation.
-
-  [2014/01/23]
-  - Added unknown encrypted Royal Card. This game is running on Dino 4
-     encrypted hardware, with a CPU+PLCC daughterboard.
-  - Decrypted program address + data, but code still jumps into $48xx
-     range where there's no valid code.
-  - Decoded and partially decrypted the graphics set.
-
-  [2014/02/05]
-  - Rcdino4: Fully decrypted the graphics set.
-  - Added technical notes...
-
-  [2014/02/10]
-  - Added China Town. Running in Dino4 encrypted hardware.
-  - Fully decrypted program and graphics set.
-  - Worked out the extra protection.
-  - Added button-lamps support + layout.
-  - Added technical notes...
-
-  [2014/02/16]
-  - Added Luna Park (set 1, dual program). Running in modified
-     CMC hardware, with video RAM 4000-4FFF mirrored in 6000-6FFF
-     and color RAM 5000-5FFF mirrored in 7000-7FFF.
-     This game has the highest address line of the program tied to
-     DIP switch #1, so you can select between 2 different programs.
-     Both programs write to videoram either to each video RAM ranges.
-  - Added proper program ROM banking and connected to DIP switch #1.
-  - Added Luna Park (set 2). This one writes to normal CMC video RAM.
-  - Added Crystal Colours (CMC hardware).
-  - Added default NVRAM to Crystal Colours (CMC hardware), allowing
-     to boot with clean meters/settings.
-  - Cleaned-up the machine drivers.
-  - Derived clocks via #define.
-  - Added technical notes.
-
-  [2014/02/26]
-  - Added Jolly Card (Italian, different colors, set 1).
-    This set is running in a modified hardware with a big CPLD.
-  - Added Jolly Card (Italian, different colors, set 2).
-  - Added Royal Card (German, set 7).
-    These are running in bootleg hardware.
-  - Added technical notes.
-
-  [2014/03/09]
-  - Added Royal Card (French).
-    This set is original, but running in a bootleg board.
-  - Added a default NVRAM to get the game working.
-  - Added technical notes.
-
-  [2014/05/08]
-  - Rcdino4: Fully decrypted the code set.
-  - Corrected technical notes...
-
-
-  [...2018/2019]
-
-  Note: there are some undocumented improvements, additions and changes.
-
-  - Added new Multi/Joker Card hardware from Funworld
-    with epoxy brick CPU.
-  - Added different sets from this hardware.
-  - Added technical notes about the hardware and behaviour.
-  - Change game description from Joker Card (Epoxy brick CPU)
-    to Joker Card / Multi Card (Epoxy brick CPU).
-  - Added NVRAM.
-
-  - Support for custom CPUs' opcode decryption, affecting
-    Multi Win, Power Card, Mega Card, Joker Card 300 (Amatic)
-	and Royal Card (Slovak Encrypted).
-
-  Fixed Saloon & added Nevada:
-  - Added I2C bus and default serial EEPROM.
-  - Added default NVRAM.
-  - Improved memory map.
-  - Removed PIAs.
-  - Added DIP switches.
-  - Reworked inputs.
-  - Fixed colors.
-  - Added technical notes.
-
-  Fun World encrypted games improvements:
-  - Moved the Multi Win class to the header.
-  - Reworked the memory maps.
-  - Fixed the ROM loads.
-  - Changed tilemaps size.
-  - Added new video start.
-  - Extended the encryption range to covering the new ROM space.
-  - Reworked inputs (still need some work).
-  - Fixed graphics bitplanes & palettes.
-  - Changed the jokercrd game description to Joker Card 300 (Ver.A267BC, encrypted).
-  - Marked jokercrd graphics ROM IC10 as bad dump.
-  - Demoted rcdino4 to not working since there are issues with the PIAs
-    that doesn't allow the game to boot.
-  - Added technical notes.
-
-  Royal Card (Slovak, encrypted) improvements:
-  - Modified the machine_config to bank the palette in a different way.
-  - Inverted the graphics ROM load, fixing the bitplanes.
-    Tiles now are visible, and have perfect colors.
-  - Moved the royalcrdf class to the header.
-  - Created new memory map.
-  - Fixed the VRAM offsets.
-
-  - Added default NVRAM to Royal Card (Italian, Dino 4 hardware, encrypted).
-  - Promoted the game to Working.
-  - Added technical and game notes.
-
-  - Marked royalcrdc graphics ROM roj.ic26 as bad dump.
-    address line 08 is faulty, so you have 0x100 bytes blocks repeated
-    along the dump.
-  - Reworked jolycdig and added default NVRAM.
-  - Added button-lamps support to jolycdig & jolycdab.
-    Both games were promoted to working state.
-  - Added technical and game notes.
-
-  Unknown Inter Games poker improvements:
-  - Reworked memory map.
-  - Found the real VRAM offset.
-  - Added splitted attr/color RAM.
-  - Mirrored attr/color RAM for separated writes.
-  - Hooked the AY8910 properly.
-  - Changed CPU from 65C02 to 65SC02.
-  - Generated periodic interrupts.
-  - Temporarily patched some hardware checks.
-  - Added default NVRAM.
-  - Changed game description to Joker Card (Inter Games).
-  - Promoted the game to Working.
-  - Added technical notes.
-  
-  - Readded CRTC and nuked the periodic interrupt.
-  - Added support for multiplexed CRTC & AY8910.
-
-  Fun World Quiz:
-  - Added 2 new sets.
-  - Adjust the questions Roms load/banking.
-  - Reworked Inputs from the scratch.
-
-  - Switched Austrian-->German for all sets, since the language
-    is in fact German.
-
-  Royal Card (Slovak, encrypted):
-  - Adjusted the decryption offsets.
-  - Improved memory map.
-  - Mirrored PIA #0 to $6800, and PIA #1 to $6000.
-  - Improved inputs.
-  - Created a default NVRAM.
-  - Changed game description to Royal Card (Evona, Polish, encrypted).
-  - Switched the CPU base to R65C02 to avoid the bug when a NMI occurs in a BRK.
-  - Added a temporary workaround to force a NOP after the BRK, and
-    balanced checksums. Will be removed once found a workaround in
-    the decryption routines.
-  - Added technical and game notes.
-  - Promoted the game to working.
-
-  Royal Card (German, set 4):
-  - Verified the GFX dump as a mix of Royal Card
-    & Jolly Card graphics, with faulty address.
-	Used GFX set from parent, that matches 100%.
-  - Removed the imperfect graphics flag.
-
-  Joker Card 300 (Ver.A267BC, encrypted):
-  - Redumped the faulty graphics ROM thanks to a special
-    custom device constructed with forensics technics.
-  - Removed the imperfect graphics flag.
-  - Promoted the game to working.
-  - Added technical and game notes.
-
-  - I2C bus inclusion only for Saloon/Nevada instead of all games.
-
-
 
   *** TO DO ***
 
@@ -1188,15 +627,10 @@
   - Implement the MCU in monglfir and soccernw.
   - Check for a possible bug in the royalcrdf decryption scheme, that
     doesn't cover the BRK instruction properly, changing the next value
-	on the fly turning a NOP into a PLA, messing the Stack Pointer.
+    on the fly turning a NOP into a PLA, messing the Stack Pointer.
 
 
 ****************************************************************************************/
-
-#define MASTER_CLOCK    XTAL(16'000'000)
-#define CPU_CLOCK      (MASTER_CLOCK/8)
-#define SND_CLOCK      (MASTER_CLOCK/8)
-#define CRTC_CLOCK     (MASTER_CLOCK/8)
 
 #include "emu.h"
 #include "includes/funworld.h"
@@ -1212,6 +646,12 @@
 #include "jollycrd.lh"
 #include "novoplay.lh"
 #include "royalcrd.lh"
+
+
+#define MASTER_CLOCK    XTAL(16'000'000)
+#define CPU_CLOCK      (MASTER_CLOCK/8)
+#define SND_CLOCK      (MASTER_CLOCK/8)
+#define CRTC_CLOCK     (MASTER_CLOCK/8)
 
 
 /**********************
@@ -1519,7 +959,7 @@ void funworld_state::fw_brick_map(address_map &map)
 	map(0x0e01, 0x0e01).rw("crtc", FUNC(mc6845_device::register_r), FUNC(mc6845_device::register_w));
 	map(0x2000, 0x2fff).ram().w(FUNC(funworld_state::funworld_videoram_w)).share("videoram");
 	map(0x3000, 0x3fff).ram().w(FUNC(funworld_state::funworld_colorram_w)).share("colorram");
-	map(0x4000, 0x7fff).nopr();    // check for the brick RAM programming ROM. 
+	map(0x4000, 0x7fff).nopr();    // check for the brick RAM programming ROM.
 	map(0x8000, 0xbfff).ram().share("nvram1");
 	map(0xc000, 0xffff).rom();
 }
@@ -2816,7 +2256,7 @@ INPUT_PORTS_END
 static INPUT_PORTS_START( saloon )
 	PORT_START("IN0")  // 0800h
 	PORT_BIT( 0x01, IP_ACTIVE_LOW, IPT_START1 )       PORT_NAME("Play / Start / Enter")
-	PORT_BIT( 0x02, IP_ACTIVE_LOW, IPT_OTHER )        PORT_NAME("0-2")        PORT_CODE(KEYCODE_2)  // still unknown... 
+	PORT_BIT( 0x02, IP_ACTIVE_LOW, IPT_OTHER )        PORT_NAME("0-2")        PORT_CODE(KEYCODE_2)  // still unknown...
 	PORT_BIT( 0x04, IP_ACTIVE_LOW, IPT_POKER_HOLD4 )  PORT_NAME("Stop 4 / High / Menu Down")
 	PORT_BIT( 0x08, IP_ACTIVE_LOW, IPT_POKER_CANCEL ) PORT_NAME("Cancel / Take / Autohold / Exit")
 	PORT_BIT( 0x10, IP_ACTIVE_LOW, IPT_SERVICE2 )     PORT_NAME("Menu")
@@ -2833,7 +2273,7 @@ static INPUT_PORTS_START( saloon )
 	PORT_BIT( 0x20, IP_ACTIVE_LOW, IPT_UNKNOWN ) PORT_NAME("1-6") PORT_CODE(KEYCODE_H)
 	PORT_BIT( 0x40, IP_ACTIVE_LOW, IPT_UNKNOWN ) PORT_NAME("1-7") PORT_CODE(KEYCODE_J)
 	PORT_BIT( 0x80, IP_ACTIVE_LOW, IPT_UNKNOWN ) PORT_NAME("1-8") PORT_CODE(KEYCODE_K)
-	
+
 	PORT_START("IN2")  // 0802h
 	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_UNKNOWN )
 	PORT_BIT( 0x02, IP_ACTIVE_LOW,  IPT_POKER_HOLD2 ) PORT_NAME("Stop 2 / Low")
@@ -2843,7 +2283,7 @@ static INPUT_PORTS_START( saloon )
 	PORT_BIT( 0x20, IP_ACTIVE_LOW,  IPT_POKER_HOLD3 ) PORT_NAME("Stop 3")
 	PORT_BIT( 0x40, IP_ACTIVE_HIGH, IPT_UNKNOWN )
 	PORT_BIT( 0x80, IP_ACTIVE_HIGH, IPT_UNKNOWN )
-	
+
 	PORT_START("IN3")  // 0808h
 	PORT_BIT( 0x01, IP_ACTIVE_LOW, IPT_COIN1 )
 	PORT_BIT( 0x02, IP_ACTIVE_LOW, IPT_UNKNOWN )
@@ -2851,7 +2291,7 @@ static INPUT_PORTS_START( saloon )
 	PORT_BIT( 0x08, IP_ACTIVE_LOW, IPT_SERVICE1 )      PORT_NAME("Credits IN/OUT")
 	PORT_BIT( 0x10, IP_ACTIVE_LOW, IPT_UNKNOWN )
 	PORT_BIT( 0x20, IP_ACTIVE_LOW, IPT_GAMBLE_KEYOUT ) PORT_NAME("Keyout (Scarico Coin)")
-	PORT_BIT( 0x40, IP_ACTIVE_LOW, IPT_UNKNOWN ) 
+	PORT_BIT( 0x40, IP_ACTIVE_LOW, IPT_UNKNOWN )
 	PORT_BIT( 0x80, IP_ACTIVE_LOW, IPT_OTHER ) PORT_NAME("Warm Reset") PORT_CODE(KEYCODE_R)
 
 	PORT_START("IN4")  // 0A00h
@@ -2887,7 +2327,7 @@ static INPUT_PORTS_START( saloon )
 	PORT_START("I2C_DI")  // 1000h Input
 	PORT_BIT( 0x01, IP_ACTIVE_LOW, IPT_UNKNOWN )
 	PORT_BIT( 0x02, IP_ACTIVE_HIGH, IPT_OTHER ) PORT_READ_LINE_DEVICE_MEMBER("i2cmem", i2cmem_device, read_sda)      // Serial Data In
-	PORT_BIT( 0x04, IP_ACTIVE_LOW, IPT_UNKNOWN ) 
+	PORT_BIT( 0x04, IP_ACTIVE_LOW, IPT_UNKNOWN )
 	PORT_BIT( 0x08, IP_ACTIVE_LOW, IPT_UNKNOWN )
 	PORT_BIT( 0x10, IP_ACTIVE_LOW, IPT_UNKNOWN )
 	PORT_BIT( 0x20, IP_ACTIVE_LOW, IPT_UNKNOWN )
@@ -2897,7 +2337,7 @@ static INPUT_PORTS_START( saloon )
 	PORT_START("I2C_DO")  // 1000h Output
 	PORT_BIT( 0x01, IP_ACTIVE_LOW, IPT_UNKNOWN )
 	PORT_BIT( 0x02, IP_ACTIVE_HIGH, IPT_OUTPUT ) PORT_WRITE_LINE_DEVICE_MEMBER("i2cmem", i2cmem_device, write_sda)   // Serial Data Out
-	PORT_BIT( 0x04, IP_ACTIVE_LOW, IPT_UNKNOWN ) 
+	PORT_BIT( 0x04, IP_ACTIVE_LOW, IPT_UNKNOWN )
 	PORT_BIT( 0x08, IP_ACTIVE_LOW, IPT_UNKNOWN )
 	PORT_BIT( 0x10, IP_ACTIVE_LOW, IPT_UNKNOWN )
 	PORT_BIT( 0x20, IP_ACTIVE_LOW, IPT_UNKNOWN )
@@ -3584,7 +3024,6 @@ void funworld_state::fw1stpal(machine_config &config)
 	screen.set_size((124+1)*4, (30+1)*8);               /* Taken from MC6845 init, registers 00 & 04. Normally programmed with (value-1) */
 	screen.set_visarea(0*4, 96*4-1, 0*8, 29*8-1);  /* Taken from MC6845 init, registers 01 & 06 */
 	screen.set_screen_update(FUNC(funworld_state::screen_update_funworld));
-	screen.set_palette(m_palette);
 
 	GFXDECODE(config, m_gfxdecode, m_palette, gfx_fw1stpal);
 	PALETTE(config, m_palette, FUNC(funworld_state::funworld_palette), 0x200);
@@ -3759,15 +3198,15 @@ void funworld_state::fw_brick_2(machine_config &config)
 }
 
 READ8_MEMBER(royalcrdf_state::royalcrdf_opcode_r)
-{	
+{
 	// address-based data bitswap; 4 address bits are involved, but only
 	// 5 different bitswaps exist, with clear regularities, so the
-	// hardware is probably selecting the appropiate one by 
+	// hardware is probably selecting the appropiate one by
 	// applying passive logic to the address bits; we encode it
 	// indexed by all the involved address bits instead. A notable fact is that
 	// all the permutations in royalcrdf & multiwin are odd-parity ones,
 	// so an intriguing possibility is that the hardware be applying
-	// a fixed odd number (3 would suffice) of address-dependent 
+	// a fixed odd number (3 would suffice) of address-dependent
 	// 1-bit-to-1-bit bitswaps; furthermore, in both sets one of the
 	// bitswaps is equal to the one applied to all the data (but notice
 	// that, in those cases, we are applying it twice to opcodes here)
@@ -3789,20 +3228,20 @@ READ8_MEMBER(royalcrdf_state::royalcrdf_opcode_r)
 		5,2,1,7,
 		1,7,5,2,
 	};
-	
+
 	// xor masks, dependent on the same address bits than the bitswaps,
 	// and with the same 5-values structure
 	constexpr std::array<uint8_t,16> xm {
 		0x02, 0x02, 0xa6, 0x82, 0x02, 0x02, 0x06, 0x82, 0x02, 0x02, 0xa6, 0x00, 0x02, 0x02, 0x06, 0x00
 	};
-	
+
 	uint8_t data {_maincpu->space(AS_PROGRAM).read_byte(offset)};
 
-	if(offset<0x800) 
+	if(offset<0x800)
 		data = bitswap<8>(data^0x22,2,6,7,4,3,1,5,0);
 
 	unsigned idx {bitswap<4>(offset, 8,5,2,1)};
-	
+
 	return bitswap<8>(data, bs[idx][3],6,bs[idx][2],4,3,bs[idx][1],bs[idx][0],0) ^ xm[idx];
 }
 
@@ -3821,10 +3260,10 @@ void royalcrdf_state::driver_init()
 
 /*  Temporary hack to modify the value that ends to be a NOP,
     after the BRK, and balanced checksums. Will be removed once
-	found a workaround in the decryption routines.
+    found a workaround in the decryption routines.
 */
 	ROM[0x802d]=0xa2;  // checksum.
-	ROM[0xbc4e]=0x68;  // future NOP after BRK. 
+	ROM[0xbc4e]=0x68;  // future NOP after BRK.
 }
 
 void royalcrdf_state::royalcrdf(machine_config &config)
@@ -3840,9 +3279,9 @@ void royalcrdf_state::royalcrdf(machine_config &config)
 
 
 READ8_MEMBER(multiwin_state::multiwin_opcode_r)
-{	
+{
 	// same general encryption scheme than the one used by the EVONA Royald Card set;
-	// 4 address bits determine which bitswap+xor is applied to the opcodes; in this case, 
+	// 4 address bits determine which bitswap+xor is applied to the opcodes; in this case,
 	// one of the address bits don't have effect on the bitswap, just on the xor;
 	// again, we have just five different bitswaps, and the hardware is probably using
 	// passive logic on the address bits to do the selection
@@ -3856,15 +3295,15 @@ READ8_MEMBER(multiwin_state::multiwin_opcode_r)
 		0,5,7,4,2,
 		4,0,2,7,5,
 	};
-	
+
 	// xor masks
 	constexpr std::array<uint8_t,16> xm {
 		0x00, 0x00, 0x10, 0x00, 0x20, 0x00, 0x30, 0x00, 0x00, 0xb5, 0x10, 0xb5, 0x20, 0xb5, 0x30, 0xb5
 	};
-	
+
 	uint8_t data {_maincpu->space(AS_PROGRAM).read_byte(offset)};
 	unsigned idx {bitswap<4>(offset, 6,9,5,3)};
-	
+
 	return bitswap<8>(data, bs[idx&7][4],6,bs[idx&7][3],bs[idx&7][2],3,bs[idx&7][1],1,bs[idx&7][0]) ^ xm[idx];
 }
 
@@ -3898,26 +3337,26 @@ public:
 	: funworld_state(mconfig, type, tag)
 	{
 	}
-	
+
 	void powercrd(machine_config& config);
-	
+
 private:
 	cpu_device* _maincpu {};
 	DECLARE_READ8_MEMBER(powercrd_opcode_r);
-	
+
 	void powercrd_opcodes_map(address_map& map);
 };
 
 READ8_MEMBER(powercrd_state::powercrd_opcode_r)
-{	
+{
 	// encryption controlled by the lower two bits of the address; no clear structure is
 	// seen in the tables, so it looks like a lookup into randomly or pseudorandomly
 	// generated permutation tables; all opcodes in the [8da0, 9e0b) & [c000, ef80) are
 	// believed to be covered by these tables; errors could be lurking in the least used opcodes;
 	// this same encryption scheme (with different tables) is seen in megacard & jokercrd
-	
+
 	constexpr uint8_t UNKN {0xfc};
-	
+
 	constexpr std::array<std::array<uint8_t,256>,4> decryption_tables
 	{
 		//_0    _1    _2    _3    _4    _5    _6    _7    _8    _9    _a    _b    _c    _d    _e    _f
@@ -3992,7 +3431,7 @@ READ8_MEMBER(powercrd_state::powercrd_opcode_r)
 		UNKN, UNKN, UNKN, UNKN, UNKN, UNKN, UNKN, UNKN, UNKN, 0xa9, UNKN, UNKN, UNKN, UNKN, 0xc5, UNKN,  // e_
 		UNKN, 0x86, 0x29, 0x4a, UNKN, UNKN, 0x18, 0x98, UNKN, UNKN, UNKN, 0x9c, UNKN, 0x7a, UNKN, 0x48,  // f_
 	};
-	
+
 	uint8_t data {_maincpu->space(AS_PROGRAM).read_byte(offset)};
 	return decryption_tables[offset&3][data];
 }
@@ -4005,7 +3444,7 @@ void powercrd_state::powercrd_opcodes_map(address_map &map)
 void powercrd_state::powercrd(machine_config &config)
 {
 	fw2ndpal(config);
-	
+
 	_maincpu = reinterpret_cast<cpu_device*>(config.device("maincpu"));
 	_maincpu->set_addrmap(AS_OPCODES, &powercrd_state::powercrd_opcodes_map);
 }
@@ -4017,23 +3456,23 @@ public:
 	: funworld_state(mconfig, type, tag)
 	{
 	}
-	
+
 	void megacard(machine_config& config);
-	
+
 private:
 	cpu_device* _maincpu {};
 	DECLARE_READ8_MEMBER(megacard_opcode_r);
-	
+
 	void megacard_opcodes_map(address_map& map);
 };
 
 READ8_MEMBER(megacard_state::megacard_opcode_r)
-{	
-	// all opcodes in the [c000, fc80) range are believed to be covered by these tables; 
+{
+	// all opcodes in the [c000, fc80) range are believed to be covered by these tables;
 	// errors could be lurking in the least used opcodes
-	
+
 	constexpr uint8_t UNKN {0xfc};
-	
+
 	constexpr std::array<std::array<uint8_t,256>,4> decryption_tables
 	{
 		//_0    _1    _2    _3    _4    _5    _6    _7    _8    _9    _a    _b    _c    _d    _e    _f
@@ -4053,7 +3492,7 @@ READ8_MEMBER(megacard_state::megacard_opcode_r)
 		UNKN, UNKN, UNKN, UNKN, 0x2d, UNKN, UNKN, UNKN, 0x4a, 0x88, 0x05, UNKN, UNKN, 0x10, 0xce, UNKN,  // d_
 		UNKN, UNKN, 0xc4, UNKN, 0x18, UNKN, UNKN, UNKN, 0x99, 0xf9, UNKN, UNKN, UNKN, UNKN, UNKN, 0xdd,  // e_
 		0x11, UNKN, 0x26, UNKN, 0x65, 0x98, UNKN, 0xad, 0x2a, UNKN, UNKN, 0x8d, UNKN, UNKN, UNKN, UNKN,  // f_
-		
+
 		//_0    _1    _2    _3    _4    _5    _6    _7    _8    _9    _a    _b    _c    _d    _e    _f
 		UNKN, UNKN, UNKN, 0x18, UNKN, UNKN, UNKN, 0x8e, UNKN, UNKN, UNKN, UNKN, UNKN, 0xaa, 0xcd, 0x0a,  // 0_
 		0xe6, UNKN, UNKN, UNKN, UNKN, UNKN, UNKN, UNKN, UNKN, UNKN, UNKN, 0xad, UNKN, UNKN, UNKN, UNKN,  // 1_
@@ -4071,7 +3510,7 @@ READ8_MEMBER(megacard_state::megacard_opcode_r)
 		UNKN, UNKN, 0x20, 0xb9, UNKN, UNKN, UNKN, UNKN, 0x00, UNKN, UNKN, UNKN, UNKN, UNKN, UNKN, UNKN,  // d_
 		UNKN, 0x80, 0x65, UNKN, UNKN, 0xe8, 0xc9, UNKN, UNKN, UNKN, UNKN, UNKN, 0xee, 0xf0, UNKN, UNKN,  // e_
 		UNKN, 0xa0, 0xc8, UNKN, UNKN, UNKN, 0xc4, UNKN, 0x4e, 0xe0, 0xa8, UNKN, 0x45, UNKN, UNKN, 0xa6,  // f_
-		
+
 		//_0    _1    _2    _3    _4    _5    _6    _7    _8    _9    _a    _b    _c    _d    _e    _f
 		UNKN, 0x86, UNKN, UNKN, 0xe6, 0xc9, UNKN, 0x1a, UNKN, 0xdd, 0x88, UNKN, UNKN, UNKN, UNKN, 0x8e,  // 0_
 		UNKN, 0xe0, UNKN, UNKN, 0x4c, 0xd0, UNKN, 0x64, UNKN, 0xa4, UNKN, UNKN, UNKN, UNKN, UNKN, UNKN,  // 1_
@@ -4089,7 +3528,7 @@ READ8_MEMBER(megacard_state::megacard_opcode_r)
 		0x69, 0x60, 0x9a, 0xb2, UNKN, UNKN, 0x2a, UNKN, 0x65, UNKN, UNKN, UNKN, 0x25, UNKN, 0x79, 0x6a,  // d_
 		UNKN, 0x20, 0xb9, UNKN, 0x3a, 0xd5, UNKN, 0x4a, UNKN, UNKN, UNKN, UNKN, UNKN, UNKN, 0x99, 0xa8,  // e_
 		UNKN, UNKN, UNKN, UNKN, 0xda, UNKN, UNKN, UNKN, UNKN, 0xcd, UNKN, 0x7a, 0xad, UNKN, UNKN, UNKN,  // f_
-		
+
 		//_0    _1    _2    _3    _4    _5    _6    _7    _8    _9    _a    _b    _c    _d    _e    _f
 		UNKN, UNKN, UNKN, 0x60, UNKN, UNKN, 0xb1, UNKN, UNKN, UNKN, 0x29, UNKN, 0x8e, 0x74, 0x9a, 0xea,  // 0_
 		UNKN, 0x6d, UNKN, 0x92, 0xb5, UNKN, UNKN, UNKN, UNKN, UNKN, UNKN, 0x7d, 0xb9, 0xa2, UNKN, 0x6a,  // 1_
@@ -4108,7 +3547,7 @@ READ8_MEMBER(megacard_state::megacard_opcode_r)
 		UNKN, 0xc9, UNKN, UNKN, UNKN, UNKN, 0x64, 0x48, UNKN, UNKN, 0xa8, UNKN, 0xe8, UNKN, UNKN, UNKN,  // e_
 		UNKN, UNKN, 0xa9, UNKN, 0xf0, UNKN, UNKN, UNKN, UNKN, UNKN, UNKN, 0x18, UNKN, UNKN, UNKN, UNKN,  // f_
 	};
-	
+
 	uint8_t data {_maincpu->space(AS_PROGRAM).read_byte(offset)};
 	return decryption_tables[offset&3][data];
 }
@@ -4121,7 +3560,7 @@ void megacard_state::megacard_opcodes_map(address_map &map)
 void megacard_state::megacard(machine_config &config)
 {
 	fw2ndpal(config);
-	
+
 	_maincpu = reinterpret_cast<cpu_device*>(config.device("maincpu"));
 	_maincpu->set_addrmap(AS_OPCODES, &megacard_state::megacard_opcodes_map);
 }
@@ -4133,57 +3572,57 @@ public:
 	: funworld_state(mconfig, type, tag)
 	{
 	}
-	
+
 	void jokercrd(machine_config& config);
-	
+
 private:
 	cpu_device* _maincpu {};
 	DECLARE_READ8_MEMBER(jokercrd_opcode_r);
-	
+
 	void jokercrd_opcodes_map(address_map& map);
 };
 
 READ8_MEMBER(jokercrd_state::jokercrd_opcode_r)
-{	
-	// even when errors could be lurking in the least used opcodes, 
+{
+	// even when errors could be lurking in the least used opcodes,
 	// all of them in the [8050,b369) & [c000, f063) ranges are believed
 	// to be covered by these tables, with the exception of the one @c0f1:
-	
-	// 	c0da: a6 6a     ldx $6a
-	// 	c0dc: ad 5c 00  lda $005c
-	// 	c0df: 29 3f     and #$3f
-	// 	c0e1: 85 70     sta $70
-	// 	c0e3: 20 fa c0  jsr $c0fa
-	// 	c0e6: a5 70     lda $70
-	// 	c0e8: 9d 33 02  sta $0233, x
-	// 	c0eb: a2 00     ldx #$00
-	// 	c0ed: e4 6a     cpx $6a
-	// 	c0ef: f0 08     beq $c0f9
-	// 	c0f1: XX 33 02  nop #$33 #$02 [YYY $0233, x]
-	// 	c0f4: f0 e4     beq $c0da
-	// 	c0f6: e8        inx
-	// 	c0f7: 80 f4     bra $c0ed
-	// 	c0f9: 60        rts
-	// 	
-	// 	c0fa: ad 4b 07  lda $074b
-	// 	c0fd: 0d 4c 07  ora $074c
-	// 	c100: d0 01     bne $c103
-	// 	c102: 60        rts
-	// 	c103: a5 70     lda $70
-	// 	c105: 29 30     and #$30
-	// 	c107: 09 01     ora #$01
-	// 	c109: 85 70     sta $70
-	// 	c10b: 60        rts
-	
+
+	//  c0da: a6 6a     ldx $6a
+	//  c0dc: ad 5c 00  lda $005c
+	//  c0df: 29 3f     and #$3f
+	//  c0e1: 85 70     sta $70
+	//  c0e3: 20 fa c0  jsr $c0fa
+	//  c0e6: a5 70     lda $70
+	//  c0e8: 9d 33 02  sta $0233, x
+	//  c0eb: a2 00     ldx #$00
+	//  c0ed: e4 6a     cpx $6a
+	//  c0ef: f0 08     beq $c0f9
+	//  c0f1: XX 33 02  nop #$33 #$02 [YYY $0233, x]
+	//  c0f4: f0 e4     beq $c0da
+	//  c0f6: e8        inx
+	//  c0f7: 80 f4     bra $c0ed
+	//  c0f9: 60        rts
+	//
+	//  c0fa: ad 4b 07  lda $074b
+	//  c0fd: 0d 4c 07  ora $074c
+	//  c100: d0 01     bne $c103
+	//  c102: 60        rts
+	//  c103: a5 70     lda $70
+	//  c105: 29 30     and #$30
+	//  c107: 09 01     ora #$01
+	//  c109: 85 70     sta $70
+	//  c10b: 60        rts
+
 	// it should be noted, however, that the subroutine @c0da seems to be called just from here:
-	// 	c044: 64 6a     stz $6a
-	// 	c046: 20 da c0  jsr $c0da
+	//  c044: 64 6a     stz $6a
+	//  c046: 20 da c0  jsr $c0da
 	// and, if no interrupt is messing with the accesed data, the STZ @c044 should make the BEQ @c0ef
 	// become an inconditional jump, converting the opcode @c0f1 in dead code
-	
-	
+
+
 	constexpr uint8_t UNKN {0xfc};
-	
+
 	constexpr std::array<std::array<uint8_t,256>,4> decryption_tables
 	{
 		//_0    _1    _2    _3    _4    _5    _6    _7    _8    _9    _a    _b    _c    _d    _e    _f
@@ -4203,7 +3642,7 @@ READ8_MEMBER(jokercrd_state::jokercrd_opcode_r)
 		UNKN, 0xb9, 0x86, UNKN, 0xca, UNKN, UNKN, UNKN, UNKN, UNKN, 0x7a, UNKN, 0xf0, 0x09, 0x4c, UNKN,  // d_
 		0x60, 0x78, UNKN, UNKN, UNKN, 0x48, 0x5a, UNKN, UNKN, UNKN, 0x79, UNKN, UNKN, UNKN, UNKN, 0xba,  // e_
 		UNKN, UNKN, 0x6d, 0x92, UNKN, 0x26, UNKN, UNKN, 0xb5, UNKN, 0x69, UNKN, UNKN, 0xa4, UNKN, 0x1d,  // f_
-		
+
 		//_0    _1    _2    _3    _4    _5    _6    _7    _8    _9    _a    _b    _c    _d    _e    _f
 		UNKN, UNKN, UNKN, UNKN, 0x48, UNKN, UNKN, 0x0c, UNKN, 0x60, 0x6d, 0x20, 0xda, UNKN, 0xf0, UNKN,  // 0_
 		UNKN, 0xcd, 0x95, UNKN, UNKN, 0xae, UNKN, UNKN, UNKN, UNKN, UNKN, UNKN, 0x8e, UNKN, 0x29, UNKN,  // 1_
@@ -4221,7 +3660,7 @@ READ8_MEMBER(jokercrd_state::jokercrd_opcode_r)
 		UNKN, UNKN, UNKN, UNKN, UNKN, UNKN, UNKN, 0x19, 0x65, UNKN, UNKN, UNKN, 0xce, 0x7a, UNKN, 0x3a,  // d_
 		UNKN, 0x7d, UNKN, 0x0a, 0x49, UNKN, UNKN, UNKN, 0xe6, 0xd8, UNKN, UNKN, UNKN, UNKN, UNKN, UNKN,  // e_
 		UNKN, UNKN, UNKN, UNKN, 0x09, 0xa9, 0x25, UNKN, UNKN, UNKN, UNKN, UNKN, UNKN, 0x5a, UNKN, 0x68,  // f_
-		
+
 		//_0    _1    _2    _3    _4    _5    _6    _7    _8    _9    _a    _b    _c    _d    _e    _f
 		UNKN, 0x20, UNKN, UNKN, UNKN, 0x8e, UNKN, UNKN, UNKN, 0xb0, 0x85, 0x3d, UNKN, 0x86, UNKN, UNKN,  // 0_
 		0x18, UNKN, UNKN, UNKN, 0x8a, 0xad, 0x79, 0x98, UNKN, UNKN, 0xc0, UNKN, 0x30, UNKN, 0x10, UNKN,  // 1_
@@ -4239,7 +3678,7 @@ READ8_MEMBER(jokercrd_state::jokercrd_opcode_r)
 		UNKN, UNKN, UNKN, UNKN, UNKN, UNKN, UNKN, UNKN, UNKN, 0x99, UNKN, 0x88, UNKN, 0xcd, UNKN, 0xe8,  // d_
 		0xca, 0xb5, 0x49, 0x68, UNKN, UNKN, UNKN, UNKN, UNKN, UNKN, UNKN, UNKN, 0xe6, 0xe0, 0x4a, UNKN,  // e_
 		UNKN, UNKN, UNKN, 0xc8, UNKN, 0xb9, 0x91, UNKN, UNKN, UNKN, UNKN, 0x65, 0x95, UNKN, UNKN, UNKN,  // f_
-		
+
 		//_0    _1    _2    _3    _4    _5    _6    _7    _8    _9    _a    _b    _c    _d    _e    _f
 		0x65, UNKN, UNKN, UNKN, 0x30, UNKN, UNKN, UNKN, 0x8e, UNKN, UNKN, 0xda, 0x2d, 0xc4, UNKN, 0x68,  // 0_
 		UNKN, 0xa2, UNKN, UNKN, 0x2a, 0xa6, UNKN, UNKN, UNKN, 0x86, UNKN, UNKN, 0x60, UNKN, 0xe6, 0xa4,  // 1_
@@ -4258,7 +3697,7 @@ READ8_MEMBER(jokercrd_state::jokercrd_opcode_r)
 		UNKN, 0xec, 0x20, UNKN, 0xad, 0xd0, UNKN, 0x3d, UNKN, 0xb1, 0x6c, 0x66, UNKN, 0x4e, UNKN, 0xd5,  // e_
 		0xe9, UNKN, UNKN, 0xa9, UNKN, UNKN, 0xe8, UNKN, UNKN, 0xc9, 0xa8, UNKN, UNKN, 0x48, UNKN, UNKN,  // f_
 	};
-	
+
 	uint8_t data {_maincpu->space(AS_PROGRAM).read_byte(offset)};
 	return decryption_tables[offset&3][data];
 }
@@ -4271,7 +3710,7 @@ void jokercrd_state::jokercrd_opcodes_map(address_map &map)
 void jokercrd_state::jokercrd(machine_config &config)
 {
 	fw2ndpal(config);
-	
+
 	_maincpu = reinterpret_cast<cpu_device*>(config.device("maincpu"));
 	_maincpu->set_addrmap(AS_OPCODES, &jokercrd_state::jokercrd_opcodes_map);
 }
@@ -5965,7 +5404,7 @@ ROM_START( royalcrdc )
 	ROM_LOAD( "3.bin", 0x0000, 0x8000, CRC(c46d804f) SHA1(b089821c7dae6714b49401d787f8bed859815763) )
 	ROM_LOAD( "2.bin", 0x8000, 0x8000, CRC(41f7a0b3) SHA1(9aff2b8832d2a4f868daa9849a0bfe5e44f88fc0) )
 
-	ROM_REGION( 0x10000, "gfxbad", 0 )  // faulty gfx set with bad addressing and mix of royal card & jolly card tiles. 
+	ROM_REGION( 0x10000, "gfxbad", 0 )  // faulty gfx set with bad addressing and mix of royal card & jolly card tiles.
 	ROM_LOAD( "roj.ic26", 0x0000, 0x8000, BAD_DUMP CRC(3883cdcb) SHA1(b71a786822fe8fcb2c6fcdc463facb2738ec8c01) )
 	ROM_IGNORE(                   0x8000)
 	ROM_LOAD( "roj.ic25", 0x8000, 0x8000, CRC(c5b787e8) SHA1(be88aa901c1f96d171af45c3602e0ce72b8fff34) )
@@ -7156,7 +6595,7 @@ ROM_START( saloon )
 
 	ROM_REGION( 0x0200, "proms", 0 )
 	ROM_LOAD( "82s147_saloon.bin", 0x0000, 0x0200, CRC(f424ccc1) SHA1(6df1215f58cca786e9f0ea4bf35407cf7fe21d83) )
-	
+
 	ROM_REGION( 0x0100, "i2cmem", 0 )
 	ROM_LOAD( "saloon_i2c.bin", 0x0000, 0x0100, CRC(57e9ce5a) SHA1(3a8420a8ed50faf31a30c01f9438f1df95e5789a) )
 ROM_END
@@ -7697,7 +7136,7 @@ ROM_END
   This game is running in a derivative hardware with epoxy CPU brick.
   CPU is a 65C02, with two 5565 RAMs and one 27128 ROM.
   Also there are present some PLD and logic. (see above).
-  
+
   The main program is inside the battery backed RAM, and need to be dumped.
   These RAMs are connected to the mainboard battery, so once the Brick is unplugged,
   the battery stops to feed the RAM and the program just vanish.
@@ -7709,11 +7148,11 @@ ROM_END
   8000-bfff location, where is the battery backed RAM inside the brick.
 
   We need to find a new working board and reverse the central connector, to construct
-  some interface that allows us to dump the content of the internal battery backed RAM. 
+  some interface that allows us to dump the content of the internal battery backed RAM.
 
-  For debug purposes, we plugged an external game code from another similar game, that 
+  For debug purposes, we plugged an external game code from another similar game, that
   matches all calls from the original ROM code. We suspect is the same code with different
-  language (English instead German). With this external code the game is completely playable. 
+  language (English instead German). With this external code the game is completely playable.
 
   ----
 
@@ -7740,8 +7179,8 @@ ROM_START( jokcrdep )
 	ROM_LOAD( "200_zg_1.bin", 0x8000, 0x8000, CRC(367db105) SHA1(400b82dc9e0be4c17a02add009aab3c43dd901f8) )
 
 	ROM_REGION( 0x0800, "nvram", 0 )
-	ROM_LOAD( "joker_nvram.bin", 0x0000, 0x0800, CRC(92019972) SHA1(E6D1E231CD2CE27E718ED9482DBE9DDC8612EB67) )	    // Default NVRAM.
-	
+	ROM_LOAD( "joker_nvram.bin", 0x0000, 0x0800, CRC(92019972) SHA1(E6D1E231CD2CE27E718ED9482DBE9DDC8612EB67) )     // Default NVRAM.
+
 	ROM_REGION( 0x4000, "nvram1", 0 )
 	ROM_LOAD( "e-0.bin", 0x0000, 0x4000, BAD_DUMP CRC(8FD42F3B) SHA1(208209761DE046189070B88AD4340C8D7FF55F1F) )    // Internal suicide program. Taken from Novo Play.
 
@@ -7878,8 +7317,8 @@ void funworld_state::init_saloon()
     Low 11 bits of address are scrambled.
 
     Color:
-	Data has bits 2-3-5-6-7 scrambled.
-	Address has the 8 lower bits scrambled.
+    Data has bits 2-3-5-6-7 scrambled.
+    Address has the 8 lower bits scrambled.
 
 *************************************************/
 {
@@ -8399,9 +7838,9 @@ void intergames_state::driver_init()
 	rom[0xaeaf] = 0xea;
 
 //  verify checksum against values stored at 07F2-07F3.
-//	rom[0xaf69] = 0xea;
-//	rom[0xaf6a] = 0xea;
-//	rom[0xaf6b] = 0xea;
+//  rom[0xaf69] = 0xea;
+//  rom[0xaf6a] = 0xea;
+//  rom[0xaf6b] = 0xea;
 
 }
 

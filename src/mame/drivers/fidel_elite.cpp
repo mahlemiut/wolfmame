@@ -2,7 +2,7 @@
 // copyright-holders:hap
 // thanks-to:Berger
 /******************************************************************************
-*
+
 * fidel_elite.cpp, subdriver of machine/fidelbase.cpp, machine/chessbase.cpp
 
 Fidelity Elite A/S series hardware (EAS, EAG, PC)
@@ -176,7 +176,7 @@ WRITE8_MEMBER(elite_state::ppi_portc_w)
 	m_speech_bank = data >> 4 & 1;
 
 	// d5: lower TSI volume
-	m_speech->set_output_gain(0, (data & 0x20) ? 0.5 : 1.0);
+	m_speech->set_output_gain(0, (data & 0x20) ? 0.25 : 1.0);
 
 	// d6,d7: bookrom bankswitch (model EAG)
 	if (m_rombank != nullptr)

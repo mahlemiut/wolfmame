@@ -3,7 +3,9 @@
 // thanks-to:Berger
 /******************************************************************************
 
-Chess King Master overview (yes, it's plainly named "Master"):
+Chess King Master (yes, it's plainly named "Master")
+
+Hardware notes:
 - Z80 CPU(NEC D780C-1) @ 4MHz(8MHz XTAL), IRQ from 555 timer
 - 8KB ROM(NEC D2764C-3), 2KB RAM(NEC D4016C), ROM is scrambled for easy PCB placement
 - simple I/O via 2*74373 and a 74145
@@ -38,9 +40,9 @@ public:
 	master_state(const machine_config &mconfig, device_type type, const char *tag) :
 		driver_device(mconfig, type, tag),
 		m_maincpu(*this, "maincpu"),
+		m_irq_on(*this, "irq_on"),
 		m_display(*this, "display"),
 		m_board(*this, "board"),
-		m_irq_on(*this, "irq_on"),
 		m_dac(*this, "dac"),
 		m_mainmap(*this, "mainmap"),
 		m_inputs(*this, "IN.%u", 0)
@@ -57,9 +59,9 @@ protected:
 private:
 	// devices/pointers
 	required_device<cpu_device> m_maincpu;
+	required_device<timer_device> m_irq_on;
 	required_device<pwm_display_device> m_display;
 	required_device<sensorboard_device> m_board;
-	required_device<timer_device> m_irq_on;
 	required_device<dac_2bit_binary_weighted_ones_complement_device> m_dac;
 	required_device<address_map_bank_device> m_mainmap;
 	required_ioport_array<2> m_inputs;

@@ -3,7 +3,9 @@
 // thanks-to:Berger
 /******************************************************************************
 
-CXG Chess 2001 overview:
+CXG Chess 2001, also sold by Hanimex as HCG 1900
+
+Hardware notes:
 - Zilog Z8400APS @ 4 MHz (8MHz XTAL)
 - 2KB RAM HM6116, 16KB ROM D27128D
 - TTL, piezo, 8*8+9 LEDs, magnetic sensors
@@ -31,9 +33,9 @@ public:
 	ch2001_state(const machine_config &mconfig, device_type type, const char *tag) :
 		driver_device(mconfig, type, tag),
 		m_maincpu(*this, "maincpu"),
+		m_irq_on(*this, "irq_on"),
 		m_display(*this, "display"),
 		m_board(*this, "board"),
-		m_irq_on(*this, "irq_on"),
 		m_dac(*this, "dac"),
 		m_speaker_off(*this, "speaker_off"),
 		m_inputs(*this, "IN.%u", 0)
@@ -48,9 +50,9 @@ protected:
 private:
 	// devices/pointers
 	required_device<cpu_device> m_maincpu;
+	required_device<timer_device> m_irq_on;
 	required_device<pwm_display_device> m_display;
 	required_device<sensorboard_device> m_board;
-	required_device<timer_device> m_irq_on;
 	required_device<dac_bit_interface> m_dac;
 	required_device<timer_device> m_speaker_off;
 	required_ioport_array<2> m_inputs;

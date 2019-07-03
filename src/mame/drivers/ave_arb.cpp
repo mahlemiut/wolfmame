@@ -3,8 +3,6 @@
 // thanks-to:Berger
 /******************************************************************************
 
-* ave_arb.cpp, subdriver of machine/chessbase.cpp
-
 AVE Micro Systems ARB chess computer driver, in some regions redistributed
 by Chafitz, and in Germany by Sandy Electronic.
 
@@ -20,7 +18,7 @@ Auto Response Board (ARB) overview:
 - magnetic chessboard, 8*8+12 leds
 - PCB label AV001C01 REV A
 
-The electronic magnetic chessboard is the first of is kind. AVE later licensed
+The electronic magnetic chessboard is the first of its kind. AVE later licensed
 it to Fidelity (see fidel_elite.cpp).
 ARB is a romless system, the program ROM is on a cartridge.
 
@@ -102,7 +100,7 @@ private:
 	void v2_map(address_map &map);
 
 	// cartridge
-	DECLARE_DEVICE_IMAGE_LOAD_MEMBER(cartridge);
+	DECLARE_DEVICE_IMAGE_LOAD_MEMBER(cart_load);
 	DECLARE_READ8_MEMBER(cartridge_r);
 	u32 m_cart_mask;
 
@@ -144,7 +142,7 @@ void arb_state::machine_start()
 
 // cartridge
 
-DEVICE_IMAGE_LOAD_MEMBER(arb_state, cartridge)
+DEVICE_IMAGE_LOAD_MEMBER(arb_state::cart_load)
 {
 	u32 size = m_cart->common_get_size("rom");
 	m_cart_mask = ((1 << (31 - count_leading_zeros(size))) - 1) & 0x7fff;
@@ -252,8 +250,8 @@ static INPUT_PORTS_START( arb )
 	PORT_BIT(0x80, IP_ACTIVE_HIGH, IPT_KEYPAD) PORT_CODE(KEYCODE_N) PORT_CODE(KEYCODE_0) PORT_NAME("New Game / Options / Pawn / 0")
 
 	PORT_START("IN.1")
-	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_KEYPAD ) PORT_CODE(KEYCODE_R) PORT_CODE(KEYCODE_F2) PORT_NAME("Reset") PORT_CHANGED_MEMBER(DEVICE_SELF, arb_state, reset_button, nullptr)
-	PORT_BIT( 0x02, IP_ACTIVE_HIGH, IPT_KEYPAD ) PORT_CODE(KEYCODE_T) PORT_CODE(KEYCODE_F2) PORT_NAME("Halt") PORT_CHANGED_MEMBER(DEVICE_SELF, arb_state, halt_button, nullptr)
+	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_KEYPAD ) PORT_CODE(KEYCODE_R) PORT_CODE(KEYCODE_F1) PORT_NAME("Reset") PORT_CHANGED_MEMBER(DEVICE_SELF, arb_state, reset_button, nullptr)
+	PORT_BIT( 0x02, IP_ACTIVE_HIGH, IPT_KEYPAD ) PORT_CODE(KEYCODE_T) PORT_CODE(KEYCODE_F1) PORT_NAME("Halt") PORT_CHANGED_MEMBER(DEVICE_SELF, arb_state, halt_button, nullptr)
 INPUT_PORTS_END
 
 
@@ -301,7 +299,7 @@ void arb_state::arb(machine_config &config)
 
 	/* cartridge */
 	GENERIC_CARTSLOT(config, m_cart, generic_plain_slot, "arb", "bin");
-	m_cart->set_device_load(device_image_load_delegate(&arb_state::device_image_load_cartridge, this));
+	m_cart->set_device_load(FUNC(arb_state::cart_load), this);
 	m_cart->set_must_be_loaded(true);
 
 	SOFTWARE_LIST(config, "cart_list").set_original("arb");

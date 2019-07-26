@@ -20,12 +20,12 @@ TODO:
 
 #include "emu.h"
 #include "cpu/z80/z80.h"
-#include "video/pwm.h"
 #include "machine/sensorboard.h"
 #include "machine/bankdev.h"
 #include "machine/timer.h"
 #include "sound/dac.h"
 #include "sound/volt_reg.h"
+#include "video/pwm.h"
 #include "speaker.h"
 
 // internal artwork
@@ -93,7 +93,7 @@ void master_state::machine_start()
 
 
 /******************************************************************************
-    Devices, I/O
+    I/O
 ******************************************************************************/
 
 // TTL/generic
@@ -117,8 +117,11 @@ u8 master_state::input_r()
 	u8 data = 0;
 
 	// d0-d7: multiplexed inputs
+	// read chessboard sensors
 	if (m_inp_mux < 8)
 		data = m_board->read_file(m_inp_mux, true);
+
+	// read other buttons
 	else if (m_inp_mux < 10)
 		data = m_inputs[m_inp_mux - 8]->read();
 
@@ -229,6 +232,7 @@ void master_state::master(machine_config &config)
 
 	SENSORBOARD(config, m_board).set_type(sensorboard_device::BUTTONS);
 	m_board->init_cb().set(m_board, FUNC(sensorboard_device::preset_chess));
+	m_board->set_delay(attotime::from_msec(100));
 
 	/* video hardware */
 	PWM_DISPLAY(config, m_display).set_size(9, 2);

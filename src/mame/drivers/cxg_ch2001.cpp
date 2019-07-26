@@ -3,7 +3,8 @@
 // thanks-to:Berger
 /******************************************************************************
 
-CXG Chess 2001, also sold by Hanimex as HCG 1900
+CXG Chess 2001, also sold by Hanimex as HCG 1900 and by CGL as Computachess Champion.
+CXG Chess 3000 is assumed to be on similar hardware as this.
 
 Hardware notes:
 - Zilog Z8400APS @ 4 MHz (8MHz XTAL)
@@ -14,11 +15,11 @@ Hardware notes:
 
 #include "emu.h"
 #include "cpu/z80/z80.h"
-#include "video/pwm.h"
 #include "machine/sensorboard.h"
 #include "machine/timer.h"
 #include "sound/dac.h"
 #include "sound/volt_reg.h"
+#include "video/pwm.h"
 #include "speaker.h"
 
 // internal artwork
@@ -37,7 +38,6 @@ public:
 		m_display(*this, "display"),
 		m_board(*this, "board"),
 		m_dac(*this, "dac"),
-		m_speaker_off(*this, "speaker_off"),
 		m_inputs(*this, "IN.%u", 0)
 	{ }
 
@@ -54,14 +54,11 @@ private:
 	required_device<pwm_display_device> m_display;
 	required_device<sensorboard_device> m_board;
 	required_device<dac_bit_interface> m_dac;
-	required_device<timer_device> m_speaker_off;
 	required_ioport_array<2> m_inputs;
 
 	// periodic interrupts
 	template<int Line> TIMER_DEVICE_CALLBACK_MEMBER(irq_on) { m_maincpu->set_input_line(Line, ASSERT_LINE); }
 	template<int Line> TIMER_DEVICE_CALLBACK_MEMBER(irq_off) { m_maincpu->set_input_line(Line, CLEAR_LINE); }
-
-	TIMER_DEVICE_CALLBACK_MEMBER(speaker_off) { m_dac->write(0); }
 
 	// address maps
 	void main_map(address_map &map);
@@ -72,28 +69,33 @@ private:
 	DECLARE_READ8_MEMBER(input_r);
 
 	u16 m_inp_mux;
+	int m_dac_data;
 };
 
 void ch2001_state::machine_start()
 {
-	// zerofill, register for savestates
+	// zerofill
 	m_inp_mux = 0;
+	m_dac_data = 0;
+
+	// register for savestates
 	save_item(NAME(m_inp_mux));
+	save_item(NAME(m_dac_data));
 }
 
 
 
 /******************************************************************************
-    Devices, I/O
+    I/O
 ******************************************************************************/
 
 // TTL
 
 WRITE8_MEMBER(ch2001_state::speaker_w)
 {
-	// 74ls109 clock pulse to speaker
-	m_dac->write(1);
-	m_speaker_off->adjust(attotime::from_usec(200)); // not accurate
+	// 74ls109 toggle to speaker
+	m_dac_data ^= 1;
+	m_dac->write(m_dac_data);
 }
 
 WRITE8_MEMBER(ch2001_state::leds_w)
@@ -115,8 +117,11 @@ READ8_MEMBER(ch2001_state::input_r)
 	u8 data = 0;
 
 	// d0-d7: multiplexed inputs
+	// read chessboard sensors
 	if (m_inp_mux < 8)
 		data = m_board->read_file(m_inp_mux, true);
+
+	// read other buttons
 	else if (m_inp_mux < 10)
 		data = m_inputs[m_inp_mux - 8]->read();
 
@@ -177,13 +182,14 @@ void ch2001_state::ch2001(machine_config &config)
 	Z80(config, m_maincpu, 8_MHz_XTAL/2);
 	m_maincpu->set_addrmap(AS_PROGRAM, &ch2001_state::main_map);
 
-	const attotime irq_period = attotime::from_hz(484); // theoretical frequency from 555 timer (22nF, 100K+33K, 1K2), measurement was 568Hz
+	const attotime irq_period = attotime::from_hz(533); // theoretical frequency from 555 timer (20nF, 100K+33K, 1K2), measurement was 568Hz
 	TIMER(config, m_irq_on).configure_periodic(FUNC(ch2001_state::irq_on<INPUT_LINE_IRQ0>), irq_period);
-	m_irq_on->set_start_delay(irq_period - attotime::from_nsec(18300)); // active for 18.3us
+	m_irq_on->set_start_delay(irq_period - attotime::from_nsec(16600)); // active for 16.6us
 	TIMER(config, "irq_off").configure_periodic(FUNC(ch2001_state::irq_off<INPUT_LINE_IRQ0>), irq_period);
 
 	SENSORBOARD(config, m_board).set_type(sensorboard_device::MAGNETS);
 	m_board->init_cb().set(m_board, FUNC(sensorboard_device::preset_chess));
+	m_board->set_delay(attotime::from_msec(150));
 
 	/* video hardware */
 	PWM_DISPLAY(config, m_display).set_size(10, 8);
@@ -193,8 +199,6 @@ void ch2001_state::ch2001(machine_config &config)
 	SPEAKER(config, "speaker").front_center();
 	DAC_1BIT(config, m_dac).add_route(ALL_OUTPUTS, "speaker", 0.25);
 	VOLTAGE_REGULATOR(config, "vref").add_route(0, "dac", 1.0, DAC_VREF_POS_INPUT);
-
-	TIMER(config, m_speaker_off).configure_generic(FUNC(ch2001_state::speaker_off));
 }
 
 

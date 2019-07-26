@@ -164,7 +164,7 @@ void ggm_state::update_reset(ioport_value state)
 
 
 /******************************************************************************
-    Devices, I/O
+    I/O
 ******************************************************************************/
 
 // cartridge
@@ -213,7 +213,7 @@ WRITE_LINE_MEMBER(ggm_state::shift_data_w)
 
 WRITE8_MEMBER(ggm_state::select_w)
 {
-	// input mux, digit select
+	// PA0-PA7: input mux, digit select
 	m_inp_mux = data;
 	update_display();
 }
@@ -252,7 +252,7 @@ void ggm_state::main_map(address_map &map)
 	// external slot has potential bus conflict with RAM/VIA
 	map(0x0000, 0x7fff).mirror(0x8000).r(FUNC(ggm_state::cartridge_r));
 	map(0x0000, 0x07ff).ram().share("nvram");
-	map(0x8000, 0x800f).rw(m_via, FUNC(via6522_device::read), FUNC(via6522_device::write));
+	map(0x8000, 0x800f).m(m_via, FUNC(via6522_device::map));
 }
 
 
@@ -288,7 +288,7 @@ static INPUT_PORTS_START( overlay_boris ) // actually most of the Chess games ha
 
 	PORT_MODIFY("IN.3")
 	PORT_BIT(0x01, IP_ACTIVE_HIGH, IPT_KEYPAD) OVERLAY(0x01) PORT_CODE(KEYCODE_L) PORT_NAME("Level")
-	PORT_BIT(0x02, IP_ACTIVE_HIGH, IPT_KEYPAD) OVERLAY(0x01) PORT_CODE(KEYCODE_H) PORT_NAME("Halt / Hint")
+	PORT_BIT(0x02, IP_ACTIVE_HIGH, IPT_KEYPAD) OVERLAY(0x01) PORT_CODE(KEYCODE_I) PORT_NAME("Halt / Hint")
 	PORT_BIT(0x04, IP_ACTIVE_HIGH, IPT_KEYPAD) OVERLAY(0x01) PORT_CODE(KEYCODE_S) PORT_NAME("Best")
 	PORT_BIT(0x08, IP_ACTIVE_HIGH, IPT_KEYPAD) OVERLAY(0x01) PORT_CODE(KEYCODE_R) PORT_NAME("Restore")
 	PORT_BIT(0x10, IP_ACTIVE_HIGH, IPT_KEYPAD) OVERLAY(0x01) PORT_CODE(KEYCODE_ENTER) PORT_CODE(KEYCODE_ENTER_PAD) PORT_NAME("Enter")

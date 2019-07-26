@@ -7,8 +7,8 @@ Ravensburger Selbstbaucomputer
 This is a project described in "Ravensburger" magazine. You had to make
 the entire thing (including the circuit boards) yourself.
 
-http://petersieg.bplaced.com/?2650_Computer:2650_Selbstbaucomputer
 
+https://web.archive.org/web/20160321001634/http://petersieg.bplaced.com/?2650_Computer:2650_Selbstbaucomputer
         2013-04-23 Skeleton driver.
 
 
@@ -75,7 +75,6 @@ ToDo:
 #include "imagedev/cassette.h"
 #include "imagedev/snapquik.h"
 #include "machine/terminal.h"
-#include "sound/wave.h"
 #include "speaker.h"
 
 #include "ravens.lh"
@@ -353,10 +352,11 @@ void ravens_state::ravens(machine_config &config)
 	/* quickload */
 	QUICKLOAD(config, "quickload", "pgm", attotime::from_seconds(1)).set_load_callback(FUNC(ravens_state::quickload_cb), this);
 
+	SPEAKER(config, "mono").front_center();
+
 	/* cassette */
 	CASSETTE(config, m_cass);
-	SPEAKER(config, "mono").front_center();
-	WAVE(config, "wave", m_cass).add_route(ALL_OUTPUTS, "mono", 0.05);
+	m_cass->add_route(ALL_OUTPUTS, "mono", 0.05);
 }
 
 void ravens_state::ravens2(machine_config &config)
@@ -377,10 +377,11 @@ void ravens_state::ravens2(machine_config &config)
 	/* quickload */
 	QUICKLOAD(config, "quickload", "pgm", attotime::from_seconds(1)).set_load_callback(FUNC(ravens_state::quickload_cb), this);
 
+	SPEAKER(config, "mono").front_center();
+
 	/* cassette */
 	CASSETTE(config, m_cass);
-	SPEAKER(config, "mono").front_center();
-	WAVE(config, "wave", m_cass).add_route(ALL_OUTPUTS, "mono", 0.05);
+	m_cass->add_route(ALL_OUTPUTS, "mono", 0.05);
 }
 
 /* ROM definition */

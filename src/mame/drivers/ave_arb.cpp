@@ -137,7 +137,7 @@ void arb_state::machine_start()
 
 
 /******************************************************************************
-    Devices, I/O
+    I/O
 ******************************************************************************/
 
 // cartridge
@@ -222,13 +222,13 @@ void arb_state::main_map(address_map &map)
 	// external slot is A0-A14, potential bus conflict with RAM/VIA
 	map(0x0000, 0x7fff).mirror(0x8000).r(FUNC(arb_state::cartridge_r));
 	map(0x0000, 0x07ff).mirror(0x1000).ram().share("nvram");
-	map(0x8000, 0x800f).mirror(0x1ff0).rw(m_via, FUNC(via6522_device::read), FUNC(via6522_device::write));
+	map(0x8000, 0x800f).mirror(0x1ff0).m(m_via, FUNC(via6522_device::map));
 }
 
 void arb_state::v2_map(address_map &map)
 {
 	map(0x0000, 0x7fff).ram().share("nvram"); // BS62LV256
-	map(0x8000, 0x800f).mirror(0x1ff0).rw(m_via, FUNC(via6522_device::read), FUNC(via6522_device::write));
+	map(0x8000, 0x800f).mirror(0x1ff0).m(m_via, FUNC(via6522_device::map));
 	map(0xa000, 0xffff).rom();
 }
 
@@ -276,6 +276,7 @@ void arb_state::v2(machine_config &config)
 
 	SENSORBOARD(config, m_board).set_type(sensorboard_device::MAGNETS);
 	m_board->init_cb().set(m_board, FUNC(sensorboard_device::preset_chess));
+	m_board->set_delay(attotime::from_msec(100));
 
 	/* video hardware */
 	PWM_DISPLAY(config, m_display).set_size(9+1, 12);

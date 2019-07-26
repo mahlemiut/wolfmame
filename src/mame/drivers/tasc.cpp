@@ -11,7 +11,7 @@ on PC, however the prototype Gideon 2.1(internally: Rebel 2.01) is not.
 R30 hardware notes:
 - ARM6 CPU(P60ARM/CG) @ 30MHz
 - 256KB ROM, 512KB program RAM, 128KB permanent RAM
-- Toshiba LCD drivers (4*T7778, T7900)
+- Toshiba LCD drivers (3*T7778A, T7900, T6963C), TC5565AFL-15
 - SB20 or SB30 "Smartboard" chessboard with piece recognition
 
 R40 hardware notes:
@@ -213,7 +213,7 @@ void tasc_state::tasc(machine_config &config)
 	ARM(config, m_maincpu, 30_MHz_XTAL);
 	m_maincpu->set_addrmap(AS_PROGRAM, &tasc_state::main_map);
 	m_maincpu->set_copro_type(arm_cpu_device::copro_type::VL86C020);
-	m_maincpu->set_periodic_int(FUNC(tasc_state::irq1_line_hold), attotime::from_hz(256));
+	m_maincpu->set_periodic_int(FUNC(tasc_state::irq1_line_hold), attotime::from_hz(32.768_kHz_XTAL/128)); // 256Hz
 
 	TIMER(config, "disable_bootrom").configure_generic(FUNC(tasc_state::disable_bootrom));
 

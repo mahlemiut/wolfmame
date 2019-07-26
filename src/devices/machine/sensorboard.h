@@ -51,6 +51,7 @@ public:
 	void clear_board() { memset(m_curstate, 0, ARRAY_LENGTH(m_curstate)); }
 
 	void refresh();
+	void cancel_sensor();
 
 	// handle pieces
 	void cancel_hand();
@@ -83,6 +84,7 @@ private:
 	output_finder<0x20+1> m_out_pui;
 	output_finder<2> m_out_count;
 	required_ioport_array<10> m_inp_rank;
+	required_ioport m_inp_spawn;
 	required_ioport m_inp_ui;
 
 	devcb_write_line m_custom_init_cb;
@@ -90,6 +92,7 @@ private:
 	devcb_read8 m_custom_spawn_cb;
 	devcb_write16 m_custom_output_cb;
 
+	bool m_nosensors;
 	bool m_magnets;
 	bool m_inductive;
 	u8 m_width;
@@ -118,7 +121,6 @@ private:
 
 	attotime m_sensordelay;
 	emu_timer *m_sensortimer;
-	void cancel_sensor();
 	TIMER_CALLBACK_MEMBER(sensor_off) { cancel_sensor(); }
 };
 

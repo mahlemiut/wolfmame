@@ -17,10 +17,10 @@ TODO:
 
 #include "emu.h"
 #include "cpu/m6502/m6502.h"
-#include "video/pwm.h"
 #include "machine/sensorboard.h"
 #include "machine/nvram.h"
 #include "sound/beep.h"
+#include "video/pwm.h"
 #include "speaker.h"
 
 // internal artwork
@@ -83,7 +83,7 @@ void scon_state::machine_start()
 
 
 /******************************************************************************
-    Devices, I/O
+    I/O
 ******************************************************************************/
 
 // TTL

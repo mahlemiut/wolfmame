@@ -115,7 +115,6 @@ Hardware:   PPIA 8255
 #include "emu.h"
 #include "includes/atom.h"
 #include "formats/imageutl.h"
-#include "sound/wave.h"
 #include "screen.h"
 #include "softlist.h"
 #include "speaker.h"
@@ -261,7 +260,7 @@ void atom_state::atom_mem(address_map &map)
 	map(0xb000, 0xb003).mirror(0x3fc).rw(INS8255_TAG, FUNC(i8255_device::read), FUNC(i8255_device::write));
 //  map(0xb400, 0xb403) AM_DEVREADWRITE(MC6854_TAG, mc6854_device, read, write)
 //  map(0xb404, 0xb404) AM_READ_PORT("ECONET")
-	map(0xb800, 0xb80f).mirror(0x3f0).rw(R6522_TAG, FUNC(via6522_device::read), FUNC(via6522_device::write));
+	map(0xb800, 0xb80f).mirror(0x3f0).m(R6522_TAG, FUNC(via6522_device::map));
 	map(0xc000, 0xffff).rom().region(SY6502_TAG, 0);
 }
 
@@ -286,7 +285,7 @@ void atom_state::atombb_mem(address_map &map)
 	map(0x0000, 0x3fff).ram();
 	map(0x4000, 0x57ff).ram().share("video_ram");
 	map(0x7000, 0x7003).mirror(0x3fc).rw(INS8255_TAG, FUNC(i8255_device::read), FUNC(i8255_device::write));
-	map(0x7800, 0x780f).mirror(0x3f0).rw(R6522_TAG, FUNC(via6522_device::read), FUNC(via6522_device::write));
+	map(0x7800, 0x780f).mirror(0x3f0).m(R6522_TAG, FUNC(via6522_device::map));
 	map(0x8000, 0xbfff).rom().region("basic", 0);
 	map(0xf000, 0xffff).rom().region(SY6502_TAG, 0);
 }
@@ -303,7 +302,7 @@ void atom_state::prophet_mem(address_map &map)
 	map(0x9800, 0x9fff).ram();
 	map(0xa000, 0xafff).rom().region("ic24", 0);
 	map(0xb000, 0xb003).mirror(0x3fc).rw(INS8255_TAG, FUNC(i8255_device::read), FUNC(i8255_device::write));
-	map(0xb800, 0xb80f).mirror(0x3f0).rw(R6522_TAG, FUNC(via6522_device::read), FUNC(via6522_device::write));
+	map(0xb800, 0xb80f).mirror(0x3f0).m(R6522_TAG, FUNC(via6522_device::map));
 	map(0xc000, 0xffff).rom().region(SY6502_TAG, 0);
 }
 
@@ -725,7 +724,6 @@ void atom_state::atom(machine_config &config)
 	/* sound hardware */
 	SPEAKER(config, "mono").front_center();
 	SPEAKER_SOUND(config, m_speaker).add_route(ALL_OUTPUTS, "mono", 1.00);
-	WAVE(config, "wave", m_cassette).add_route(ALL_OUTPUTS, "mono", 0.05);
 
 	/* devices */
 	TIMER(config, "hz2400").configure_periodic(FUNC(atom_state::cassette_output_tick), attotime::from_hz(4806));
@@ -755,8 +753,9 @@ void atom_state::atom(machine_config &config)
 	m_centronics->set_output_latch(cent_data_out);
 
 	CASSETTE(config, m_cassette);
-	m_cassette->set_formats(atom_cassette_formats);
 	m_cassette->set_default_state(CASSETTE_STOPPED | CASSETTE_MOTOR_ENABLED | CASSETTE_SPEAKER_ENABLED);
+	m_cassette->add_route(ALL_OUTPUTS, "mono", 0.05);
+	m_cassette->set_formats(atom_cassette_formats);
 	m_cassette->set_interface("atom_cass");
 
 	QUICKLOAD(config, "quickload", "atm").set_load_callback(FUNC(atom_state::quickload_cb), this);

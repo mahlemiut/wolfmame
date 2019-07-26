@@ -41,11 +41,11 @@ void aim65_state::mem_map(address_map &map)
 	map(0x1000, 0x3fff).noprw(); /* User available expansions */
 	map(0x4000, 0x7fff).rom(); /* 4 ROM sockets in 16K PROM/ROM module */
 	map(0x8000, 0x9fff).noprw(); /* User available expansions */
-	map(0xa000, 0xa00f).mirror(0x3f0).rw(m_via1, FUNC(via6522_device::read), FUNC(via6522_device::write)); // user via
+	map(0xa000, 0xa00f).mirror(0x3f0).m(m_via1, FUNC(via6522_device::map)); // user via
 	map(0xa400, 0xa47f).m(m_riot, FUNC(mos6532_new_device::ram_map));
 	map(0xa480, 0xa497).m(m_riot, FUNC(mos6532_new_device::io_map));
 	map(0xa498, 0xa7ff).noprw(); /* Not available */
-	map(0xa800, 0xa80f).mirror(0x3f0).rw(m_via0, FUNC(via6522_device::read), FUNC(via6522_device::write)); // system via
+	map(0xa800, 0xa80f).mirror(0x3f0).m(m_via0, FUNC(via6522_device::map)); // system via
 	map(0xac00, 0xac03).rw(m_pia, FUNC(pia6821_device::read), FUNC(pia6821_device::write));
 	map(0xac04, 0xac43).ram(); /* PIA RAM */
 	map(0xac44, 0xafff).noprw(); /* Not available */
@@ -238,8 +238,6 @@ void aim65_state::aim65(machine_config &config)
 
 	/* Sound - wave sound only */
 	SPEAKER(config, "mono").front_center();
-	WAVE(config, "wave", m_cassette1).add_route(ALL_OUTPUTS, "mono", 0.1);
-	WAVE(config, "wave2", m_cassette2).add_route(ALL_OUTPUTS, "mono", 0.1);
 
 	/* other devices */
 	MOS6532_NEW(config, m_riot, AIM65_CLOCK);
@@ -269,8 +267,10 @@ void aim65_state::aim65(machine_config &config)
 
 	CASSETTE(config, m_cassette1);
 	m_cassette1->set_default_state(CASSETTE_PLAY | CASSETTE_MOTOR_DISABLED | CASSETTE_SPEAKER_ENABLED);
+	m_cassette1->add_route(ALL_OUTPUTS, "mono", 0.1);
 	CASSETTE(config, m_cassette2);
 	m_cassette2->set_default_state(CASSETTE_PLAY | CASSETTE_MOTOR_DISABLED | CASSETTE_SPEAKER_ENABLED);
+	m_cassette2->add_route(ALL_OUTPUTS, "mono", 0.1);
 
 	// Screen for TTY interface. Index 1.
 	RS232_PORT(config, m_rs232, default_rs232_devices, "terminal");

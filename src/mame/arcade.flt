@@ -741,6 +741,7 @@ mgavegas.cpp
 mgolf.cpp
 mhavoc.cpp
 micro3d.cpp
+microdar.cpp
 micropin.cpp
 midas.cpp
 midqslvr.cpp
@@ -936,6 +937,7 @@ plygonet.cpp
 pntnpuzl.cpp
 pokechmp.cpp
 poker72.cpp
+pokerout.cpp
 polepos.cpp
 policetr.cpp
 polyplay.cpp
@@ -1121,6 +1123,7 @@ slotcarn.cpp
 smsmcorp.cpp
 sms_bootleg.cpp
 snesb.cpp
+snesb51.cpp
 snk.cpp
 snk6502.cpp
 snk68.cpp

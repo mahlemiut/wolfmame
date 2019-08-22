@@ -48,7 +48,7 @@ protected:
 private:
 	machine_static_info(const ui_options &options, machine_config const &config, ioport_list const *ports);
 
-	const ui_options &		m_options;
+	const ui_options &      m_options;
 
 	// overall feature status
 	::machine_flags::type   m_flags;
@@ -76,7 +76,6 @@ public:
 	// text generators
 	std::string warnings_string() const;
 	std::string game_info_string() const;
-	std::string mandatory_images() const;
 	std::string get_screen_desc(screen_device &screen) const;
 
 private:

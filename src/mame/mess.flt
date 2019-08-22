@@ -148,6 +148,7 @@ cit220.cpp
 cking_master.cpp
 clcd.cpp
 clickstart.cpp
+clxvme186.cpp
 cm1800.cpp
 cmi.cpp
 cms.cpp
@@ -298,7 +299,6 @@ geniusjr.cpp
 genpc.cpp
 gimix.cpp
 gizmondo.cpp
-glasgow.cpp
 glcx.cpp
 gmaster.cpp
 goupil.cpp
@@ -398,6 +398,7 @@ jr100.cpp
 jr200.cpp
 jtc.cpp
 juicebox.cpp
+juku.cpp
 junior.cpp
 jupace.cpp
 jupiter.cpp
@@ -458,8 +459,15 @@ mdisk.cpp
 megadriv.cpp
 megadriv_rad.cpp
 mekd2.cpp
-mephisto.cpp
+mephisto_brikett.cpp
+mephisto_glasgow.cpp
+mephisto_mm1.cpp
+mephisto_mm2.cpp
+mephisto_modena.cpp
+mephisto_modular.cpp
+mephisto_mondial68k.cpp
 mephisto_montec.cpp
+mephisto_polgar.cpp
 meritum.cpp
 mes.cpp
 mfabfz.cpp
@@ -492,11 +500,11 @@ mk14.cpp
 mk85.cpp
 mk90.cpp
 mkit09.cpp
+ml20.cpp
 mmd1.cpp
-mmodular.cpp
+mmd2.cpp
 mod8.cpp
 modellot.cpp
-modena.cpp
 molecular.cpp
 monon_color.cpp
 monty.cpp
@@ -548,10 +556,11 @@ ngp.cpp
 nokia_3310.cpp
 notetaker.cpp
 novag_cforte.cpp
+novag_const.cpp
 novag_diablo.cpp
 novag_presto.cpp
 novag_savant.cpp
-novag_scon.cpp
+novag_sconst.cpp
 novag_sexpert.cpp
 o2.cpp
 ob68k1a.cpp
@@ -632,7 +641,6 @@ pockstat.cpp
 pofo.cpp
 poisk1.cpp
 pokemini.cpp
-polgar.cpp
 poly.cpp
 poly88.cpp
 poly880.cpp
@@ -699,7 +707,9 @@ saitek_corona.cpp
 saitek_cp2000.cpp
 saitek_delta1.cpp
 saitek_risc2500.cpp
+saitek_ssystem3.cpp
 saitek_stratos.cpp
+saitek_superstar.cpp
 samcoupe.cpp
 sansa_fuze.cpp
 sapi1.cpp
@@ -751,7 +761,6 @@ spectrum.cpp
 spg110.cpp
 squale.cpp
 ssem.cpp
-ssystem3.cpp
 st17xx.cpp
 storio.cpp
 studio2.cpp

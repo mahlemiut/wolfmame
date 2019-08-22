@@ -314,8 +314,6 @@ uint32_t jetwave_state::screen_update(screen_device &screen, bitmap_rgb32 &bitma
 
 	draw_7segment_led(bitmap, 3, 3, m_led_reg0);
 	draw_7segment_led(bitmap, 9, 3, m_led_reg1);
-
-	m_dsp->set_flag_input(1, ASSERT_LINE);
 	return 0;
 }
 
@@ -357,8 +355,6 @@ uint32_t midnrun_state::screen_update(screen_device &screen, bitmap_rgb32 &bitma
 
 	draw_7segment_led(bitmap, 3, 3, m_led_reg0);
 	draw_7segment_led(bitmap, 9, 3, m_led_reg1);
-
-	m_dsp->set_flag_input(1, ASSERT_LINE);
 	return 0;
 }
 
@@ -689,7 +685,7 @@ static INPUT_PORTS_START( jetwave )
 
 	PORT_START("ANALOG2")
 	PORT_BIT( 0xff, 0x00, IPT_PEDAL ) PORT_NAME("Accelerator") PORT_MINMAX(0x00,0x90) PORT_SENSITIVITY(25) PORT_KEYDELTA(10)
-	
+
 	PORT_START("ANALOG3") //actually required else MAME will crash if this port is removed.
 	PORT_BIT( 0xff, 0x00, IPT_UNUSED )
 INPUT_PORTS_END
@@ -739,7 +735,10 @@ WRITE_LINE_MEMBER(zr107_state::k054539_irq_gen)
 WRITE_LINE_MEMBER(zr107_state::vblank)
 {
 	if (state)
+	{
 		m_maincpu->set_input_line(INPUT_LINE_IRQ0, ASSERT_LINE);
+		m_dsp->set_flag_input(1, ASSERT_LINE);
+	}
 }
 
 void zr107_state::machine_reset()

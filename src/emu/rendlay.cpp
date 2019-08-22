@@ -1062,8 +1062,9 @@ void layout_group::resolve_bounds(environment &env, group_map &groupmap, std::ve
 	seen.push_back(this);
 	if (!m_bounds_resolved)
 	{
+		set_render_bounds_xy(m_bounds, 0.0F, 0.0F, 1.0F, 1.0F);
 		environment local(env);
-		resolve_bounds(local, m_groupnode, groupmap, seen, false, true);
+		resolve_bounds(local, m_groupnode, groupmap, seen, true, false, true);
 	}
 	seen.pop_back();
 }
@@ -1073,6 +1074,7 @@ void layout_group::resolve_bounds(
 		util::xml::data_node const &parentnode,
 		group_map &groupmap,
 		std::vector<layout_group const *> &seen,
+		bool empty,
 		bool repeat,
 		bool init)
 {
@@ -1110,7 +1112,11 @@ void layout_group::resolve_bounds(
 		{
 			render_bounds itembounds;
 			env.parse_bounds(itemnode->get_child("bounds"), itembounds);
-			union_render_bounds(m_bounds, itembounds);
+			if (empty)
+				m_bounds = itembounds;
+			else
+				union_render_bounds(m_bounds, itembounds);
+			empty = false;
 		}
 		else if (!strcmp(itemnode->get_name(), "group"))
 		{
@@ -1119,7 +1125,11 @@ void layout_group::resolve_bounds(
 			{
 				render_bounds itembounds;
 				env.parse_bounds(itemboundsnode, itembounds);
-				union_render_bounds(m_bounds, itembounds);
+				if (empty)
+					m_bounds = itembounds;
+				else
+					union_render_bounds(m_bounds, itembounds);
+				empty = false;
 			}
 			else
 			{
@@ -1139,7 +1149,11 @@ void layout_group::resolve_bounds(
 						found->second.m_bounds.y0,
 						(orientation & ORIENTATION_SWAP_XY) ? (found->second.m_bounds.x0 + found->second.m_bounds.y1 - found->second.m_bounds.y0) : found->second.m_bounds.x1,
 						(orientation & ORIENTATION_SWAP_XY) ? (found->second.m_bounds.y0 + found->second.m_bounds.x1 - found->second.m_bounds.x0) : found->second.m_bounds.y1 };
-				union_render_bounds(m_bounds, itembounds);
+				if (empty)
+					m_bounds = itembounds;
+				else
+					union_render_bounds(m_bounds, itembounds);
+				empty = false;
 			}
 		}
 		else if (!strcmp(itemnode->get_name(), "repeat"))
@@ -1150,7 +1164,7 @@ void layout_group::resolve_bounds(
 			environment local(env);
 			for (int i = 0; !m_bounds_resolved && (count > i); ++i)
 			{
-				resolve_bounds(local, *itemnode, groupmap, seen, true, !i);
+				resolve_bounds(local, *itemnode, groupmap, seen, empty, true, !i);
 				local.increment_parameters();
 			}
 		}
@@ -2971,22 +2985,11 @@ layout_view::layout_view(
 	add_items(layers, local, viewnode, elemmap, groupmap, ROT0, identity_transform, render_color{ 1.0F, 1.0F, 1.0F, 1.0F }, true, false, true);
 
 	// deal with legacy element groupings
-	bool legacy(true);
-	for (auto it = layers.screens.begin(); (layers.screens.end() != it) && legacy; ++it)
-	{
-		if (!it->screen())
-			legacy = false;
-	}
 	if (!layers.overlays.empty() || (layers.backdrops.size() <= 1))
 	{
-		// screens (none) + overlays (RGB multiply) + backdrop (add) + bezels (alpha) + cpanels (alpha) + marquees (alpha)
+		// screens (-1) + overlays (RGB multiply) + backdrop (add) + bezels (alpha) + cpanels (alpha) + marquees (alpha)
 		for (item &backdrop : layers.backdrops)
 			backdrop.set_blend_mode(BLENDMODE_ADD);
-		if (legacy)
-		{
-			for (item &screen : layers.screens)
-				screen.set_blend_mode(BLENDMODE_NONE);
-		}
 		m_items.splice(m_items.end(), layers.screens);
 		m_items.splice(m_items.end(), layers.overlays);
 		m_items.splice(m_items.end(), layers.backdrops);
@@ -2998,6 +3001,11 @@ layout_view::layout_view(
 	{
 		// multiple backdrop pieces and no overlays (Golly! Ghost! mode):
 		// backdrop (alpha) + screens (add) + bezels (alpha) + cpanels (alpha) + marquees (alpha)
+		for (item &screen : layers.screens)
+		{
+			if (screen.blend_mode() == -1)
+				screen.set_blend_mode(BLENDMODE_ADD);
+		}
 		m_items.splice(m_items.end(), layers.backdrops);
 		m_items.splice(m_items.end(), layers.screens);
 		m_items.splice(m_items.end(), layers.bezels);
@@ -3497,7 +3505,7 @@ int layout_view::item::get_blend_mode(environment &env, util::xml::data_node con
 
 	// fall back to implicit blend mode based on element type
 	if (!strcmp(itemnode.get_name(), "screen"))
-		return BLENDMODE_ADD;
+		return -1; // magic number recognised by render.cpp to allow per-element blend mode
 	else if (!strcmp(itemnode.get_name(), "overlay"))
 		return BLENDMODE_RGB_MULTIPLY;
 	else

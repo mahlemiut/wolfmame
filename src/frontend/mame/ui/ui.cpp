@@ -358,8 +358,8 @@ void mame_ui_manager::display_startup_screens(bool first_time)
 				warning << _("This driver requires images to be loaded in the following device(s): ");
 
 				output_joined_collection(mandatory_images,
-					[&warning](const std::reference_wrapper<const std::string> &img)	{ warning << "\"" << img.get() << "\""; },
-					[&warning]()														{ warning << ","; });
+					[&warning](const std::reference_wrapper<const std::string> &img)    { warning << "\"" << img.get() << "\""; },
+					[&warning]()                                                        { warning << ","; });
 
 				ui::menu_file_manager::force_file_manager(*this, machine().render().ui_container(), warning.str().c_str());
 			}
@@ -926,15 +926,8 @@ void mame_ui_manager::decrease_frameskip()
 
 bool mame_ui_manager::can_paste()
 {
-	// retrieve the clipboard text
-	char *text = osd_get_clipboard_text();
-
-	// free the string if allocated
-	if (text != nullptr)
-		free(text);
-
-	// did we have text?
-	return text != nullptr;
+	// check to see if the clipboard is not empty
+	return !osd_get_clipboard_text().empty();
 }
 
 

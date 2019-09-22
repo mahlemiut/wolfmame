@@ -25,22 +25,26 @@ D     Disassembler
 G     Go
 H     Help
 I     Inport
+L     Load memory from tape
 M     Print/Modify memory (A=ascii, B=bit, H=hex)
 N     Turn on tracer & step to next instruction
 O     Outport
 P     Display memory contents in various formats
 R     Set initial register contents
+S     Save memory to tape
 T     Trace interval
 
 Pressing enter will change the prompt from KMD > to KMD+> and pressing
 space will change it back.
 
-mfabfz85 -bios 0 and 3 work; others produce rubbish.
+mfabfz85 -bios 0, 3 and 4 work; others produce rubbish.
 
 Cassette:
-- Unable to locate handbook 4.4.a which deals with the CMT.
-- It is known to use a 8251 UART at ports FE/FF.
-- So, added a 1200 baud Kansas City interface, which works.
+- Like many early designs, the interface is grossly over-complicated, using 12 chips.
+- Similar to Kansas City, except that 1 = 3600Hz, 0 = 2400Hz
+- The higher frequencies, only 50% apart, cause the interface to be less reliable
+- Baud rates of 150, 300, 600, 1200 selected by a jumper. We emulate 1200 only,
+  as the current code would be too unreliable with the lower rates.
 
 ****************************************************************************/
 
@@ -73,8 +77,8 @@ private:
 	virtual void machine_reset() override;
 	DECLARE_WRITE_LINE_MEMBER(kansas_r);
 	DECLARE_WRITE_LINE_MEMBER(kansas_w);
-	u8 m_cass_data[4];
-	bool m_cassoutbit, m_cassold;
+	u8 m_cass_data[5];
+	bool m_cassoutbit, m_cassbit, m_cassold;
 	required_device<cpu_device> m_maincpu;
 	required_device<cassette_image_device> m_cass;
 	required_device<i8251_device> m_uart;
@@ -107,24 +111,42 @@ void mfabfz_state::mfabfz85_io(address_map &map)
 static INPUT_PORTS_START( mfabfz )
 INPUT_PORTS_END
 
-
+// Note: if the other baud rates are to be supported, then this function
+//       will need to be redesigned.
 WRITE_LINE_MEMBER( mfabfz_state::kansas_w )
 {
 	if ((m_cass->get_state() & CASSETTE_MASK_UISTATE) == CASSETTE_RECORD)
 	{
-		// incoming @76923Hz
-		u8 twobit = m_cass_data[3] & 63;
-
 		if (state)
 		{
+			// incoming @76923Hz (1200), 38461.5 (600), 19231.77 (300), 9615.38 (150)
+			u8 twobit = m_cass_data[3] & 63;
+			static u8 cycles[3] = { 11, 10, 11 }; // 1200 baud
+
 			if (twobit == 0)
+			{
 				m_cassold = m_cassoutbit;
+				m_cass_data[2] = 0;
+				m_cass_data[4] = 0;
+			}
 
-			if (m_cassold)
-				m_cass->output(BIT(m_cass_data[3], 4) ? -1.0 : +1.0); // 2400Hz
-			else
-				m_cass->output(BIT(m_cass_data[3], 5) ? -1.0 : +1.0); // 1200Hz
+			if (m_cass_data[2] == 0)
+			{
+				m_cassbit ^= 1;
+				m_cass->output(m_cassbit ? -1.0 : +1.0);
 
+				if (m_cassold)
+				{
+					m_cass_data[4]++;
+					if (m_cass_data[4] > 2)
+						m_cass_data[4] = 0;
+					m_cass_data[2] = cycles[m_cass_data[4]]; // 3600 Hz
+				}
+				else
+					m_cass_data[2] = 16; // 2400 Hz
+			}
+
+			m_cass_data[2]--;
 			m_cass_data[3]++;
 		}
 	}
@@ -135,34 +157,37 @@ WRITE_LINE_MEMBER( mfabfz_state::kansas_w )
 WRITE_LINE_MEMBER(mfabfz_state::kansas_r)
 {
 	// incoming @76923Hz
-	// no tape - set to idle
-	m_cass_data[1]++;
-	if (m_cass_data[1] > 192)
+	if (state)
 	{
-		m_cass_data[1] = 192;
-		m_uart->write_rxd(1);
+		// no tape - set to idle
+		m_cass_data[1]++;
+		if (m_cass_data[1] > 32)
+		{
+			m_cass_data[1] = 32;
+			m_uart->write_rxd(1);
+		}
+
+		if ((m_cass->get_state() & CASSETTE_MASK_UISTATE) != CASSETTE_PLAY)
+			return;
+
+		/* cassette - turn 2400/3600Hz to a bit */
+		uint8_t cass_ws = (m_cass->input() > +0.04) ? 1 : 0;
+
+		if (cass_ws != m_cass_data[0])
+		{
+			m_cass_data[0] = cass_ws;
+			m_uart->write_rxd((m_cass_data[1] < 14) ? 1 : 0);
+			m_cass_data[1] = 0;
+		}
 	}
 
-	if ((m_cass->get_state() & CASSETTE_MASK_UISTATE) != CASSETTE_PLAY)
-		return;
-
-	/* cassette - turn 1200/2400Hz to a bit */
-	m_cass_data[1]++;
-	uint8_t cass_ws = (m_cass->input() > +0.04) ? 1 : 0;
-
-	if (cass_ws != m_cass_data[0])
-	{
-		m_cass_data[0] = cass_ws;
-		m_uart->write_rxd((m_cass_data[1] < 96) ? 1 : 0);
-		m_cass_data[1] = 0;
-	}
 	m_uart->write_rxc(state);
 }
 
 void mfabfz_state::machine_reset()
 {
-	m_cass_data[0] = m_cass_data[1] = m_cass_data[2] = m_cass_data[3] = 0;
-	m_cassoutbit = m_cassold = 1;
+	m_cass_data[0] = m_cass_data[1] = m_cass_data[2] = m_cass_data[3] = m_cass_data[4] = 0;
+	m_cassoutbit = m_cassold = m_cassbit = 1;
 	m_uart->write_rxd(1);
 	m_uart->write_cts(0);
 }
@@ -265,7 +290,7 @@ ROM_START( mfabfz85 )
 	ROMX_LOAD( "mfa_mat85_0x2800-0x2fff.bin", 0x2800, 0x0800, CRC(9a6aafa9) SHA1(af897e91cc2ce5d6e49fa88c920ad85e1f0209bf), ROM_BIOS(2) )
 	ROMX_LOAD( "mfa_mat85_0x3000-0x37ff.bin", 0x3000, 0x0800, CRC(eae4e3d5) SHA1(f7112965874417bbfc4a32f31f84e1db83249ab7), ROM_BIOS(2) )
 	ROMX_LOAD( "mfa_mat85_0x3800-0x3fff.bin", 0x3800, 0x0800, CRC(536db0e3) SHA1(328ccc18455f710390c29c0fd0f4b0713a4a69ae), ROM_BIOS(2) )
-	ROM_SYSTEM_BIOS( 3, "16k_set2", "MAT85+ 16k set2" ) // 2400, 7O2, txd-invert
+	ROM_SYSTEM_BIOS( 3, "16k_set2", "MAT85+ 16k set2" ) // 2400, 7N2, txd-invert
 	ROMX_LOAD( "mat85_1_1of8.bin", 0x0000, 0x0800, CRC(73b588ea) SHA1(2b9570fe44c3c19d6aa7c7c11ecf390fa5d48998), ROM_BIOS(3) )
 	ROMX_LOAD( "mat85_2_2of8.bin", 0x0800, 0x0800, CRC(c97acc82) SHA1(eedb27c19a2d21b5ec5bca6cafeb25584e21e500), ROM_BIOS(3) )
 	ROMX_LOAD( "mat85_3_3of8.bin", 0x1000, 0x0800, CRC(c9b91bb4) SHA1(ef829964f507b1f6bbcf3c557c274fe728636efe), ROM_BIOS(3) )
@@ -274,7 +299,7 @@ ROM_START( mfabfz85 )
 	ROMX_LOAD( "soft_2_6of8.bin",  0x2800, 0x0800, CRC(81fc3b24) SHA1(186dbd389fd700c5af1ef7c37948e11701ec596e), ROM_BIOS(3) )
 	ROMX_LOAD( "soft_3_7of8.bin",  0x3000, 0x0800, CRC(eae4e3d5) SHA1(f7112965874417bbfc4a32f31f84e1db83249ab7), ROM_BIOS(3) )
 	ROMX_LOAD( "soft_4_8of8.bin",  0x3800, 0x0800, CRC(536db0e3) SHA1(328ccc18455f710390c29c0fd0f4b0713a4a69ae), ROM_BIOS(3) )
-	ROM_SYSTEM_BIOS (4, "32k_dtp", "MAT32K dtp" ) // not working
+	ROM_SYSTEM_BIOS (4, "32k_dtp", "MAT32K dtp" ) // 2400, 7N2, txd-invert
 	ROMX_LOAD( "mfa_mat85_sp1_ed_kpl_dtp_terminal.bin", 0x0000, 0x8000, CRC(ed432c19) SHA1(31cbc06d276dbb201d50967f4ddba26a42560753), ROM_BIOS(4) )
 ROM_END
 

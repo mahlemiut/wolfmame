@@ -2,7 +2,7 @@
 // copyright-holders:Miodrag Milanovic,Luca Bruno
 /***************************************************************************
 
-    luaengine.c
+    luaengine.cpp
 
     Controls execution of the core MAME system.
 
@@ -638,13 +638,6 @@ int lua_engine::enumerate_functions(const char *id, std::function<bool(const sol
 				count++;
 				if (!cont)
 					break;
-
-				auto ret = invoke(func.second.as<sol::protected_function>());
-				if (!ret.valid())
-				{
-					sol::error err = ret;
-					osd_printf_error("[LUA ERROR] in execute_function: %s\n", err.what());
-				}
 			}
 		}
 		return true;
@@ -1247,6 +1240,8 @@ void lua_engine::initialize()
  *
  * machine.paused - get paused state
  * machine.samplerate - get audio sample rate
+ * machine.exit_pending
+ * machine.hard_reset_pending
  *
  * machine.devices[] - get device table (k=tag, v=device_t)
  * machine.screens[] - get screens table (k=tag, v=screen_device)
@@ -1277,6 +1272,8 @@ void lua_engine::initialize()
 				},
 			"paused", sol::property(&running_machine::paused),
 			"samplerate", sol::property(&running_machine::sample_rate),
+			"exit_pending", sol::property(&running_machine::exit_pending),
+			"hard_reset_pending", sol::property(&running_machine::hard_reset_pending),
 			"devices", sol::property([this](running_machine &m) {
 					std::function<void(device_t &, sol::table)> tree;
 					sol::table table = sol().create_table();
@@ -1482,16 +1479,14 @@ void lua_engine::initialize()
 			"bpclr", &device_debug::breakpoint_clear,
 			"bplist", [this](device_debug &dev) {
 					sol::table table = sol().create_table();
-					device_debug::breakpoint *list = dev.breakpoint_first();
-					while(list)
+					for(const device_debug::breakpoint &bpt : dev.breakpoint_list())
 					{
 						sol::table bp = sol().create_table();
-						bp["enabled"] = list->enabled();
-						bp["address"] = list->address();
-						bp["condition"] = list->condition();
-						bp["action"] = list->action();
-						table[list->index()] = bp;
-						list = list->next();
+						bp["enabled"] = bpt.enabled();
+						bp["address"] = bpt.address();
+						bp["condition"] = bpt.condition();
+						bp["action"] = bpt.action();
+						table[bpt.index()] = bp;
 					}
 					return table;
 				},
@@ -1709,6 +1704,7 @@ void lua_engine::initialize()
  * manager:machine():ioport()
  *
  * ioport:count_players() - get count of player controllers
+ * ioport:type_group(type, player)
  *
  * ioport.ports[] - ioports table (k=tag, v=ioport_port)
  */
@@ -1716,6 +1712,9 @@ void lua_engine::initialize()
 	sol().registry().new_usertype<ioport_manager>("ioport", "new", sol::no_constructor,
 			"count_players", &ioport_manager::count_players,
 			"natkeyboard", &ioport_manager::natkeyboard,
+			"type_group", [](ioport_manager &im, ioport_type type, int player) {
+				return im.type_group(type, player);
+			},
 			"ports", sol::property([this](ioport_manager &im) {
 					sol::table port_table = sol().create_table();
 					for (auto &port : im.ports())
@@ -1795,6 +1794,7 @@ void lua_engine::initialize()
  * field:input_seq(seq_type)
  * field:set_default_input_seq(seq_type, seq)
  * field:default_input_seq(seq_type)
+ * field:keyboard_codes(which)
  *
  * field.device - get associated device_t
  * field.port - get associated ioport_port
@@ -1845,6 +1845,14 @@ void lua_engine::initialize()
 			"default_input_seq", [](ioport_field &f, const std::string &seq_type_string) {
 				input_seq_type seq_type = parse_seq_type(seq_type_string);
 				return sol::make_user(f.defseq(seq_type));
+			},
+			"keyboard_codes", [this](ioport_field &f, int which)
+			{
+				sol::table result = sol().create_table();
+				int index = 1;
+				for (char32_t code : f.keyboard_codes(which))
+					result[index++] = code;
+				return result;
 			},
 			"device", sol::property(&ioport_field::device),
 			"port", sol::property(&ioport_field::port),

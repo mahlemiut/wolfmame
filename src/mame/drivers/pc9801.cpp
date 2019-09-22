@@ -31,8 +31,8 @@
     - undumped IDE ROM, kludged to work
     - Compatibility is untested;
 
-	TODO (PC-9821AS)
-	- IPL ROM banking contradicts greatly from the other machines;
+    TODO (PC-9821AS)
+    - IPL ROM banking contradicts greatly from the other machines;
 
     TODO: (PC-486MU)
     - Tries to read port C of i8255_sys (-> 0x35) at boot without setting up the control
@@ -1511,7 +1511,7 @@ READ8_MEMBER(pc9801_state::as_unkdev_data_r)
 {
 	if (offset == 0)
 		return m_unkdev0468[m_unkdev0468_addr];
-	
+
 	return 0xff;
 }
 
@@ -1519,7 +1519,7 @@ WRITE8_MEMBER(pc9801_state::as_unkdev_data_w)
 {
 	if (offset == 0)
 		m_unkdev0468[m_unkdev0468_addr] = data;
-	
+
 	// offset == 0: access bit?
 }
 
@@ -1601,7 +1601,7 @@ static INPUT_PORTS_START( pc9801 )
 	PORT_DIPNAME( 0x20, 0x00, DEF_STR( Unknown ) ) //system clock = 5 MHz (0) / 8 MHz (1)
 	PORT_DIPSETTING(      0x20, DEF_STR( Off ) )
 	PORT_DIPSETTING(      0x00, DEF_STR( On ) )
-	PORT_BIT( 0xc0, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_CUSTOM_MEMBER(DEVICE_SELF, pc9801_state, system_type_r, nullptr)
+	PORT_BIT( 0xc0, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_CUSTOM_MEMBER(pc9801_state, system_type_r)
 
 	PORT_START("DSW2")
 	PORT_DIPNAME( 0x01, 0x01, "System Specification" ) PORT_DIPLOCATION("SW1:1") //jumps to daa00 if off, presumably some card booting
@@ -2779,15 +2779,15 @@ As - 80486DX 33
 
 ROM_START( pc9821as )
 	ROM_REGION( 0x80000, "biosrom", ROMREGION_ERASEFF )
-//	ROM_LOAD( "itf.rom",     0x10000, 0x08000, BAD_DUMP CRC(dd4c7bb8) SHA1(cf3aa193df2722899066246bccbed03f2e79a74a) )
-//	ROM_LOAD( "bios_as.rom", 0x18000, 0x18000, BAD_DUMP CRC(0a682b93) SHA1(76a7360502fa0296ea93b4c537174610a834d367) )
+//  ROM_LOAD( "itf.rom",     0x10000, 0x08000, BAD_DUMP CRC(dd4c7bb8) SHA1(cf3aa193df2722899066246bccbed03f2e79a74a) )
+//  ROM_LOAD( "bios_as.rom", 0x18000, 0x18000, BAD_DUMP CRC(0a682b93) SHA1(76a7360502fa0296ea93b4c537174610a834d367) )
 	ROM_LOAD( "mvs0100-1.bin", 0x00000, 0x80000, CRC(ca37b631) SHA1(8c481dd0608d6c27235bc88bd77e345628dc28a1) )
 
 	ROM_REGION( 0x30000, "ipl", ROMREGION_ERASEFF )
 	// TODO: not quite right yet, needs actual itf rom loaded
 	ROM_COPY( "biosrom", 0x20000, 0x10000, 0x08000 )
 	ROM_COPY( "biosrom", 0x30000, 0x18000, 0x18000 )
-		
+
 	ROM_REGION( 0x80000, "chargen", 0 )
 	ROM_LOAD( "font_as.rom",     0x000000, 0x046800, BAD_DUMP CRC(456d9fc7) SHA1(78ba9960f135372825ab7244b5e4e73a810002ff) )
 

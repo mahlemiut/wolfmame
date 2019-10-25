@@ -256,7 +256,7 @@ Regular game cartridges
 +========+===================+================================================================================================+
 |        | 80-092180(US)     | Care Bears - A Lesson in Caring                                                                |
 |        | 80-092183(UK)     | Care Bears - A Lesson in Caring                                                                |
-|        | 80-092184(GE)     | Gluecksbarchis  <- existance not proven                                                        |
+|        | 80-092184(GE)     | Gluecksbarchis  <- existence not proven                                                        |
 |        | 80-092185(FR)     | Les Bisounours - Le Monde Merveilleux des Bisounours                                           |
 |   XX   | 80-092187(SP)     | Osos Amorosos - Una Lección de Amor (92187 on PCB)                                             |
 +========+===================+================================================================================================+
@@ -2454,7 +2454,7 @@ V.Smile Smartbook Smartidges (need a Smartbook touch tablet connected to a regul
 	</software>
 
 	<!-- No inputs, uses keyboard and mouse -->
-	<software name="pcpaliss" cloneof="pcpalisr3" supported="yes">
+	<software name="pcpaliss" cloneof="pcpalisr3" supported="no">
 		<description>V.Smile PC (Spain)</description>
 		<year>200?</year>
 		<publisher>VTech</publisher>

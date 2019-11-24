@@ -38,7 +38,6 @@ constexpr int MAX_FRAMESKIP = FRAMESKIP_LEVELS - 4;
 class video_manager
 {
 	friend class screen_device;
-	friend class variable_width_screen_device;
 
 public:
 	// movie format options
@@ -164,6 +163,7 @@ private:
 	u32                 m_seconds_to_run;           // number of seconds to run before quitting
 	bool                m_auto_frameskip;           // flag: true if we're automatically frameskipping
 	u32                 m_speed;                    // overall speed (*1000)
+	bool                m_low_latency;              // flag: true if we are throttling after blitting
 
 	// frameskipping
 	u8                  m_empty_skip_count;         // number of empty frames we have skipped

@@ -2813,6 +2813,18 @@ end
 
 ---------------------------------------------------
 --
+--@src/devices/machine/swtpc8212.h,MACHINES["SWTPC8212"] = true
+---------------------------------------------------
+
+if (MACHINES["SWTPC8212"]~=null) then
+	files {
+		MAME_DIR .. "src/devices/machine/swtpc8212.cpp",
+		MAME_DIR .. "src/devices/machine/swtpc8212.h",
+	}
+end
+
+---------------------------------------------------
+--
 --
 ---------------------------------------------------
 
@@ -4075,6 +4087,18 @@ if (MACHINES["AIC565"]~=null) then
 	files {
 		MAME_DIR .. "src/devices/machine/aic565.cpp",
 		MAME_DIR .. "src/devices/machine/aic565.h",
+	}
+end
+
+---------------------------------------------------
+--
+--@src/devices/machine/aic580.h,MACHINES["AIC580"] = true
+---------------------------------------------------
+
+if (MACHINES["AIC580"]~=null) then
+	files {
+		MAME_DIR .. "src/devices/machine/aic580.cpp",
+		MAME_DIR .. "src/devices/machine/aic580.h",
 	}
 end
 

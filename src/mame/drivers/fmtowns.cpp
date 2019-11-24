@@ -30,7 +30,7 @@
 
 */
 
-/* 
+/*
 
 Regular models:
 
@@ -2980,7 +2980,7 @@ void towns_state::townssj(machine_config &config)
 	m_maincpu->set_addrmap(AS_IO, &towns_state::towns2_io);
 	m_maincpu->set_vblank_int("screen", FUNC(towns_state::towns_vsync_irq));
 	m_maincpu->set_irq_acknowledge_callback("pic8259_master", FUNC(pic8259_device::inta_cb));
-	
+
 	scsi_port_device &scsi(SCSI_PORT(config, "scsi", 0));
 	scsi.set_slot_device(1, "harddisk", SCSIHD, DEVICE_INPUT_DEFAULTS_NAME(SCSI_ID_0));
 	scsi.set_slot_device(2, "harddisk", SCSIHD, DEVICE_INPUT_DEFAULTS_NAME(SCSI_ID_1));
@@ -3045,7 +3045,7 @@ void marty_state::marty(machine_config &config)
 	m_maincpu->set_addrmap(AS_IO, &marty_state::towns16_io);
 	m_maincpu->set_vblank_int("screen", FUNC(towns_state::towns_vsync_irq));
 	m_maincpu->set_irq_acknowledge_callback("pic8259_master", FUNC(pic8259_device::inta_cb));
-	
+
 	FLOPPY_CONNECTOR(config.replace(), m_flop[1], towns_floppies, nullptr, towns_state::floppy_formats);
 
 	// 2 MB onboard, expandable to 4 MB with a Marty-only expansion card
@@ -3056,9 +3056,9 @@ void marty_state::marty(machine_config &config)
 
 /* ROM definitions */
 
-/* These ROMs were dumped from an FM Towns Model 2. Model 1 is assumed to use the same ROMs, since they were 
-   released at the same time, and the only differences are the amount of RAM and floppy drives. 
-   
+/* These ROMs were dumped from an FM Towns Model 2. Model 1 is assumed to use the same ROMs, since they were
+   released at the same time, and the only differences are the amount of RAM and floppy drives.
+
    The ROM is physically contained in three 4 Mbit chips: two MB834200-20 (DIP40) and one MB834200-25 (QFP44) */
 ROM_START( fmtowns )
 	ROM_REGION32_LE( 0x280000, "user", 0)
@@ -3081,7 +3081,7 @@ ROM_END
 
 /* 16MHz 80386SX, 2MB RAM expandable up to 10MB (due to the limited 24-bit address space of the CPU), dumped from a UX10 */
 ROM_START( fmtownsux )
-	ROM_REGION32_LE( 0x480000, "user", 0)
+	ROM_REGION16_LE( 0x480000, "user", 0)
 	ROM_LOAD("fmt_dos_a.rom",  0x000000, 0x080000, CRC(22270e9f) SHA1(a7e97b25ff72b14121146137db8b45d6c66af2ae) )
 	// no F20 ROM
 	ROM_LOAD("fmt_dic.rom",  0x100000, 0x080000, CRC(82d1daa2) SHA1(7564020dba71deee27184824b84dbbbb7c72aa4e) )
@@ -3142,7 +3142,7 @@ ROM_START( fmtownsftv )
 ROM_END
 
 ROM_START( fmtmarty )
-	ROM_REGION32_LE( 0x480000, "user", 0)
+	ROM_REGION16_LE( 0x480000, "user", 0)
 	ROM_LOAD("mrom.m36",  0x000000, 0x080000, CRC(9c0c060c) SHA1(5721c5f9657c570638352fa9acac57fa8d0b94bd) )
 	ROM_CONTINUE(0x280000,0x180000)
 	ROM_LOAD("mrom.m37",  0x400000, 0x080000, CRC(fb66bb56) SHA1(e273b5fa618373bdf7536495cd53c8aac1cce9a5) )
@@ -3152,7 +3152,7 @@ ROM_START( fmtmarty )
 ROM_END
 
 ROM_START( fmtmarty2 )
-	ROM_REGION32_LE( 0x480000, "user", 0)
+	ROM_REGION16_LE( 0x480000, "user", 0)
 	ROM_LOAD("fmt_dos.rom",  0x000000, 0x080000, CRC(2bc2af96) SHA1(99cd51c5677288ad8ef711b4ac25d981fd586884) )
 	ROM_LOAD("fmt_dic.rom",  0x100000, 0x080000, CRC(82d1daa2) SHA1(7564020dba71deee27184824b84dbbbb7c72aa4e) )
 	ROM_LOAD("fmt_fnt.rom",  0x180000, 0x040000, CRC(dd6fd544) SHA1(a216482ea3162f348fcf77fea78e0b2e4288091a) )
@@ -3166,7 +3166,7 @@ ROM_START( fmtmarty2 )
 ROM_END
 
 ROM_START( carmarty )
-	ROM_REGION32_LE( 0x480000, "user", 0)
+	ROM_REGION16_LE( 0x480000, "user", 0)
 	ROM_LOAD("fmt_dos.rom",  0x000000, 0x080000, CRC(2bc2af96) SHA1(99cd51c5677288ad8ef711b4ac25d981fd586884) )
 	ROM_LOAD("fmt_dic.rom",  0x100000, 0x080000, CRC(82d1daa2) SHA1(7564020dba71deee27184824b84dbbbb7c72aa4e) )
 	ROM_LOAD("fmt_fnt.rom",  0x180000, 0x040000, CRC(dd6fd544) SHA1(a216482ea3162f348fcf77fea78e0b2e4288091a) )

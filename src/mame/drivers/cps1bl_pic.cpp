@@ -20,7 +20,16 @@
     Unless any un-protected PIcs ever turn up (unlikely) then "decapping" of working chips is probably the
     only way valid dumps will ever be made.
 
-    *** see fcrash.cpp for game status ***
+Status of each game:
+--------------------
+dinopic:           No sound.
+dinopic2:          No sound, one bad graphics ROM. Copying 8.bin from dinopic fixes it.
+dinopic3:          No sound. Some minor gfx priority issues, confirmed present on real board.
+punipic, punipic2: No sound. Problems in Central Park. Patches used.
+punipic3:          Same as punipic, and doors are missing.
+slampic:           No sound. Some minor gfx issues (sprites on character select screen).
+slampic2:          No sound. All gfx issues confirmed present on real board.
+
 */
 
 #include "emu.h"
@@ -1320,13 +1329,13 @@ ROM_END
 
 // ************************************************************************* DRIVER MACROS
 
-GAME( 1993,  dinopic,   dino,      dinopic,   dino,      cps1bl_pic_state,  init_dinopic,   ROT0,  "bootleg",  "Cadillacs and Dinosaurs (bootleg with PIC16c57, set 1)",  MACHINE_NO_SOUND | MACHINE_SUPPORTS_SAVE )     // 930201 ETC
-GAME( 1993,  dinopic2,  dino,      dinopic,   dino,      cps1bl_pic_state,  init_dinopic,   ROT0,  "bootleg",  "Cadillacs and Dinosaurs (bootleg with PIC16c57, set 2)",  MACHINE_NOT_WORKING | MACHINE_SUPPORTS_SAVE )  // 930201 ETC
-GAME( 1993,  dinopic3,  dino,      dinopic,   dino,      cps1bl_pic_state,  init_dinopic,   ROT0,  "bootleg",  "Cadillacs and Dinosaurs (bootleg with PIC16c57, set 3)",  MACHINE_NO_SOUND | MACHINE_SUPPORTS_SAVE )     // 930201 ETC
+GAME( 1993,  dinopic,   dino,      dinopic,   dino,      cps1bl_pic_state,  init_dinopic,   ROT0,  "bootleg",  "Cadillacs and Dinosaurs (bootleg with PIC16C57, set 1)",  MACHINE_NO_SOUND | MACHINE_SUPPORTS_SAVE )     // 930201 ETC
+GAME( 1993,  dinopic2,  dino,      dinopic,   dino,      cps1bl_pic_state,  init_dinopic,   ROT0,  "bootleg",  "Cadillacs and Dinosaurs (bootleg with PIC16C57, set 2)",  MACHINE_NOT_WORKING | MACHINE_SUPPORTS_SAVE )  // 930201 ETC
+GAME( 1993,  dinopic3,  dino,      dinopic,   dino,      cps1bl_pic_state,  init_dinopic,   ROT0,  "bootleg",  "Cadillacs and Dinosaurs (bootleg with PIC16C57, set 3)",  MACHINE_NO_SOUND | MACHINE_SUPPORTS_SAVE )     // 930201 ETC
 
-GAME( 1993,  punipic,   punisher,  punipic,   punisher,  cps1bl_pic_state,  init_punipic,   ROT0,  "bootleg",  "The Punisher (bootleg with PIC16c57, set 1)",  MACHINE_IMPERFECT_GRAPHICS | MACHINE_NO_SOUND | MACHINE_SUPPORTS_SAVE )  // 930422 ETC
-GAME( 1993,  punipic2,  punisher,  punipic,   punisher,  cps1bl_pic_state,  init_punipic,   ROT0,  "bootleg",  "The Punisher (bootleg with PIC16c57, set 2)",  MACHINE_IMPERFECT_GRAPHICS | MACHINE_NO_SOUND | MACHINE_SUPPORTS_SAVE )  // 930422 ETC
-GAME( 1993,  punipic3,  punisher,  punipic,   punisher,  cps1bl_pic_state,  init_punipic3,  ROT0,  "bootleg",  "The Punisher (bootleg with PIC16c57, set 3)",  MACHINE_IMPERFECT_GRAPHICS | MACHINE_NO_SOUND | MACHINE_SUPPORTS_SAVE )  // 930422 ETC
+GAME( 1993,  punipic,   punisher,  punipic,   punisher,  cps1bl_pic_state,  init_punipic,   ROT0,  "bootleg",  "The Punisher (bootleg with PIC16C57, set 1)",  MACHINE_IMPERFECT_GRAPHICS | MACHINE_NO_SOUND | MACHINE_SUPPORTS_SAVE )  // 930422 ETC
+GAME( 1993,  punipic2,  punisher,  punipic,   punisher,  cps1bl_pic_state,  init_punipic,   ROT0,  "bootleg",  "The Punisher (bootleg with PIC16C57, set 2)",  MACHINE_IMPERFECT_GRAPHICS | MACHINE_NO_SOUND | MACHINE_SUPPORTS_SAVE )  // 930422 ETC
+GAME( 1993,  punipic3,  punisher,  punipic,   punisher,  cps1bl_pic_state,  init_punipic3,  ROT0,  "bootleg",  "The Punisher (bootleg with PIC16C57, set 3)",  MACHINE_IMPERFECT_GRAPHICS | MACHINE_NO_SOUND | MACHINE_SUPPORTS_SAVE )  // 930422 ETC
 
-GAME( 1993,  slampic,   slammast,  slampic,   slampic,   cps1bl_pic_state,  init_dinopic,   ROT0,  "bootleg",  "Saturday Night Slam Masters (bootleg with PIC16c57, set 1)",  MACHINE_IMPERFECT_GRAPHICS | MACHINE_NO_SOUND | MACHINE_SUPPORTS_SAVE )  // 930713 ETC
-GAME( 1993,  slampic2,  slammast,  slampic2,  slampic2,  slampic2_state,    init_slampic2,  ROT0,  "bootleg",  "Saturday Night Slam Masters (bootleg with PIC16c57, set 2)",  MACHINE_NO_SOUND | MACHINE_SUPPORTS_SAVE )  // 930713 ETC
+GAME( 1993,  slampic,   slammast,  slampic,   slampic,   cps1bl_pic_state,  init_dinopic,   ROT0,  "bootleg",  "Saturday Night Slam Masters (bootleg with PIC16C57, set 1)",  MACHINE_IMPERFECT_GRAPHICS | MACHINE_NO_SOUND | MACHINE_SUPPORTS_SAVE )  // 930713 ETC
+GAME( 1993,  slampic2,  slammast,  slampic2,  slampic2,  slampic2_state,    init_slampic2,  ROT0,  "bootleg",  "Saturday Night Slam Masters (bootleg with PIC16C57, set 2)",  MACHINE_NO_SOUND | MACHINE_SUPPORTS_SAVE )  // 930713 ETC

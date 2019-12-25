@@ -156,18 +156,19 @@ READ32_MEMBER(model1_state::copro_ramadr_r)
 
 WRITE32_MEMBER(model1_state::copro_ramdata_w)
 {
-	m_check_pram.emplace_back(racc{ m_copro_ram_adr[offset >> 3], data, true });
-	COMBINE_DATA(&m_copro_ram_data[m_copro_ram_adr[offset >> 3] & 0x1fff]);
+	if(m_copro_ram_adr[offset >> 3] & 0x40000) {
+		COMBINE_DATA(&m_copro_ram_data[0x1000 | (m_copro_ram_adr[offset >> 3] & 0x1fff)]);
+	} else {
+		COMBINE_DATA(&m_copro_ram_data[m_copro_ram_adr[offset >> 3] & 0x1fff]);
+	}
 	m_copro_ram_adr[offset >> 3] ++;
 }
 
 READ32_MEMBER(model1_state::copro_ramdata_r)
 {
-	u32 val = m_copro_ram_data[m_copro_ram_adr[offset >> 3] & 0x1fff];
-	if(!machine().side_effects_disabled()) {
-		m_check_pram.emplace_back(racc{ m_copro_ram_adr[offset >> 3], val, false });
+	u32 val = (m_copro_ram_adr[offset >> 3] & 0x40000) ? m_copro_ram_data[0x1000 | (m_copro_ram_adr[offset >> 3] & 0x1fff)] : m_copro_ram_data[m_copro_ram_adr[offset >> 3] & 0x1fff];
+	if(!machine().side_effects_disabled())
 		m_copro_ram_adr[offset >> 3] ++;
-	}
 	return val;
 }
 
@@ -231,7 +232,7 @@ WRITE32_MEMBER(model1_state::copro_atan_w)
 
 READ32_MEMBER(model1_state::copro_atan_r)
 {
-	u32 idx = m_copro_atan_base[3];
+	u32 idx = m_copro_atan_base[3] & 0xffff;
 	if(idx & 0xc000)
 		idx = 0x3fff;
 	u32 result = m_copro_tables[idx | 0x4000];

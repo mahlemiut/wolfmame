@@ -2009,7 +2009,7 @@ void mvs_led_state::mv1(machine_config &config)
 
 	cartslot_config(config, 1);
 
-	SOFTWARE_LIST(config, "cart_list").set_type("neogeo", SOFTWARE_LIST_ORIGINAL_SYSTEM);
+	SOFTWARE_LIST(config, "cart_list").set_original("neogeo");
 }
 
 void mvs_led_state::mv1f(machine_config &config)
@@ -2024,7 +2024,7 @@ void mvs_led_state::mv1f(machine_config &config)
 
 	cartslot_config(config, 1);
 
-	SOFTWARE_LIST(config, "cart_list").set_type("neogeo", SOFTWARE_LIST_ORIGINAL_SYSTEM);
+	SOFTWARE_LIST(config, "cart_list").set_original("neogeo");
 }
 
 void mvs_state::mv1fz(machine_config &config)
@@ -2036,7 +2036,7 @@ void mvs_state::mv1fz(machine_config &config)
 
 	cartslot_config(config, 1);
 
-	SOFTWARE_LIST(config, "cart_list").set_type("neogeo", SOFTWARE_LIST_ORIGINAL_SYSTEM);
+	SOFTWARE_LIST(config, "cart_list").set_original("neogeo");
 }
 
 void mvs_led_el_state::mv2f(machine_config &config)
@@ -2053,7 +2053,7 @@ void mvs_led_el_state::mv2f(machine_config &config)
 
 	cartslot_config(config, 2);
 
-	SOFTWARE_LIST(config, "cart_list").set_type("neogeo", SOFTWARE_LIST_ORIGINAL_SYSTEM);
+	SOFTWARE_LIST(config, "cart_list").set_original("neogeo");
 }
 
 void mvs_led_el_state::mv4f(machine_config &config)
@@ -2070,7 +2070,7 @@ void mvs_led_el_state::mv4f(machine_config &config)
 
 	cartslot_config(config, 4);
 
-	SOFTWARE_LIST(config, "cart_list").set_type("neogeo", SOFTWARE_LIST_ORIGINAL_SYSTEM);
+	SOFTWARE_LIST(config, "cart_list").set_original("neogeo");
 }
 
 void mvs_led_el_state::mv6f(machine_config &config)
@@ -2087,7 +2087,7 @@ void mvs_led_el_state::mv6f(machine_config &config)
 
 	cartslot_config(config, 6);
 
-	SOFTWARE_LIST(config, "cart_list").set_type("neogeo", SOFTWARE_LIST_ORIGINAL_SYSTEM);
+	SOFTWARE_LIST(config, "cart_list").set_original("neogeo");
 }
 
 void mvs_led_state::mv1_fixed(machine_config &config)
@@ -2146,7 +2146,7 @@ void aes_state::aes(machine_config &config)
 	NEOGEO_CONTROL_PORT(config, m_ctrl1, neogeo_controls, "joy", false);
 	NEOGEO_CONTROL_PORT(config, m_ctrl2, neogeo_controls, "joy", false);
 
-	SOFTWARE_LIST(config, "cart_list").set_type("neogeo", SOFTWARE_LIST_ORIGINAL_SYSTEM).set_filter("AES");
+	SOFTWARE_LIST(config, "cart_list").set_original("neogeo").set_filter("AES");
 }
 
 
@@ -4837,7 +4837,7 @@ ROM_START( janshin ) /* MVS ONLY RELEASE */
 
 	ROM_REGION( 0x400000, "cslot1:sprites", 0 )
 	ROM_LOAD16_BYTE( "048-c1.c1", 0x000000, 0x200000, CRC(3fa890e9) SHA1(e73d2802bacfbc2b2b16fbbedddde17488e4bbde) ) /* Plane 0,1 */ /* mask rom TC5316200 */
-	ROM_LOAD16_BYTE( "048-c2.c1", 0x000001, 0x200000, CRC(59c48ad8) SHA1(2630817e735a6d197377558f4324c1442803fe15) ) /* Plane 2,3 */ /* mask rom TC5316200 */
+	ROM_LOAD16_BYTE( "048-c2.c2", 0x000001, 0x200000, CRC(59c48ad8) SHA1(2630817e735a6d197377558f4324c1442803fe15) ) /* Plane 2,3 */ /* mask rom TC5316200 */
 ROM_END
 
 /****************************************

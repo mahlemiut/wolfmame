@@ -8,7 +8,6 @@
 
 ***************************************************************************/
 
-#include <thread>
 #include <lua.hpp>
 #include "emu.h"
 #include "mame.h"
@@ -26,6 +25,10 @@
 #include "pluginopts.h"
 #include "softlist.h"
 #include "inputdev.h"
+
+#include <cstring>
+#include <thread>
+
 
 #ifdef __clang__
 #pragma clang diagnostic ignored "-Wshift-count-overflow"
@@ -1072,61 +1075,88 @@ void lua_engine::initialize()
  */
 
 	auto item_type = emu.create_simple_usertype<save_item>(sol::call_constructor, sol::initializers([this](save_item &item, int index) {
-					if(!machine().save().indexed_item(index, item.base, item.size, item.count))
+					if(machine().save().indexed_item(index, item.base, item.size, item.valcount, item.blockcount, item.stride))
+					{
+						item.count = item.valcount * item.blockcount;
+					}
+					else
 					{
 						item.base = nullptr;
 						item.size = 0;
-						item.count= 0;
+						item.count = 0;
+						item.valcount = 0;
+						item.blockcount = 0;
+						item.stride = 0;
 					}
 				}));
 	item_type.set("size", sol::readonly(&save_item::size));
 	item_type.set("count", sol::readonly(&save_item::count));
 	item_type.set("read", [this](save_item &item, int offset) -> sol::object {
-			uint64_t ret = 0;
-			if(!item.base || (offset > item.count))
+			if(!item.base || (offset >= item.count))
 				return sol::make_object(sol(), sol::nil);
+			const void *const data = reinterpret_cast<const uint8_t *>(item.base) + (item.size * item.stride * (offset / item.valcount));
+			uint64_t ret = 0;
 			switch(item.size)
 			{
 				case 1:
 				default:
-					ret = ((uint8_t *)item.base)[offset];
+					ret = reinterpret_cast<const uint8_t *>(data)[offset % item.valcount];
 					break;
 				case 2:
-					ret = ((uint16_t *)item.base)[offset];
+					ret = reinterpret_cast<const uint16_t *>(data)[offset % item.valcount];
 					break;
 				case 4:
-					ret = ((uint32_t *)item.base)[offset];
+					ret = reinterpret_cast<const uint32_t *>(data)[offset % item.valcount];
 					break;
 				case 8:
-					ret = ((uint64_t *)item.base)[offset];
+					ret = reinterpret_cast<const uint64_t *>(data)[offset % item.valcount];
 					break;
 			}
 			return sol::make_object(sol(), ret);
 		});
 	item_type.set("read_block", [](save_item &item, int offset, sol::buffer *buff) {
 			if(!item.base || ((offset + buff->get_len()) > (item.size * item.count)))
+			{
 				buff->set_len(0);
+			}
 			else
-				memcpy(buff->get_ptr(), (uint8_t *)item.base + offset, buff->get_len());
+			{
+				const uint32_t blocksize = item.size * item.valcount;
+				const uint32_t bytestride = item.size * item.stride;
+				uint32_t remaining = buff->get_len();
+				uint8_t *dest = reinterpret_cast<uint8_t *>(buff->get_ptr());
+				while(remaining)
+				{
+					const uint32_t blockno = offset / blocksize;
+					const uint32_t available = blocksize - (offset % blocksize);
+					const uint32_t chunk = (available < remaining) ? available : remaining;
+					const void *const source = reinterpret_cast<const uint8_t *>(item.base) + (blockno * bytestride) + (offset % blocksize);
+					std::memcpy(dest, source, chunk);
+					offset += chunk;
+					remaining -= chunk;
+					dest += chunk;
+				}
+			}
 			return buff;
 		});
 	item_type.set("write", [](save_item &item, int offset, uint64_t value) {
-			if(!item.base || (offset > item.count))
+			if(!item.base || (offset >= item.count))
 				return;
+			void *const data = reinterpret_cast<uint8_t *>(item.base) + (item.size * item.stride * (offset / item.valcount));
 			switch(item.size)
 			{
 				case 1:
 				default:
-					((uint8_t *)item.base)[offset] = (uint8_t)value;
+					reinterpret_cast<uint8_t *>(data)[offset % item.valcount] = uint8_t(value);
 					break;
 				case 2:
-					((uint16_t *)item.base)[offset] = (uint16_t)value;
+					reinterpret_cast<uint16_t *>(data)[offset % item.valcount] = uint16_t(value);
 					break;
 				case 4:
-					((uint32_t *)item.base)[offset] = (uint32_t)value;
+					reinterpret_cast<uint32_t *>(data)[offset % item.valcount] = uint32_t(value);
 					break;
 				case 8:
-					((uint64_t *)item.base)[offset] = (uint64_t)value;
+					reinterpret_cast<uint64_t *>(data)[offset % item.valcount] = uint64_t(value);
 					break;
 			}
 		});
@@ -1197,13 +1227,13 @@ void lua_engine::initialize()
 			if(e.type() != OPTION_FLOAT)
 				luaL_error(m_lua_state, "Cannot set option to wrong type");
 			else
-				e.set_value(string_format("%f", val).c_str(), OPTION_PRIORITY_CMDLINE);
+				e.set_value(string_format("%f", val), OPTION_PRIORITY_CMDLINE);
 		},
 		[this](core_options::entry &e, int val) {
 			if(e.type() != OPTION_INTEGER)
 				luaL_error(m_lua_state, "Cannot set option to wrong type");
 			else
-				e.set_value(string_format("%d", val).c_str(), OPTION_PRIORITY_CMDLINE);
+				e.set_value(string_format("%d", val), OPTION_PRIORITY_CMDLINE);
 		},
 		[this](core_options::entry &e, const char *val) {
 			if(e.type() != OPTION_STRING)
@@ -1611,15 +1641,15 @@ void lua_engine::initialize()
 			{
 				std::string name;
 				const char *item;
-				unsigned int size, count;
 				void *base;
-				item = dev.machine().save().indexed_item(i, base, size, count);
+				uint32_t size, valcount, blockcount, stride;
+				item = dev.machine().save().indexed_item(i, base, size, valcount, blockcount, stride);
 				if(!item)
 					break;
 				name = &(strchr(item, '/')[1]);
-				if(name.substr(0, name.find("/")) == tag)
+				if(name.substr(0, name.find('/')) == tag)
 				{
-					name = name.substr(name.find("/") + 1, std::string::npos);
+					name = name.substr(name.find('/') + 1, std::string::npos);
 					table[name] = i;
 				}
 			}
@@ -1639,12 +1669,17 @@ void lua_engine::initialize()
  * space:write_log_*(addr, val)
  * space:read_direct_*(addr)
  * space:write_direct_*(addr, val)
+ * space:read_range(first_addr, last_addr, width, [opt] step) - read range of addresses and
+ *                                                              return as a binary string
  *
  * space.name - address space name
  * space.shift - address bus shift, bitshift required for a bytewise address
- *               to map onto this space's addess resolution (addressing granularity).
+ *               to map onto this space's address resolution (addressing granularity).
  *               positive value means leftshift, negative means rightshift.
  * space.index
+ * space.address_mask
+ * space.data_width
+ * space.endianness
  *
  * space.map[] - table of address map entries (k=index, v=address_map_entry)
  */
@@ -1698,9 +1733,82 @@ void lua_engine::initialize()
 	addr_space_type.set("write_direct_u32", &addr_space::direct_mem_write<uint32_t>);
 	addr_space_type.set("write_direct_i64", &addr_space::direct_mem_write<int64_t>);
 	addr_space_type.set("write_direct_u64", &addr_space::direct_mem_write<uint64_t>);
+	addr_space_type.set("read_range", [](addr_space &sp, sol::this_state s, u64 first, u64 last, int width, sol::object opt_step) {
+			lua_State *L = s;
+			luaL_Buffer buff;
+			offs_t space_size = sp.space.addrmask();
+			u64 step = 1;
+			if (opt_step.is<u64>())
+			{
+				step = opt_step.as<u64>();
+				if (step < 1 || step > last - first)
+				{
+					luaL_error(L, "Invalid step");
+					return sol::make_reference(L, nullptr);
+				}
+			}
+			if (first > space_size || last > space_size || last < first)
+			{
+				luaL_error(L, "Invalid offset");
+				return sol::make_reference(L, nullptr);
+			}
+			int byte_count = width / 8 * (last - first + 1) / step;
+			switch (width)
+			{
+			case 8:
+			{
+				u8 *dest = (u8 *)luaL_buffinitsize(L, &buff, byte_count);
+				for(; first <= last; first += step)
+					*dest++ = sp.mem_read<u8>(first);
+				break;
+			}
+			case 16:
+			{
+				u16 *dest = (u16 *)luaL_buffinitsize(L, &buff, byte_count);
+				for(; first <= last; first += step)
+					*dest++ = sp.mem_read<u16>(first);
+				break;
+			}
+			case 32:
+			{
+				u32 *dest = (u32 *)luaL_buffinitsize(L, &buff, byte_count);
+				for(; first <= last; first += step)
+					*dest++ = sp.mem_read<u32>(first);
+				break;
+			}
+			case 64:
+			{
+				u64 *dest = (u64 *)luaL_buffinitsize(L, &buff, byte_count);
+				for(; first <= last; first += step)
+					*dest++ = sp.mem_read<u64>(first);
+				break;
+			}
+			default:
+				luaL_error(L, "Invalid width. Must be 8/16/32/64");
+				return sol::make_reference(L, nullptr);
+			}
+			luaL_pushresultsize(&buff, byte_count);
+			return sol::make_reference(L, sol::stack_reference(L, -1));
+		});
 	addr_space_type.set("name", sol::property([](addr_space &sp) { return sp.space.name(); }));
 	addr_space_type.set("shift", sol::property([](addr_space &sp) { return sp.space.addr_shift(); }));
 	addr_space_type.set("index", sol::property([](addr_space &sp) { return sp.space.spacenum(); }));
+	addr_space_type.set("address_mask", sol::property([](addr_space &sp) { return sp.space.addrmask(); }));
+	addr_space_type.set("data_width", sol::property([](addr_space &sp) { return sp.space.data_width(); }));
+	addr_space_type.set("endianness", sol::property([](addr_space &sp) {
+			std::string endianness;
+			switch (sp.space.endianness())
+			{
+				case endianness_t::ENDIANNESS_BIG:
+					endianness = "big";
+					break;
+				case endianness_t::ENDIANNESS_LITTLE:
+					endianness = "little";
+					break;
+			}
+			return endianness;
+		}));
+
 
 /* address_map_entry library
  *
@@ -2565,9 +2673,9 @@ void lua_engine::initialize()
  *
  * manager:machine():memory()
  *
- * memory.banks[] - table of memory banks
- * memory.regions[] - table of memory regions
- * memory.shares[] - table of memory shares
+ * memory.banks[] - table of memory banks (k=tag, v=memory_bank)
+ * memory.regions[] - table of memory regions (k=tag, v=memory_region)
+ * memory.shares[] - table of memory shares (k=tag, v=memory_share)
  */
 
 	auto memory_type = sol().registry().create_simple_usertype<memory_manager>("new", sol::no_constructor);

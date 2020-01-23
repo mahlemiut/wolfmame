@@ -458,6 +458,21 @@ end
 
 ---------------------------------------------------
 --
+--@src/devices/bus/bbc/modem/modem.h,BUSES["BBC_MODEM"] = true
+---------------------------------------------------
+
+if (BUSES["BBC_MODEM"]~=null) then
+	files {
+		MAME_DIR .. "src/devices/bus/bbc/modem/modem.cpp",
+		MAME_DIR .. "src/devices/bus/bbc/modem/modem.h",
+		MAME_DIR .. "src/devices/bus/bbc/modem/scsiaiv.cpp",
+		MAME_DIR .. "src/devices/bus/bbc/modem/scsiaiv.h",
+	}
+end
+
+
+---------------------------------------------------
+--
 --@src/devices/bus/bbc/1mhzbus/1mhzbus.h,BUSES["BBC_1MHZBUS"] = true
 ---------------------------------------------------
 
@@ -467,10 +482,14 @@ if (BUSES["BBC_1MHZBUS"]~=null) then
 		MAME_DIR .. "src/devices/bus/bbc/1mhzbus/1mhzbus.h",
 		MAME_DIR .. "src/devices/bus/bbc/1mhzbus/autoprom.cpp",
 		MAME_DIR .. "src/devices/bus/bbc/1mhzbus/autoprom.h",
+		MAME_DIR .. "src/devices/bus/bbc/1mhzbus/beebopl.cpp",
+		MAME_DIR .. "src/devices/bus/bbc/1mhzbus/beebopl.h",
 		MAME_DIR .. "src/devices/bus/bbc/1mhzbus/beebsid.cpp",
 		MAME_DIR .. "src/devices/bus/bbc/1mhzbus/beebsid.h",
 		MAME_DIR .. "src/devices/bus/bbc/1mhzbus/emrmidi.cpp",
 		MAME_DIR .. "src/devices/bus/bbc/1mhzbus/emrmidi.h",
+		MAME_DIR .. "src/devices/bus/bbc/1mhzbus/ide.cpp",
+		MAME_DIR .. "src/devices/bus/bbc/1mhzbus/ide.h",
 		MAME_DIR .. "src/devices/bus/bbc/1mhzbus/ieee488.cpp",
 		MAME_DIR .. "src/devices/bus/bbc/1mhzbus/ieee488.h",
 		MAME_DIR .. "src/devices/bus/bbc/1mhzbus/m2000.cpp",
@@ -481,6 +500,8 @@ if (BUSES["BBC_1MHZBUS"]~=null) then
 		MAME_DIR .. "src/devices/bus/bbc/1mhzbus/pms64k.h",
 		MAME_DIR .. "src/devices/bus/bbc/1mhzbus/ramdisc.cpp",
 		MAME_DIR .. "src/devices/bus/bbc/1mhzbus/ramdisc.h",
+		MAME_DIR .. "src/devices/bus/bbc/1mhzbus/scsi.cpp",
+		MAME_DIR .. "src/devices/bus/bbc/1mhzbus/scsi.h",
 		MAME_DIR .. "src/devices/bus/bbc/1mhzbus/sprite.cpp",
 		MAME_DIR .. "src/devices/bus/bbc/1mhzbus/sprite.h",
 		MAME_DIR .. "src/devices/bus/bbc/1mhzbus/cfa3000opt.cpp",
@@ -1796,6 +1817,8 @@ if (BUSES["S100"]~=null) then
 		MAME_DIR .. "src/devices/bus/s100/s100.h",
 		MAME_DIR .. "src/devices/bus/s100/am310.cpp",
 		MAME_DIR .. "src/devices/bus/s100/am310.h",
+		MAME_DIR .. "src/devices/bus/s100/ascsasi.cpp",
+		MAME_DIR .. "src/devices/bus/s100/ascsasi.h",
 		MAME_DIR .. "src/devices/bus/s100/dg640.cpp",
 		MAME_DIR .. "src/devices/bus/s100/dg640.h",
 		MAME_DIR .. "src/devices/bus/s100/dj2db.cpp",
@@ -2283,6 +2306,8 @@ if (BUSES["A2GAMEIO"]~=null) then
 		MAME_DIR .. "src/devices/bus/a2gameio/joystick.h",
 		MAME_DIR .. "src/devices/bus/a2gameio/joyport.cpp",
 		MAME_DIR .. "src/devices/bus/a2gameio/joyport.h",
+		MAME_DIR .. "src/devices/bus/a2gameio/paddles.cpp",
+		MAME_DIR .. "src/devices/bus/a2gameio/paddles.h",
 	}
 end
 
@@ -4079,5 +4104,19 @@ if (BUSES["TMC600"]~=null) then
 	files {
 		MAME_DIR .. "src/devices/bus/tmc600/euro.cpp",
 		MAME_DIR .. "src/devices/bus/tmc600/euro.h",
+	}
+end
+
+---------------------------------------------------
+--
+--@src/devices/bus/multibus/multibus.h,BUSES["MULTIBUS"] = true
+---------------------------------------------------
+
+if (BUSES["MULTIBUS"]~=null) then
+	files {
+		MAME_DIR .. "src/devices/bus/multibus/multibus.cpp",
+		MAME_DIR .. "src/devices/bus/multibus/multibus.h",
+		MAME_DIR .. "src/devices/bus/multibus/isbc202.cpp",
+		MAME_DIR .. "src/devices/bus/multibus/isbc202.h",
 	}
 end

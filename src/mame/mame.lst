@@ -12886,6 +12886,8 @@ rad_baskp
 rad_sinv
 rad_tetr
 airblsjs
+sudoelan
+carlecfg
 
 @source:electra.cpp
 avenger                         // (c) 1975 Electra
@@ -13417,6 +13419,7 @@ fex68kb                         //
 fex68km2                        //
 fex68km2a                       //
 fex68km3                        //
+fex68km4                        //
 
 @source:fidel_elite.cpp
 feasbu                          //
@@ -14620,7 +14623,7 @@ giclasex
 giclassvr
 
 @source:gigatron.cpp
-gigatron						// (c) 2018 Marcel van Kervinck
+gigatron                        // (c) 2018 Marcel van Kervinck
 
 @source:gijoe.cpp
 gijoe                           // GX069 (c) 1991 (World)
@@ -31270,11 +31273,14 @@ vtpinball                       // From V.R. Technology VT SDK
 vtsndtest                       // From V.R. Technology VT SDK
 vtboxing                        // From V.R. Technology VT SDK
 ablpinb
+papsudok
 mc_dgear
 dgun2500
 dgun2561
 lxcmcy
+lxcmc250
 lxcmcysw
+lxcmcyfz
 cybar120
 mc_dg101
 mc_aa2
@@ -31304,6 +31310,8 @@ gprnrs16
 ddrdismx                        // (c) 2006 Majesco / Konami [(c) 2001 Disney on title screen]
 ddrstraw                        // (c) 2006 Majesco / Konami
 majkon
+majgnc
+sudopptv
 ablping
 vgpocket
 vgpmini
@@ -31335,6 +31343,7 @@ miwi2_7
 intact89
 intg5410
 exsprt48
+exsprt48a
 wowwg
 
 @source:newbrain.cpp
@@ -33270,6 +33279,7 @@ madrace                         //
 zira                            //
 
 @source:play_3.cpp
+flashman                        //
 fldragon                        //
 fldragona                       //
 ironball                        //
@@ -33936,6 +33946,10 @@ sol20                           //
 
 @source:pturn.cpp
 pturn                           // (c) 1984 Jaleco
+
+@source:pubint_storyreader.cpp
+pi_stry
+pi_stry2
 
 @source:pubtimed.cpp
 pubtimed                        //
@@ -39835,6 +39849,7 @@ rad_crik                        //
 rad_fb2                         //
 mattelcs                        //
 abltenni                        //
+tvsprt10                        //
 wiwi18                          //
 
 @source:spg2xx_jakks.cpp
@@ -39881,6 +39896,8 @@ sencosmo
 
 @source:spg2xx_senario_poker.cpp
 sentx6p                         //
+sentx6puk
+sentx6pd
 
 @source:spg2xx_vii.cpp
 vii                             // KenSingTon / Jungle Soft / Siatronics Vii
@@ -40319,6 +40336,7 @@ lotr_sp6                        //
 lotr_sp7                        //
 lotr_sp8                        //
 lotr_sp9                        //
+lotr3                           //
 lotr401                         //
 lotr410                         //
 lotr5                           //

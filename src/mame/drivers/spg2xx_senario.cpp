@@ -2,15 +2,15 @@
 // copyright-holders:Ryan Holtz, David Haywood
 
 /*
-	General Senario games on SunPlus hardware
-	
-	these check for flash ROM and actually save user data at 0x700000 (senmil/senbbs/senapren) in the flash ROM
+    General Senario games on SunPlus hardware
 
-	TODO:
-	senmil - Are the LEDs on the controllers meant to go out as players select answers like with pvmil, or are they just to show that the controller is connected?
-	sencosmo - fix Flash hookup (crashes if you use a Flash chip right now)
-	senapren - should it actually save data? chip really seems to be 2MB, data written at 7MB can't be saved at mirrored 1MB address or it would erase game code / data
-	senpmate - again seems to actually be a 2MB chip
+    these check for flash ROM and actually save user data at 0x700000 (senmil/senbbs/senapren) in the flash ROM
+
+    TODO:
+    senmil - Are the LEDs on the controllers meant to go out as players select answers like with pvmil, or are they just to show that the controller is connected?
+    sencosmo - fix Flash hookup (crashes if you use a Flash chip right now)
+    senapren - should it actually save data? chip really seems to be 2MB, data written at 7MB can't be saved at mirrored 1MB address or it would erase game code / data
+    senpmate - again seems to actually be a 2MB chip
 
 */
 
@@ -80,7 +80,7 @@ public:
 	{ }
 
 	void senmil(machine_config& config);
-	
+
 protected:
 	//virtual void machine_start() override;
 	//virtual void machine_reset() override;
@@ -238,7 +238,7 @@ WRITE16_MEMBER(spg2xx_senario_mil_state::portc_w)
 	logerror("%s: spg2xx_senario_mil_state::portc_w %04x ---- %04x %04x \n", machine().describe_context(), data, data & 0x55, data & 0xaa);
 	m_portc_data = data;
 }
-	
+
 READ16_MEMBER(spg2xx_senario_mil_state::portc_r)
 {
 	uint16_t ret = m_io_p3->read() & 0xffaa; // 0xaa must be set to register all controllers as turned on
@@ -264,6 +264,12 @@ void spg2xx_senario_cosmo_state::sencosmo(machine_config& config)
 {
 	senbbs(config);
 	m_maincpu->set_addrmap(AS_PROGRAM, &spg2xx_senario_cosmo_state::mem_map_flash_bypass);
+	/* the game crashes if you get no matches after the 2nd spin on the 'Fashion Disaster' slot machine mini-game.
+	   this could be a real game bug (as to trigger it you'd have to make a poor choice not to hold any matches after the first spin)
+	   however with the recompiler execution of bad data causes MAME to immediately drop to commandline with no error message
+	   without recompiler the game just hangs */
+	m_maincpu->set_force_no_drc(true);
+
 }
 
 
@@ -290,6 +296,7 @@ ROM_START( senpmate )
 	ROM_REGION16_BE( 0x800000, "flash", ROMREGION_ERASE00 )
 	ROM_LOAD16_WORD_SWAP( "perfectmate.bin", 0x000000, 0x200000, CRC(fa7f8ca0) SHA1(fcc78f8efb183e9c65545eb502da475225253a94) )
 	// Perfect Mate's COB also had a sticker: 7DC1 16M 050822.  The 2MB file I dumped sums to 7DC1
+	// The Perfect Mate checksum in the ROM header matches the sum of bytes from 0x10 to the end.
 ROM_END
 
 ROM_START( sencosmo )

@@ -36,7 +36,7 @@ namespace netlist
 	void nlparse_t::register_dip_alias_arr(const pstring &terms)
 	{
 		std::vector<pstring> list(plib::psplit(terms,", "));
-		if (list.size() == 0 || (list.size() % 2) == 1)
+		if (list.empty() || (list.size() % 2) == 1)
 		{
 			log().fatal(MF_DIP_PINS_MUST_BE_AN_EQUAL_NUMBER_OF_PINS_1(build_fqn("")));
 			throw nl_exception(MF_DIP_PINS_MUST_BE_AN_EQUAL_NUMBER_OF_PINS_1(build_fqn("")));
@@ -80,7 +80,7 @@ namespace netlist
 
 		register_dev(classname, name);
 
-		if (params_and_connections.size() > 0)
+		if (!params_and_connections.empty())
 		{
 			auto ptok(params_and_connections.begin());
 			auto ptok_end(params_and_connections.end());
@@ -121,11 +121,9 @@ namespace netlist
 					pstring paramfq = name + "." + tp;
 
 					log().debug("Defparam: {1}\n", paramfq);
-					// remove quotes
-					if (plib::startsWith(*ptok, "\"") && plib::endsWith(*ptok, "\""))
-						register_param(paramfq, ptok->substr(1, ptok->length() - 2));
-					else
-						register_param(paramfq, *ptok);
+
+					register_param(paramfq, *ptok);
+
 					++ptok;
 				}
 			}
@@ -146,19 +144,17 @@ namespace netlist
 			log().fatal(MF_CLASS_1_NOT_FOUND(classname));
 			throw nl_exception(MF_CLASS_1_NOT_FOUND(classname));
 		}
-		else
+
+		// make sure we parse macro library entries
+		f->macro_actions(*this, name);
+		pstring key = build_fqn(name);
+		if (device_exists(key))
 		{
-			// make sure we parse macro library entries
-			f->macro_actions(*this, name);
-			pstring key = build_fqn(name);
-			if (device_exists(key))
-			{
-				log().fatal(MF_DEVICE_ALREADY_EXISTS_1(name));
-				throw nl_exception(MF_DEVICE_ALREADY_EXISTS_1(name));
-			}
-			else
-				m_device_factory.insert(m_device_factory.end(), {key, f});
+			log().fatal(MF_DEVICE_ALREADY_EXISTS_1(name));
+			throw nl_exception(MF_DEVICE_ALREADY_EXISTS_1(name));
 		}
+
+		m_device_factory.insert(m_device_factory.end(), {key, f});
 	}
 
 	void nlparse_t::register_link(const pstring &sin, const pstring &sout)
@@ -218,11 +214,16 @@ namespace netlist
 	void nlparse_t::register_param(const pstring &param, const pstring &value)
 	{
 		pstring fqn = build_fqn(param);
+		pstring val(value);
+
+		// strip " from stringified strings
+		if (plib::startsWith(value, "\"") && plib::endsWith(value, "\""))
+			val = value.substr(1, value.length() - 2);
 
 		auto idx = m_param_values.find(fqn);
 		if (idx == m_param_values.end())
 		{
-			if (!m_param_values.insert({fqn, value}).second)
+			if (!m_param_values.insert({fqn, val}).second)
 			{
 				log().fatal(MF_ADDING_PARAMETER_1_TO_PARAMETER_LIST(param));
 				throw nl_exception(MF_ADDING_PARAMETER_1_TO_PARAMETER_LIST(param));
@@ -231,8 +232,8 @@ namespace netlist
 		else
 		{
 			log().warning(MW_OVERWRITING_PARAM_1_OLD_2_NEW_3(fqn, idx->second,
-					value));
-			m_param_values[fqn] = value;
+					val));
+			m_param_values[fqn] = val;
 		}
 	}
 
@@ -241,7 +242,7 @@ namespace netlist
 		m_factory.register_device(plib::make_unique<factory::library_element_t>(name, name, "", sourcefile));
 	}
 
-	void nlparse_t::register_frontier(const pstring &attach, const nl_fptype r_IN, const nl_fptype r_OUT)
+	void nlparse_t::register_frontier(const pstring &attach, const pstring &r_IN, const pstring &r_OUT)
 	{
 		pstring frontier_name = plib::pfmt("frontier_{1}")(m_frontier_cnt);
 		m_frontier_cnt++;
@@ -281,11 +282,8 @@ namespace netlist
 
 	pstring nlparse_t::build_fqn(const pstring &obj_name) const
 	{
-		if (m_namespace_stack.empty())
-			//return netlist().name() + "." + obj_name;
-			return obj_name;
-		else
-			return m_namespace_stack.top() + "." + obj_name;
+		return (m_namespace_stack.empty()) ? obj_name
+			: m_namespace_stack.top() + "." + obj_name;
 	}
 
 	void nlparse_t::register_alias_nofqn(const pstring &alias, const pstring &out)
@@ -315,9 +313,9 @@ namespace netlist
 
 	bool nlparse_t::parse_stream(plib::psource_t::stream_ptr &&istrm, const pstring &name)
 	{
-		plib::ppreprocessor y(m_includes, &m_defines);
-		plib::ppreprocessor &x(y.process(std::move(istrm)));
-		return parser_t(std::move(x), *this).parse(name);
+		auto y = plib::make_unique<plib::ppreprocessor>(m_includes, &m_defines);
+		y->process(std::move(istrm));
+		return parser_t(std::move(y), *this).parse(name);
 		//return parser_t(std::move(plib::ppreprocessor(&m_defines).process(std::move(istrm))), *this).parse(name);
 	}
 
@@ -343,7 +341,7 @@ setup_t::setup_t(netlist_state_t &nlstate)
 {
 }
 
-pstring setup_t::termtype_as_str(detail::core_terminal_t &in) const
+pstring setup_t::termtype_as_str(detail::core_terminal_t &in)
 {
 	switch (in.type())
 	{
@@ -362,10 +360,7 @@ pstring setup_t::termtype_as_str(detail::core_terminal_t &in) const
 pstring setup_t::get_initial_param_val(const pstring &name, const pstring &def) const
 {
 	auto i = m_param_values.find(name);
-	if (i != m_param_values.end())
-		return i->second;
-	else
-		return def;
+	return (i != m_param_values.end()) ? i->second : def;
 }
 
 void setup_t::register_term(detail::core_terminal_t &term)
@@ -544,8 +539,8 @@ detail::core_terminal_t *setup_t::find_terminal(const pstring &terminal_in,
 			log().fatal(MF_OBJECT_1_2_WRONG_TYPE(terminal_in, tname));
 			throw nl_exception(MF_OBJECT_1_2_WRONG_TYPE(terminal_in, tname));
 		}
-		else
-			term = nullptr;
+
+		term = nullptr;
 	}
 	if (term != nullptr)
 		log().debug("Found input {1}\n", tname);
@@ -576,39 +571,38 @@ devices::nld_base_proxy *setup_t::get_d_a_proxy(detail::core_terminal_t &out)
 	auto &out_cast = static_cast<logic_output_t &>(out);
 	auto iter_proxy(m_proxies.find(&out));
 
-	if (iter_proxy == m_proxies.end())
-	{
-		// create a new one ...
-		pstring x = plib::pfmt("proxy_da_{1}_{2}")(out.name())(m_proxy_cnt);
-		auto new_proxy =
-				out_cast.logic_family()->create_d_a_proxy(m_nlstate, x, &out_cast);
-		m_proxy_cnt++;
-		// connect all existing terminals to new net
-
-		for (auto & p : out.net().core_terms())
-		{
-			p->clear_net(); // de-link from all nets ...
-			if (!connect(new_proxy->proxy_term(), *p))
-			{
-				log().fatal(MF_CONNECTING_1_TO_2(
-						new_proxy->proxy_term().name(), (*p).name()));
-				throw nl_exception(MF_CONNECTING_1_TO_2(
-						new_proxy->proxy_term().name(), (*p).name()));
-			}
-		}
-		out.net().core_terms().clear();
-
-		out.net().add_terminal(new_proxy->in());
-
-		auto proxy(new_proxy.get());
-		if (!m_proxies.insert({&out, proxy}).second)
-			throw nl_exception(MF_DUPLICATE_PROXY_1(out.name()));
-
-		m_nlstate.register_device(new_proxy->name(), std::move(new_proxy));
-		return proxy;
-	}
-	else
+	if (iter_proxy != m_proxies.end())
 		return iter_proxy->second;
+
+	// create a new one ...
+	pstring x = plib::pfmt("proxy_da_{1}_{2}")(out.name())(m_proxy_cnt);
+	auto new_proxy =
+			out_cast.logic_family()->create_d_a_proxy(m_nlstate, x, &out_cast);
+	m_proxy_cnt++;
+	// connect all existing terminals to new net
+
+	for (auto & p : out.net().core_terms())
+	{
+		p->clear_net(); // de-link from all nets ...
+		if (!connect(new_proxy->proxy_term(), *p))
+		{
+			log().fatal(MF_CONNECTING_1_TO_2(
+					new_proxy->proxy_term().name(), (*p).name()));
+			throw nl_exception(MF_CONNECTING_1_TO_2(
+					new_proxy->proxy_term().name(), (*p).name()));
+		}
+	}
+	out.net().core_terms().clear();
+
+	out.net().add_terminal(new_proxy->in());
+
+	auto proxy(new_proxy.get());
+	if (!m_proxies.insert({&out, proxy}).second)
+		throw nl_exception(MF_DUPLICATE_PROXY_1(out.name()));
+
+	m_nlstate.register_device(new_proxy->name(), std::move(new_proxy));
+	return proxy;
+
 }
 
 devices::nld_base_proxy *setup_t::get_a_d_proxy(detail::core_terminal_t &inp)
@@ -621,42 +615,40 @@ devices::nld_base_proxy *setup_t::get_a_d_proxy(detail::core_terminal_t &inp)
 
 	if (iter_proxy != m_proxies.end())
 		return iter_proxy->second;
-	else
+
+	log().debug("connect_terminal_input: connecting proxy\n");
+	pstring x = plib::pfmt("proxy_ad_{1}_{2}")(inp.name())(m_proxy_cnt);
+	auto new_proxy = incast.logic_family()->create_a_d_proxy(m_nlstate, x, &incast);
+	//auto new_proxy = plib::owned_ptr<devices::nld_a_to_d_proxy>::Create(netlist(), x, &incast);
+
+	auto ret(new_proxy.get());
+
+	if (!m_proxies.insert({&inp, ret}).second)
+		throw nl_exception(MF_DUPLICATE_PROXY_1(inp.name()));
+
+	m_proxy_cnt++;
+
+	// connect all existing terminals to new net
+
+	if (inp.has_net())
 	{
-		log().debug("connect_terminal_input: connecting proxy\n");
-		pstring x = plib::pfmt("proxy_ad_{1}_{2}")(inp.name())(m_proxy_cnt);
-		auto new_proxy = incast.logic_family()->create_a_d_proxy(m_nlstate, x, &incast);
-		//auto new_proxy = plib::owned_ptr<devices::nld_a_to_d_proxy>::Create(netlist(), x, &incast);
-
-		auto ret(new_proxy.get());
-
-		if (!m_proxies.insert({&inp, ret}).second)
-			throw nl_exception(MF_DUPLICATE_PROXY_1(inp.name()));
-
-		m_proxy_cnt++;
-
-		// connect all existing terminals to new net
-
-		if (inp.has_net())
+		for (auto & p : inp.net().core_terms())
 		{
-			for (auto & p : inp.net().core_terms())
+			p->clear_net(); // de-link from all nets ...
+			if (!connect(ret->proxy_term(), *p))
 			{
-				p->clear_net(); // de-link from all nets ...
-				if (!connect(ret->proxy_term(), *p))
-				{
-					log().fatal(MF_CONNECTING_1_TO_2(
-							ret->proxy_term().name(), (*p).name()));
-					throw nl_exception(MF_CONNECTING_1_TO_2(
-							ret->proxy_term().name(), (*p).name()));
+				log().fatal(MF_CONNECTING_1_TO_2(
+						ret->proxy_term().name(), (*p).name()));
+				throw nl_exception(MF_CONNECTING_1_TO_2(
+						ret->proxy_term().name(), (*p).name()));
 
-				}
 			}
-			inp.net().core_terms().clear(); // clear the list
 		}
-		ret->out().net().add_terminal(inp);
-		m_nlstate.register_device(new_proxy->name(), std::move(new_proxy));
-		return ret;
+		inp.net().core_terms().clear(); // clear the list
 	}
+	ret->out().net().add_terminal(inp);
+	m_nlstate.register_device(new_proxy->name(), std::move(new_proxy));
+	return ret;
 }
 
 detail::core_terminal_t &setup_t::resolve_proxy(detail::core_terminal_t &term)
@@ -901,7 +893,7 @@ void setup_t::resolve_inputs()
 	// after all other terminals were connected.
 
 	unsigned tries = m_netlist_params->m_max_link_loops();
-	while (m_links.size() > 0 && tries >  0)
+	while (!m_links.empty() && tries >  0)
 	{
 
 		for (auto li = m_links.begin(); li != m_links.end(); )
@@ -975,22 +967,16 @@ void setup_t::resolve_inputs()
 
 }
 
-void setup_t::register_dynamic_log_devices()
+void setup_t::register_dynamic_log_devices(const std::vector<pstring> &loglist)
 {
-	pstring env = plib::util::environment("NL_LOGS", "");
-
-	if (env != "")
+	log().debug("Creating dynamic logs ...");
+	for (const pstring &ll : loglist)
 	{
-		log().debug("Creating dynamic logs ...");
-		std::vector<pstring> loglist(plib::psplit(env, ":"));
-		for (const pstring &ll : loglist)
-		{
-			pstring name = "log_" + ll;
-			auto nc = factory().factory_by_name("LOG")->Create(m_nlstate.pool(), m_nlstate, name);
-			register_link(name + ".I", ll);
-			log().debug("    dynamic link {1}: <{2}>\n",ll, name);
-			m_nlstate.register_device(nc->name(), std::move(nc));
-		}
+		pstring name = "log_" + ll;
+		auto nc = factory().factory_by_name("LOG")->Create(m_nlstate.pool(), m_nlstate, name);
+		register_link(name + ".I", ll);
+		log().debug("    dynamic link {1}: <{2}>\n",ll, name);
+		m_nlstate.register_device(nc->name(), std::move(nc));
 	}
 }
 
@@ -1065,7 +1051,7 @@ void models_t::model_parse(const pstring &model_in, model_map_t &map)
 	}
 }
 
-pstring models_t::model_string(const model_map_t &map) const
+pstring models_t::model_string(const model_map_t &map)
 {
 	// operator [] has no const implementation
 	pstring ret = map.at("COREMODEL") + "(";
@@ -1079,26 +1065,22 @@ pstring models_t::value_str(const pstring &model, const pstring &entity)
 {
 	model_map_t &map = m_cache[model];
 
-	if (map.size() == 0)
+	if (map.empty())
 		model_parse(model , map);
-
-	pstring ret;
 
 	if (entity != plib::ucase(entity))
 		throw nl_exception(MF_MODEL_PARAMETERS_NOT_UPPERCASE_1_2(entity, model_string(map)));
 	if (map.find(entity) == map.end())
 		throw nl_exception(MF_ENTITY_1_NOT_FOUND_IN_MODEL_2(entity, model_string(map)));
-	else
-		ret = map[entity];
 
-	return ret;
+	return map[entity];
 }
 
 nl_fptype models_t::value(const pstring &model, const pstring &entity)
 {
 	model_map_t &map = m_cache[model];
 
-	if (map.size() == 0)
+	if (map.empty())
 		model_parse(model , map);
 
 	pstring tmp = value_str(model, entity);
@@ -1165,7 +1147,6 @@ const logic_family_desc_t *setup_t::family_from_model(const pstring &model)
 
 	auto ret = plib::make_unique<logic_family_std_proxy_t>();
 
-	ret->m_fixed_V = m_models.value(model, "FV");
 	ret->m_low_thresh_PCNT = m_models.value(model, "IVL");
 	ret->m_high_thresh_PCNT = m_models.value(model, "IVH");
 	ret->m_low_VO = m_models.value(model, "OVL");
@@ -1210,8 +1191,7 @@ void setup_t::delete_empty_nets()
 					x->state().run_state_manager().remove_save_items(x.get());
 					return true;
 				}
-				else
-					return false;
+				return false;
 			}), m_nlstate.nets().end());
 }
 
@@ -1221,7 +1201,14 @@ void setup_t::delete_empty_nets()
 
 void setup_t::prepare_to_run()
 {
-	register_dynamic_log_devices();
+	pstring envlog = plib::util::environment("NL_LOGS", "");
+
+	if (envlog != "")
+	{
+		std::vector<pstring> loglist(plib::psplit(envlog, ":"));
+		register_dynamic_log_devices(loglist);
+	}
+
 
 	// make sure the solver and parameters are started first!
 
@@ -1275,7 +1262,7 @@ void setup_t::prepare_to_run()
 		}
 	}
 
-	bool use_deactivate = m_netlist_params->m_use_deactivate() ? true : false;
+	const bool use_deactivate = m_netlist_params->m_use_deactivate();
 
 	for (auto &d : m_nlstate.devices())
 	{
@@ -1346,10 +1333,7 @@ void setup_t::prepare_to_run()
 bool source_netlist_t::parse(nlparse_t &setup, const pstring &name)
 {
 	auto strm(stream(name));
-	if (strm)
-		return setup.parse_stream(std::move(strm), name);
-	else
-		return false;
+	return (strm) ? setup.parse_stream(std::move(strm), name) : false;
 }
 
 source_string_t::stream_ptr source_string_t::stream(const pstring &name)
@@ -1372,10 +1356,7 @@ source_file_t::stream_ptr source_file_t::stream(const pstring &name)
 {
 	plib::unused_var(name);
 	auto ret(plib::make_unique<std::ifstream>(plib::filesystem::u8path(m_filename)));
-	if (ret->is_open())
-		return std::move(ret);
-	else
-		return stream_ptr(nullptr);
+	return (ret->is_open()) ? std::move(ret) : stream_ptr(nullptr);
 }
 
 bool source_proc_t::parse(nlparse_t &setup, const pstring &name)
@@ -1385,8 +1366,8 @@ bool source_proc_t::parse(nlparse_t &setup, const pstring &name)
 		m_setup_func(setup);
 		return true;
 	}
-	else
-		return false;
+
+	return false;
 }
 
 source_proc_t::stream_ptr source_proc_t::stream(const pstring &name)

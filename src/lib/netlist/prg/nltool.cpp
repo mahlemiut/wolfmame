@@ -119,7 +119,7 @@ public:
 	{
 		pstring res = plib::pfmt(fmt)(std::forward<ARGS>(args)...);
 		auto lines(plib::psplit(res, "\n", false));
-		if (lines.size() == 0)
+		if (lines.empty())
 			pout(prefix + "\n");
 		else
 			for (auto &l : lines)
@@ -134,7 +134,7 @@ private:
 	void convert();
 	void static_compile();
 
-	void mac_out(const pstring &s, const bool cont = true);
+	void mac_out(const pstring &s, bool cont = true);
 	void header_entry(const netlist::factory::element_t *e);
 	void mac(const netlist::factory::element_t *e);
 
@@ -163,8 +163,7 @@ class netlist_data_folder_t : public netlist::source_data_t
 {
 public:
 	explicit netlist_data_folder_t(const pstring &folder)
-	: netlist::source_data_t()
-	, m_folder(folder)
+	: m_folder(folder)
 	{
 	}
 
@@ -174,11 +173,9 @@ public:
 		auto strm(plib::make_unique<std::ifstream>(plib::filesystem::u8path(name)));
 		if (strm->fail())
 			return stream_ptr(nullptr);
-		else
-		{
-			strm->imbue(std::locale::classic());
-			return std::move(strm);
-		}
+
+		strm->imbue(std::locale::classic());
+		return std::move(strm);
 	}
 
 private:
@@ -189,8 +186,7 @@ class netlist_tool_callbacks_t : public netlist::callbacks_t
 {
 public:
 	explicit netlist_tool_callbacks_t(tool_app_t &app)
-	: netlist::callbacks_t()
-	, m_app(app)
+	: m_app(app)
 	{ }
 
 	void vlog(const plib::plog_level &l, const pstring &ls) const noexcept override;
@@ -222,27 +218,33 @@ public:
 		for (auto & r : roms)
 			setup().register_source(plib::make_unique<netlist_data_folder_t>(r));
 
+#if 0
 		using a = plib::psource_str_t<plib::psource_t>;
+#if USE_EVAL
+		const pstring content =
+		"#define RES_R(res) (res)            \n"
+		"#define RES_K(res) ((res) * 1e3)    \n"
+		"#define RES_M(res) ((res) * 1e6)    \n"
+		"#define CAP_U(cap) ((cap) * 1e-6)   \n"
+		"#define CAP_N(cap) ((cap) * 1e-9)   \n"
+		"#define CAP_P(cap) ((cap) * 1e-12)  \n"
+		"#define IND_U(ind) ((ind) * 1e-6)   \n"
+		"#define IND_N(ind) ((ind) * 1e-9)   \n"
+		"#define IND_P(ind) ((ind) * 1e-12)  \n";
+		setup().add_include(plib::make_unique<a>("netlist/devices/net_lib.h", content));
+#else
 		setup().add_include(plib::make_unique<a>("netlist/devices/net_lib.h",""));
+#endif
+#endif
 		for (auto & i : includes)
 			setup().add_include(plib::make_unique<netlist_data_folder_t>(i));
 
 		setup().register_source(plib::make_unique<netlist::source_file_t>(filename));
 		setup().include(name);
-		create_dynamic_logs(logs);
+		setup().register_dynamic_log_devices(logs);
 
 		// start devices
 		setup().prepare_to_run();
-	}
-
-	void create_dynamic_logs(const std::vector<pstring> &logs)
-	{
-		log().debug("Creating dynamic logs ...\n");
-		for (auto & log : logs)
-		{
-			pstring name = "log_" + log;
-			setup().register_link(name + ".I", log);
-		}
 	}
 
 	std::vector<char> save_state()
@@ -356,7 +358,7 @@ static std::vector<input_t> read_input(const netlist::setup_t &setup, const pstr
 	std::vector<input_t> ret;
 	if (fname != "")
 	{
-		plib::putf8_reader r = plib::putf8_reader(std::ifstream(plib::filesystem::u8path(fname)));
+		plib::putf8_reader r = plib::putf8_reader(plib::make_unique<std::ifstream>(plib::filesystem::u8path(fname)));
 		if (r.stream().fail())
 			throw netlist::nl_exception(netlist::MF_FILE_OPEN_ERROR(fname));
 		r.stream().imbue(std::locale::classic());
@@ -404,28 +406,31 @@ void tool_app_t::run()
 
 	pout("startup time ==> {1:5.3f}\n", t.as_seconds<nl_fptype>() );
 
+	// FIXME: error handling
+	if (opt_loadstate.was_specified())
+	{
+		std::ifstream strm(plib::filesystem::u8path(opt_loadstate()));
+		if (strm.fail())
+			throw netlist::nl_exception(netlist::MF_FILE_OPEN_ERROR(opt_loadstate()));
+		strm.imbue(std::locale::classic());
+		plib::pbinary_reader reader(strm);
+		std::vector<char> loadstate;
+		reader.read(loadstate);
+		nt.load_state(loadstate);
+		pout("Loaded state, run will continue at {1:.6f}\n", nt.exec().time().as_double());
+	}
+
 	t.reset();
 
-	netlist::netlist_time_ext nlt = nt.exec().time();
+	netlist::netlist_time_ext nlstart = nt.exec().time();
 	{
 		auto t_guard(t.guard());
 
-		// FIXME: error handling
-		if (opt_loadstate.was_specified())
-		{
-			std::ifstream strm(plib::filesystem::u8path(opt_loadstate()));
-			if (strm.fail())
-				throw netlist::nl_exception(netlist::MF_FILE_OPEN_ERROR(opt_loadstate()));
-			strm.imbue(std::locale::classic());
-			plib::pbinary_reader reader(strm);
-			std::vector<char> loadstate;
-			reader.read(loadstate);
-			nt.load_state(loadstate);
-			pout("Loaded state, run will continue at {1:.6f}\n", nt.exec().time().as_double());
-		}
+		pout("runnning ...\n");
 
 		unsigned pos = 0;
 
+		netlist::netlist_time_ext nlt = nlstart;
 
 		while (pos < inps.size()
 				&& inps[pos].m_time < ttr
@@ -437,8 +442,6 @@ void tool_app_t::run()
 			pos++;
 		}
 
-		pout("runnning ...\n");
-
 		if (ttr > nlt)
 			nt.exec().process_queue(ttr - nlt);
 		else
@@ -448,24 +451,25 @@ void tool_app_t::run()
 			ttr = nlt;
 		}
 
-		if (opt_savestate.was_specified())
-		{
-			auto savestate = nt.save_state();
-			std::ofstream strm(plib::filesystem::u8path(opt_savestate()), std::ios_base::binary);
-			if (strm.fail())
-				throw plib::file_open_e(opt_savestate());
-			strm.imbue(std::locale::classic());
-
-			plib::pbinary_writer writer(strm);
-			writer.write(savestate);
-		}
-		nt.exec().stop();
 	}
+
+	if (opt_savestate.was_specified())
+	{
+		auto savestate = nt.save_state();
+		std::ofstream strm(plib::filesystem::u8path(opt_savestate()), std::ios_base::binary);
+		if (strm.fail())
+			throw plib::file_open_e(opt_savestate());
+		strm.imbue(std::locale::classic());
+
+		plib::pbinary_writer writer(strm);
+		writer.write(savestate);
+	}
+	nt.exec().stop();
 
 	auto emutime(t.as_seconds<nl_fptype>());
 	pout("{1:f} seconds emulation took {2:f} real time ==> {3:5.2f}%\n",
-			(ttr - nlt).as_fp<nl_fptype>(), emutime,
-			(ttr - nlt).as_fp<nl_fptype>() / emutime * netlist::nlconst::magic(100.0));
+			(ttr - nlstart).as_fp<nl_fptype>(), emutime,
+			(ttr - nlstart).as_fp<nl_fptype>() / emutime * netlist::nlconst::magic(100.0));
 }
 
 void tool_app_t::validate()
@@ -566,7 +570,7 @@ struct doc_ext
 static doc_ext read_docsrc(const pstring &fname, const pstring &id)
 {
 	//printf("file %s\n", fname.c_str());
-	plib::putf8_reader r = plib::putf8_reader(std::ifstream(plib::filesystem::u8path(fname)));
+	plib::putf8_reader r = plib::putf8_reader(plib::make_unique<std::ifstream>(plib::filesystem::u8path(fname)));
 	if (r.stream().fail())
 		throw netlist::nl_exception(netlist::MF_FILE_OPEN_ERROR(fname));
 	r.stream().imbue(std::locale::classic());
@@ -584,7 +588,7 @@ static doc_ext read_docsrc(const pstring &fname, const pstring &id)
 			if (l != "")
 			{
 				auto a(plib::psplit(l, ":", true));
-				if ((a.size() < 1) || (a.size() > 2))
+				if (a.empty() || (a.size() > 2))
 					throw netlist::nl_exception(l+" size mismatch");
 				pstring n(plib::trim(a[0]));
 				pstring v(a.size() < 2 ? "" : plib::trim(a[1]));
@@ -621,7 +625,7 @@ static doc_ext read_docsrc(const pstring &fname, const pstring &id)
 					else if (n == "Example")
 					{
 						ret.example = plib::psplit(plib::trim(v),",",true);
-						if (ret.example.size() != 2 && ret.example.size() != 0)
+						if (ret.example.size() != 2 && !ret.example.empty())
 							throw netlist::nl_exception("Example requires 2 parameters, but found {1}", ret.example.size());
 					}
 					else
@@ -696,7 +700,7 @@ void tool_app_t::mac(const netlist::factory::element_t *e)
 			vs += ", " + plib::replace_all(plib::replace_all(s, "+", ""), ".", "_");
 
 	pout("{1}(name{2})\n", e->name(), vs);
-	if (v.size() > 0)
+	if (!v.empty())
 	{
 		pout("/*\n");
 		for (const auto &s : v)
@@ -827,7 +831,7 @@ void tool_app_t::create_docheader()
 			poutprefix("///", "  @section {}_2 Connection Diagram", d.id);
 			poutprefix("///", "");
 
-			if (d.pinalias.size() > 0)
+			if (!d.pinalias.empty())
 			{
 				poutprefix("///", "  <pre>");
 				if (d.package == "DIP")
@@ -857,7 +861,7 @@ void tool_app_t::create_docheader()
 			poutprefix("///", "  @section {}_4 Limitations", d.id);
 			poutprefix("///", "");
 			poutprefix("///", "  {}", d.limitations);
-			if (d.example.size() > 0)
+			if (!d.example.empty())
 			{
 				poutprefix("///", "");
 				poutprefix("///", "  @section {}_5 Example", d.id);
@@ -911,7 +915,7 @@ void tool_app_t::listdevices()
 		}
 		out += ")";
 		pout("{}\n", out);
-		if (terms.size() > 0)
+		if (!terms.empty())
 		{
 			pstring t = "";
 			for (auto & j : terms)

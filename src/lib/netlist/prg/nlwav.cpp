@@ -63,7 +63,7 @@ public:
 		m_f.write(reinterpret_cast<const std::ostream::char_type *>(&val), sizeof(T));
 	}
 
-	void write_sample(int *sample)
+	void write_sample(const int *sample)
 	{
 		m_data.len += m_fmt.block_align;
 		for (std::size_t i = 0; i < channels(); i++)
@@ -149,7 +149,8 @@ public:
 				{
 					// sscanf is very fast ...
 					// NOLINTNEXTLINE(cppcoreguidelines-pro-type-vararg)
-					std::sscanf(line.c_str(), "%lf %lf", &m_e[i].t, &m_e[i].v);
+					if (2 != std::sscanf(line.c_str(), "%lf %lf", &m_e[i].t, &m_e[i].v))
+						fprintf(stderr, "arg: <%s>\n", line.c_str());
 					m_e[i].need_more = false;
 				}
 			}
@@ -494,8 +495,6 @@ void nlwav_app::convert(std::ostream &ostrm)
 
 int nlwav_app::execute()
 {
-	for (auto &i : opt_args())
-		pout("Hello : " + i + "\n");
 	if (opt_help())
 	{
 		pout(usage());
@@ -517,7 +516,6 @@ int nlwav_app::execute()
 	for (auto &oi: opt_args())
 	{
 		plib::unique_ptr<std::istream> fin;
-
 		if (oi == "-")
 		{
 			auto temp(plib::make_unique<std::stringstream>());

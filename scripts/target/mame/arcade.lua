@@ -138,6 +138,8 @@ CPUS["HPC"] = true
 --CPUS["BCP"] = true
 --CPUS["CR16B"] = true
 CPUS["FR"] = true
+CPUS["UPD78K"] = true
+CPUS["KS0164"] = true
 
 --------------------------------------------------
 -- specify available sound cores
@@ -2822,8 +2824,8 @@ files {
 	MAME_DIR .. "src/mame/audio/galaxian.cpp",
 	MAME_DIR .. "src/mame/audio/galaxian.h",
 	MAME_DIR .. "src/mame/video/galaxian.cpp",
-  MAME_DIR .. "src/mame/audio/nl_konami.h",
-  MAME_DIR .. "src/mame/audio/nl_konami.cpp",
+	MAME_DIR .. "src/mame/audio/nl_konami.h",
+	MAME_DIR .. "src/mame/audio/nl_konami.cpp",
 	MAME_DIR .. "src/mame/drivers/galaxold.cpp",
 	MAME_DIR .. "src/mame/includes/galaxold.h",
 	MAME_DIR .. "src/mame/machine/galaxold.cpp",
@@ -3391,6 +3393,8 @@ files {
 	MAME_DIR .. "src/mame/drivers/y2.cpp",
 	MAME_DIR .. "src/mame/video/powervr2.cpp",
 	MAME_DIR .. "src/mame/video/powervr2.h",
+	MAME_DIR .. "src/mame/machine/gunsense.cpp",
+	MAME_DIR .. "src/mame/machine/gunsense.h",
 	MAME_DIR .. "src/mame/machine/naomi.cpp",
 	MAME_DIR .. "src/mame/machine/naomig1.cpp",
 	MAME_DIR .. "src/mame/machine/naomig1.h",
@@ -3461,6 +3465,8 @@ files {
 	MAME_DIR .. "src/mame/drivers/segas16b.cpp",
 	MAME_DIR .. "src/mame/includes/segas16b.h",
 	MAME_DIR .. "src/mame/video/segas16b.cpp",
+	MAME_DIR .. "src/mame/audio/nl_segas16b.cpp",
+	MAME_DIR .. "src/mame/audio/nl_segas16b.h",
 	MAME_DIR .. "src/mame/drivers/segas18.cpp",
 	MAME_DIR .. "src/mame/includes/segas18.h",
 	MAME_DIR .. "src/mame/video/segas18.cpp",
@@ -5005,8 +5011,6 @@ files {
 	MAME_DIR .. "src/mame/drivers/wms.cpp",
 	MAME_DIR .. "src/mame/drivers/xtom3d.cpp",
 	MAME_DIR .. "src/mame/drivers/xyonix.cpp",
-	MAME_DIR .. "src/mame/includes/xyonix.h",
-	MAME_DIR .. "src/mame/video/xyonix.cpp",
 	MAME_DIR .. "src/mame/drivers/yuvomz80.cpp",
 }
 end

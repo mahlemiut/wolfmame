@@ -37,6 +37,8 @@ namespace plib {
 			POW,
 			SIN,
 			COS,
+			MIN,
+			MAX,
 			RAND, /// random number between 0 and 1
 			TRUNC,
 			PUSH_CONST,
@@ -58,7 +60,7 @@ namespace plib {
 		///
 		///
 		pfunction(const pstring &name, const void *owner, state_manager_t &state_manager)
-		: m_lfsr(0xACE1u)
+		: m_lfsr(0xace1U)
 		{
 			state_manager.save_item(owner, m_lfsr, name + ".lfsr");
 		}
@@ -66,7 +68,7 @@ namespace plib {
 		/// \brief Constructor without state saving support
 		///
 		pfunction()
-		: m_lfsr(0xACE1u)
+		: m_lfsr(0xace1U)
 		{
 		}
 

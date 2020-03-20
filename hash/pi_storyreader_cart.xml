@@ -1,5 +1,8 @@
 <?xml version="1.0"?>
 <!DOCTYPE softwarelist SYSTEM "softwarelist.dtd">
+<!--
+license:CC0
+-->
 <softwarelist name="pi_storyreader_cart" description="Publications International Ltd. Story Reader cartridges">
 
 	<!-- carts have either one or two globs in them -->
@@ -299,7 +302,7 @@
 	</software>
 
 	<software name="dasdsch" supported="no">
-		<description>Das Dschungel-Buch (Germany)</description>
+		<description>Das Dschungelbuch (Germany)</description>
 		<year>200?</year>
 		<publisher>Publications International Ltd. / Disney</publisher>
 		<part name="cart" interface="pi_storyreader_cart">
@@ -310,7 +313,7 @@
 	</software>
 
 	<software name="koniglow" supported="no">
-		<description>Der Konig der Lowen (Germany)</description>
+		<description>Der König der Löwen (Germany)</description>
 		<year>200?</year>
 		<publisher>Publications International Ltd. / Disney</publisher>
 		<part name="cart" interface="pi_storyreader_cart">
@@ -343,7 +346,7 @@
 	</software>
 
 	<software name="puuhtag" supported="no">
-		<description>Winnie Puuh - Ein sturmischer Tag (Germany)</description>
+		<description>Winnie Puuh - Ein stürmischer Tag (Germany)</description>
 		<year>200?</year>
 		<publisher>Publications International Ltd. / Disney</publisher>
 		<part name="cart" interface="pi_storyreader_cart">

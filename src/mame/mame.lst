@@ -12929,6 +12929,7 @@ airblsjs
 buzztime
 sudoelan
 carlecfg
+pvmilfin
 
 @source:electra.cpp
 avenger                         // (c) 1975 Electra
@@ -18749,6 +18750,9 @@ korgm1p1                        //
 korgm1r                         //
 korgm1rex                       //
 
+@source:korgz3.cpp
+korgz3                          //
+
 @source:kramermc.cpp
 kramermc                        // 1987 Kramer MC
 
@@ -19347,6 +19351,7 @@ ptrmj                           // M14 (c) 1979
 @source:m20.cpp
 m20                             //
 m40                             //
+m44                             //
 
 @source:m24.cpp
 m21                             // Olivetti M21 Portable
@@ -31455,6 +31460,7 @@ lxcmcysw
 lxcmcyfz
 lxcmcydp
 rtvgc300
+rtvgc300fz
 red5mam
 cybar120
 mc_dg101
@@ -31505,6 +31511,7 @@ mc_hh210
 dvnimbus
 cbrs8
 mc_tv200
+rminitv
 unkra200
 ppgc200g
 fcpocket
@@ -31514,6 +31521,8 @@ zdog
 otrail
 denv150
 techni4
+ablmini
+senwld
 
 @source:vt1682.cpp
 ii8in1
@@ -32517,6 +32526,10 @@ pentagon                        //
 olypeopl                        // Olympia People PC
 
 @source:peplus.cpp
+im1p1952                        // (c) 1995 IGT - International Game Technology
+im1p19s1                        // (c) 1995 IGT - International Game Technology
+im2p1929                        // (c) 1995 IGT - International Game Technology
+im3p1940                        // (c) 1995 IGT - International Game Technology
 pebe0014                        // (c) 1994 IGT - International Game Technology
 pebe0014a                       // (c) 1994 IGT - International Game Technology
 peip0028                        // (c) 1987 IGT - International Game Technology
@@ -35018,7 +35031,7 @@ ccdelta1                        //
 ccmk5
 ccmk6
 
-@source:saitek_president.cpp
+@source:saitek_prschess.cpp
 prschess
 
 @source:saitek_risc2500.cpp
@@ -37199,8 +37212,8 @@ abltenni                        //
 fordrace
 tvsprt10                        //
 decathln
-wiwi18                          //
-foxsport
+decathlna
+ablkickb
 guitarfv
 guitarss
 jjstrip
@@ -37303,6 +37316,11 @@ tvgogo                          //
 
 @source:spg2xx_vii.cpp
 vii                             // KenSingTon / Jungle Soft / Siatronics Vii
+
+@source:spg2xx_wiwi.cpp
+wiwi18                          //
+foxsport
+lexifit
 
 @source:spg2xx_zone.cpp
 wirels60                        // Wireless 60
@@ -39626,6 +39644,7 @@ trivrus                         // 2009 AGT. Trivia R Us
 trkfldch                        // (c) 2007 Konami
 my1stddr                        // (c) 2006 Konami
 abl4play
+shtscore
 
 @source:trs80.cpp
 ht108064                        // Hradstechnika Szvetkezet HT-1080Z/64

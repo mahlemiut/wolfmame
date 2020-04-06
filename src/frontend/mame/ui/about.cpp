@@ -64,9 +64,9 @@ void menu_about::populate(float &customtop, float &custombottom)
 	// pause if appropriate
 	if (!m_pause_checked)
 	{
-		m_was_paused = machine().paused();
-		if (!m_was_paused)
-			machine().pause();
+//		m_was_paused = machine().paused();
+//		if (!m_was_paused)
+//			machine().pause();
 		m_pause_checked = true;
 	}
 

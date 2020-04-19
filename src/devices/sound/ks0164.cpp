@@ -50,7 +50,7 @@ void ks0164_device::device_start()
 		space().install_rom(0, rend, ((1 << 23) - 1) ^ rmask, m_mem_region->base());
 	}
 
-	m_stream = stream_alloc(0, 2, 44100);
+	m_stream = stream_alloc(0, 2, clock()/3/2/2/32);
 	m_mem_cache = space().cache<1, 0, ENDIANNESS_BIG>();
 	m_timer = timer_alloc(0);
 
@@ -98,7 +98,7 @@ void ks0164_device::device_timer(emu_timer &timer, device_timer_id id, int param
 
 void ks0164_device::mpuin_set(bool control, u8 data)
 {
-	//	logerror("mpu push %s %02x\n", control ? "ctrl" : "data", data);
+	//  logerror("mpu push %s %02x\n", control ? "ctrl" : "data", data);
 	m_mpu_in = data;
 	if(control)
 		m_mpu_status |= MPUS_RX_CTRL;
@@ -122,7 +122,7 @@ void ks0164_device::mpu401_ctrl_w(u8 data)
 
 u8 ks0164_device::mpu401_data_r()
 {
-	//	logerror("mpu pop %02x\n", m_mpu_out);
+	//  logerror("mpu pop %02x\n", m_mpu_out);
 	return m_mpu_out;
 }
 
@@ -139,7 +139,7 @@ u8 ks0164_device::mpu401_status_r()
 
 	std::string cc = machine().describe_context();
 	if(pc != cc || pr != res) {
-		//		logerror("status read %02x (%s)\n", res, cc);
+		//      logerror("status read %02x (%s)\n", res, cc);
 		pc = cc;
 		pr = res;
 	}
@@ -148,7 +148,7 @@ u8 ks0164_device::mpu401_status_r()
 
 u8 ks0164_device::mpu401_istatus_r()
 {
-	//	logerror("mpu istatus read %02x (%04x)\n", m_mpu_status, m_cpu->pc());
+	//  logerror("mpu istatus read %02x (%04x)\n", m_mpu_status, m_cpu->pc());
 	return m_mpu_status;
 }
 
@@ -156,14 +156,14 @@ void ks0164_device::mpu401_istatus_w(u8 data)
 {
 	m_mpu_status = (m_mpu_status & ~(MPUS_RX_INT|MPUS_TX_INT)) | (data & (MPUS_RX_INT|MPUS_TX_INT));
 	m_cpu->set_input_line(11, (m_mpu_status & (MPUS_RX_INT|MPUS_RX_FULL)) == (MPUS_RX_INT|MPUS_RX_FULL) ? ASSERT_LINE : CLEAR_LINE);
-	//	logerror("mpu status write %02x (%04x)\n", m_mpu_status, m_cpu->pc());
+	//  logerror("mpu status write %02x (%04x)\n", m_mpu_status, m_cpu->pc());
 }
 
 u8 ks0164_device::mpu401_r()
 {
 	m_mpu_status &= ~MPUS_RX_FULL;
 	m_cpu->set_input_line(11, CLEAR_LINE);
-	//	logerror("mpu_r %02x (%04x)\n", m_mpu_in, m_cpu->pc());
+	//  logerror("mpu_r %02x (%04x)\n", m_mpu_in, m_cpu->pc());
 	return m_mpu_in;
 }
 
@@ -171,7 +171,7 @@ void ks0164_device::mpu401_w(u8 data)
 {
 	m_mpu_out = data;
 	m_mpu_status |= MPUS_TX_FULL;
-	//	logerror("mpu_w %02x (%04x)\n", m_mpu_out, m_cpu->pc());
+	//  logerror("mpu_w %02x (%04x)\n", m_mpu_out, m_cpu->pc());
 }
 
 u16 ks0164_device::vec_r(offs_t offset, u16 mem_mask)
@@ -228,14 +228,69 @@ void ks0164_device::bank2_select_w(offs_t, u16 data, u16 mem_mask)
 
 u16 ks0164_device::voice_r(offs_t offset)
 {
+	m_stream->update();
+	logerror("voice read %02x.%02x -> %04x (%04x)\n", m_voice_select & 0x1f, offset, m_sregs[m_voice_select & 0x1f][offset], m_cpu->pc());
 	return m_sregs[m_voice_select & 0x1f][offset];
 }
 
 void ks0164_device::voice_w(offs_t offset, u16 data, u16 mem_mask)
 {
+	m_stream->update();
+	u16 old = m_sregs[m_voice_select & 0x1f][offset];
 	COMBINE_DATA(&m_sregs[m_voice_select & 0x1f][offset]);
-	if(1 || m_cpu->pc() < 0x5f94 || m_cpu->pc() > 0x5fc0)
-		logerror("voice %02x.%02x = %04x (%04x)\n", m_voice_select & 0x1f, offset, m_sregs[m_voice_select & 0x1f][offset], m_cpu->pc());
+	if(0)
+		if(m_cpu->pc() < 0x5f94 || m_cpu->pc() > 0x5fc0)
+			logerror("voice %02x.%02x = %04x @ %04x (%04x)\n", m_voice_select & 0x1f, offset, m_sregs[m_voice_select & 0x1f][offset], mem_mask, m_cpu->pc());
+	if(offset == 0 && (data & 1) && !(old & 1))
+		logerror("keyon %02x mode=%04x (%s %c %c %c) cur=%02x%04x.%04x loop=%02x%04x.%04x end=%02x%04x.%04x pitch=%04x 10=%02x/%02x:%02x/%02x 14=%03x/%03x:%03x/%03x 18=%04x/%04x c=%04x   %04x %04x %04x %04x %04x  %04x %04x %04x %04x %04x\n",
+				 m_voice_select,
+
+				 m_sregs[m_voice_select & 0x1f][0x00],
+
+				 m_sregs[m_voice_select & 0x1f][0x00] & 0x8000 ? " 8" : "16",
+				 m_sregs[m_voice_select & 0x1f][0x00] & 0x0400 ? 'c' : 'l',
+				 m_sregs[m_voice_select & 0x1f][0x00] & 0x0008 ? '3' : '-',
+				 m_sregs[m_voice_select & 0x1f][0x00] & 0x0004 ? '2' : '-',
+
+				 m_sregs[m_voice_select & 0x1f][0x01], // cur
+				 m_sregs[m_voice_select & 0x1f][0x02],
+				 m_sregs[m_voice_select & 0x1f][0x03],
+
+				 m_sregs[m_voice_select & 0x1f][0x09], // loop
+				 m_sregs[m_voice_select & 0x1f][0x0a],
+				 m_sregs[m_voice_select & 0x1f][0x0b],
+
+				 m_sregs[m_voice_select & 0x1f][0x0d], // end
+				 m_sregs[m_voice_select & 0x1f][0x0e],
+				 m_sregs[m_voice_select & 0x1f][0x0f],
+
+				 m_sregs[m_voice_select & 0x1f][0x08], // pitch
+
+				 m_sregs[m_voice_select & 0x1f][0x10] >> 9,
+				 m_sregs[m_voice_select & 0x1f][0x12] >> 9,
+				 m_sregs[m_voice_select & 0x1f][0x11] >> 9,
+				 m_sregs[m_voice_select & 0x1f][0x13] >> 9,
+
+				 m_sregs[m_voice_select & 0x1f][0x14] >> 5,
+				 m_sregs[m_voice_select & 0x1f][0x16] >> 5,
+				 m_sregs[m_voice_select & 0x1f][0x15] >> 5,
+				 m_sregs[m_voice_select & 0x1f][0x17] >> 5,
+
+				 m_sregs[m_voice_select & 0x1f][0x18],
+				 m_sregs[m_voice_select & 0x1f][0x1c],
+
+				 m_sregs[m_voice_select & 0x1f][0x0c],
+
+				 m_sregs[m_voice_select & 0x1f][0x04],
+				 m_sregs[m_voice_select & 0x1f][0x05],
+				 m_sregs[m_voice_select & 0x1f][0x06],
+				 m_sregs[m_voice_select & 0x1f][0x07],
+				 m_sregs[m_voice_select & 0x1f][0x19],
+				 m_sregs[m_voice_select & 0x1f][0x1a],
+				 m_sregs[m_voice_select & 0x1f][0x1b],
+				 m_sregs[m_voice_select & 0x1f][0x1d],
+				 m_sregs[m_voice_select & 0x1f][0x1e],
+				 m_sregs[m_voice_select & 0x1f][0x1f]);
 }
 
 u8 ks0164_device::irqen_76_r()
@@ -254,7 +309,7 @@ void ks0164_device::irqen_76_w(u8 data)
 		m_cpu->set_input_line(14, CLEAR_LINE);
 	}
 
-	//	logerror("irqen_76 = %02x (%04x)\n", m_irqen_76, m_cpu->pc());
+	//  logerror("irqen_76 = %02x (%04x)\n", m_irqen_76, m_cpu->pc());
 }
 
 u8 ks0164_device::irqen_77_r()
@@ -312,6 +367,64 @@ void ks0164_device::cpu_map(address_map &map)
 	map(0xe000, 0xffff).ram();
 }
 
+u16 ks0164_device::uncomp_8_16(u8 value)
+{
+    int xp = value >> 5;
+    s16 o = (0x10 | (value & 0xf)) << 10;
+    o = o >> xp;
+    if(value & 0x10)
+      o = -o;
+	return o;
+}
+
 void ks0164_device::sound_stream_update(sound_stream &stream, stream_sample_t **inputs, stream_sample_t **outputs, int samples)
 {
+	for(int sample = 0; sample != samples; sample++) {
+		s32 suml = 0, sumr = 0;
+		for(int voice = 0; voice < 0x20; voice++) {
+			u16 *regs = m_sregs[voice];
+			if(regs[0] & 0x0001) {
+				u64 current = (u64(regs[1]) << 32) | (regs[2] << 16) | regs[3];
+
+				if(current & 0xc00000000000)
+					continue;
+
+				u32 adr = current >> 16;
+				s16 samp0, samp1;
+				switch(regs[0] & 0x8400) {
+				case 0x0000: // 16 bits linear
+					samp0 = m_mem_cache->read_word(2*adr);
+					samp1 = m_mem_cache->read_word(2*adr+2);
+					break;
+
+				case 0x8400: // 8 bits compressed
+					samp0 = uncomp_8_16(m_mem_cache->read_byte(adr));
+					samp1 = uncomp_8_16(m_mem_cache->read_byte(adr+1));
+					break;
+
+				default:
+					logerror("Sample mode %04x\n", regs[0] & 0x8400);
+					samp0 = samp1 = 0;
+					break;
+				}
+
+				s16 samp = samp0 + (((samp1 - samp0) * (current & 0xffff)) >> 16);
+				current += regs[8];
+				u64 end = (u64(regs[0xd]) << 32) | (regs[0xe] << 16) | regs[0xf];
+				if(current >= end) {
+					// Is there a loop enabled flag?
+					u64 loop = (u64(regs[9]) << 32) | (regs[0xa] << 16) | regs[0xb];
+					current = current - end + loop;
+				}
+				regs[1] = current >> 32;
+				regs[2] = current >> 16;
+				regs[3] = current;
+
+				suml += samp;
+				sumr += samp;
+			}
+		}
+		outputs[0][sample] = suml >> 5;
+		outputs[1][sample] = sumr >> 5;
+	}
 }

@@ -601,7 +601,7 @@ Known undumped prototypes:
 		<publisher>Digital Image</publisher>
 		<part name="cart" interface="lynx_cart">
 			<dataarea name="rom" size="262144">
-				<rom name="marlboro go! (euro) (prototype).bin" size="262144" crc="c3fa0d4d" sha1="26b18b706359b093d0b1bbca4dba9cd2d73e0372" offset="000000" />
+				<rom name="marlboro go (euro) (prototype).bin" size="262144" crc="c3fa0d4d" sha1="26b18b706359b093d0b1bbca4dba9cd2d73e0372" offset="000000" />
 			</dataarea>
 		</part>
 	</software>
@@ -1061,7 +1061,7 @@ Known undumped prototypes:
 			</dataarea>
 		</part>
 	</software>
-	
+
 	<software name="yastuna1">
 		<description>Yastuna Vol.1 - The Alchemy of Cubes</description>
 		<year>2008</year>
@@ -1072,7 +1072,7 @@ Known undumped prototypes:
 			</dataarea>
 		</part>
 	</software>
-	
+
 	<software name="yastuna2">
 		<description>Yastuna Vol.2 - The Space Incident</description>
 		<year>2008</year>

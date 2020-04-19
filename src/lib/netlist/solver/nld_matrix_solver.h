@@ -16,10 +16,19 @@
 #include "netlist/plib/putil.h"
 #include "netlist/plib/vector_ops.h"
 
+#include <numeric>
+
 namespace netlist
 {
 namespace solver
 {
+
+	enum static_compile_target
+	{
+		CXX_EXTERNAL_C,
+		CXX_STATIC
+	};
+
 	P_ENUM(matrix_sort_type_e,
 		NOSORT,
 		ASCENDING,
@@ -44,6 +53,8 @@ namespace solver
 		, LONGDOUBLE
 		, FLOAT128
 	)
+
+	using static_compile_container = std::vector<std::pair<pstring, pstring>>;
 
 	struct solver_parameters_t
 	{
@@ -180,8 +191,8 @@ namespace solver
 		netlist_time solve(netlist_time_ext now);
 		void update_inputs();
 
-		bool has_dynamic_devices() const noexcept { return !m_dynamic_devices.empty(); }
-		bool has_timestep_devices() const noexcept { return !m_step_devices.empty(); }
+		std::size_t dynamic_device_count() const noexcept { return m_dynamic_funcs.size(); }
+		std::size_t timestep_device_count() const noexcept { return m_step_funcs.size(); }
 
 		void update_forced();
 		void update_after(netlist_time after) noexcept
@@ -195,13 +206,14 @@ namespace solver
 
 		virtual void log_stats();
 
-		virtual std::pair<pstring, pstring> create_solver_code()
+		virtual std::pair<pstring, pstring> create_solver_code(solver::static_compile_target target)
 		{
+			plib::unused_var(target);
 			return std::pair<pstring, pstring>("", plib::pfmt("/* solver doesn't support static compile */\n\n"));
 		}
 
 		// return number of floating point operations for solve
-		std::size_t ops() { return m_ops; }
+		std::size_t ops() const { return m_ops; }
 
 	protected:
 		template <typename T>
@@ -211,8 +223,10 @@ namespace solver
 			const analog_net_t::list_t &nets,
 			const solver_parameters_t *params);
 
-		virtual unsigned vsolve_non_dynamic(bool newton_raphson) = 0;
+		virtual void vsolve_non_dynamic() = 0;
 		virtual netlist_time compute_next_timestep(nl_fptype cur_ts) = 0;
+		virtual bool check_err() = 0;
+		virtual void store() = 0;
 
 		plib::pmatrix2d<nl_fptype, aligned_alloc<nl_fptype>>        m_gonn;
 		plib::pmatrix2d<nl_fptype, aligned_alloc<nl_fptype>>        m_gtn;
@@ -236,8 +250,8 @@ namespace solver
 		state_var<std::size_t> m_stat_vsolver_calls;
 
 		state_var<netlist_time_ext> m_last_step;
-		std::vector<core_device_t *> m_step_devices;
-		std::vector<core_device_t *> m_dynamic_devices;
+		std::vector<nldelegate_ts> m_step_funcs;
+		std::vector<nldelegate_dyn> m_dynamic_funcs;
 
 		logic_input_t m_fb_sync;
 		logic_output_t m_Q_sync;
@@ -249,8 +263,8 @@ namespace solver
 
 		void sort_terms(matrix_sort_type_e sort);
 
-		void update_dynamic();
-		void step(const netlist_time &delta);
+		void update_dynamic() noexcept;
+		void step(netlist_time delta) noexcept;
 
 		int get_net_idx(const analog_net_t *net) const noexcept;
 		std::pair<int, int> get_left_right_of_diag(std::size_t irow, std::size_t idiag);
@@ -263,7 +277,6 @@ namespace solver
 
 		void set_pointers();
 
-	private:
 		analog_net_t *get_connected_net(terminal_t *term);
 
 	};
@@ -310,7 +323,7 @@ namespace solver
 		plib::parray<FT, SIZE> m_RHS;
 
 		PALIGNAS_VECTOROPT()
-		plib::parray2D<float_type *, SIZE, 0> m_mat_ptr;
+		plib::pmatrix2d<float_type *> m_mat_ptr;
 
 		// FIXME: below should be private
 		// state - variable time_stepping
@@ -389,14 +402,14 @@ namespace solver
 			return (SIZE > 0) ? static_cast<std::size_t>(SIZE) : m_dim;
 		}
 
-		void store()
+		void store() override
 		{
 			const std::size_t iN = size();
 			for (std::size_t i = 0; i < iN; i++)
 				this->m_terms[i].setV(m_new_V[i]);
 		}
 
-		bool check_err()
+		bool check_err() override
 		{
 			// NOTE: Ideally we should also include currents (RHS) here. This would
 			// need a reevaluation of the right hand side after voltages have been updated
@@ -507,34 +520,21 @@ namespace solver
 
 				// FIXME: gonn, gtn and Idr - which float types should they have?
 
+				auto gtot_t = std::accumulate(gt, gt + term_count, plib::constants<FT>::zero());
+
+				// update diagonal element ...
+				*tcr_r[railstart] = static_cast<FT>(gtot_t); //mat.A[mat.diag[k]] += gtot_t;
+
 				for (std::size_t i = 0; i < railstart; i++)
 					*tcr_r[i]       += static_cast<FT>(go[i]);
 
-				// use native floattype for now
-				auto gtot_t(nlconst::zero());
-				auto RHS_t (nlconst::zero());
-
-				for (std::size_t i = 0; i < term_count; i++)
-				{
-					gtot_t        += gt[i];
-					RHS_t         += Idr[i];
-				}
-				// FIXME: Code above is faster than vec_sum - Check this
-		#if 0
-				auto gtot_t = plib::vec_sum<FT>(term_count, m_gt);
-				auto RHS_t = plib::vec_sum<FT>(term_count, m_Idr);
-		#endif
+				auto RHS_t(std::accumulate(Idr, Idr + term_count, plib::constants<FT>::zero()));
 
 				for (std::size_t i = railstart; i < term_count; i++)
-				{
 					RHS_t +=  (- go[i]) * *cnV[i];
-				}
 
 				m_RHS[k] = static_cast<FT>(RHS_t);
-				// update diagonal element ...
-				*tcr_r[railstart] += static_cast<FT>(gtot_t); //mat.A[mat.diag[k]] += gtot_t;
 			}
-
 		}
 
 	};

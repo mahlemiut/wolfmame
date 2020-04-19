@@ -3,8 +3,8 @@
 
 // Samsung KS0164 wavetable chip
 
-#ifndef DEVICES_SOUND_KS0164_H
-#define DEVICES_SOUND_KS0164_H
+#ifndef MAME_SOUND_KS0164_H
+#define MAME_SOUND_KS0164_H
 
 #pragma once
 
@@ -40,7 +40,7 @@ private:
 	optional_memory_region m_mem_region;
 	required_device<ks0164_cpu_device> m_cpu;
 	address_space_config m_mem_config;
- 	sound_stream *m_stream;	
+	sound_stream *m_stream;
 	emu_timer *m_timer;
 	memory_access_cache<1, 0, ENDIANNESS_BIG> *m_mem_cache;
 
@@ -50,7 +50,7 @@ private:
 	u16 m_sregs[0x20][0x20];
 
 	u8 m_mpu_in;
-	u8 m_mpu_out;	
+	u8 m_mpu_out;
 	u8 m_mpu_status;
 
 	u8 m_unk60;
@@ -80,13 +80,15 @@ private:
 	u8 voice_select_r();
 	void voice_select_w(u8 data);
 	u16 voice_r(offs_t offset);
-	void voice_w(offs_t offset, u16 data, u16 mem_mask);	
+	void voice_w(offs_t offset, u16 data, u16 mem_mask);
 	void mpuin_set(bool control, u8 data);
 
 	u8 mpu401_r();
 	void mpu401_w(u8 data);
 	u8 mpu401_istatus_r();
 	void mpu401_istatus_w(u8 data);
+
+	static inline u16 uncomp_8_16(u8 value);
 };
 
 DECLARE_DEVICE_TYPE(KS0164, ks0164_device)

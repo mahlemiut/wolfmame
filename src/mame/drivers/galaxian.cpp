@@ -7999,19 +7999,19 @@ ROM_START( galaxrf )
 ROM_END
 
 ROM_START( galaxianrp )
-    ROM_REGION( 0x4000, "maincpu", 0 )
-    ROM_LOAD( "4.7k", 0x0000, 0x0800, CRC(e8f3aa67) SHA1(a0e9576784dbe602dd9780e667f01f31defd7c00) ) // All eproms are Fujitsu MB8516 eproms
-    ROM_LOAD( "5.7j", 0x0800, 0x0800, CRC(f58283e3) SHA1(edc6e72516c50fd3402281d9936574d276581ce9) )
-    ROM_LOAD( "6.7h", 0x1000, 0x0800, CRC(4c7031c0) SHA1(97f7ab0cedcd8eba1c8f6f516d84d672a2108258) )
-    ROM_LOAD( "7.7f", 0x1800, 0x0800, CRC(097d92a2) SHA1(63ef86657286a4e1fae4f795e0e6b410ca2ef06b) )
-    ROM_LOAD( "3.7l", 0x2000, 0x0800, CRC(5341d75a) SHA1(40bc8fcc598f58c6ff944e2a4a9288463e75a09d) )
+	ROM_REGION( 0x4000, "maincpu", 0 )
+	ROM_LOAD( "4.7k", 0x0000, 0x0800, CRC(e8f3aa67) SHA1(a0e9576784dbe602dd9780e667f01f31defd7c00) ) // All eproms are Fujitsu MB8516 eproms
+	ROM_LOAD( "5.7j", 0x0800, 0x0800, CRC(f58283e3) SHA1(edc6e72516c50fd3402281d9936574d276581ce9) )
+	ROM_LOAD( "6.7h", 0x1000, 0x0800, CRC(4c7031c0) SHA1(97f7ab0cedcd8eba1c8f6f516d84d672a2108258) )
+	ROM_LOAD( "7.7f", 0x1800, 0x0800, CRC(097d92a2) SHA1(63ef86657286a4e1fae4f795e0e6b410ca2ef06b) )
+	ROM_LOAD( "3.7l", 0x2000, 0x0800, CRC(5341d75a) SHA1(40bc8fcc598f58c6ff944e2a4a9288463e75a09d) )
 
-    ROM_REGION( 0x1000, "gfx1", 0 )
-    ROM_LOAD( "2.1j", 0x0000, 0x0800, CRC(b8629cc6) SHA1(d529e9434f497a80953fe3768d34c805d072f88b) )
-    ROM_LOAD( "1.1l", 0x0800, 0x0800, CRC(6d42351c) SHA1(2193deadcbee109c5c14b0c31d1e113f747744a3) )
+	ROM_REGION( 0x1000, "gfx1", 0 )
+	ROM_LOAD( "2.1j", 0x0000, 0x0800, CRC(b8629cc6) SHA1(d529e9434f497a80953fe3768d34c805d072f88b) )
+	ROM_LOAD( "1.1l", 0x0800, 0x0800, CRC(6d42351c) SHA1(2193deadcbee109c5c14b0c31d1e113f747744a3) )
 
-    ROM_REGION( 0x0020, "proms", 0 )
-    ROM_LOAD( "6l.bpr", 0x0000, 0x0020, BAD_DUMP CRC(c3ac9467) SHA1(f382ad5a34d282056c78a5ec00c30ec43772bae2) )     // Taken from the parent set
+	ROM_REGION( 0x0020, "proms", 0 )
+	ROM_LOAD( "6l.bpr", 0x0000, 0x0020, BAD_DUMP CRC(c3ac9467) SHA1(f382ad5a34d282056c78a5ec00c30ec43772bae2) )     // Taken from the parent set
 ROM_END
 
 ROM_START( galaxrfgg )
@@ -9714,7 +9714,29 @@ ROM_START( mooncrstuku )
 	ROM_LOAD( "mmi6331.6l", 0x0000, 0x0020, CRC(6a0c7d87) SHA1(140335d85c67c75b65689d4e76d29863c209cf32) ) /* Compatible with 82s123 prom */
 ROM_END
 
+// CPU-1 board has the CPU, a 7486, a 74153, a 74125 and a 7408
 ROM_START( mooncrstu )
+	ROM_REGION( 0x8000, "maincpu", 0 )
+	ROM_LOAD( "mcue_mc1.bin",      0x0000, 0x0800, CRC(2ff840d1) SHA1(c7232972cab1696be25a0b617ce9d0fa501b57d4) )
+	ROM_LOAD( "mcue_mc2.bin",      0x0800, 0x0800, CRC(44bb7cfa) SHA1(349c2e23a9fce73f95bb8168d369082fa129fe3d) )
+	ROM_LOAD( "mcue_mc3.bin",      0x1000, 0x0800, CRC(9c412104) SHA1(1b40054ebb1ace965a8522119bb23f09797bc5f6) )
+	ROM_LOAD( "mcue_mc4.bin",      0x1800, 0x0800, CRC(7e9b1ab5) SHA1(435f603c0c3e788a509dd144a7916a34e791ae44) )
+	ROM_LOAD( "mcue_mc5.bin",      0x2000, 0x0800, CRC(16c759af) SHA1(3b48050411f65f9d3fb41ff22901e22d82bf1cf6) )
+	ROM_LOAD( "mcue_mc6.bin",      0x2800, 0x0800, CRC(69bcafdb) SHA1(939c8c6ed1cd4660a3d99b8f17ed99cbd7e1352a) )
+	ROM_LOAD( "mcue_mc7.bin",      0x3000, 0x0800, CRC(b50dbc46) SHA1(4fa084fd1ba5f78e7703e684c57af15ca7a844e4) )
+	ROM_LOAD( "mcue_mc8.bin",      0x3800, 0x0800, CRC(414678b4) SHA1(84050c9ceb337fd748c6a3f18c86b28f07573cc9) )
+
+	ROM_REGION( 0x2000, "gfx1", 0 )
+	ROM_LOAD( "mcs_b",        0x0000, 0x0800, CRC(fb0f1f81) SHA1(38a6679a8b69bc1870a0e67e692131c42f9535c8) )
+	ROM_LOAD( "mcs_d",        0x0800, 0x0800, CRC(13932a15) SHA1(b8885c555c6ad7021be55c6925a0a0872c1b6abd) )
+	ROM_LOAD( "mcs_a",        0x1000, 0x0800, CRC(631ebb5a) SHA1(5bc9493afa76c55858b8c8849524cbc77dc838fc) )
+	ROM_LOAD( "mcs_c",        0x1800, 0x0800, CRC(24cfd145) SHA1(08c6599db170dd6ee364c44f70a0f5c0f881b6ef) )
+
+	ROM_REGION( 0x0020, "proms", 0 )
+	ROM_LOAD( "mmi6331.6l", 0x0000, 0x0020, CRC(6a0c7d87) SHA1(140335d85c67c75b65689d4e76d29863c209cf32) ) /* Compatible with 82s123 prom */
+ROM_END
+
+ROM_START( mooncrstuu )
 	ROM_REGION( 0x8000, "maincpu", 0 )
 	ROM_LOAD( "smc1f",        0x0000, 0x0800, CRC(389ca0d6) SHA1(51cf6d190a0ebf23b70c2bcf1ccaa4705e29cd09) )
 	ROM_LOAD( "smc2f",        0x0800, 0x0800, CRC(410ab430) SHA1(d89abff6ac4afbf69377a1d63043d629a634aab7) )
@@ -13043,7 +13065,8 @@ GAME( 2001, videight,    0,        videight,   warofbug,   galaxian_state, init_
 GAME( 1980, mooncrst,    0,        mooncrst,   mooncrst,   galaxian_state, init_mooncrst,   ROT90,  "Nichibutsu",                   "Moon Cresta (Nichibutsu)",                               MACHINE_SUPPORTS_SAVE )
 GAME( 1980, mooncrstuk,  mooncrst, mooncrst,   mooncrst,   galaxian_state, init_mooncrst,   ROT90,  "Nichibutsu UK",                "Moon Cresta (Nichibutsu UK)",                            MACHINE_SUPPORTS_SAVE )
 GAME( 1980, mooncrstuku, mooncrst, mooncrst,   mooncrst,   galaxian_state, init_mooncrsu,   ROT90,  "Nichibutsu UK",                "Moon Cresta (Nichibutsu UK, unencrypted)",               MACHINE_SUPPORTS_SAVE )
-GAME( 1980, mooncrstu,   mooncrst, mooncrst,   mooncrst,   galaxian_state, init_mooncrsu,   ROT90,  "Nichibutsu USA",               "Moon Cresta (Nichibutsu USA, unencrypted)",              MACHINE_SUPPORTS_SAVE )
+GAME( 1980, mooncrstu,   mooncrst, mooncrst,   mooncrst,   galaxian_state, init_mooncrst,   ROT90,  "Nichibutsu USA",               "Moon Cresta (Nichibutsu USA, encrypted)",                MACHINE_SUPPORTS_SAVE )
+GAME( 1980, mooncrstuu,  mooncrst, mooncrst,   mooncrst,   galaxian_state, init_mooncrsu,   ROT90,  "Nichibutsu USA",               "Moon Cresta (Nichibutsu USA, unencrypted)",              MACHINE_SUPPORTS_SAVE )
 GAME( 1980, mooncrsto,   mooncrst, mooncrst,   mooncrsa,   galaxian_state, init_mooncrst,   ROT90,  "Nichibutsu",                   "Moon Cresta (Nichibutsu, old rev)",                      MACHINE_SUPPORTS_SAVE )
 GAME( 1980, mooncrstg,   mooncrst, mooncrst,   mooncrsg,   galaxian_state, init_mooncrsu,   ROT90,  "Nichibutsu (Gremlin license)", "Moon Cresta (Gremlin)",                                  MACHINE_SUPPORTS_SAVE )
 

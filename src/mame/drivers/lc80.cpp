@@ -149,7 +149,7 @@ void lc80_state::update_display()
 	}
 }
 
-WRITE8_MEMBER( lc80_state::pio1_pa_w )
+void lc80_state::pio1_pa_w(uint8_t data)
 {
 	/*
 
@@ -171,7 +171,7 @@ WRITE8_MEMBER( lc80_state::pio1_pa_w )
 	update_display();
 }
 
-READ8_MEMBER( lc80_state::pio1_pb_r )
+uint8_t lc80_state::pio1_pb_r()
 {
 	/*
 
@@ -191,7 +191,7 @@ READ8_MEMBER( lc80_state::pio1_pb_r )
 	return (m_cassette->input() < +0.0);
 }
 
-WRITE8_MEMBER( lc80_state::pio1_pb_w )
+void lc80_state::pio1_pb_w(uint8_t data)
 {
 	/*
 
@@ -224,7 +224,7 @@ WRITE8_MEMBER( lc80_state::pio1_pb_w )
 	update_display();
 }
 
-READ8_MEMBER( lc80_state::pio2_pb_r )
+uint8_t lc80_state::pio2_pb_r()
 {
 	/*
 
@@ -440,7 +440,7 @@ ROM_END
 
 /* System Drivers */
 
-//    YEAR  NAME    PARENT  COMPAT  MACHINE  INPUT  CLASS       INIT        COMPANY                FULLNAME                FLAGS
-COMP( 1984, lc80,   0,      0,      lc80,    lc80,  lc80_state, empty_init, "VEB Mikroelektronik", "Lerncomputer LC 80",   MACHINE_SUPPORTS_SAVE )
-COMP( 1984, lc80_2, lc80,   0,      lc80_2,  lc80,  lc80_state, empty_init, "VEB Mikroelektronik", "Lerncomputer LC 80.2", MACHINE_SUPPORTS_SAVE )
-COMP( 1984, sc80,   lc80,   0,      lc80_2,  lc80,  lc80_state, empty_init, "VEB Mikroelektronik", "Schachcomputer SC-80", MACHINE_SUPPORTS_SAVE )
+//    YEAR  NAME    PARENT  COMPAT  MACHINE  INPUT  CLASS       INIT        COMPANY, FULLNAME, FLAGS
+COMP( 1984, lc80,   0,      0,      lc80,    lc80,  lc80_state, empty_init, "VEB Mikroelektronik \"Karl Marx\" Erfurt", "Lerncomputer LC 80",   MACHINE_SUPPORTS_SAVE )
+COMP( 1984, lc80_2, lc80,   0,      lc80_2,  lc80,  lc80_state, empty_init, "VEB Mikroelektronik \"Karl Marx\" Erfurt", "Lerncomputer LC 80.2", MACHINE_SUPPORTS_SAVE )
+COMP( 1984, sc80,   lc80,   0,      lc80_2,  lc80,  lc80_state, empty_init, "VEB Mikroelektronik \"Karl Marx\" Erfurt", "Schachcomputer SC-80", MACHINE_SUPPORTS_SAVE )

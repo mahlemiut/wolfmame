@@ -58,7 +58,7 @@ DIMM controller registers
 28          16bit  dddd---c ------ba
                     a - 0->1 NAOMI reset
                     b - 1 activates sdram command "load mode register", followed by write 01010101 to bank 10 offset 000110 or 000190 depending on cas latency
-					    address bits 12-3 correspond to bits A9-A0 in the sdram chip address bus when sending the command
+                        address bits 12-3 correspond to bits A9-A0 in the sdram chip address bus when sending the command
                     c - unk, set to 1 in VxWorks, 0 in 1.02
                     d - unk, checked for == 1 in 1.02
 
@@ -918,8 +918,9 @@ void naomi_gdrom_board::device_start()
 			netpic = picdata[0x6ee];
 
 			// set data for security pic rom
-			address_space &ps = m_securitycpu->space(AS_PROGRAM);
-			memcpy((uint8_t*)ps.get_read_ptr(0), picdata, 0x1000);
+			uint8_t *picrom = static_cast<uint8_t*>(m_securitycpu->memregion(DEVICE_SELF)->base());
+			for(offs_t b=0;b<0x1000;b++)
+				picrom[BYTE_XOR_LE(b)] = picdata[b];
 		} else {
 			// use extracted pic data
 			// printf("This PIC key hasn't been converted to a proper PIC binary yet!\n");

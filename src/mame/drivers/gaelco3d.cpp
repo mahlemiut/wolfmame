@@ -262,7 +262,7 @@ READ16_MEMBER(gaelco3d_state::eeprom_data_r)
 		/* bit 0 is clock */
 		/* bit 1 active */
 		result &= ~uint32_t(gaelco_serial_device::EXT_STATUS_MASK);
-		result |= m_serial->status_r(space, 0);
+		result |= m_serial->status_r();
 	}
 
 	if (m_eeprom->do_read())
@@ -388,7 +388,7 @@ WRITE32_MEMBER(gaelco3d_state::tms_m68k_ram_w)
 }
 
 
-WRITE8_MEMBER(gaelco3d_state::tms_iack_w)
+void gaelco3d_state::tms_iack_w(offs_t offset, uint8_t data)
 {
 	if (LOG)
 		logerror("iack_w(%d) - %06X\n", data, offset);
@@ -551,7 +551,7 @@ TIMER_DEVICE_CALLBACK_MEMBER(gaelco3d_state::adsp_autobuffer_irq)
 	m_adsp->set_state_int(ADSP2100_I0 + m_adsp_ireg, reg);
 }
 
-WRITE32_MEMBER(gaelco3d_state::adsp_tx_callback)
+void gaelco3d_state::adsp_tx_callback(offs_t offset, uint32_t data)
 {
 	/* check if it's for SPORT1 */
 	if (offset != 1)

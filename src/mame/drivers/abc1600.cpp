@@ -6,13 +6,13 @@
 
     How to create HDD image:
     ------------------------
-    chdman createhd -chs 615,4,17 -ss 512 -o necd5126a.chd
+    ./chdman createhd -chs 615,4,17 -ss 512 -o necd5126a.chd
+    ./chdman createhd -chs 1024,8,17 -ss 512 -o micr1325a.chd
 
     How to format HDD:
     ------------------
     mf(2,0)
     mf(2,0)
-    abcenix
     sas/format/format
     sa(40,0)
     y
@@ -69,8 +69,8 @@
     - hard disk
         - 4105 SASI interface card
     - connect RS-232 printer port
-	- Z80 SCC/DART interrupt chain
-	- Z80 SCC DMA request
+    - Z80 SCC/DART interrupt chain
+    - Z80 SCC DMA request
 
 */
 
@@ -377,7 +377,7 @@ WRITE8_MEMBER( abc1600_state::fw0_w )
 
 	*/
 
-	if (LOG) logerror("FW0 %02x\n", data);
+	if (LOG) logerror("%s FW0 %02x\n", machine().describe_context(), data);
 
 	// drive select
 	floppy_image_device *floppy = nullptr;
@@ -414,7 +414,7 @@ WRITE8_MEMBER( abc1600_state::fw1_w )
 
 	*/
 
-	if (LOG) logerror("FW1 %02x\n", data);
+	if (LOG) logerror("%s FW1 %02x\n", machine().describe_context(), data);
 
 	// FDC master reset
 	if (!BIT(data, 0)) m_fdc->reset();
@@ -641,7 +641,7 @@ WRITE8_MEMBER( abc1600_state::cio_w )
 	m_cio->write(A2_A1, data);
 }
 
-READ8_MEMBER( abc1600_state::cio_pa_r )
+uint8_t abc1600_state::cio_pa_r()
 {
 	/*
 
@@ -672,7 +672,7 @@ READ8_MEMBER( abc1600_state::cio_pa_r )
 	return data;
 }
 
-READ8_MEMBER( abc1600_state::cio_pb_r )
+uint8_t abc1600_state::cio_pb_r()
 {
 	/*
 
@@ -700,7 +700,7 @@ READ8_MEMBER( abc1600_state::cio_pb_r )
 	return data;
 }
 
-WRITE8_MEMBER( abc1600_state::cio_pb_w )
+void abc1600_state::cio_pb_w(uint8_t data)
 {
 	/*
 
@@ -724,7 +724,7 @@ WRITE8_MEMBER( abc1600_state::cio_pb_w )
 	m_dart->rxca_w(prbr);
 }
 
-READ8_MEMBER( abc1600_state::cio_pc_r )
+uint8_t abc1600_state::cio_pc_r()
 {
 	/*
 
@@ -745,7 +745,7 @@ READ8_MEMBER( abc1600_state::cio_pc_r )
 	return data;
 }
 
-WRITE8_MEMBER( abc1600_state::cio_pc_w )
+void abc1600_state::cio_pc_w(uint8_t data)
 {
 	/*
 

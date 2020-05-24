@@ -333,10 +333,10 @@ private:
 	DECLARE_WRITE8_MEMBER(opwolf_adpcm_d_w);
 	DECLARE_WRITE8_MEMBER(opwolf_adpcm_e_w);
 	DECLARE_WRITE16_MEMBER(opwolf_spritectrl_w);
-	DECLARE_WRITE8_MEMBER(sound_bankswitch_w);
+	void sound_bankswitch_w(uint8_t data);
 	DECLARE_WRITE8_MEMBER(opwolf_adpcm_b_w);
 	DECLARE_WRITE8_MEMBER(opwolf_adpcm_c_w);
-	DECLARE_WRITE8_MEMBER(counters_w);
+	void counters_w(uint8_t data);
 
 	INTERRUPT_GEN_MEMBER(interrupt);
 	TIMER_DEVICE_CALLBACK_MEMBER(cchip_irq_clear_cb);
@@ -612,7 +612,7 @@ INPUT_PORTS_END
 //  INPUT PORT HANDLING
 //**************************************************************************
 
-WRITE8_MEMBER(opwolf_state::counters_w)
+void opwolf_state::counters_w(uint8_t data)
 {
 	machine().bookkeeping().coin_lockout_w(1, data & 0x80);
 	machine().bookkeeping().coin_lockout_w(0, data & 0x40);
@@ -707,7 +707,7 @@ GFXDECODE_END
 //  SOUND
 //**************************************************************************
 
-WRITE8_MEMBER(opwolf_state::sound_bankswitch_w)
+void opwolf_state::sound_bankswitch_w(uint8_t data)
 {
 	membank("z80bank")->set_entry(data & 0x03);
 }
@@ -922,7 +922,7 @@ void opwolf_state::opwolf(machine_config &config)
 	screen.set_palette("palette");
 
 	GFXDECODE(config, "gfxdecode", "palette", gfx_opwolf);
-	PALETTE(config, "palette").set_format(palette_device::xRGB_444, 2048);
+	PALETTE(config, "palette").set_format(palette_device::xRGBRRRRGGGGBBBB_bit0, 2048);
 
 	PC080SN(config, m_pc080sn, 0);
 	m_pc080sn->set_gfx_region(0);
@@ -996,7 +996,7 @@ void opwolf_state::opwolfb(machine_config &config) /* OSC clocks unknown for the
 	screen.set_palette("palette");
 
 	GFXDECODE(config, "gfxdecode", "palette", gfx_opwolf);
-	PALETTE(config, "palette").set_format(palette_device::xRGB_444, 2048);
+	PALETTE(config, "palette").set_format(palette_device::xRGBRRRRGGGGBBBB_bit0, 2048);
 
 	PC080SN(config, m_pc080sn, 0);
 	m_pc080sn->set_gfx_region(0);

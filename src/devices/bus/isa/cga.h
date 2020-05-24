@@ -55,6 +55,9 @@ protected:
 
 	virtual uint32_t screen_update(screen_device &screen, bitmap_rgb32 &bitmap, const rectangle &cliprect);
 
+	DECLARE_WRITE_LINE_MEMBER( hsync_changed );
+	DECLARE_WRITE_LINE_MEMBER( vsync_changed );
+
 public:
 	void mode_control_w(uint8_t data);
 	void set_palette_luts();
@@ -86,8 +89,6 @@ public:
 	required_device<screen_device> m_screen;
 
 private:
-	DECLARE_WRITE_LINE_MEMBER( hsync_changed );
-	DECLARE_WRITE_LINE_MEMBER( vsync_changed );
 	MC6845_RECONFIGURE(reconfigure);
 };
 
@@ -262,7 +263,10 @@ public:
 	// construction/destruction
 	isa8_cga_mc1502_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock);
 	// optional information overrides
+	virtual void device_add_mconfig(machine_config &config) override;
 	virtual const tiny_rom_entry *device_rom_region() const override;
+private:
+	MC6845_RECONFIGURE(reconfigure);
 };
 
 // device type definition

@@ -36,10 +36,10 @@ wofpic:            No sound. Some minor gfx issues (sprite priorities mainly).  
 all dinopic sets have some priority issues with sprites overlapping foreground objects on certain levels
 
 brightness circuity present on pcb?
-	slampic2	yes
-	dinopic3	no
-	jurassic99	no
-	others		tbc...   assume no for now
+    slampic2    yes
+    dinopic3    no
+    jurassic99  no
+    others      tbc...   assume no for now
 */
 
 #include "emu.h"
@@ -92,7 +92,7 @@ public:
 	slampic2_state(const machine_config &mconfig, device_type type, const char *tag)
 		: fcrash_state(mconfig, type, tag)
 	{ }
-	
+
 	void slampic2(machine_config &config);
 	void init_slampic2();
 
@@ -111,7 +111,7 @@ public:
 	dinopic_state(const machine_config &mconfig, device_type type, const char *tag)
 		: cps1bl_pic_state(mconfig, type, tag)
 	{ }
-	
+
 	void dinopic(machine_config &config);
 
 private:
@@ -127,7 +127,7 @@ public:
 	wofpic_state(const machine_config &mconfig, device_type type, const char *tag)
 		: dinopic_state(mconfig, type, tag)
 	{ }
-	
+
 	void wofpic(machine_config &config);
 	void init_wofpic();
 
@@ -305,15 +305,15 @@ WRITE16_MEMBER(wofpic_state::wofpic_layer_w)
 			// see bootleggers routines starting at $101000
 			// writes values 0-f to 98000c
 			// how does this relate to layer control reg value?
-			
+
 			// original game values:
 			// m_cps_b_regs[m_layer_enable_reg / 2] = m_mainram[0x6398 / 2];
 			// m_cps_b_regs[m_layer_mask_reg[1] / 2] = m_mainram[0x639a / 2];
 			// m_cps_b_regs[m_layer_mask_reg[2] / 2] = m_mainram[0x639c / 2];
 			// m_cps_b_regs[m_layer_mask_reg[3] / 2] = m_mainram[0x639e / 2];
-			
+
 			m_cps_b_regs[0x3e / 2] = data;
-			
+
 			switch (data)
 			{
 			case 0:    // 12ce
@@ -1240,37 +1240,37 @@ ROM_START( dinopic3 )
 ROM_END
 
 /*
-	Jurassic 99 (Cadillacs and Dinosaurs bootleg)
-	pcb marking: H11F6
-	uses a pin compatible EMC EM78P447AP instead of usual PIC 16c57, secured unfortunately so no dump
-	
-	Confirmed clocks (measured):
+    Jurassic 99 (Cadillacs and Dinosaurs bootleg)
+    pcb marking: H11F6
+    uses a pin compatible EMC EM78P447AP instead of usual PIC 16c57, secured unfortunately so no dump
+
+    Confirmed clocks (measured):
      xtals: 30MHz, 24MHz
      68k  = 12MHz
      em78 = 3.75MHz
      oki  = 1MHz     pin 7 high
-	
-	  __________________________________________
-	  |TDA2003(V)  U6295  ROM 30MHz   6116      |
-	  | 93C46   EM78P447AP            6116      |
-	==                                6116      |
-	==       6116                     6116      |
-	==       6116       P2                      |
-	==                       P3       A1020A    |
-	==         (T)                        P8    |
-	==       62256               P6     6116    |
-	==       62256                      6116    |
-	==       ROM1            P4  P8             |
-	==       ROM2            P5  P8   GFXROM1   |
-	==                    62256  P8             |
-	  # 68K  P1   24MHz   62256  P8	  GFXROM2   |
-	  |_________________________________________|
-	
-	V = volume pot
-	# = player 3 connector	
-	T = test mode button
-	U6295 = oki M6295 clone
-	68K = MC68HC000FN16 PLCC68
+
+      __________________________________________
+      |TDA2003(V)  U6295  ROM 30MHz   6116      |
+      | 93C46   EM78P447AP            6116      |
+    ==                                6116      |
+    ==       6116                     6116      |
+    ==       6116       P2                      |
+    ==                       P3       A1020A    |
+    ==         (T)                        P8    |
+    ==       62256               P6     6116    |
+    ==       62256                      6116    |
+    ==       ROM1            P4  P8             |
+    ==       ROM2            P5  P8   GFXROM1   |
+    ==                    62256  P8             |
+      # 68K  P1   24MHz   62256  P8   GFXROM2   |
+      |_________________________________________|
+
+    V = volume pot
+    # = player 3 connector
+    T = test mode button
+    U6295 = oki M6295 clone
+    68K = MC68HC000FN16 PLCC68
 */
 ROM_START( jurassic99 )
 	ROM_REGION( CODE_SIZE, "maincpu", 0 )
@@ -1307,7 +1307,7 @@ ROM_START( jurassic99 )
 	U99G   ATF16V8B-15PC  8
 	U134G  ATF16V8B-15PC  8?
 	U124   Actel A1020A   84-pin PLCC
-	
+
 	3rd column numbers are what's hand-written on each chip
 	? = hard to read or rubbed off
 	seems to be no #7 ?
@@ -1658,14 +1658,22 @@ ROM_START( wofpic )
 	ROM_LOAD16_BYTE( "4.1m", 0x100000, 0x20000, CRC(fe5eee87) SHA1(be1230f64c1e59ae3ff3e58593070613966ac79d) ) // 11xxxxxxxxxxxxxxx = 0x00
 
 	ROM_REGION( 0x400000, "gfx", 0 )
-	ROM_LOAD32_BYTE( "gfx13.040", 0x000000, 0x80000, CRC(8e8db215) SHA1(cc85e576bf09c3edab9afc1b5fa0a152f4140c06) )
-	ROM_LOAD32_BYTE( "gfx14.040", 0x000001, 0x80000, CRC(f34a7f9d) SHA1(6d67623c93147a779f07ef103188f3e2cb6d6d6e) )
-	ROM_LOAD32_BYTE( "gfx15.040", 0x000002, 0x80000, CRC(a5e4f449) SHA1(9956f82818ccc685367b5fe5e4bc8b59b65c31c1) )
-	ROM_LOAD32_BYTE( "gfx16.040", 0x000003, 0x80000, CRC(49a3dfc7) SHA1(c14ea91745fd72be936b6db9981d12d958326757) )
-	ROM_LOAD32_BYTE( "gfx9.040",  0x200000, 0x80000, CRC(f8f33a0e) SHA1(33f172b79499d4a76b53c070c0007bd1604a71bd) )
-	ROM_LOAD32_BYTE( "gfx10.040", 0x200001, 0x80000, CRC(6a060c6c) SHA1(49e4da9373272e5889caa79a86c39ee34087c480) )
-	ROM_LOAD32_BYTE( "gfx11.040", 0x200002, 0x80000, CRC(13324965) SHA1(979754ebd15a2989f92b5b7fc5bae99eb83c3593) )
-	ROM_LOAD32_BYTE( "gfx12.040", 0x200003, 0x80000, CRC(808cc8f0) SHA1(55731139ba6d7d222fa17236e3e91b2e69a44046) )
+	ROM_LOAD64_BYTE( "m12073-2", 0x000000, 0x40000, CRC(c8dcaa95) SHA1(bcaeaefd40ffa1b32e80457cffcc1ceab461af1d) )
+	ROM_CONTINUE(                0x000004, 0x40000)
+	ROM_LOAD64_BYTE( "m12223-2", 0x000001, 0x40000, CRC(1ab0000c) SHA1(0d0004cc1725c38d140ecb8dc9666361b2d3e607) )
+	ROM_CONTINUE(                0x000005, 0x40000)
+	ROM_LOAD64_BYTE( "m12223-1", 0x000002, 0x40000, CRC(8425ff6b) SHA1(9a051089c2a492b8c63484582f95c578704b6820) )
+	ROM_CONTINUE(                0x000006, 0x40000)
+	ROM_LOAD64_BYTE( "m12073-1", 0x000003, 0x40000, CRC(24ce197b) SHA1(0ccdbd6f6a30e6d1479f8702c3e8561b16303550) )
+	ROM_CONTINUE(                0x000007, 0x40000)
+	ROM_LOAD64_BYTE( "m12073-6", 0x200000, 0x40000, CRC(9d20ef9b) SHA1(cbf3cb6bd7a73312e5061082554f2e17aae08621) )
+	ROM_CONTINUE(                0x200004, 0x40000)
+	ROM_LOAD64_BYTE( "m12073-5", 0x200001, 0x40000, CRC(90c93dd2) SHA1(d3d2b0bcbcbb21a41f986eb752ab114697eb9402) )
+	ROM_CONTINUE(                0x200005, 0x40000)
+	ROM_LOAD64_BYTE( "m12073-4", 0x200002, 0x40000, CRC(219fd7e2) SHA1(af765eb7b275ed541c08e243b22b5c9f54c1a8ec) )
+	ROM_CONTINUE(                0x200006, 0x40000)
+	ROM_LOAD64_BYTE( "m12073-3", 0x200003, 0x40000, CRC(efc17c9a) SHA1(26429a9039bb249e17945508c16645c82f7f412a) )
+	ROM_CONTINUE(                0x200007, 0x40000)
 
 	ROM_REGION( 0x2000, "audiocpu", 0 ) // NO DUMP  -  protected PIC
 	ROM_LOAD( "pic.bin", 0x0000, 0x1007, NO_DUMP )

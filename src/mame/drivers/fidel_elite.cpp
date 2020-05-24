@@ -134,13 +134,13 @@ protected:
 
 	// I/O handlers
 	void update_display();
-	DECLARE_READ8_MEMBER(speech_r);
-	DECLARE_WRITE8_MEMBER(segment_w);
-	DECLARE_WRITE8_MEMBER(led_w);
-	DECLARE_READ8_MEMBER(input_r);
-	DECLARE_WRITE8_MEMBER(ppi_porta_w);
-	DECLARE_READ8_MEMBER(ppi_portb_r);
-	DECLARE_WRITE8_MEMBER(ppi_portc_w);
+	u8 speech_r(offs_t offset);
+	void segment_w(offs_t offset, u8 data);
+	void led_w(offs_t offset, u8 data);
+	u8 input_r();
+	void ppi_porta_w(u8 data);
+	u8 ppi_portb_r();
+	void ppi_portc_w(u8 data);
 
 	bool m_rotate;
 	u8 m_led_data;
@@ -209,12 +209,12 @@ void elite_state::update_display()
 	m_display->matrix(1 << m_inp_mux, m_led_data << 8 | seg_data);
 }
 
-READ8_MEMBER(elite_state::speech_r)
+u8 elite_state::speech_r(offs_t offset)
 {
 	return m_speech_rom[m_speech_bank << 12 | offset];
 }
 
-WRITE8_MEMBER(elite_state::segment_w)
+void elite_state::segment_w(offs_t offset, u8 data)
 {
 	// a0-a2,d7: digit segment
 	u8 mask = 1 << offset;
@@ -222,14 +222,14 @@ WRITE8_MEMBER(elite_state::segment_w)
 	update_display();
 }
 
-WRITE8_MEMBER(elite_state::led_w)
+void elite_state::led_w(offs_t offset, u8 data)
 {
 	// a0-a2,d0: led data
 	m_led_data = (m_led_data & ~(1 << offset)) | ((data & 1) << offset);
 	update_display();
 }
 
-READ8_MEMBER(elite_state::input_r)
+u8 elite_state::input_r()
 {
 	u8 data = 0;
 
@@ -254,7 +254,7 @@ READ8_MEMBER(elite_state::input_r)
 
 // 8255 PPI (PC: done with TTL instead)
 
-WRITE8_MEMBER(elite_state::ppi_porta_w)
+void elite_state::ppi_porta_w(u8 data)
 {
 	// d0-d5: TSI C0-C5
 	// d6: TSI START line
@@ -264,7 +264,7 @@ WRITE8_MEMBER(elite_state::ppi_porta_w)
 	// d7: printer? (black wire to LED pcb)
 }
 
-WRITE8_MEMBER(elite_state::ppi_portc_w)
+void elite_state::ppi_portc_w(u8 data)
 {
 	// d0-d3: 7442 a0-a3
 	// 7442 0-8: led select, input mux
@@ -286,7 +286,7 @@ WRITE8_MEMBER(elite_state::ppi_portc_w)
 		m_rombank->set_entry(data >> 6 & 3);
 }
 
-READ8_MEMBER(elite_state::ppi_portb_r)
+u8 elite_state::ppi_portb_r()
 {
 	// d0: printer? white wire from LED pcb
 	u8 data = 1;
@@ -533,15 +533,15 @@ ROM_END
 
 ROM_START( feasgla )
 	ROM_REGION( 0x10000, "mainmap", 0 )
-	ROM_LOAD("4,0_8_6", 0x8000, 0x0800, CRC(32784e2d) SHA1(dae060a5c49cc1993a78db293cd80464adfd892d) )
+	ROM_LOAD("4.0_86", 0x8000, 0x0800, CRC(32784e2d) SHA1(dae060a5c49cc1993a78db293cd80464adfd892d) )
 	ROM_CONTINUE( 0x9000, 0x0800 )
 	ROM_CONTINUE( 0x8800, 0x0800 )
 	ROM_CONTINUE( 0x9800, 0x0800 )
-	ROM_LOAD("c_5", 0xc000, 0x0800, CRC(ddb80412) SHA1(b1d9435d9a71b8eb241a2169bfbaa0499f510769) )
+	ROM_LOAD("c5", 0xc000, 0x0800, CRC(ddb80412) SHA1(b1d9435d9a71b8eb241a2169bfbaa0499f510769) )
 	ROM_CONTINUE( 0xd000, 0x0800 )
 	ROM_CONTINUE( 0xc800, 0x0800 )
 	ROM_CONTINUE( 0xd800, 0x0800 )
-	ROM_LOAD("4,0_e_4", 0xe000, 0x0800, CRC(62a5305a) SHA1(a361bd9a54b903d7b0fbacabe55ea5ccbbc1dc51) )
+	ROM_LOAD("4.0_e4", 0xe000, 0x0800, CRC(62a5305a) SHA1(a361bd9a54b903d7b0fbacabe55ea5ccbbc1dc51) )
 	ROM_CONTINUE( 0xf000, 0x0800 )
 	ROM_CONTINUE( 0xe800, 0x0800 )
 	ROM_CONTINUE( 0xf800, 0x0800 )
@@ -569,15 +569,15 @@ ROM_END
 
 ROM_START( feasglaa )
 	ROM_REGION( 0x10000, "mainmap", 0 )
-	ROM_LOAD("p6", 0x8000, 0x0800, CRC(2fdddb4f) SHA1(6da0a328a45462f285ae6a0756f97c5a43148f97) )
+	ROM_LOAD("6a", 0x8000, 0x0800, CRC(2fdddb4f) SHA1(6da0a328a45462f285ae6a0756f97c5a43148f97) )
 	ROM_CONTINUE( 0x9000, 0x0800 )
 	ROM_CONTINUE( 0x8800, 0x0800 )
 	ROM_CONTINUE( 0x9800, 0x0800 )
-	ROM_LOAD("p5", 0xc000, 0x0800, CRC(f094e625) SHA1(fef84c6a3da504aac15988ec9af94417e5fedfbd) )
+	ROM_LOAD("5a", 0xc000, 0x0800, CRC(f094e625) SHA1(fef84c6a3da504aac15988ec9af94417e5fedfbd) )
 	ROM_CONTINUE( 0xd000, 0x0800 )
 	ROM_CONTINUE( 0xc800, 0x0800 )
 	ROM_CONTINUE( 0xd800, 0x0800 )
-	ROM_LOAD("p4", 0xe000, 0x0800, CRC(5f6845d1) SHA1(684eb16faf36a49560e5a73b55fd0022dc090e35) )
+	ROM_LOAD("4a", 0xe000, 0x0800, CRC(5f6845d1) SHA1(684eb16faf36a49560e5a73b55fd0022dc090e35) )
 	ROM_CONTINUE( 0xf000, 0x0800 )
 	ROM_CONTINUE( 0xe800, 0x0800 )
 	ROM_CONTINUE( 0xf800, 0x0800 )

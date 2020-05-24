@@ -185,7 +185,7 @@ void spg2xx_game_state::switch_bank(uint32_t bank)
 	}
 }
 
-WRITE16_MEMBER(spg2xx_game_state::porta_w)
+void spg2xx_game_state::porta_w(offs_t offset, uint16_t data, uint16_t mem_mask)
 {
 	logerror("%s: porta_w %04x (%04x) %c %c %c %c | %c %c %c %c | %c %c %c %c | %c %c %c %c  \n", machine().describe_context(), data, mem_mask,
 		(mem_mask & 0x8000) ? ((data & 0x8000) ? '1' : '0') : 'x',
@@ -206,7 +206,7 @@ WRITE16_MEMBER(spg2xx_game_state::porta_w)
 		(mem_mask & 0x0001) ? ((data & 0x0001) ? '1' : '0') : 'x');
 }
 
-WRITE16_MEMBER(spg2xx_game_state::portb_w)
+void spg2xx_game_state::portb_w(offs_t offset, uint16_t data, uint16_t mem_mask)
 {
 	logerror("%s: portb_w %04x (%04x) %c %c %c %c | %c %c %c %c | %c %c %c %c | %c %c %c %c  \n", machine().describe_context(), data, mem_mask,
 		(mem_mask & 0x8000) ? ((data & 0x8000) ? '1' : '0') : 'x',
@@ -227,7 +227,7 @@ WRITE16_MEMBER(spg2xx_game_state::portb_w)
 		(mem_mask & 0x0001) ? ((data & 0x0001) ? '1' : '0') : 'x');
 }
 
-WRITE16_MEMBER(spg2xx_game_state::portc_w)
+void spg2xx_game_state::portc_w(offs_t offset, uint16_t data, uint16_t mem_mask)
 {
 	logerror("%s: portc_w %04x (%04x) %c %c %c %c | %c %c %c %c | %c %c %c %c | %c %c %c %c  \n", machine().describe_context(), data, mem_mask,
 		(mem_mask & 0x8000) ? ((data & 0x8000) ? '1' : '0') : 'x',
@@ -248,46 +248,46 @@ WRITE16_MEMBER(spg2xx_game_state::portc_w)
 		(mem_mask & 0x0001) ? ((data & 0x0001) ? '1' : '0') : 'x');
 }
 
-WRITE8_MEMBER(spg2xx_game_state::i2c_w)
+void spg2xx_game_state::i2c_w(offs_t offset, uint8_t data)
 {
 	logerror("%s: i2c_w %05x %04x\n", machine().describe_context(), offset, data);
 }
 
-READ8_MEMBER(spg2xx_game_state::i2c_r)
+uint8_t spg2xx_game_state::i2c_r(offs_t offset)
 {
 	logerror("%s: i2c_r %04x\n", machine().describe_context(), offset);
 	return 0x0000;
 }
 
-READ16_MEMBER(spg2xx_game_state::base_porta_r)
+uint16_t spg2xx_game_state::base_porta_r(offs_t offset, uint16_t mem_mask)
 {
 	uint16_t data = m_io_p1->read();
 	logerror("%s: Port A Read: %04x (%04x)\n", machine().describe_context(), data, mem_mask);
 	return data;
 }
 
-READ16_MEMBER(spg2xx_game_state::base_portb_r)
+uint16_t spg2xx_game_state::base_portb_r(offs_t offset, uint16_t mem_mask)
 {
 	uint16_t data = m_io_p2->read();
 	logerror("%s: Port B Read: %04x (%04x)\n", machine().describe_context(), data, mem_mask);
 	return data;
 }
 
-READ16_MEMBER(spg2xx_game_state::base_portc_r)
+uint16_t spg2xx_game_state::base_portc_r(offs_t offset, uint16_t mem_mask)
 {
 	uint16_t data = m_io_p3->read();
 	logerror("%s: Port C Read: %04x (%04x)\n", machine().describe_context(), data, mem_mask);
 	return data;
 }
 
-READ16_MEMBER(spg2xx_game_state::base_guny_r)
+uint16_t spg2xx_game_state::base_guny_r()
 {
 	uint16_t data = m_io_guny->read();
 	logerror("%s: Gun Y Read: %04x\n", machine().describe_context(), data);
 	return data;
 }
 
-READ16_MEMBER(spg2xx_game_state::base_gunx_r)
+uint16_t spg2xx_game_state::base_gunx_r()
 {
 	uint16_t data = m_io_gunx->read();
 	logerror("%s: Gun X Read: %04x\n", machine().describe_context(), data);
@@ -1075,6 +1075,26 @@ static INPUT_PORTS_START( dreamlss )
 INPUT_PORTS_END
 
 
+static INPUT_PORTS_START( tmntbftc )
+	PORT_START("P1")
+	PORT_BIT( 0x0001, IP_ACTIVE_HIGH, IPT_JOYSTICK_UP )
+	PORT_BIT( 0x0002, IP_ACTIVE_HIGH, IPT_JOYSTICK_RIGHT )
+	PORT_BIT( 0x0004, IP_ACTIVE_HIGH, IPT_JOYSTICK_DOWN )
+	PORT_BIT( 0x0008, IP_ACTIVE_HIGH, IPT_JOYSTICK_LEFT )
+	PORT_BIT( 0x0010, IP_ACTIVE_HIGH, IPT_UNUSED )
+	PORT_BIT( 0x0020, IP_ACTIVE_HIGH, IPT_BUTTON2 )
+	PORT_BIT( 0x0040, IP_ACTIVE_HIGH, IPT_BUTTON1 )
+	PORT_BIT( 0x0180, IP_ACTIVE_HIGH, IPT_UNUSED )
+	PORT_BIT( 0x0200, IP_ACTIVE_HIGH, IPT_START1 )
+	PORT_BIT( 0xfc00, IP_ACTIVE_HIGH, IPT_UNUSED )
+
+	PORT_START("P2")
+	PORT_BIT( 0xffff, IP_ACTIVE_HIGH, IPT_UNUSED )
+
+	PORT_START("P3")
+	PORT_BIT( 0xffff, IP_ACTIVE_HIGH, IPT_UNUSED )
+INPUT_PORTS_END
+
 void spg2xx_game_state::machine_start()
 {
 	if (m_bank)
@@ -1146,20 +1166,20 @@ void spg2xx_game_state::abltenni(machine_config &config)
 	m_maincpu->portc_in().set_ioport("P3");
 }
 
-READ16_MEMBER(spg2xx_game_comil_state::porta_r)
+uint16_t spg2xx_game_comil_state::porta_r(offs_t offset, uint16_t mem_mask)
 {
 	uint16_t data = m_porta_data;
 	logerror("%s: Port A Read: %04x (%04x)\n", machine().describe_context(), data, mem_mask);
 	return data;
 }
 
-WRITE16_MEMBER(spg2xx_game_comil_state::porta_w)
+void spg2xx_game_comil_state::porta_w(offs_t offset, uint16_t data, uint16_t mem_mask)
 {
 	logerror("%s: Port A Write: %04x (%04x)\n", machine().describe_context(), data, mem_mask);
 	m_porta_data = data;
 }
 
-READ16_MEMBER(spg2xx_game_comil_state::portb_r)
+uint16_t spg2xx_game_comil_state::portb_r(offs_t offset, uint16_t mem_mask)
 {
 	uint16_t data = m_io_p2->read() & 0xfff0;
 
@@ -1221,7 +1241,7 @@ void spg2xx_game_state::tvsprt10(machine_config &config)
 	m_maincpu->portc_in().set(FUNC(spg2xx_game_state::base_portc_r));
 }
 
-READ16_MEMBER(spg2xx_game_tmntmutm_state::guny_r)
+uint16_t spg2xx_game_tmntmutm_state::guny_r()
 {
 	int frame = m_screen->frame_number() & 1; // game will not register shots if the co-ordinates are exactly the same as previous shot
 	uint16_t data = m_io_guny->read() ^ frame;
@@ -1229,7 +1249,7 @@ READ16_MEMBER(spg2xx_game_tmntmutm_state::guny_r)
 	return data;
 }
 
-READ16_MEMBER(spg2xx_game_tmntmutm_state::gunx_r)
+uint16_t spg2xx_game_tmntmutm_state::gunx_r()
 {
 	int frame = (m_screen->frame_number() >> 1) & 1;
 	uint16_t data = m_io_gunx->read() ^ frame;
@@ -1256,7 +1276,7 @@ void spg2xx_game_tmntmutm_state::tmntmutm(machine_config &config)
 	I2C_24C08(config, "i2cmem", 0);
 }
 
-READ16_MEMBER(spg2xx_game_albkickb_state::portb_r)
+uint16_t spg2xx_game_albkickb_state::portb_r(offs_t offset, uint16_t mem_mask)
 {
 	uint16_t data = machine().rand();// TODO
 	logerror("%s: Port B Read: %04x (%04x)\n", machine().describe_context(), data, mem_mask);
@@ -1276,7 +1296,7 @@ void spg2xx_game_albkickb_state::ablkickb(machine_config &config)
 }
 
 
-READ16_MEMBER(spg2xx_game_pballpup_state::porta_r)
+uint16_t spg2xx_game_pballpup_state::porta_r()
 {
 	uint16_t ret = m_io_p1->read() & 0xfff7;
 //  logerror("%s: spg2xx_game_pballpup_state::porta_r\n", machine().describe_context());
@@ -1284,7 +1304,7 @@ READ16_MEMBER(spg2xx_game_pballpup_state::porta_r)
 	return ret;
 }
 
-WRITE16_MEMBER(spg2xx_game_pballpup_state::porta_w)
+void spg2xx_game_pballpup_state::porta_w(offs_t offset, uint16_t data, uint16_t mem_mask)
 {
 	logerror("%s: spg2xx_game_pballpup_state::porta_w (%04x)\n", machine().describe_context(), data);
 	m_eeprom->di_write(BIT(data, 2));
@@ -1317,7 +1337,7 @@ void spg2xx_game_pballpup_state::pballpup(machine_config &config)
 	EEPROM_93C66_16BIT(config, m_eeprom); // type?
 }
 
-READ16_MEMBER(spg2xx_game_swclone_state::porta_r)
+uint16_t spg2xx_game_swclone_state::porta_r()
 {
 	uint16_t ret = m_io_p1->read() & 0xfffe;
 	ret |= m_i2cmem->read_sda() ? 0x1: 0x0;
@@ -1326,7 +1346,7 @@ READ16_MEMBER(spg2xx_game_swclone_state::porta_r)
 	return ret;
 }
 
-WRITE16_MEMBER(spg2xx_game_swclone_state::porta_w)
+void spg2xx_game_swclone_state::porta_w(offs_t offset, uint16_t data, uint16_t mem_mask)
 {
 	//logerror("%s: spg2xx_game_swclone_state::porta_w (%04x & %04x)\n", machine().describe_context(), data, mem_mask);
 
@@ -1362,7 +1382,7 @@ void spg2xx_game_swclone_state::swclone(machine_config &config)
 
 
 
-READ16_MEMBER(spg2xx_game_dreamlss_state::porta_r)
+uint16_t spg2xx_game_dreamlss_state::porta_r()
 {
 	uint16_t ret = m_io_p1->read()&0xefff;
 	ret |= m_porta_data & 0x1000; // needs to be able to read back current bank
@@ -1370,7 +1390,7 @@ READ16_MEMBER(spg2xx_game_dreamlss_state::porta_r)
 	return ret;
 }
 
-WRITE16_MEMBER(spg2xx_game_dreamlss_state::porta_w)
+void spg2xx_game_dreamlss_state::porta_w(offs_t offset, uint16_t data, uint16_t mem_mask)
 {
 	logerror("%s: spg2xx_game_dreamlss_state::porta_w (%04x)\n", machine().describe_context(), data);
 
@@ -1381,7 +1401,7 @@ WRITE16_MEMBER(spg2xx_game_dreamlss_state::porta_w)
 
 
 // TODO: how does the SEEPROM hook up? (will need hack removing in init_dreamlss )
-READ16_MEMBER(spg2xx_game_dreamlss_state::portb_r)
+uint16_t spg2xx_game_dreamlss_state::portb_r()
 {
 	uint16_t ret = m_portb_data & 0xfffe;
 	ret |= m_i2cmem->read_sda() ? 0x1: 0x0;
@@ -1390,7 +1410,7 @@ READ16_MEMBER(spg2xx_game_dreamlss_state::portb_r)
 	return ret;
 }
 
-WRITE16_MEMBER(spg2xx_game_dreamlss_state::portb_w)
+void spg2xx_game_dreamlss_state::portb_w(offs_t offset, uint16_t data, uint16_t mem_mask)
 {
 	//logerror("%s: spg2xx_game_dreamlss_state::portb_w (%04x & %04x)\n", machine().describe_context(), data, mem_mask);
 
@@ -1421,7 +1441,7 @@ void spg2xx_game_dreamlss_state::dreamlss(machine_config &config)
 	I2C_24C08(config, "i2cmem", 0);
 }
 
-WRITE16_MEMBER(spg2xx_game_gssytts_state::portc_w)
+void spg2xx_game_gssytts_state::portc_w(offs_t offset, uint16_t data, uint16_t mem_mask)
 {
 	int bank = 0;
 
@@ -1478,9 +1498,9 @@ void spg2xx_game_gssytts_state::gssytts(machine_config &config)
 
 	spg2xx_base(config);
 
-//	m_maincpu->porta_out().set(FUNC(spg2xx_game_state::porta_w));
-//	m_maincpu->portb_out().set(FUNC(spg2xx_game_state::portb_w));
-//	m_maincpu->portc_out().set(FUNC(spg2xx_game_state::portc_w));
+//  m_maincpu->porta_out().set(FUNC(spg2xx_game_state::porta_w));
+//  m_maincpu->portb_out().set(FUNC(spg2xx_game_state::portb_w));
+//  m_maincpu->portc_out().set(FUNC(spg2xx_game_state::portc_w));
 
 	m_maincpu->porta_in().set_ioport("P1");
 	m_maincpu->portb_in().set_ioport("P2");
@@ -1591,6 +1611,17 @@ ROM_START( guitarss )
 	ROM_LOAD16_WORD_SWAP( "guitar_superstar_stratocaster.bin", 0x000000, 0x800000, CRC(63950016) SHA1(28b9613571f47c49995aa35c4d4a2d6f68389813) )
 ROM_END
 
+ROM_START( guitarssa )
+	ROM_REGION( 0x800000, "maincpu", ROMREGION_ERASE00 )
+	ROM_LOAD16_WORD_SWAP( "guitar_superstar_flying_v.bin", 0x000000, 0x800000, CRC(af0c837c) SHA1(f04c9a4292f811d92311d19fb35dcee3f1649a14) )
+ROM_END
+
+ROM_START( tmntbftc )
+	ROM_REGION( 0x800000, "maincpu", ROMREGION_ERASE00 )
+	ROM_LOAD16_WORD_SWAP( "tmntbftc.bin", 0x000000, 0x400000, CRC(f923da5b) SHA1(79b290b75d06dabd0f579800edc4453b044c8fd4) )
+ROM_END
+
+
 ROM_START( gssytts )
 	ROM_REGION( 0x1000000, "maincpu", ROMREGION_ERASE00 )
 	ROM_LOAD16_WORD_SWAP( "guitarssytts.bin", 0x000000, 0x800000, CRC(ec3de9e1) SHA1(690efe2676c664c2be52cda00d6dcb9d60a26e9a) ) // no data
@@ -1633,10 +1664,14 @@ ROM_START( swclone )
 	// ensure eeprom defaults to 00 or there are unwanted invalid entries already saved
 ROM_END
 
-
-ROM_START( vtechtvs )
+ROM_START( vtechtvssp )
 	ROM_REGION( 0x800000, "maincpu", ROMREGION_ERASE00 )
-	ROM_LOAD16_WORD_SWAP( "vtechtvstation.bin", 0x000000, 0x800000, CRC(4a2e91eb) SHA1(1ff9cc0360b670cc0ad7efa9de0edd2c68d4d8e3) )
+	ROM_LOAD16_WORD_SWAP( "vtechtvstation_sp.bin", 0x000000, 0x800000, CRC(4a2e91eb) SHA1(1ff9cc0360b670cc0ad7efa9de0edd2c68d4d8e3) )
+ROM_END
+
+ROM_START( vtechtvsgr )
+	ROM_REGION( 0x800000, "maincpu", ROMREGION_ERASE00 )
+	ROM_LOAD16_WORD_SWAP( "vtechtvstation_gr.bin", 0x000000, 0x800000, CRC(879f1b12) SHA1(c14d52bead2c190130ce88cbdd4f5e93145f13f9) )
 ROM_END
 
 void spg2xx_game_state::init_crc()
@@ -1691,52 +1726,52 @@ void spg2xx_game_albkickb_state::init_ablkickb()
 // year, name, parent, compat, machine, input, class, init, company, fullname, flags
 
 // Radica TV games
-CONS( 2006, rad_skat,  0,        0, rad_skat, rad_skat,   spg2xx_game_state, init_crc, "Radica", "Play TV Skateboarder (NTSC)", MACHINE_IMPERFECT_SOUND | MACHINE_IMPERFECT_GRAPHICS )
-CONS( 2006, rad_skatp, rad_skat, 0, rad_skatp,rad_skatp,  spg2xx_game_state, init_crc, "Radica", "Connectv Skateboarder (PAL)", MACHINE_IMPERFECT_SOUND | MACHINE_IMPERFECT_GRAPHICS )
-CONS( 2006, rad_crik,  0,        0, rad_crik, rad_crik,   spg2xx_game_state, init_crc, "Radica", "Connectv Cricket (PAL)",      MACHINE_IMPERFECT_SOUND | MACHINE_NOT_WORKING ) // Version 3.00 20/03/06 is listed in INTERNAL TEST
-CONS( 2007, rad_fb2,   0,        0, rad_skat, rad_fb2,    spg2xx_game_state, init_crc, "Radica", "Play TV Football 2",          MACHINE_IMPERFECT_SOUND | MACHINE_NOT_WORKING ) // offers a 2 player option in menus, but seems to have only been programmed for, and released as, a single player unit, P2 controls appear unfinished.
+CONS( 2006, rad_skat,   0,        0, rad_skat,  rad_skat,  spg2xx_game_state,          init_crc,      "Radica",                                                 "Play TV Skateboarder (NTSC)",                                           MACHINE_IMPERFECT_SOUND | MACHINE_IMPERFECT_GRAPHICS )
+CONS( 2006, rad_skatp,  rad_skat, 0, rad_skatp, rad_skatp, spg2xx_game_state,          init_crc,      "Radica",                                                 "Connectv Skateboarder (PAL)",                                           MACHINE_IMPERFECT_SOUND | MACHINE_IMPERFECT_GRAPHICS )
+CONS( 2006, rad_crik,   0,        0, rad_crik,  rad_crik,  spg2xx_game_state,          init_crc,      "Radica",                                                 "Connectv Cricket (PAL)",                                                MACHINE_IMPERFECT_SOUND | MACHINE_NOT_WORKING ) // Version 3.00 20/03/06 is listed in INTERNAL TEST
+CONS( 2007, rad_fb2,    0,        0, rad_skat,  rad_fb2,   spg2xx_game_state,          init_crc,      "Radica",                                                 "Play TV Football 2",                                                    MACHINE_IMPERFECT_SOUND | MACHINE_NOT_WORKING ) // offers a 2 player option in menus, but seems to have only been programmed for, and released as, a single player unit, P2 controls appear unfinished.
 
 // ABL TV Games
-CONS( 2006, abltenni,    0,     0,        abltenni,       abltenni,    spg2xx_game_state, empty_init, "Advance Bright Ltd / V-Tac Technology Co Ltd.", "Wireless Tennis (WT2000, ABL TV Game)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND | MACHINE_IMPERFECT_GRAPHICS )
+CONS( 2006, abltenni,   0,        0, abltenni,  abltenni,  spg2xx_game_state,          empty_init,    "f / V-Tac Technology Co Ltd.",                           "Wireless Tennis (WT2000, ABL TV Game)",                                 MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND | MACHINE_IMPERFECT_GRAPHICS )
+CONS( 2006, ablkickb,   0,        0, ablkickb,  ablkickb,  spg2xx_game_albkickb_state, init_ablkickb, "Advance Bright Ltd / Coleco / V-Tac Technology Co Ltd.", "Kick Boxing (BJ8888, ABL TV Game)",                                     MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND | MACHINE_IMPERFECT_GRAPHICS ) // 4 motion sensors, one for each limb
 
-CONS( 2006, ablkickb,    0,     0,        ablkickb,       ablkickb,    spg2xx_game_albkickb_state, init_ablkickb, "Advance Bright Ltd / Coleco / V-Tac Technology Co Ltd.", "Kick Boxing (BJ8888, ABL TV Game)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND | MACHINE_IMPERFECT_GRAPHICS ) // 4 motion sensors, one for each limb
+CONS( 2007, lxspidaj,   0,        0, abltenni,  lxspidaj,  spg2xx_game_albkickb_state, init_ablkickb, "Lexibook",                                               "Spider-Man Super TV Air Jet (Lexibook Junior, JG6000SP)",               MACHINE_IMPERFECT_SOUND | MACHINE_IMPERFECT_GRAPHICS )
+CONS( 2006, fordrace,   0,        0, abltenni,  fordrace,  spg2xx_game_state,          empty_init,    "Excalibur Electronics",                                  "Ford Racing",                                                           MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND | MACHINE_IMPERFECT_GRAPHICS )
 
-CONS( 2007, lxspidaj,    0,     0,        abltenni,       lxspidaj,    spg2xx_game_albkickb_state, init_ablkickb, "Lexibook", "Spider-Man Super TV Air Jet (Lexibook Junior, JG6000SP)", MACHINE_IMPERFECT_SOUND | MACHINE_IMPERFECT_GRAPHICS )
+CONS( 2008, comil,      0,        0, comil,     comil,     spg2xx_game_comil_state,    empty_init,    "Character Options",                                      "Who Wants to Be a Millionaire? (Character Options, Plug and Play, UK)", MACHINE_IMPERFECT_SOUND | MACHINE_IMPERFECT_GRAPHICS )
 
+// Same as Excalibur Decathlon? Not the same as the ABL game
+CONS( 2006, tvsprt10,   0,        0, tvsprt10,  tvsprt10,  spg2xx_game_state,          init_tvsprt10, "Simba / V-Tac Technology Co Ltd.",                       "TV Sports 10-in-1 / Decathlon Athletic Sport Games",                    MACHINE_IMPERFECT_SOUND | MACHINE_IMPERFECT_GRAPHICS )
+CONS( 200?, decathln,   0,        0, tvsprt10,  decathln,  spg2xx_game_state,          init_tvsprt10, "Advance Bright Ltd / V-Tac Technology Co Ltd.",          "Decathlon (set 1)",                                                     MACHINE_IMPERFECT_SOUND | MACHINE_IMPERFECT_GRAPHICS ) // unit found in Spain
+CONS( 200?, decathlna,  decathln, 0, tvsprt10,  decathln,  spg2xx_game_state,          init_tvsprt10, "Advance Bright Ltd / V-Tac Technology Co Ltd.",          "Decathlon (set 2, SM570, ABL TV Game)",                                 MACHINE_IMPERFECT_SOUND | MACHINE_IMPERFECT_GRAPHICS ) // unit found in UK
 
-CONS( 2006, fordrace,    0,     0,        abltenni,       fordrace,    spg2xx_game_state, empty_init, "Excalibur Electronics", "Ford Racing", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND | MACHINE_IMPERFECT_GRAPHICS )
+CONS( 2007, guitarfv,   0,        0, guitarfv,  guitarfv,  spg2xx_game_state,          empty_init,    "Advance Bright Ltd",                                     "Guitar Fever (2007.07.03 Ver 2.7)",                                     MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND | MACHINE_IMPERFECT_GRAPHICS )
 
+// The box for these has 'YOU take the stage' text, but unlike the sequel, it is not part of the ingame title screen, this sometimes causes confusion
+CONS( 200?, guitarss,   0,        0, abltenni,  guitarss,  spg2xx_game_state,          empty_init,    "Senario",                                                "Guitar Super Star ('Fender Stratocaster' style)",                       MACHINE_IMPERFECT_SOUND | MACHINE_IMPERFECT_GRAPHICS )
+CONS( 200?, guitarssa,  guitarss, 0, abltenni,  guitarss,  spg2xx_game_state,          empty_init,    "Senario",                                                "Guitar Super Star (red 'Gibson Flying V' style)",                       MACHINE_IMPERFECT_SOUND | MACHINE_IMPERFECT_GRAPHICS )
 
-CONS( 2008, comil,       0,     0,        comil,          comil,       spg2xx_game_comil_state, empty_init, "Character Options", "Who Wants to Be a Millionaire? (Character Options, Plug and Play, UK)", MACHINE_IMPERFECT_SOUND | MACHINE_IMPERFECT_GRAPHICS )
+// The sequel has 'You Take The Stage' on both the box and title screen
+CONS( 2009, gssytts,    0,        0, gssytts,   guitarss,  spg2xx_game_gssytts_state,  empty_init,    "Senario",                                                "Guitar Super Star: You Take The Stage",                                 MACHINE_IMPERFECT_SOUND | MACHINE_IMPERFECT_GRAPHICS )
 
-// same as Excalibur Decathlon? not the same as the ABL game
-CONS( 2006, tvsprt10,    0,        0,        tvsprt10,       tvsprt10,    spg2xx_game_state, init_tvsprt10, "Simba / V-Tac Technology Co Ltd.",              "TV Sports 10-in-1 / Decathlon Athletic Sport Games", MACHINE_IMPERFECT_SOUND | MACHINE_IMPERFECT_GRAPHICS )
-CONS( 200?, decathln,    0,        0,        tvsprt10,       decathln,    spg2xx_game_state, init_tvsprt10, "Advance Bright Ltd / V-Tac Technology Co Ltd.", "Decathlon (set 1)", MACHINE_IMPERFECT_SOUND | MACHINE_IMPERFECT_GRAPHICS ) // unit found in Spain
-CONS( 200?, decathlna,   decathln, 0,        tvsprt10,       decathln,    spg2xx_game_state, init_tvsprt10, "Advance Bright Ltd / V-Tac Technology Co Ltd.", "Decathlon (set 2, SM570, ABL TV Game)", MACHINE_IMPERFECT_SOUND | MACHINE_IMPERFECT_GRAPHICS ) // unit found in UK
+// VTech "TV Station" / "TV Learning Station" / "Nitro Vision"
+CONS( 2006, vtechtvssp, 0,        0, abltenni,  fordrace,  spg2xx_game_state,          empty_init,    "VTech",                                                  "TV Station (VTech, Spain)",                                             MACHINE_NOT_WORKING )
+CONS( 2006, vtechtvsgr, 0,        0, abltenni,  fordrace,  spg2xx_game_state,          empty_init,    "VTech",                                                  "TV Learning Station (VTech, Germany)",                                  MACHINE_NOT_WORKING )
 
-CONS( 2007, guitarfv,    0,     0,        guitarfv,       guitarfv,    spg2xx_game_state, empty_init, "Advance Bright Ltd", "Guitar Fever (2007.07.03 Ver 2.7)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND | MACHINE_IMPERFECT_GRAPHICS )
+CONS( 200?, jjstrip,    0,        0, tvsprt10,  jjstrip,   spg2xx_game_state,          empty_init,    "Shiggles Inc.",                                          "Club Jenna Presents: Jenna Jameson's Strip Poker",                      MACHINE_IMPERFECT_SOUND | MACHINE_IMPERFECT_GRAPHICS )
 
-// Another version of this has a red "Gibson Flying V" style controller.  The difference is reflected on the title screen, songs are the same.
-CONS( 200?, guitarss,    0,     0,        abltenni,       guitarss,    spg2xx_game_state, empty_init, "Senario", "Guitar Super Star (Fender Stratocaster style)", MACHINE_IMPERFECT_SOUND | MACHINE_IMPERFECT_GRAPHICS )
+CONS( 2005, tmntbftc,   0,        0, abltenni,  tmntbftc,  spg2xx_game_state,          empty_init,    "Tech2Go / WayForward",                                   "Teenage Mutant Ninja Turtles: Battle for the City",                     MACHINE_IMPERFECT_SOUND | MACHINE_IMPERFECT_GRAPHICS )
 
-CONS( 2009, gssytts,     0,     0,        gssytts,        guitarss,    spg2xx_game_gssytts_state, empty_init, "Senario", "Guitar Super Star: You Take The Stage", MACHINE_IMPERFECT_SOUND | MACHINE_IMPERFECT_GRAPHICS )
+CONS( 2005, tmntmutm,   0,        0, tmntmutm,  tmntmutm,  spg2xx_game_tmntmutm_state, empty_init,    "Tech2Go / WayForward",                                   "Teenage Mutant Ninja Turtles: Mutant and Monster Mayhem",               MACHINE_IMPERFECT_SOUND | MACHINE_IMPERFECT_GRAPHICS )
 
-CONS( 200?, vtechtvs,    0,     0,        abltenni,       fordrace,    spg2xx_game_state, empty_init, "VTech", "TV Station (VTech, Spain)", MACHINE_NOT_WORKING )
+CONS( 2006, pballpup,   0,        0, pballpup,  pballpup,  spg2xx_game_pballpup_state, empty_init,    "Hasbro / Tiger Electronics",                             "Mission: Paintball Powered Up",                                         MACHINE_IMPERFECT_SOUND | MACHINE_IMPERFECT_GRAPHICS )
 
-CONS( 200?, jjstrip,    0,     0,        tvsprt10,       jjstrip,    spg2xx_game_state, empty_init, "Shiggles Inc.", "Club Jenna Presents: Jenna Jameson's Strip Poker", MACHINE_IMPERFECT_SOUND | MACHINE_IMPERFECT_GRAPHICS )
+CONS( 2007, dreamlss,   0,        0, dreamlss,  dreamlss,  spg2xx_game_dreamlss_state, empty_init,    "Hasbro / Tiger Electronics",                             "Dream Life Superstar (Version 0.3, Mar 16 2007)",                       MACHINE_IMPERFECT_SOUND | MACHINE_IMPERFECT_GRAPHICS )
 
-CONS( 2005, tmntmutm,   0,     0,        tmntmutm,       tmntmutm,    spg2xx_game_tmntmutm_state, empty_init, "Tech2Go / WayForward", "Teenage Mutant Ninja Turtles: Mutant and Monster Mayhem", MACHINE_IMPERFECT_SOUND | MACHINE_IMPERFECT_GRAPHICS )
-
-CONS( 2006, pballpup,   0,     0,        pballpup,       pballpup,    spg2xx_game_pballpup_state, empty_init, "Hasbro / Tiger Electronics", "Mission: Paintball Powered Up", MACHINE_IMPERFECT_SOUND | MACHINE_IMPERFECT_GRAPHICS )
-
-CONS( 2007, dreamlss,   0,     0,        dreamlss,       dreamlss,    spg2xx_game_dreamlss_state, empty_init, "Hasbro / Tiger Electronics", "Dream Life Superstar (Version 0.3, Mar 16 2007)", MACHINE_IMPERFECT_SOUND | MACHINE_IMPERFECT_GRAPHICS )
-
-
-// meeds a hack to not show garbage sprite on startup, seeprom hookup (24LC08), gun fine-tuning etc.
-CONS( 2008, swclone,   0,     0,        swclone,       swclone,    spg2xx_game_swclone_state, init_swclone, "Hasbro / Tiger Electronics", "Star Wars - The Clone Wars", MACHINE_IMPERFECT_SOUND | MACHINE_IMPERFECT_GRAPHICS )
+// Needs a hack to not show garbage sprite on startup, seeprom hookup (24LC08), gun fine-tuning, etc.
+CONS( 2008, swclone,    0,        0, swclone,   swclone,   spg2xx_game_swclone_state,  init_swclone,  "Hasbro / Tiger Electronics",                             "Star Wars - The Clone Wars",                                            MACHINE_IMPERFECT_SOUND | MACHINE_IMPERFECT_GRAPHICS )
 
 // Mattel games
-CONS( 2005, mattelcs,  0,        0, rad_skat, mattelcs,   spg2xx_game_state, empty_init, "Mattel", "Mattel Classic Sports",     MACHINE_IMPERFECT_SOUND )
+CONS( 2005, mattelcs,   0,        0, rad_skat, mattelcs,   spg2xx_game_state,          empty_init,    "Mattel",                                                 "Mattel Classic Sports",                                                 MACHINE_IMPERFECT_SOUND )
 
-// both the WiWi and Fox Sports units seem to be related to the 'Virtual Interactive' (aka 'Vi') console
-
+// Both the WiWi and Fox Sports units seem to be related to the 'Virtual Interactive' (aka 'Vi') console

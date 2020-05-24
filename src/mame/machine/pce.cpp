@@ -131,7 +131,7 @@ MACHINE_RESET_MEMBER(pce_state,mess_pce)
 }
 
 /* todo: how many input ports does the PCE have? */
-WRITE8_MEMBER(pce_state::mess_pce_joystick_w)
+void pce_state::mess_pce_joystick_w(uint8_t data)
 {
 	int joy_i;
 	uint8_t joy_type = m_joy_type->read();
@@ -158,7 +158,7 @@ WRITE8_MEMBER(pce_state::mess_pce_joystick_w)
 	}
 }
 
-READ8_MEMBER(pce_state::mess_pce_joystick_r)
+uint8_t pce_state::mess_pce_joystick_r()
 {
 	uint8_t joy_type = m_joy_type->read();
 	uint8_t ret, data;
@@ -206,9 +206,9 @@ WRITE8_MEMBER(pce_state::pce_cd_intf_w)
 	m_cd->update();
 
 	if (offset & 0x200 && m_sys3_card && m_acard) // route Arcade Card handling ports
-		return m_cd->acard_w(space, offset, data);
+		return m_cd->acard_w(offset, data);
 
-	m_cd->intf_w(space, offset, data);
+	m_cd->intf_w(offset, data);
 
 	m_cd->update();
 }
@@ -218,7 +218,7 @@ READ8_MEMBER(pce_state::pce_cd_intf_r)
 	m_cd->update();
 
 	if (offset & 0x200 && m_sys3_card && m_acard) // route Arcade Card handling ports
-		return m_cd->acard_r(space, offset);
+		return m_cd->acard_r(offset);
 
 	if ((offset & 0xc0) == 0xc0 && m_sys3_card) //System 3 Card header handling
 	{
@@ -233,7 +233,7 @@ READ8_MEMBER(pce_state::pce_cd_intf_r)
 		}
 	}
 
-	return m_cd->intf_r(space, offset);
+	return m_cd->intf_r(offset);
 }
 
 

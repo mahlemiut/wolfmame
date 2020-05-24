@@ -32,42 +32,50 @@ namespace plib
 	template <typename T>
 	struct constants
 	{
-		static inline constexpr T zero()   noexcept { return static_cast<T>(0); }
-		static inline constexpr T half()   noexcept { return static_cast<T>(0.5); }
-		static inline constexpr T one()    noexcept { return static_cast<T>(1); }
-		static inline constexpr T two()    noexcept { return static_cast<T>(2); }
-		static inline constexpr T three()  noexcept { return static_cast<T>(3); }
-		static inline constexpr T four()   noexcept { return static_cast<T>(4); }
-		static inline constexpr T sqrt2()  noexcept { return static_cast<T>(1.414213562373095048801688724209L); }
-		static inline constexpr T pi()     noexcept { return static_cast<T>(3.14159265358979323846264338327950L); }
+		static inline constexpr T zero()   noexcept { return static_cast<T>(0); } // NOLINT
+		static inline constexpr T half()   noexcept { return static_cast<T>(0.5); } // NOLINT
+		static inline constexpr T one()    noexcept { return static_cast<T>(1); } // NOLINT
+		static inline constexpr T two()    noexcept { return static_cast<T>(2); } // NOLINT
+		static inline constexpr T three()  noexcept { return static_cast<T>(3); } // NOLINT
+		static inline constexpr T four()   noexcept { return static_cast<T>(4); } // NOLINT
+		static inline constexpr T hundred()noexcept { return static_cast<T>(100); } // NOLINT
+
+		static inline constexpr T one_thirds()    noexcept { return fraction(one(), three()); }
+		static inline constexpr T two_thirds()    noexcept { return fraction(two(), three()); }
+
+		static inline constexpr T ln2()  noexcept { return static_cast<T>(0.6931471805599453094172321214581766L); } // NOLINT
+		static inline constexpr T sqrt2()  noexcept { return static_cast<T>(1.4142135623730950488016887242096982L); } // NOLINT
+		static inline constexpr T sqrt3()  noexcept { return static_cast<T>(1.7320508075688772935274463415058723L); } // NOLINT
+		static inline constexpr T sqrt3_2()  noexcept { return static_cast<T>(0.8660254037844386467637231707529362L); } // NOLINT
+		static inline constexpr T pi()     noexcept { return static_cast<T>(3.1415926535897932384626433832795029L); } // NOLINT
 
 		/// \brief Electric constant of vacuum
 		///
-		static inline constexpr T eps_0() noexcept { return static_cast<T>(8.854187817e-12); }
+		static inline constexpr T eps_0() noexcept { return static_cast<T>(8.854187817e-12); } // NOLINT
 
 		// \brief Relative permittivity of Silicon dioxide
 		///
-		static inline constexpr T eps_SiO2() noexcept { return static_cast<T>(3.9); }
+		static inline constexpr T eps_SiO2() noexcept { return static_cast<T>(3.9); } // NOLINT
 
 		/// \brief Relative permittivity of Silicon
 		///
-		static inline constexpr T eps_Si() noexcept { return static_cast<T>(11.7); }
+		static inline constexpr T eps_Si() noexcept { return static_cast<T>(11.7); } // NOLINT
 
 		/// \brief Boltzmann constant
 		///
-		static inline constexpr T k_b() noexcept { return static_cast<T>(1.38064852e-23); }
+		static inline constexpr T k_b() noexcept { return static_cast<T>(1.38064852e-23); } // NOLINT
 
 		/// \brief room temperature (gives VT = 0.02585 at T=300)
 		///
-		static inline constexpr T T0() noexcept { return static_cast<T>(300); }
+		static inline constexpr T T0() noexcept { return static_cast<T>(300); } // NOLINT
 
 		/// \brief Elementary charge
 		///
-		static inline constexpr T Q_e() noexcept { return static_cast<T>(1.6021765314e-19); }
+		static inline constexpr T Q_e() noexcept { return static_cast<T>(1.6021765314e-19); } // NOLINT
 
 		/// \brief Intrinsic carrier concentration in 1/m^3 of Silicon
 		///
-		static inline constexpr T NiSi() noexcept { return static_cast<T>(1.45e16); }
+		static inline constexpr T NiSi() noexcept { return static_cast<T>(1.45e16); } // NOLINT
 
 		/// \brief clearly identify magic numbers in code
 		///
@@ -77,6 +85,9 @@ namespace plib
 		///
 		template <typename V>
 		static inline constexpr T magic(V &&v) noexcept { return static_cast<T>(v); }
+
+		template <typename V>
+		static inline constexpr T fraction(V &&v1, V &&v2) noexcept { return static_cast<T>(v1 / v2); }
 	};
 
 	/// \brief typesafe reciprocal function
@@ -236,6 +247,21 @@ namespace plib
 		return std::trunc(v);
 	}
 
+	/// \brief signum function
+	///
+	/// \tparam T type of the argument
+	/// \param  v argument
+	/// \param  r optional argument, if given will return r and -r instead of 1 and -1
+	/// \return signum(v)
+	///
+	template <typename T>
+	static inline constexpr typename std::enable_if<std::is_floating_point<T>::value, T>::type
+	signum(T v, T r = static_cast<T>(1))
+	{
+		constexpr const auto z(static_cast<T>(0));
+		return (v > z) ? r : ((v < z) ? -r : v);
+	}
+
 	/// \brief pow function
 	///
 	/// \tparam T1 type of the first argument
@@ -247,85 +273,85 @@ namespace plib
 	/// FIXME: limited implementation
 	///
 	template <typename T1, typename T2>
-	static inline T1
-	pow(T1 v, T2 p) noexcept
+	static inline
+	auto pow(T1 v, T2 p) noexcept -> decltype(std::pow(v, p))
 	{
 		return std::pow(v, p);
 	}
 
 #if (PUSE_FLOAT128)
-	static inline constexpr __float128 reciprocal(__float128 v) noexcept
+	static inline constexpr FLOAT128 reciprocal(FLOAT128 v) noexcept
 	{
-		return constants<__float128>::one() / v;
+		return constants<FLOAT128>::one() / v;
 	}
 
-	static inline __float128 abs(__float128 v) noexcept
+	static inline FLOAT128 abs(FLOAT128 v) noexcept
 	{
 		return fabsq(v);
 	}
 
-	static inline __float128 sqrt(__float128 v) noexcept
+	static inline FLOAT128 sqrt(FLOAT128 v) noexcept
 	{
 		return sqrtq(v);
 	}
 
-	static inline __float128 hypot(__float128 v1, __float128 v2) noexcept
+	static inline FLOAT128 hypot(FLOAT128 v1, FLOAT128 v2) noexcept
 	{
 		return hypotq(v1, v2);
 	}
 
-	static inline __float128 exp(__float128 v) noexcept
+	static inline FLOAT128 exp(FLOAT128 v) noexcept
 	{
 		return expq(v);
 	}
 
-	static inline __float128 log(__float128 v) noexcept
+	static inline FLOAT128 log(FLOAT128 v) noexcept
 	{
 		return logq(v);
 	}
 
-	static inline __float128 tanh(__float128 v) noexcept
+	static inline FLOAT128 tanh(FLOAT128 v) noexcept
 	{
 		return tanhq(v);
 	}
 
-	static inline __float128 floor(__float128 v) noexcept
+	static inline FLOAT128 floor(FLOAT128 v) noexcept
 	{
 		return floorq(v);
 	}
 
-	static inline __float128 log1p(__float128 v) noexcept
+	static inline FLOAT128 log1p(FLOAT128 v) noexcept
 	{
 		return log1pq(v);
 	}
 
-	static inline __float128 sin(__float128 v) noexcept
+	static inline FLOAT128 sin(FLOAT128 v) noexcept
 	{
 		return sinq(v);
 	}
 
-	static inline __float128 cos(__float128 v) noexcept
+	static inline FLOAT128 cos(FLOAT128 v) noexcept
 	{
 		return cosq(v);
 	}
 
-	static inline __float128 trunc(__float128 v) noexcept
+	static inline FLOAT128 trunc(FLOAT128 v) noexcept
 	{
 		return truncq(v);
 	}
 
 	template <typename T>
-	static inline __float128 pow(__float128 v, T p) noexcept
+	static inline FLOAT128 pow(FLOAT128 v, T p) noexcept
 	{
-		return powq(v, static_cast<__float128>(p));
+		return powq(v, static_cast<FLOAT128>(p));
 	}
 
-	static inline __float128 pow(__float128 v, int p) noexcept
+	static inline FLOAT128 pow(FLOAT128 v, int p) noexcept
 	{
 		if (p==2)
 			return v*v;
 		else
-			return powq(v, static_cast<__float128>(p));
+			return powq(v, static_cast<FLOAT128>(p));
 	}
 
 #endif
@@ -351,7 +377,7 @@ namespace plib
 	///
 	template<typename T>
 	constexpr
-	typename std::enable_if<std::is_integral<T>::value && std::is_signed<T>::value, T>::type
+	typename std::enable_if<plib::is_integral<T>::value && plib::is_signed<T>::value, T>::type
 	abs(T v) noexcept
 	{
 		return v < 0 ? -v : v;
@@ -365,7 +391,7 @@ namespace plib
 	///
 	template<typename T>
 	constexpr
-	typename std::enable_if<std::is_integral<T>::value && std::is_unsigned<T>::value, T>::type
+	typename std::enable_if<plib::is_integral<T>::value && plib::is_unsigned<T>::value, T>::type
 	abs(T v) noexcept
 	{
 		return v;
@@ -384,10 +410,10 @@ namespace plib
 	///
 	template<typename M, typename N>
 	constexpr typename std::common_type<M, N>::type
-	gcd(M m, N n) noexcept
+	gcd(M m, N n) noexcept //NOLINT(misc-no-recursion)
 	{
-		static_assert(std::is_integral<M>::value, "gcd: M must be an integer");
-		static_assert(std::is_integral<N>::value, "gcd: N must be an integer");
+		static_assert(plib::is_integral<M>::value, "gcd: M must be an integer");
+		static_assert(plib::is_integral<N>::value, "gcd: N must be an integer");
 
 		return m == 0 ? plib::abs(n)
 			 : n == 0 ? plib::abs(m)
@@ -409,8 +435,8 @@ namespace plib
 	constexpr typename std::common_type<M, N>::type
 	lcm(M m, N n) noexcept
 	{
-		static_assert(std::is_integral<M>::value, "lcm: M must be an integer");
-		static_assert(std::is_integral<N>::value, "lcm: N must be an integer");
+		static_assert(plib::is_integral<M>::value, "lcm: M must be an integer");
+		static_assert(plib::is_integral<N>::value, "lcm: N must be an integer");
 
 		return (m != 0 && n != 0) ? (plib::abs(m) / gcd(m, n)) * plib::abs(n) : 0;
 	}

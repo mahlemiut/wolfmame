@@ -158,7 +158,7 @@ Address bus A0-A11 is Y0-Y11
 #include "bus/a2bus/4play.h"
 #include "bus/a2bus/computereyes2.h"
 #include "bus/a2bus/byte8251.h"
-
+#include "bus/a2bus/a2iwm.h"
 #include "bus/a2gameio/gameio.h"
 
 #include "bus/rs232/rs232.h"
@@ -285,7 +285,7 @@ public:
 	required_device<address_map_bank_device> m_lcbank;
 	optional_device<mos6551_device> m_acia1, m_acia2;
 	optional_device<applefdc_base_device> m_laserudc;
-	optional_device<iwm_device> m_iicpiwm;
+	optional_device<legacy_iwm_device> m_iicpiwm;
 	required_device<ds1315_device> m_ds1315;
 
 	TIMER_DEVICE_CALLBACK_MEMBER(apple2_interrupt);
@@ -369,7 +369,7 @@ public:
 	DECLARE_WRITE_LINE_MEMBER(ay3600_ako_w);
 	DECLARE_READ8_MEMBER(memexp_r);
 	DECLARE_WRITE8_MEMBER(memexp_w);
-	DECLARE_READ8_MEMBER(nsc_backing_r);
+	uint8_t nsc_backing_r(offs_t offset);
 
 	void apple2cp(machine_config &config);
 	void laser128ex2(machine_config &config);
@@ -2380,7 +2380,7 @@ uint8_t apple2e_state::read_int_rom(int slotbias, int offset)
 	return m_ds1315->read(slotbias + offset);
 }
 
-READ8_MEMBER(apple2e_state::nsc_backing_r) { return m_rom_ptr[offset]; }
+uint8_t apple2e_state::nsc_backing_r(offs_t offset) { return m_rom_ptr[offset]; }
 
 READ8_MEMBER(apple2e_state::c100_r)  { return read_slot_rom(1, offset); }
 READ8_MEMBER(apple2e_state::c100_int_r)  { return read_int_rom(0x100, offset); }
@@ -4165,6 +4165,7 @@ static void apple2_cards(device_slot_interface &device)
 	device.option_add("diskii", A2BUS_DISKII);  /* Disk II Controller Card */
 	device.option_add("diskiing", A2BUS_DISKIING);  /* Disk II Controller Card, cycle-accurate version */
 	device.option_add("diskiing13", A2BUS_DISKIING13);  /* Disk II Controller Card, cycle-accurate version */
+	device.option_add("diskiiiwm", A2BUS_IWM_CARD);  /* IWM Disk II Controller Card */
 	device.option_add("mockingboard", A2BUS_MOCKINGBOARD);  /* Sweet Micro Systems Mockingboard */
 	device.option_add("phasor", A2BUS_PHASOR);  /* Applied Engineering Phasor */
 	device.option_add("cffa2", A2BUS_CFFA2);  /* CFFA2000 Compact Flash for Apple II (www.dreher.net), 65C02/65816 firmware */
@@ -4546,7 +4547,7 @@ void apple2e_state::apple2cp(machine_config &config)
 
 	config.device_remove("sl4");
 	config.device_remove("sl6");
-	IWM(config, m_iicpiwm, &a2cp_interface);
+	LEGACY_IWM(config, m_iicpiwm, &a2cp_interface);
 	FLOPPY_APPLE(config, FLOPPY_0, &floppy_interface, 15, 16);
 	FLOPPY_APPLE(config, FLOPPY_1, &floppy_interface, 15, 16);
 	FLOPPY_SONY(config, FLOPPY_2, &apple2cp_floppy35_floppy_interface);
@@ -4560,7 +4561,7 @@ void apple2e_state::apple2c_iwm(machine_config &config)
 	apple2c(config);
 
 	config.device_remove("sl6");
-	A2BUS_IWM_FDC(config, "sl6", A2BUS_7M_CLOCK).set_onboard(m_a2bus);
+	A2BUS_IWM(config, "sl6", A2BUS_7M_CLOCK).set_onboard(m_a2bus);
 }
 
 void apple2e_state::apple2c_mem(machine_config &config)
@@ -4571,7 +4572,7 @@ void apple2e_state::apple2c_mem(machine_config &config)
 	m_maincpu->set_dasm_override(FUNC(apple2e_state::dasm_trampoline));
 
 	config.device_remove("sl6");
-	A2BUS_IWM_FDC(config, "sl6", A2BUS_7M_CLOCK).set_onboard(m_a2bus);
+	A2BUS_IWM(config, "sl6", A2BUS_7M_CLOCK).set_onboard(m_a2bus);
 
 	m_ram->set_default_size("128K").set_extra_options("128K, 384K, 640K, 896K, 1152K");
 }
@@ -4592,7 +4593,7 @@ void apple2e_state::laser128(machine_config &config)
 	M65C02(config.replace(), m_maincpu, 1021800);
 	m_maincpu->set_addrmap(AS_PROGRAM, &apple2e_state::laser128_map);
 
-	APPLEFDC(config, m_laserudc, &fdc_interface);
+	LEGACY_APPLEFDC(config, m_laserudc, &fdc_interface);
 	FLOPPY_APPLE(config, FLOPPY_0, &floppy_interface, 15, 16);
 	FLOPPY_APPLE(config, FLOPPY_1, &floppy_interface, 15, 16);
 
@@ -4616,7 +4617,7 @@ void apple2e_state::laser128ex2(machine_config &config)
 	M65C02(config.replace(), m_maincpu, 1021800);
 	m_maincpu->set_addrmap(AS_PROGRAM, &apple2e_state::laser128_map);
 
-	APPLEFDC(config, m_laserudc, &fdc_interface);
+	LEGACY_APPLEFDC(config, m_laserudc, &fdc_interface);
 	FLOPPY_APPLE(config, FLOPPY_0, &floppy_interface, 15, 16);
 	FLOPPY_APPLE(config, FLOPPY_1, &floppy_interface, 15, 16);
 

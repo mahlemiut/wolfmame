@@ -184,9 +184,9 @@ private:
 	DECLARE_WRITE_LINE_MEMBER(vdp_lv6irqline_callback_c2);
 	DECLARE_WRITE_LINE_MEMBER(vdp_lv4irqline_callback_c2);
 
-	DECLARE_READ8_MEMBER(io_portc_r);
-	DECLARE_WRITE8_MEMBER(io_portd_w);
-	DECLARE_WRITE8_MEMBER(io_porth_w);
+	uint8_t io_portc_r();
+	void io_portd_w(uint8_t data);
+	void io_porth_w(uint8_t data);
 
 	DECLARE_WRITE16_MEMBER( segac2_upd7759_w );
 	DECLARE_READ16_MEMBER( palette_r );
@@ -444,7 +444,7 @@ void segac2_state::recompute_palette_tables()
     Sega 315-5296 I/O chip
 ******************************************************************************/
 
-READ8_MEMBER(segac2_state::io_portc_r)
+uint8_t segac2_state::io_portc_r()
 {
 	// D7 : From MB3773P pin 1. (/RESET output)
 	// D6 : From uPD7759 pin 18. (/BUSY output)
@@ -452,7 +452,7 @@ READ8_MEMBER(segac2_state::io_portc_r)
 	return 0xbf | busy;
 }
 
-WRITE8_MEMBER(segac2_state::io_portd_w)
+void segac2_state::io_portd_w(uint8_t data)
 {
 	/*
 	 D7 : To pin 3 of JP15. (Watchdog clock control)
@@ -470,7 +470,7 @@ WRITE8_MEMBER(segac2_state::io_portd_w)
 	machine().bookkeeping().coin_counter_w(0, data & 0x01);
 }
 
-WRITE8_MEMBER(segac2_state::io_porth_w)
+void segac2_state::io_porth_w(uint8_t data)
 {
 	/*
 	 D7 : To pin A19 of CN4
@@ -2144,7 +2144,7 @@ ROM_START( potopoto ) /* Poto Poto  (c)1994 Sega - 834-10778 (EMP5032 labeled 31
 ROM_END
 
 
-ROM_START( zunkyou ) /* Zunzunkyou no Yabou  (c)1994 Sega - 834-9029 (EMP5032 labeled 317-0221) */
+ROM_START( zunkyou ) /* Zunzunkyou no Yabou  (c)1994 Sega - 834-10857 (EMP5032 labeled 317-0221) */
 	ROM_REGION( 0x200000, "maincpu", 0 )
 	ROM_LOAD16_BYTE( "epr-16812.ic32", 0x000000, 0x080000, CRC(eb088fb0) SHA1(69089a3516ad50f35e81971ef3c33eb3f5d52374) )
 	ROM_LOAD16_BYTE( "epr-16811.ic31", 0x000001, 0x080000, CRC(9ac7035b) SHA1(1803ffbadc1213e04646d483e27da1591e22cd06) )

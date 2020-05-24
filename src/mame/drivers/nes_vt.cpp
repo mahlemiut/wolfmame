@@ -41,9 +41,9 @@ protected:
 	virtual void machine_start() override;
 	virtual void machine_reset() override;
 
-	virtual DECLARE_READ8_MEMBER(in0_r);
-	virtual DECLARE_READ8_MEMBER(in1_r);
-	virtual DECLARE_WRITE8_MEMBER(in0_w);
+	virtual uint8_t in0_r();
+	virtual uint8_t in1_r();
+	virtual void in0_w(uint8_t data);
 
 	void nes_vt_map(address_map& map);
 
@@ -69,21 +69,21 @@ protected:
 
 	DECLARE_READ8_MEMBER(vt_rom_r);
 	DECLARE_WRITE8_MEMBER(vtspace_w);
-	
+
 	void configure_soc(nes_vt_soc_device* soc);
 
-	DECLARE_READ8_MEMBER(upper_412c_r);
-	DECLARE_READ8_MEMBER(upper_412d_r);
-	DECLARE_WRITE8_MEMBER(upper_412c_w);
+	uint8_t upper_412c_r();
+	uint8_t upper_412d_r();
+	void upper_412c_w(uint8_t data);
 
 private:
 	/* APU handling */
 
 	/* Extra IO */
-	DECLARE_READ8_MEMBER(extrain_0_r);
-	DECLARE_READ8_MEMBER(extrain_1_r);
-	DECLARE_READ8_MEMBER(extrain_2_r);
-	DECLARE_READ8_MEMBER(extrain_3_r);
+	uint8_t extrain_0_r();
+	uint8_t extrain_1_r();
+	uint8_t extrain_2_r();
+	uint8_t extrain_3_r();
 
 };
 
@@ -190,7 +190,7 @@ public:
 	nes_vt_hum_state(const machine_config& mconfig, device_type type, const char* tag) :
 		nes_vt_state(mconfig, type, tag)
 	{ }
-	
+
 	void nes_vt_hummer_2mb(machine_config& config);
 	void nes_vt_hummer_4mb(machine_config& config);
 };
@@ -215,8 +215,8 @@ public:
 	void nes_vt_2mb_ablping(machine_config& config);
 
 private:
-	DECLARE_READ8_MEMBER(ablping_extraio_r);
-	DECLARE_WRITE8_MEMBER(ablping_extraio_w);
+	uint8_t ablping_extraio_r();
+	void ablping_extraio_w(uint8_t data);
 };
 
 class nes_vt_cy_state : public nes_vt_state
@@ -240,7 +240,7 @@ private:
 	void nes_vt_cy_map(address_map& map);
 	void nes_vt_bt_map(address_map& map);
 
-	DECLARE_WRITE8_MEMBER(bittboy_412c_w);
+	void bittboy_412c_w(uint8_t data);
 
 	DECLARE_READ8_MEMBER(vt_rom_banked_r);
 };
@@ -256,9 +256,9 @@ public:
 	{ }
 
 protected:
-	virtual DECLARE_READ8_MEMBER(in0_r) override;
-	virtual DECLARE_READ8_MEMBER(in1_r) override;
-	virtual DECLARE_WRITE8_MEMBER(in0_w) override;
+	virtual uint8_t in0_r() override;
+	virtual uint8_t in1_r() override;
+	virtual void in0_w(uint8_t data) override;
 
 private:
 	int m_previous_port0;
@@ -291,8 +291,8 @@ private:
 	void nes_vt_dg_baddma_map(address_map& map);
 	void nes_vt_fa_map(address_map& map);
 
-	DECLARE_READ8_MEMBER(fapocket_412c_r);
-	DECLARE_WRITE8_MEMBER(fapocket_412c_w);
+	uint8_t fapocket_412c_r();
+	void fapocket_412c_w(uint8_t data);
 
 };
 
@@ -343,8 +343,8 @@ private:
 
 	void nes_vt_fp_map(address_map& map);
 
-	DECLARE_READ8_MEMBER(fcpocket_412d_r);
-	DECLARE_WRITE8_MEMBER(fcpocket_412c_w);
+	uint8_t fcpocket_412d_r();
+	void fcpocket_412c_w(uint8_t data);
 };
 
 class nes_vt_ablpinb_state : public nes_vt_state
@@ -361,9 +361,9 @@ protected:
 	virtual void machine_reset() override;
 
 private:
-	virtual DECLARE_READ8_MEMBER(in0_r) override;
-	virtual DECLARE_READ8_MEMBER(in1_r) override;
-	virtual DECLARE_WRITE8_MEMBER(in0_w) override;
+	virtual uint8_t in0_r() override;
+	virtual uint8_t in1_r() override;
+	virtual void in0_w(uint8_t data) override;
 
 	uint8_t m_ablpinb_in0_val;
 
@@ -385,9 +385,9 @@ public:
 	void nes_vt_sudoku_512kb(machine_config& config);
 
 private:
-	virtual DECLARE_READ8_MEMBER(in0_r) override;
-	virtual DECLARE_READ8_MEMBER(in1_r) override;
-	virtual DECLARE_WRITE8_MEMBER(in0_w) override;
+	virtual uint8_t in0_r() override;
+	virtual uint8_t in1_r() override;
+	virtual void in0_w(uint8_t data) override;
 };
 
 class nes_vt_vg_1mb_majgnc_state : public nes_vt_state
@@ -486,7 +486,7 @@ void nes_vt_hh_state::vt_external_space_map_fp_2x32mbyte(address_map &map)
 	map(0x0000000, 0x1ffffff).rw(FUNC(nes_vt_hh_state::vt_rom_banked_r), FUNC(nes_vt_hh_state::vt03_8000_mapper_w));
 }
 
-READ8_MEMBER(nes_vt_base_state::extrain_0_r)
+uint8_t nes_vt_base_state::extrain_0_r()
 {
 	if (m_exin0)
 		return m_exin0->read();
@@ -494,10 +494,10 @@ READ8_MEMBER(nes_vt_base_state::extrain_0_r)
 	{
 		logerror("%s: extrain_0_r (not hooked up)\n", machine().describe_context());
 	}
-	return 0x00;	
+	return 0x00;
 }
 
-READ8_MEMBER(nes_vt_base_state::extrain_1_r)
+uint8_t nes_vt_base_state::extrain_1_r()
 {
 	if (m_exin1)
 		return m_exin1->read();
@@ -505,10 +505,10 @@ READ8_MEMBER(nes_vt_base_state::extrain_1_r)
 	{
 		logerror("%s: extrain_1_r (not hooked up)\n", machine().describe_context());
 	}
-	return 0x00;	
+	return 0x00;
 }
 
-READ8_MEMBER(nes_vt_base_state::extrain_2_r)
+uint8_t nes_vt_base_state::extrain_2_r()
 {
 	if (m_exin2)
 		return m_exin2->read();
@@ -516,10 +516,10 @@ READ8_MEMBER(nes_vt_base_state::extrain_2_r)
 	{
 		logerror("%s: extrain_2_r (not hooked up)\n", machine().describe_context());
 	}
-	return 0x00;	
+	return 0x00;
 }
 
-READ8_MEMBER(nes_vt_base_state::extrain_3_r)
+uint8_t nes_vt_base_state::extrain_3_r()
 {
 	if (m_exin3)
 		return m_exin3->read();
@@ -527,12 +527,12 @@ READ8_MEMBER(nes_vt_base_state::extrain_3_r)
 	{
 		logerror("%s: extrain_3_r (not hooked up)\n", machine().describe_context());
 	}
-	return 0x00;	
+	return 0x00;
 }
 
 /* Standard I/O handlers (NES Controller clone) */
 
-READ8_MEMBER(nes_vt_base_state::in0_r)
+uint8_t nes_vt_base_state::in0_r()
 {
 	//logerror("%s: in0_r\n", machine().describe_context());
 	uint8_t ret = 0x40;
@@ -541,7 +541,7 @@ READ8_MEMBER(nes_vt_base_state::in0_r)
 	return ret;
 }
 
-READ8_MEMBER(nes_vt_base_state::in1_r)
+uint8_t nes_vt_base_state::in1_r()
 {
 	//logerror("%s: in1_r\n", machine().describe_context());
 	uint8_t ret = 0x40;
@@ -550,7 +550,7 @@ READ8_MEMBER(nes_vt_base_state::in1_r)
 	return ret;
 }
 
-WRITE8_MEMBER(nes_vt_base_state::in0_w)
+void nes_vt_base_state::in0_w(uint8_t data)
 {
 	//logerror("%s: in0_w %02x\n", machine().describe_context(), data);
 	if (data & 0x01)
@@ -562,21 +562,21 @@ WRITE8_MEMBER(nes_vt_base_state::in0_w)
 
 /* Lexibook I/O handlers */
 
-READ8_MEMBER(nes_vt_cy_lexibook_state::in0_r)
+uint8_t nes_vt_cy_lexibook_state::in0_r()
 {
 	//logerror("%s: in0_r\n", machine().describe_context());
 	uint8_t ret = m_latch0_bit;
 	return ret;
 }
 
-READ8_MEMBER(nes_vt_cy_lexibook_state::in1_r)
+uint8_t nes_vt_cy_lexibook_state::in1_r()
 {
 	//logerror("%s: in1_r\n", machine().describe_context());
 	uint8_t ret = m_latch1_bit;
 	return ret;
 }
 
-WRITE8_MEMBER(nes_vt_cy_lexibook_state::in0_w)
+void nes_vt_cy_lexibook_state::in0_w(uint8_t data)
 {
 	//logerror("%s: in0_w %02x\n", machine().describe_context(), data);
 	if ((!(data & 0x01)) && (m_previous_port0 & 0x01)) // 0x03 -> 0x02 transition
@@ -600,13 +600,13 @@ WRITE8_MEMBER(nes_vt_cy_lexibook_state::in0_w)
 
 // ablping polls this (also writes here) what is it? 4-bit DAC? PCM? (inputs only start responding once it finishes writing data on startup but takes longer than a sample should)
 // (this is the extended IO port on VT)
-READ8_MEMBER(nes_vt_ablping_state::ablping_extraio_r)
+uint8_t nes_vt_ablping_state::ablping_extraio_r()
 {
 	// needs to change at least
 	return machine().rand()&0xf;
 };
 
-WRITE8_MEMBER(nes_vt_ablping_state::ablping_extraio_w)
+void nes_vt_ablping_state::ablping_extraio_w(uint8_t data)
 {
 	popmessage("ablping_extraio_w %02x", data);
 };
@@ -652,7 +652,7 @@ void nes_vt_ablpinb_state::machine_reset()
 }
 
 
-READ8_MEMBER(nes_vt_ablpinb_state::in0_r)
+uint8_t nes_vt_ablpinb_state::in0_r()
 {
 	if (m_plunger_off)
 	{
@@ -681,7 +681,7 @@ READ8_MEMBER(nes_vt_ablpinb_state::in0_r)
 }
 
 
-READ8_MEMBER(nes_vt_ablpinb_state::in1_r)
+uint8_t nes_vt_ablpinb_state::in1_r()
 {
 	uint8_t i = machine().rand() & 0x10;
 
@@ -693,7 +693,7 @@ READ8_MEMBER(nes_vt_ablpinb_state::in1_r)
 	return i | ret;
 }
 
-WRITE8_MEMBER(nes_vt_ablpinb_state::in0_w)
+void nes_vt_ablpinb_state::in0_w(uint8_t data)
 {
 	// write 0x04 to 0x4016 sets bit 0x08 in 0x4017
 	// write 0x00 to 0x4016 clears bit 0x08 in 0x4017
@@ -703,17 +703,17 @@ WRITE8_MEMBER(nes_vt_ablpinb_state::in0_w)
 	logerror("in0_w %02x\n", data);
 }
 
-READ8_MEMBER(nes_vt_sudoku_state::in0_r)
+uint8_t nes_vt_sudoku_state::in0_r()
 {
 	return machine().rand();
 }
 
-READ8_MEMBER(nes_vt_sudoku_state::in1_r)
+uint8_t nes_vt_sudoku_state::in1_r()
 {
 	return machine().rand();
 }
 
-WRITE8_MEMBER(nes_vt_sudoku_state::in0_w)
+void nes_vt_sudoku_state::in0_w(uint8_t data)
 {
 }
 
@@ -926,19 +926,19 @@ void nes_vt_ablping_state::nes_vt_2mb_ablping(machine_config &config)
 	GFXDECODE(config, "gfxdecode", "soc:ppu", vt03_gfx_helper);
 }
 
-READ8_MEMBER(nes_vt_base_state::upper_412c_r)
+uint8_t nes_vt_base_state::upper_412c_r()
 {
 	logerror("%s: upper_412c_r\n", machine().describe_context());
 	return 0x00;
 }
 
-READ8_MEMBER(nes_vt_base_state::upper_412d_r)
+uint8_t nes_vt_base_state::upper_412d_r()
 {
 	logerror("%s: upper_412d_r\n", machine().describe_context());
 	return 0x00;
 }
 
-WRITE8_MEMBER(nes_vt_base_state::upper_412c_w)
+void nes_vt_base_state::upper_412c_w(uint8_t data)
 {
 	logerror("%s: upper_412c_w %02x\n", machine().describe_context(), data);
 }
@@ -991,7 +991,7 @@ void nes_vt_cy_state::nes_vt_bt(machine_config &config)
 }
 
 
-WRITE8_MEMBER(nes_vt_cy_state::bittboy_412c_w)
+void nes_vt_cy_state::bittboy_412c_w(uint8_t data)
 {
 	//bittboy (ok), mc_pg150 (not working)
 	logerror("%s: vt03_412c_extbank_w %02x\n", machine().describe_context(),  data);
@@ -1018,7 +1018,7 @@ void nes_vt_dg_state::nes_vt_dg(machine_config &config)
 
 	m_screen->set_refresh_hz(50.0070);
 	m_screen->set_vblank_time(ATTOSECONDS_IN_USEC((106.53/(PAL_APU_CLOCK.dvalue()/1000000)) *
-							 (ppu2c0x_device::VBLANK_LAST_SCANLINE_PAL-ppu2c0x_device::VBLANK_FIRST_SCANLINE+1+2)));
+	                         (ppu2c0x_device::VBLANK_LAST_SCANLINE_PAL-ppu2c0x_device::VBLANK_FIRST_SCANLINE+1+2)));
 	m_screen->set_size(32*8, 312);
 	m_screen->set_visarea(0*8, 32*8-1, 0*8, 30*8-1);
 	*/
@@ -1070,7 +1070,7 @@ void nes_vt_hh_state::nes_vt_vg_1mb_majkon(machine_config &config)
 {
 	nes_vt_dg(config);
 	m_soc->set_addrmap(AS_PROGRAM, &nes_vt_hh_state::vt_external_space_map_1mbyte);
-	
+
 	m_soc->set_default_palette_mode(PAL_MODE_NEW_VG);
 }
 
@@ -1091,7 +1091,7 @@ void nes_vt_hh_state::nes_vt_hh(machine_config &config)
 
 	m_screen->set_refresh_hz(50.0070);
 	m_screen->set_vblank_time(ATTOSECONDS_IN_USEC((106.53/(PAL_APU_CLOCK.dvalue()/1000000)) *
-							 (ppu2c0x_device::VBLANK_LAST_SCANLINE_PAL-ppu2c0x_device::VBLANK_FIRST_SCANLINE+1+2)));
+	                         (ppu2c0x_device::VBLANK_LAST_SCANLINE_PAL-ppu2c0x_device::VBLANK_FIRST_SCANLINE+1+2)));
 	m_screen->set_size(32*8, 312);
 	m_screen->set_visarea(0*8, 32*8-1, 0*8, 30*8-1);
 	*/
@@ -1170,7 +1170,7 @@ static INPUT_PORTS_START( dbdancem )
 INPUT_PORTS_END
 
 
-READ8_MEMBER(nes_vt_hh_state::fcpocket_412d_r)
+uint8_t nes_vt_hh_state::fcpocket_412d_r()
 {
 	if (m_cartsel)
 		return m_cartsel->read();
@@ -1178,7 +1178,7 @@ READ8_MEMBER(nes_vt_hh_state::fcpocket_412d_r)
 		return 0;
 }
 
-WRITE8_MEMBER(nes_vt_hh_state::fcpocket_412c_w)
+void nes_vt_hh_state::fcpocket_412c_w(uint8_t data)
 {
 	// fcpocket
 	logerror("%s: vtfp_412c_extbank_w %02x\n", machine().describe_context(), data);
@@ -1255,7 +1255,7 @@ void nes_vt_dg_state::nes_vt_fa(machine_config& config)
 }
 
 
-READ8_MEMBER(nes_vt_dg_state::fapocket_412c_r)
+uint8_t nes_vt_dg_state::fapocket_412c_r()
 {
 	if (m_cartsel)
 		return m_cartsel->read();
@@ -1263,7 +1263,7 @@ READ8_MEMBER(nes_vt_dg_state::fapocket_412c_r)
 		return 0;
 }
 
-WRITE8_MEMBER(nes_vt_dg_state::fapocket_412c_w)
+void nes_vt_dg_state::fapocket_412c_w(uint8_t data)
 {
 	// fapocket (ok?) (also uses bank from config switch for fake cartridge slot)
 	logerror("%s: vtfa_412c_extbank_w %02x\n", machine().describe_context(), data);
@@ -1286,7 +1286,7 @@ void nes_vt_swap_op_d5_d6_state::nes_vt_vh2009(machine_config &config)
 {
 	NES_VT_SOC(config, m_soc, NTSC_APU_CLOCK);
 	configure_soc(m_soc);
-	
+
 	NES_VT_SOC_SCRAMBLE(config.replace(), m_soc, NTSC_APU_CLOCK);
 	configure_soc(m_soc);
 
@@ -1309,7 +1309,7 @@ void nes_vt_swap_op_d5_d6_state::nes_vt_vh2009_8mb(machine_config& config)
 void nes_vt_swap_op_d5_d6_state::nes_vt_senwld_512kb(machine_config &config)
 {
 	nes_vt_vh2009(config);
-	m_soc->set_addrmap(AS_PROGRAM, &nes_vt_swap_op_d5_d6_state::vt_external_space_map_senwld_512kbyte);	
+	m_soc->set_addrmap(AS_PROGRAM, &nes_vt_swap_op_d5_d6_state::vt_external_space_map_senwld_512kbyte);
 	m_soc->set_default_palette_mode(PAL_MODE_NEW_VG);
 }
 

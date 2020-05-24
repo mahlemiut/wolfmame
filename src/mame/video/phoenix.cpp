@@ -284,7 +284,7 @@ WRITE8_MEMBER(phoenix_state::pleiads_videoreg_w)
 	m_pleiads_protection_question = data & 0xfc;
 
 	/* send two bits to sound control C (not sure if they are there) */
-	m_pleiads_custom->control_c_w(space, offset, data);
+	m_pleiads_custom->control_c_w(data);
 }
 
 
@@ -419,7 +419,7 @@ READ8_MEMBER(phoenix_state::survival_input_port_0_r)
 	return m_survival_input_latches[0];
 }
 
-READ8_MEMBER(phoenix_state::survival_protection_r)
+uint8_t phoenix_state::survival_protection_r()
 {
 	return m_survival_protection_value;
 }

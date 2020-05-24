@@ -26,8 +26,6 @@ namespace solver
 	template <typename FT, int SIZE>
 	class matrix_solver_SOR_mat_t: public matrix_solver_direct_t<FT, SIZE>
 	{
-		friend class matrix_solver_t;
-
 	public:
 
 		using float_type = FT;
@@ -101,7 +99,7 @@ namespace solver
 	#endif
 
 		for (std::size_t k = 0; k < iN; k++)
-			this->m_new_V[k] = this->m_terms[k].template getV<FT>();
+			this->m_new_V[k] = static_cast<float_type>(this->m_terms[k].getV());
 
 		do {
 			resched = false;

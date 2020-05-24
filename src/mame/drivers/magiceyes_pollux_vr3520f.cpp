@@ -2,20 +2,20 @@
 // copyright-holders:David Haywood
 /******************************************************************************
 
-	https://elinux.org/Pollux
+    https://elinux.org/Pollux
 
-	"The Pollux is a System on a Chip (SoC) that was manufactured by MagicEyes,
-	whose intellectual property is now owned by Core Logic. Originally designed
-	for LeapFrog as the LF1000, the 533MHz ARM926EJ core VR3520F has now made
-	its way into several products running WinCE and Linux."
+    "The Pollux is a System on a Chip (SoC) that was manufactured by MagicEyes,
+    whose intellectual property is now owned by Core Logic. Originally designed
+    for LeapFrog as the LF1000, the 533MHz ARM926EJ core VR3520F has now made
+    its way into several products running WinCE and Linux."
 
-	(there are also links to datasheets etc.)
+    (there are also links to datasheets etc.)
 
-	used by
-	Leapfrog Didj (as LF1000)
-	GP2X Wiz (as VR3520F)
-	GP2X Caanoo (as VR3520F)
-	 + more?
+    used by
+    Leapfrog Didj (as LF1000)
+    GP2X Wiz (as VR3520F)
+    GP2X Caanoo (as VR3520F)
+     + more?
 
 *******************************************************************************/
 
@@ -110,8 +110,10 @@ void magiceyes_vr3520f_game_state::leapfrog_didj(machine_config &config)
 }
 
 ROM_START( didj )
-	ROM_REGION32_BE( 0x200000, "bios", 0 ) // external BIOS, undumped
-	ROM_LOAD16_WORD_SWAP( "didjbios.bin", 0x000000, 0x200000, NO_DUMP )
+	ROM_REGION32_BE( 0x10800000, "bios", 0 ) // external NAND
+	ROM_LOAD16_WORD_SWAP( "didj_29f2g08aac_2cda.bin", 0x000000, 0x10800000, CRC(3df8c3ee) SHA1(6dc4044be10da48b6dd37e40f8a112fc4314c87d) )
+
+	// is there an internal bootloader beyond copying code from NAND into RAM?
 ROM_END
 
 

@@ -51,8 +51,12 @@ namespace solver
 		, m_Q_sync(*this, "Q_sync")
 		, m_ops(0)
 	{
-		connect_post_start(m_fb_sync, m_Q_sync);
-		setup_base(nets);
+		if (!anetlist.setup().connect(m_fb_sync, m_Q_sync))
+		{
+			log().fatal(MF_ERROR_CONNECTING_1_TO_2(m_fb_sync.name(), m_Q_sync.name()));
+			throw nl_exception(MF_ERROR_CONNECTING_1_TO_2(m_fb_sync.name(), m_Q_sync.name()));
+		}
+		setup_base(anetlist.setup(), nets);
 
 		// now setup the matrix
 		setup_matrix();
@@ -63,7 +67,7 @@ namespace solver
 		return &state().setup().get_connected_terminal(*term)->net();
 	}
 
-	void matrix_solver_t::setup_base(const analog_net_t::list_t &nets)
+	void matrix_solver_t::setup_base(setup_t &setup, const analog_net_t::list_t &nets)
 	{
 		log().debug("New solver setup\n");
 		std::vector<core_device_t *> step_devices;
@@ -87,7 +91,7 @@ namespace solver
 
 			for (auto &p : net->core_terms())
 			{
-				log().debug("{1} {2} {3}\n", p->name(), net->name(), net->isRailNet());
+				log().debug("{1} {2} {3}\n", p->name(), net->name(), net->is_rail_net());
 				switch (p->type())
 				{
 					case detail::terminal_type::TERMINAL:
@@ -121,7 +125,7 @@ namespace solver
 								net_proxy_output = net_proxy_output_u.get();
 								m_inps.emplace_back(std::move(net_proxy_output_u));
 							}
-							net_proxy_output->net().add_terminal(*p);
+							setup.add_terminal(net_proxy_output->net(), *p);
 							// FIXME: repeated calling - kind of brute force
 							net_proxy_output->net().rebuild_list();
 							log().debug("Added input {1}", net_proxy_output->name());
@@ -219,11 +223,11 @@ namespace solver
 		// rebuild
 		for (auto &term : m_terms)
 		{
-			int *other = term.m_connected_net_idx.data();
+			//int *other = term.m_connected_net_idx.data();
 			for (std::size_t i = 0; i < term.count(); i++)
 				//FIXME: this is weird
-				if (other[i] != -1)
-					other[i] = get_net_idx(get_connected_net(term.terms()[i]));
+				if (term.m_connected_net_idx[i] != -1)
+					term.m_connected_net_idx[i] = get_net_idx(get_connected_net(term.terms()[i]));
 		}
 	}
 
@@ -389,6 +393,20 @@ namespace solver
 			inp->push(inp->proxied_net()->Q_Analog());
 	}
 
+	bool matrix_solver_t::updates_net(const analog_net_t *net) const noexcept
+	{
+		if (net != nullptr)
+		{
+			for (const auto &t : m_terms )
+				if (t.is_net(net))
+					return true;
+			for (const auto &inp : m_inps)
+				if (&inp->net() == net)
+					return true;
+		}
+		return false;
+	}
+
 	void matrix_solver_t::update_dynamic() noexcept
 	{
 		// update all non-linear devices
@@ -399,35 +417,6 @@ namespace solver
 	void matrix_solver_t::reset()
 	{
 		m_last_step = netlist_time_ext::zero();
-	}
-
-	void matrix_solver_t::update() noexcept
-	{
-		const netlist_time new_timestep = solve(exec().time());
-		update_inputs();
-
-		if (m_params.m_dynamic_ts && (timestep_device_count() != 0) && new_timestep > netlist_time::zero())
-		{
-			m_Q_sync.net().toggle_and_push_to_queue(new_timestep);
-		}
-	}
-
-	// update_forced is called from within param_update
-	//
-	// this should only occur outside of execution and thus
-	// using time should be safe.
-
-	void matrix_solver_t::update_forced()
-	{
-		const netlist_time new_timestep = solve(exec().time());
-		plib::unused_var(new_timestep);
-
-		update_inputs();
-
-		if (m_params.m_dynamic_ts && (timestep_device_count() != 0))
-		{
-			m_Q_sync.net().toggle_and_push_to_queue(netlist_time::from_fp(m_params.m_min_timestep));
-		}
 	}
 
 	void matrix_solver_t::step(netlist_time delta) noexcept
@@ -471,8 +460,13 @@ namespace solver
 			if (this_resched && !m_Q_sync.net().is_queued())
 			{
 				log().warning(MW_NEWTON_LOOPS_EXCEEDED_ON_NET_1(this->name()));
-				// FIXME: may collide with compute_next_timestep
+				// FIXME: test and enable - this is working better, though not optimal yet
+#if 0
+				// Don't store, the result can not be used
+				return netlist_time::from_fp(m_params.m_nr_recalc_delay());
+#else
 				m_Q_sync.net().toggle_and_push_to_queue(netlist_time::from_fp(m_params.m_nr_recalc_delay()));
+#endif
 			}
 		}
 		else
@@ -482,13 +476,17 @@ namespace solver
 			this->store();
 		}
 
-		return compute_next_timestep(delta.as_fp<nl_fptype>());
+
+		if (m_params.m_dynamic_ts)
+			return compute_next_timestep(delta.as_fp<nl_fptype>(), m_params.m_max_timestep);
+
+		return netlist_time::from_fp(m_params.m_max_timestep);
 	}
 
 	int matrix_solver_t::get_net_idx(const analog_net_t *net) const noexcept
 	{
 		for (std::size_t k = 0; k < m_terms.size(); k++)
-			if (m_terms[k].isNet(net))
+			if (m_terms[k].is_net(net))
 				return static_cast<int>(k);
 		return -1;
 	}
@@ -558,7 +556,7 @@ namespace solver
 
 	void matrix_solver_t::add_term(std::size_t net_idx, terminal_t *term)
 	{
-		if (get_connected_net(term)->isRailNet())
+		if (get_connected_net(term)->is_rail_net())
 		{
 			m_rails_temp[net_idx].add_terminal(term, -1, false);
 		}
@@ -583,7 +581,7 @@ namespace solver
 		{
 			log().verbose("==============================================");
 			log().verbose("Solver {1}", this->name());
-			log().verbose("       ==> {1} nets", this->m_terms.size()); //, (*(*groups[i].first())->m_core_terms.first())->name());
+			log().verbose("       ==> {1} nets", this->m_terms.size());
 			log().verbose("       has {1} dynamic elements", this->dynamic_device_count());
 			log().verbose("       has {1} timestep elements", this->timestep_device_count());
 			log().verbose("       {1:6.3} average newton raphson loops",
@@ -592,7 +590,7 @@ namespace solver
 					this->m_stat_calculations,
 					static_cast<nl_fptype>(this->m_stat_calculations) / this->exec().time().as_fp<nl_fptype>(),
 					this->m_iterative_fail,
-					nlconst::magic(100.0) * static_cast<nl_fptype>(this->m_iterative_fail)
+					nlconst::hundred() * static_cast<nl_fptype>(this->m_iterative_fail)
 						/ static_cast<nl_fptype>(this->m_stat_calculations),
 					static_cast<nl_fptype>(this->m_iterative_total) / static_cast<nl_fptype>(this->m_stat_calculations));
 		}

@@ -499,6 +499,7 @@ The games seem to use them to mark platforms, kill zones and no-go areas.
 #define CPS_B_21_QS5 0x1e,0x0c02,  -1,  -1,  -1,  -1,  0x0c, -1,  -1,   0x2a,{0x2c,0x2e,0x30,0x32},0x1c, {0x04,0x08,0x10,0x00,0x00}
 #define HACK_B_1      -1,   -1,    -1,  -1,  -1,  -1,   -1,  -1,  -1,   0x14,{0x12,0x10,0x0e,0x0c},0x0a, {0x0e,0x0e,0x0e,0x30,0x30}
 #define HACK_B_2      -1,   -1,   0x0e,0x0c,0x0a,0x08, 0x06,0x04,0x02,  0x28,{0x26,0x24,0x22,0x20},0x22, {0x20,0x04,0x08,0x12,0x12}
+#define HACK_B_3     0x20,0x0004,          __not_applicable__,          0x30,{0x26, -1, 0x28,0x32},0x2a, {0x02,0x04,0x08,0x00,0x00} // varthb2, writes to priority mask 2 have been patched out
 
 /*
 CPS_B_21_DEF is CPS-B-21 at default settings (no battery)
@@ -707,7 +708,7 @@ static const struct gfx_range mapper_TK24B1_table[] =
 	/* type            start   end     bank */
 	{ GFXTYPE_SPRITES, 0x0000, 0x5fff, 0 },
 	{ GFXTYPE_SCROLL1, 0x6000, 0x7fff, 0 },
-	
+
 	{ GFXTYPE_SCROLL2, 0x4000, 0x7fff, 1 },
 	{ GFXTYPE_SCROLL3, 0x0000, 0x3fff, 1 },
 	{ 0 }
@@ -951,7 +952,7 @@ static const struct gfx_range mapper_MS22B_table[] =
 
 	/* type            start   end     bank */
 	{ GFXTYPE_SPRITES, 0x0000, 0x3fff, 0 },
-	
+
 	{ GFXTYPE_SCROLL1, 0x4000, 0x4fff, 1 },
 	{ GFXTYPE_SCROLL2, 0x5000, 0x6fff, 1 },
 	{ GFXTYPE_SCROLL3, 0x7000, 0x7fff, 1 },
@@ -969,8 +970,8 @@ static const struct gfx_range mapper_CK24B_table[] =
 	// bank 0 = pin 16 (ROMs 1,3,5,7)
 	// pins 12,14 allow to populate the 8-bit ROM sockets instead of the 16-bit ones:
 	// pin 12 (ROMs 10,12,14,16,20,22,24,26) = sprites 0000-2fff, scroll1 3000-3fff
-	// pin 14 (ROMs 11,13,15,17,21,23,25,27) = scroll2 4000-6fff, scroll3 7000-7fff  
-	
+	// pin 14 (ROMs 11,13,15,17,21,23,25,27) = scroll2 4000-6fff, scroll3 7000-7fff
+
 	/* type            start   end     bank */
 	{ GFXTYPE_SPRITES, 0x0000, 0x2fff, 0 },
 	{ GFXTYPE_SCROLL1, 0x3000, 0x3fff, 0 },
@@ -992,7 +993,7 @@ static const struct gfx_range mapper_CK22B_table[] =
 	/* type            start   end     bank */
 	{ GFXTYPE_SPRITES, 0x0000, 0x2fff, 0 },
 	{ GFXTYPE_SCROLL1, 0x3000, 0x3fff, 0 },
-	
+
 	{ GFXTYPE_SCROLL2, 0x4000, 0x6fff, 1 },
 	{ GFXTYPE_SCROLL3, 0x7000, 0x7fff, 1 },
 	{ 0 }
@@ -1331,7 +1332,7 @@ static const struct gfx_range mapper_Q522B_table[] =
 
 	/* type                              start    end      bank */
 	{ GFXTYPE_SPRITES | GFXTYPE_SCROLL2, 0x00000, 0x03fff, 0 },
-	
+
 	{ GFXTYPE_SPRITES | GFXTYPE_SCROLL2, 0x04000, 0x06fff, 1 },
 	{ GFXTYPE_SCROLL3,                   0x07000, 0x077ff, 1 },
 	{ GFXTYPE_SCROLL1,                   0x07800, 0x07fff, 1 },
@@ -1650,7 +1651,7 @@ static const struct gfx_range mapper_KNM10B_table[] =
 	// bank0 = pin 19 (ROMs 1,3) & pin 18 (ROMs 2,4)
 	// bank1 = pin 17 (ROMs 5,7) & pin 16 (ROMs 6,8)
 	// bank2 = pin 15 (ROMs 10,12) & pin 14 (ROMs 11,13)
-	
+
 	/* type             start    end      bank */
 	{ GFXTYPE_SPRITES , 0x00000, 0x07fff, 0 },
 	{ GFXTYPE_SPRITES , 0x08000, 0x0ffff, 1 },
@@ -1862,6 +1863,7 @@ static const struct CPS1config cps1_config_table[]=
 	{"sf2re",       HACK_B_1,     mapper_S9263B, 0,    0, 0, 2 },
 	{"varth",       CPS_B_04,     mapper_VA24B },   /* CPSB test has been patched out (60=0008) register is also written to, possibly leftover from development */
 	{"varthb",      CPS_B_04,     mapper_VA63B, 0, 0, 0, 0x0F },
+	{"varthb2",     HACK_B_3,     mapper_sfzch, 0, 0, 0, 0x80 },  // unknown gal, other varth mappers don't work (game looks for sprites in >0x8000 unmapped region)
 	{"varthr1",     CPS_B_04,     mapper_VA24B },   /* CPSB test has been patched out (60=0008) register is also written to, possibly leftover from development */
 	{"varthu",      CPS_B_04,     mapper_VA63B },   /* CPSB test has been patched out (60=0008) register is also written to, possibly leftover from development */
 	{"varthj",      CPS_B_21_BT5, mapper_VA22B },   /* CPSB test has been patched out (72=0001) register is also written to, possibly leftover from development */
@@ -1917,7 +1919,7 @@ static const struct CPS1config cps1_config_table[]=
 	{"pang3b3",     CPS_B_17,     mapper_CP1B1F },   /* EEPROM port is among the CPS registers (handled by DRIVER_INIT) */
 	{"ganbare",     CPS_B_21_DEF, mapper_GBPR2 },
 	{"gulunpa",     CPS_B_21_DEF, mapper_gulunpa }, // wrong
-	
+
 	/* CPS Changer */
 
 	{"sfach",       CPS_B_21_DEF, mapper_sfzch },   // wrong, this set uses an unknown PAL, still not dumped
@@ -2298,6 +2300,13 @@ void cps_state::cps1_get_video_base()
 		scroll1xoff = -0x08;
 		scroll2xoff = -0x0b;
 		scroll3xoff = -0x0c;
+	}
+	else
+	if (m_game_config->bootleg_kludge == 0x80)
+	{
+		scroll1xoff = -0x0c;
+		scroll2xoff = -0x0e;
+		scroll3xoff = -0x10;
 	}
 	else
 	if (m_game_config->bootleg_kludge == 0x88) // 3wondersb
@@ -2774,7 +2783,7 @@ void cps_state::cps1_render_sprites( screen_device &screen, bitmap_ind16 &bitmap
 	uint16_t *base = m_buffered_obj.get();
 
 	/* some sf2 hacks draw the sprites in reverse order */
-	if ((m_game_config->bootleg_kludge == 1) || (m_game_config->bootleg_kludge == 2) || (m_game_config->bootleg_kludge == 3))
+	if ((m_game_config->bootleg_kludge == 1) || (m_game_config->bootleg_kludge == 2) || (m_game_config->bootleg_kludge == 3) || (m_game_config->bootleg_kludge == 0x80))
 	{
 		base += m_last_sprite_offset;
 		baseadd = -4;

@@ -14,13 +14,13 @@ Hardware notes:
 games had an Intel 8021 MCU at first, but Milton Bradley switched to TMS1100.
 See the softwarelist XML for details.
 
-Each game had a screen- and keypad overlay attached to it, MAME external
+Each game had a screen- and button overlay attached to it, MAME external
 artwork is recommended. It's also advised to disable screen filtering,
 eg. with -prescale or -nofilter.
 
 TODO:
 - dump/add remaining 8021 cartridges, which games have 8021 versions? An online
-  FAQ mentions at least Block Buster, Connect 4, Bowling.
+  FAQ mentions at least Block Buster, Connect Four, Bowling.
 
 ******************************************************************************/
 
@@ -95,20 +95,20 @@ private:
 	bool m_paddle_on;
 
 	uint32_t screen_update(screen_device &screen, bitmap_rgb32 &bitmap, const rectangle &cliprect);
-	DECLARE_WRITE16_MEMBER(lcd_output_w) { m_lcd_pwm->matrix(offset, data); }
+	void lcd_output_w(offs_t offset, u16 data) { m_lcd_pwm->matrix(offset, data); }
 
 	// TMS1100 interface
-	DECLARE_READ8_MEMBER(tms1100_k_r);
-	DECLARE_WRITE16_MEMBER(tms1100_o_w);
-	DECLARE_WRITE16_MEMBER(tms1100_r_w);
+	u8 tms1100_k_r();
+	void tms1100_o_w(u16 data);
+	void tms1100_r_w(u16 data);
 
 	u16 m_r = 0;
 
 	// Intel 8021 interface
-	DECLARE_READ8_MEMBER(i8021_p0_r);
-	DECLARE_WRITE8_MEMBER(i8021_p0_w);
-	DECLARE_WRITE8_MEMBER(i8021_p1_w);
-	DECLARE_WRITE8_MEMBER(i8021_p2_w);
+	u8 i8021_p0_r();
+	void i8021_p0_w(u8 data);
+	void i8021_p1_w(u8 data);
+	void i8021_p2_w(u8 data);
 	DECLARE_READ_LINE_MEMBER(i8021_t1_r);
 
 	u8 m_p0 = 0xff;
@@ -274,7 +274,7 @@ uint32_t microvision_state::screen_update(screen_device &screen, bitmap_rgb32 &b
 
 // TMS1100 interface
 
-READ8_MEMBER(microvision_state::tms1100_k_r)
+u8 microvision_state::tms1100_k_r()
 {
 	u8 data = 0;
 
@@ -290,19 +290,19 @@ READ8_MEMBER(microvision_state::tms1100_k_r)
 	return data;
 }
 
-WRITE16_MEMBER(microvision_state::tms1100_o_w)
+void microvision_state::tms1100_o_w(u16 data)
 {
 	// O0-O3: LCD data
 	m_lcd->data_w(data & 0xf);
 }
 
-WRITE16_MEMBER(microvision_state::tms1100_r_w)
+void microvision_state::tms1100_r_w(u16 data)
 {
 	// R2: charge paddle capacitor when high
 	if (~m_r & data & 4 && m_paddle_on)
 	{
 		// note that the games don't use the whole range, so there's a deadzone around the edges
-		const float step = (2000 - 500) / 255.0; // approximation
+		const float step = (2000 - 500) / 255.0f; // approximation
 		m_paddle_timer->adjust(attotime::from_usec(500 + m_paddle->read() * step));
 	}
 
@@ -322,7 +322,7 @@ WRITE16_MEMBER(microvision_state::tms1100_r_w)
 
 // Intel 8021 interface
 
-READ8_MEMBER( microvision_state::i8021_p0_r )
+u8 microvision_state::i8021_p0_r()
 {
 	u8 in[3];
 	for (int i = 0; i < 3; i++)
@@ -343,13 +343,13 @@ READ8_MEMBER( microvision_state::i8021_p0_r )
 	return ~data & m_p0;
 }
 
-WRITE8_MEMBER(microvision_state::i8021_p0_w)
+void microvision_state::i8021_p0_w(u8 data)
 {
 	// P0-P2, P4-P7: input mux
 	m_p0 = data;
 }
 
-WRITE8_MEMBER(microvision_state::i8021_p1_w)
+void microvision_state::i8021_p1_w(u8 data)
 {
 	// P14-P17: lcd data
 	m_lcd->data_w(data >> 4 & 0xf);
@@ -360,7 +360,7 @@ WRITE8_MEMBER(microvision_state::i8021_p1_w)
 	m_lcd->data_clk_w(BIT(data, 1));
 }
 
-WRITE8_MEMBER(microvision_state::i8021_p2_w)
+void microvision_state::i8021_p2_w(u8 data)
 {
 	// P20: speaker lead 1
 	// P21: speaker lead 2
@@ -369,7 +369,7 @@ WRITE8_MEMBER(microvision_state::i8021_p2_w)
 	// P22,P23: charge paddle capacitor when low
 	if (m_p2 & 0xc && (data & 0xc) == 0 && m_paddle_on)
 	{
-		const float step = (1000 - 10) / 255.0; // approximation
+		const float step = (1000 - 10) / 255.0f; // approximation
 		m_paddle_timer->adjust(attotime::from_usec(10 + (m_paddle->read() ^ 0xff) * step));
 	}
 
@@ -413,14 +413,14 @@ static INPUT_PORTS_START( microvision )
 	PORT_BIT( 0xff, 0x80, IPT_PADDLE ) PORT_SENSITIVITY(15) PORT_KEYDELTA(15) PORT_CENTERDELTA(0)
 
 	PORT_START("CONF")
-	PORT_CONFNAME( 0x01, 0x01, "Overlay" ) PORT_CHANGED_MEMBER(DEVICE_SELF, microvision_state, conf_changed, 0)
-	PORT_CONFSETTING(    0x00, DEF_STR( None ) )
+	PORT_CONFNAME( 0x01, 0x01, "Restrict Buttons" ) PORT_CHANGED_MEMBER(DEVICE_SELF, microvision_state, conf_changed, 0)
+	PORT_CONFSETTING(    0x00, DEF_STR( No ) )
 	PORT_CONFSETTING(    0x01, "Auto" )
 	PORT_CONFNAME( 0x06, 0x04, "Paddle Hardware" ) PORT_CHANGED_MEMBER(DEVICE_SELF, microvision_state, conf_changed, 0)
 	PORT_CONFSETTING(    0x00, DEF_STR( No ) ) // no circuitry on cartridge PCB
 	PORT_CONFSETTING(    0x02, DEF_STR( Yes ) )
 	PORT_CONFSETTING(    0x04, "Auto" )
-	PORT_CONFNAME( 0x18, 0x10, "TMS1100 PLA" ) PORT_CHANGED_MEMBER(DEVICE_SELF, microvision_state, conf_changed, 0)
+	PORT_CONFNAME( 0x18, 0x10, "TMS1100 PLA Type" ) PORT_CHANGED_MEMBER(DEVICE_SELF, microvision_state, conf_changed, 0)
 	PORT_CONFSETTING(    0x00, "0" )
 	PORT_CONFSETTING(    0x08, "1" )
 	PORT_CONFSETTING(    0x10, "Auto" )

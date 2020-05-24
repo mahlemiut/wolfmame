@@ -31,7 +31,7 @@
 ///
 /// \returns Number of arguments
 ///
-#define PNARGS(...) PNARGS_1(__VA_ARGS__, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1)
+#define PNARGS(...) PNARGS_1(__VA_ARGS__, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0)
 
 #define PNARGS_2(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16, N, ...) N
 #define PNARGS_1(...) PMSVC_VARARG_BUG(PNARGS_2, (__VA_ARGS__))
@@ -77,6 +77,23 @@
 ///
 #define PSTRINGIFY_VA(...) PMSVC_VARARG_BUG(PCONCAT, (PSTRINGIFY_, PNARGS(__VA_ARGS__)))(__VA_ARGS__)
 
+/// \brief Dispatch VARARG macro to specialized macros
+///
+/// ```
+/// #define LOCAL_LIB_ENTRY(...) PCALLVARARG(LOCAL_LIB_ENTRY_, __VA_ARGS__)
+/// ```
+///
+/// Will pass varargs depending on number of arguments to
+///
+/// ```
+/// LOCAL_LIB_ENTRY_1(a1)
+/// LOCAL_LIB_ENTRY_2(a1 , a2)
+/// ```
+///
+/// \returns result of specialized macro
+///
+#define PCALLVARARG(MAC, ...) PMSVC_VARARG_BUG(PCONCAT, (MAC, PNARGS(__VA_ARGS__)))(__VA_ARGS__)
+
 // FIXME:: __FUNCTION__ may be not be supported by all compilers.
 
 #define PSOURCELOC() plib::source_location(__FILE__, __LINE__)
@@ -103,6 +120,8 @@ namespace plib
 		source_location(pstring file, pstring func, unsigned line) noexcept
 		: m_file(std::move(file)), m_func(std::move(func)), m_line(line), m_col(0)
 		{ }
+
+		PCOPYASSIGNMOVE(source_location, default)
 
 		unsigned line() const noexcept { return m_line; }
 		unsigned column() const noexcept { return m_col; }
@@ -136,7 +155,7 @@ namespace plib
 
 		psource_t() noexcept = default;
 
-		COPYASSIGNMOVE(psource_t, delete)
+		PCOPYASSIGNMOVE(psource_t, delete)
 
 		virtual ~psource_t() noexcept = default;
 
@@ -159,7 +178,7 @@ namespace plib
 		: m_name(std::move(name)), m_str(std::move(str))
 		{}
 
-		COPYASSIGNMOVE(psource_str_t, delete)
+		PCOPYASSIGNMOVE(psource_str_t, delete)
 		~psource_str_t() noexcept override = default;
 
 		typename TS::stream_ptr stream(const pstring &name) override
@@ -185,7 +204,7 @@ namespace plib
 
 		psource_collection_t() noexcept = default;
 
-		COPYASSIGNMOVE(psource_collection_t, delete)
+		PCOPYASSIGNMOVE(psource_collection_t, delete)
 		virtual ~psource_collection_t() noexcept = default;
 
 		void add_source(source_type &&src)
@@ -294,9 +313,9 @@ namespace plib
 	template <typename T>
 	std::size_t hash(const T *buf, std::size_t size)
 	{
-		std::size_t result = 5381;
+		std::size_t result = 5381; // NOLINT
 		for (const T* p = buf; p != buf + size; p++)
-			result = ((result << 5) + result ) ^ (result >> (32 - 5)) ^ static_cast<std::size_t>(*p);
+			result = ((result << 5) + result ) ^ (result >> (32 - 5)) ^ static_cast<std::size_t>(*p); // NOLINT
 		return result;
 	}
 

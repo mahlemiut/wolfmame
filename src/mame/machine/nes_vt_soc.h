@@ -76,9 +76,9 @@ protected:
 	DECLARE_WRITE8_MEMBER(vt03_410x_w);
 	DECLARE_READ8_MEMBER(vt03_410x_r);
 	void scrambled_410x_w(uint16_t offset, uint8_t data);
-	DECLARE_READ8_MEMBER(spr_r);
-	DECLARE_READ8_MEMBER(chr_r);
-	DECLARE_WRITE8_MEMBER(chr_w);
+	uint8_t spr_r(offs_t offset);
+	uint8_t chr_r(offs_t offset);
+	void chr_w(offs_t offset, uint8_t data);
 	void scanline_irq(int scanline, int vblank, int blanked);
 	void hblank_irq(int scanline, int vblank, int blanked);
 	void video_irq(bool hblank, int scanline, int vblank, int blanked);
@@ -94,7 +94,7 @@ protected:
 	DECLARE_WRITE8_MEMBER(vt_fixed_dma_w);
 	void do_dma(uint8_t data, bool has_ntsc_bug);
 	DECLARE_WRITE8_MEMBER(vt03_4034_w);
-	
+
 	DECLARE_READ8_MEMBER(in0_r);
 	DECLARE_READ8_MEMBER(in1_r);
 	DECLARE_WRITE8_MEMBER(in0_w);
@@ -119,7 +119,7 @@ protected:
 	uint8_t m_410x_scramble[2];
 
 	uint8_t m_8000_addr_latch;
-	
+
 	uint8_t m_4242;
 	uint8_t m_411c;
 	uint8_t m_411d;
@@ -130,7 +130,7 @@ protected:
 	std::unique_ptr<uint8_t[]> m_chrram;
 
 	DECLARE_WRITE_LINE_MEMBER(apu_irq);
-	DECLARE_READ8_MEMBER(apu_read_mem);
+	uint8_t apu_read_mem(offs_t offset);
 
 	DECLARE_READ8_MEMBER(external_space_read);
 	DECLARE_WRITE8_MEMBER(external_space_write);
@@ -223,8 +223,8 @@ protected:
 	DECLARE_READ8_MEMBER(vt03_413x_r);
 	DECLARE_WRITE8_MEMBER(vt03_413x_w);
 
- 	DECLARE_READ8_MEMBER(vt03_414f_r);
-	
+	DECLARE_READ8_MEMBER(vt03_414f_r);
+
 	DECLARE_READ8_MEMBER(vt03_415c_r);
 
 	DECLARE_WRITE8_MEMBER(vt03_48ax_w);

@@ -820,7 +820,7 @@ INTERRUPT_GEN_MEMBER(segas32_state::start_of_vblank_int)
  *************************************/
 
 
-WRITE8_MEMBER(segas32_state::misc_output_0_w)
+void segas32_state::misc_output_0_w(uint8_t data)
 {
 	if (m_sw1_output)
 		(this->*m_sw1_output)(0, data);
@@ -832,7 +832,7 @@ WRITE8_MEMBER(segas32_state::misc_output_0_w)
 }
 
 
-WRITE8_MEMBER(segas32_state::misc_output_1_w)
+void segas32_state::misc_output_1_w(uint8_t data)
 {
 	if (m_sw1_output)
 		(this->*m_sw1_output)(1, data);
@@ -844,21 +844,21 @@ WRITE8_MEMBER(segas32_state::misc_output_1_w)
 }
 
 
-WRITE8_MEMBER(segas32_state::sw2_output_0_w)
+void segas32_state::sw2_output_0_w(uint8_t data)
 {
 	if (m_sw2_output)
 		(this->*m_sw2_output)(0, data);
 }
 
 
-WRITE8_MEMBER(segas32_state::sw2_output_1_w)
+void segas32_state::sw2_output_1_w(uint8_t data)
 {
 	if (m_sw2_output)
 		(this->*m_sw2_output)(1, data);
 }
 
 
-WRITE8_MEMBER(segas32_state::tilebank_external_w)
+void segas32_state::tilebank_external_w(uint8_t data)
 {
 	m_system32_tilebank_external = data;
 }
@@ -2486,13 +2486,13 @@ segas32_upd7725_state::segas32_upd7725_state(const machine_config &mconfig, cons
 
 
 
-WRITE8_MEMBER(segas32_cd_state::lamps1_w)
+void segas32_cd_state::lamps1_w(uint8_t data)
 {
 	for (int i = 0; i < 8; i++)
 		m_lamps[i] = BIT(data, i);
 }
 
-WRITE8_MEMBER(segas32_cd_state::lamps2_w)
+void segas32_cd_state::lamps2_w(uint8_t data)
 {
 	for (int i = 0; i < 8; i++)
 		m_lamps[8 + i] = BIT(data, i);
@@ -4603,9 +4603,9 @@ ROM_START( radr )
 
 	ROM_REGION( 0x400000, "mainpcb:soundcpu", 0 ) /* sound CPU */
 	ROM_LOAD_x8( "epr-14108.ic9",  0x000000, 0x020000, CRC(38a99b4d) SHA1(b6455e6b29bfef41c5e0ebe3a8064889b7e5f5fd) )
-	ROM_LOAD_x2( "epr-14109.ic14", 0x100000, 0x080000, CRC(b42e5833) SHA1(da94ce7c1d7a581a1aa6b79b323c67a919918808) )
-	ROM_LOAD_x2( "epr-14110.ic20", 0x200000, 0x080000, CRC(b495e7dc) SHA1(b4143fcee10e0649378fdb1e3f5a0a2c585414ec) )
-	ROM_LOAD_x2( "epr-14237.ic22", 0x300000, 0x080000, CRC(0a4b4b29) SHA1(98447a587f903ba03e17d6a145b7c8bfddf25c4d) )
+	ROM_LOAD_x2( "epr-14109.ic14", 0x100000, 0x080000, CRC(d5563697) SHA1(eb3fd3dbfea383ac1bb5d2e1552723994cb4693d) ) // same as radm, but different epr code
+	ROM_LOAD_x2( "epr-14110.ic20", 0x200000, 0x080000, CRC(33fd2913) SHA1(60b664559b4989446b1c7d875432e53a36fe27df) ) // same as radm, but different epr code
+	ROM_LOAD_x2( "epr-14237.ic22", 0x300000, 0x080000, CRC(0a4b4b29) SHA1(98447a587f903ba03e17d6a145b7c8bfddf25c4d) ) // 1xxxxxxxxxxxxxxxxxx = 0xFF
 
 	ROM_REGION( 0x100000, "mainpcb:gfx1", 0 ) /* tiles */
 	ROM_LOAD32_BYTE( "epr-14102.ic3",  0x000000, 0x040000, CRC(5626e80f) SHA1(9844817295a8cd8a9b09da6681b0c1fbfe82618e) )
@@ -4648,8 +4648,8 @@ ROM_START( radru )
 
 	ROM_REGION( 0x400000, "mainpcb:soundcpu", 0 ) /* sound CPU */
 	ROM_LOAD_x8( "epr-14108.ic9",  0x000000, 0x020000, CRC(38a99b4d) SHA1(b6455e6b29bfef41c5e0ebe3a8064889b7e5f5fd) )
-	ROM_LOAD_x2( "epr-14109.ic14", 0x100000, 0x080000, CRC(b42e5833) SHA1(da94ce7c1d7a581a1aa6b79b323c67a919918808) )
-	ROM_LOAD_x2( "epr-14110.ic20", 0x200000, 0x080000, CRC(b495e7dc) SHA1(b4143fcee10e0649378fdb1e3f5a0a2c585414ec) )
+	ROM_LOAD_x2( "epr-14109.ic14", 0x100000, 0x080000, CRC(d5563697) SHA1(eb3fd3dbfea383ac1bb5d2e1552723994cb4693d) ) // same as radm, but different epr code
+	ROM_LOAD_x2( "epr-14110.ic20", 0x200000, 0x080000, CRC(33fd2913) SHA1(60b664559b4989446b1c7d875432e53a36fe27df) ) // same as radm, but different epr code
 	ROM_LOAD_x2( "epr-14237.ic22", 0x300000, 0x080000, CRC(0a4b4b29) SHA1(98447a587f903ba03e17d6a145b7c8bfddf25c4d) )
 
 	ROM_REGION( 0x100000, "mainpcb:gfx1", 0 ) /* tiles */
@@ -4693,8 +4693,8 @@ ROM_START( radrj )
 
 	ROM_REGION( 0x400000, "mainpcb:soundcpu", 0 ) /* sound CPU */
 	ROM_LOAD_x8( "epr-14108.ic9",  0x000000, 0x020000, CRC(38a99b4d) SHA1(b6455e6b29bfef41c5e0ebe3a8064889b7e5f5fd) )
-	ROM_LOAD_x2( "epr-14109.ic14", 0x100000, 0x080000, CRC(b42e5833) SHA1(da94ce7c1d7a581a1aa6b79b323c67a919918808) )
-	ROM_LOAD_x2( "epr-14110.ic20", 0x200000, 0x080000, CRC(b495e7dc) SHA1(b4143fcee10e0649378fdb1e3f5a0a2c585414ec) )
+	ROM_LOAD_x2( "epr-14109.ic14", 0x100000, 0x080000, CRC(d5563697) SHA1(eb3fd3dbfea383ac1bb5d2e1552723994cb4693d) ) // same as radm, but different epr code
+	ROM_LOAD_x2( "epr-14110.ic20", 0x200000, 0x080000, CRC(33fd2913) SHA1(60b664559b4989446b1c7d875432e53a36fe27df) ) // same as radm, but different epr code
 	ROM_LOAD_x2( "epr-14237.ic22", 0x300000, 0x080000, CRC(0a4b4b29) SHA1(98447a587f903ba03e17d6a145b7c8bfddf25c4d) )
 
 	ROM_REGION( 0x100000, "mainpcb:gfx1", 0 ) /* tiles */

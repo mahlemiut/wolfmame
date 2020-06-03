@@ -121,6 +121,8 @@ blw700i.cpp
 bmjr.cpp
 bml3.cpp
 bob85.cpp
+boss_se70.cpp
+boss_sx700.cpp
 bpmmicro.cpp
 br8641.cpp
 bullet.cpp
@@ -182,6 +184,7 @@ comx35.cpp
 concept.cpp
 conchess.cpp
 conic_cchess2.cpp
+consola_emt.cpp
 controlid.cpp
 cortex.cpp
 cosmicos.cpp
@@ -793,6 +796,7 @@ roland_sc88.cpp
 roland_tb303.cpp
 roland_tr606.cpp
 roland_tr707.cpp
+roland_tr909.cpp
 roland_u20.cpp
 rt1715.cpp
 rvoice.cpp
@@ -1078,9 +1082,11 @@ x1twin.cpp
 x68k.cpp
 xavix.cpp
 xavix2.cpp
+xbase09.cpp
 xbox.cpp
 xerox820.cpp
 xor100.cpp
+ymdx11.cpp
 ymmu100.cpp
 ymmu50.cpp
 ymmu80.cpp

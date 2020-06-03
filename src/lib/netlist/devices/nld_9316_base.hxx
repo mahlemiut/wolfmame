@@ -23,13 +23,13 @@ namespace netlist
 		NETLIB_OBJECT(9316_base)
 		{
 			NETLIB_CONSTRUCTOR(9316_base)
-			, m_CLK(*this, "CLK", NETLIB_DELEGATE(9316_base, clk))
+			, m_CLK(*this, "CLK", NETLIB_DELEGATE(clk))
 			, m_ENT(*this, "ENT")
 			, m_RC(*this, "RC")
 			, m_LOADQ(*this, "LOADQ")
 			, m_ENP(*this, "ENP")
 			, m_CLRQ(*this, "CLRQ")
-			, m_ABCD(*this, {"A", "B", "C", "D"}, NETLIB_DELEGATE(9316_base, abcd))
+			, m_ABCD(*this, {"A", "B", "C", "D"}, NETLIB_DELEGATE(abcd))
 			, m_Q(*this, { "QA", "QB", "QC", "QD" })
 			, m_cnt(*this, "m_cnt", 0)
 			, m_abcd(*this, "m_abcd", 0)
@@ -63,7 +63,7 @@ namespace netlist
 					if (D::ASYNC::value && !CLRQ && (m_cnt>0))
 					{
 						m_cnt = 0;
-						m_Q.push(m_cnt, D::tCLR::value(0));
+						m_Q.push(0, D::tCLR::value(0));
 					}
 				}
 				m_RC.push(m_ent && (m_cnt == D::MAXCNT::value), D::tRC::value(0));
@@ -78,7 +78,6 @@ namespace netlist
 				}
 				else
 				{
-					//const auto cnt = (m_loadq ? (m_cnt + 1) & D::MAXCNT::value : m_abcd);
 					const auto cnt = (m_loadq ? rollover<D::MAXCNT::value>(m_cnt + 1) : m_abcd);
 					m_RC.push(m_ent && (cnt == D::MAXCNT::value), D::tRC::value(0));
 					m_Q.push(cnt, D::tLDCNT::value(0));

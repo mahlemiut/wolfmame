@@ -1,8 +1,7 @@
 // license:GPL-2.0+
 // copyright-holders:Couriersud
 #include "netlist/plib/pstring.h"
-#include "netlist/nl_setup.h"
-#include "netlist/plib/plists.h"
+//#include "netlist/nl_setup.h"
 #include "netlist/plib/pmain.h"
 #include "netlist/plib/ppmf.h"
 #include "netlist/plib/pstream.h"
@@ -76,7 +75,7 @@ public:
 	void write(const T &val)
 	{
 		static_assert(sizeof(std::ostream::char_type) == 1, "char_type size must be 1");
-		auto ptr(reinterpret_cast<const std::ostream::char_type *>(&val));
+		const auto *ptr(reinterpret_cast<const std::ostream::char_type *>(&val));
 		m_f.write(ptr, sizeof(T));
 	}
 
@@ -719,13 +718,13 @@ pstring nlwav_app::usage()
 }
 
 template <typename F>
-static void open_ostream_and_exec(pstring fname, bool binary, F func)
+static void open_ostream_and_exec(const pstring &fname, bool binary, F func)
 {
 	if (fname != "-")
 	{
 		// FIXME: binary depends on format!
-		auto outstrm(std::ofstream(plib::filesystem::u8path(fname),
-			binary ? (std::ios::out | std::ios::binary) : std::ios::out));
+		std::ofstream outstrm(plib::filesystem::u8path(fname),
+			binary ? (std::ios::out | std::ios::binary) : std::ios::out);
 		if (outstrm.fail())
 			throw plib::file_open_e(fname);
 		outstrm.imbue(std::locale::classic());

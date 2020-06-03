@@ -10,7 +10,9 @@
 #include "nl_factory.h"
 #include "nl_parser.h"
 #include "nl_setup.h"
+#include "plib/penum.h"
 #include "plib/putil.h"
+
 #include "solver/nld_solver.h"
 
 namespace netlist
@@ -71,7 +73,15 @@ namespace netlist
 		auto *f = m_factory.factory_by_name(classname);
 
 		// make sure we parse macro library entries
-		f->macro_actions(*this, name);
+		// FIXME: this could be done here if e.g. f
+		//        would have an indication that this is macro element.
+		if (f->type() == factory::element_type::MACRO)
+		{
+			namespace_push(name);
+			include(f->name());
+			namespace_pop();
+		}
+
 		pstring key = build_fqn(name);
 		if (device_exists(key))
 		{
@@ -94,7 +104,7 @@ namespace netlist
 				{
 					if (ptok == ptok_end)
 					{
-						auto err(MF_PARAM_COUNT_MISMATCH_2(name, params_and_connections.size()));
+						auto err = MF_PARAM_COUNT_MISMATCH_2(name, params_and_connections.size());
 						log().fatal(err);
 						throw nl_exception(err);
 						//break;
@@ -116,7 +126,7 @@ namespace netlist
 				{
 					if (ptok == params_and_connections.end())
 					{
-						auto err(MF_PARAM_COUNT_MISMATCH_2(name, params_and_connections.size()));
+						auto err = MF_PARAM_COUNT_MISMATCH_2(name, params_and_connections.size());
 						log().fatal(err);
 						throw nl_exception(err);
 					}
@@ -131,7 +141,7 @@ namespace netlist
 			}
 			if (ptok != params_and_connections.end())
 			{
-				auto err(MF_PARAM_COUNT_EXCEEDED_2(name, params_and_connections.size()));
+				MF_PARAM_COUNT_EXCEEDED_2 err(name, params_and_connections.size());
 				log().fatal(err);
 				throw nl_exception(err);
 			}
@@ -1275,7 +1285,7 @@ nl_fptype models_t::model_t::value(const pstring &entity) const
 
 // FIXME: all this belongs elsewhere
 
-P_ENUM(family_type,
+PENUM(family_type,
 	CUSTOM,
 	TTL,
 	MOS,
@@ -1303,9 +1313,9 @@ public:
 			case family_type::CMOS:
 			case family_type::NMOS:
 			case family_type::PMOS:
-				return anetlist.make_object<devices::nld_d_to_a_proxy>(anetlist, name, proxied);
+				return anetlist.make_pool_object<devices::nld_d_to_a_proxy>(anetlist, name, proxied);
 		}
-		return anetlist.make_object<devices::nld_d_to_a_proxy>(anetlist, name, proxied);
+		return anetlist.make_pool_object<devices::nld_d_to_a_proxy>(anetlist, name, proxied);
 	}
 
 	unique_pool_ptr<devices::nld_base_a_to_d_proxy> create_a_d_proxy(netlist_state_t &anetlist, const pstring &name, const logic_input_t *proxied) const override
@@ -1318,9 +1328,9 @@ public:
 			case family_type::CMOS:
 			case family_type::NMOS:
 			case family_type::PMOS:
-				return anetlist.make_object<devices::nld_a_to_d_proxy>(anetlist, name, proxied);
+				return anetlist.make_pool_object<devices::nld_a_to_d_proxy>(anetlist, name, proxied);
 		}
-		return anetlist.make_object<devices::nld_a_to_d_proxy>(anetlist, name, proxied);
+		return anetlist.make_pool_object<devices::nld_a_to_d_proxy>(anetlist, name, proxied);
 	}
 private:
 	family_type m_family_type;
@@ -1527,7 +1537,7 @@ void setup_t::prepare_to_run()
 			d.second->set_hint_deactivate(false);
 	}
 
-	if (errcnt)
+	if (errcnt > 0)
 	{
 		log().fatal(MF_ERRORS_FOUND(errcnt));
 		throw nl_exception(MF_ERRORS_FOUND(errcnt));

@@ -12,6 +12,7 @@
 #include "netlist/nl_errstr.h"
 #include "netlist/plib/mat_cr.h"
 #include "netlist/plib/palloc.h"
+#include "netlist/plib/penum.h"
 #include "netlist/plib/pmatrix2d.h"
 #include "netlist/plib/putil.h"
 #include "netlist/plib/vector_ops.h"
@@ -29,7 +30,7 @@ namespace solver
 		CXX_STATIC
 	};
 
-	P_ENUM(matrix_sort_type_e,
+	PENUM(matrix_sort_type_e,
 		NOSORT,
 		ASCENDING,
 		DESCENDING,
@@ -37,7 +38,7 @@ namespace solver
 		PREFER_BAND_MATRIX
 	)
 
-	P_ENUM(matrix_type_e,
+	PENUM(matrix_type_e,
 		SOR_MAT,
 		MAT_CR,
 		MAT,
@@ -47,7 +48,7 @@ namespace solver
 		GMRES
 	)
 
-	P_ENUM(matrix_fp_type_e,
+	PENUM(matrix_fp_type_e,
 		  FLOAT
 		, DOUBLE
 		, LONGDOUBLE

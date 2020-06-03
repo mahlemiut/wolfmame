@@ -24,6 +24,7 @@
 #include "plib/pstonum.h"
 #include "plib/pstream.h"
 #include "plib/ptime.h"
+#include "plib/ptimed_queue.h"
 #include "plib/ptypes.h"
 
 #include "nl_errstr.h"
@@ -78,7 +79,8 @@ class NETLIB_NAME(name) : public delegator_t<NETLIB_NAME(pclass)>
 #define NETLIB_BASE_OBJECT(name)                                               \
 class NETLIB_NAME(name) : public delegator_t<base_device_t>
 
-#define NETLIB_CONSTRUCTOR_PASS(cname, ...)                      \
+#define NETLIB_CONSTRUCTOR_PASS(cname, ...)                                    \
+	using this_type = NETLIB_NAME(cname);                                      \
 	public: template <class CLASS> NETLIB_NAME(cname)(CLASS &owner, const pstring &name) \
 	: base_type(owner, name, __VA_ARGS__)
 
@@ -87,6 +89,7 @@ class NETLIB_NAME(name) : public delegator_t<base_device_t>
 ///  Use this to define the constructor of a netlist device. Please refer to
 ///  #NETLIB_OBJECT for an example.
 #define NETLIB_CONSTRUCTOR(cname)                                              \
+	using this_type = NETLIB_NAME(cname);                                      \
 	public: template <class CLASS> NETLIB_NAME(cname)(CLASS &owner, const pstring &name) \
 		: base_type(owner, name)
 
@@ -100,6 +103,7 @@ class NETLIB_NAME(name) : public delegator_t<base_device_t>
 ///      };
 ///
 #define NETLIB_CONSTRUCTOR_MODEL(cname, cmodel)                                              \
+	using this_type = NETLIB_NAME(cname);                                      \
 	public: template <class CLASS> NETLIB_NAME(cname)(CLASS &owner, const pstring &name) \
 		: base_type(owner, name, cmodel)
 
@@ -107,6 +111,7 @@ class NETLIB_NAME(name) : public delegator_t<base_device_t>
 /// The macro allows to add further parameters to a device constructor. This is
 /// normally used for sub-devices and system devices only.
 #define NETLIB_CONSTRUCTOR_EX(cname, ...)                                      \
+	using this_type = NETLIB_NAME(cname);                                      \
 	public: template <class CLASS> NETLIB_NAME(cname)(CLASS &owner, const pstring &name, __VA_ARGS__) \
 		: base_type(owner, name)
 
@@ -172,7 +177,7 @@ class NETLIB_NAME(name) : public delegator_t<base_device_t>
 #define NETLIB_TIMESTEP(cname)                                                 \
 	void NETLIB_NAME(cname) :: timestep(nl_fptype step) noexcept
 
-#define NETLIB_DELEGATE(chip, name) nldelegate(&NETLIB_NAME(chip) :: name, this)
+#define NETLIB_DELEGATE(name) nldelegate(&this_type :: name, this)
 
 #define NETLIB_UPDATE_TERMINALSI() virtual void update_terminals() noexcept override
 #define NETLIB_HANDLERI(name) void name() noexcept
@@ -359,6 +364,9 @@ namespace netlist
 	struct state_var
 	{
 	public:
+
+		using value_type = T;
+
 		template <typename O>
 		//! Constructor.
 		state_var(O &owner,             //!< owner must have a netlist() method.
@@ -372,38 +380,33 @@ namespace netlist
 				const pstring &name     //!< identifier/name for this state variable
 		);
 
+		PMOVEASSIGN(state_var, delete)
+
 		//! Destructor.
 		~state_var() noexcept = default;
-		//! Copy Constructor.
-		constexpr state_var(const state_var &rhs) = default;
-		//! Move Constructor.
-		constexpr state_var(state_var &&rhs) noexcept = default;
+
+		//! Copy Constructor removed.
+		constexpr state_var(const state_var &rhs) = delete;
 		//! Assignment operator to assign value of a state var.
-		C14CONSTEXPR state_var &operator=(const state_var &rhs) = default; // OSX doesn't like noexcept
-		//! Assignment move operator to assign value of a state var.
-		C14CONSTEXPR state_var &operator=(state_var &&rhs) noexcept = default;
+		constexpr state_var &operator=(const state_var &rhs) noexcept { m_value = rhs.m_value; return *this; } // OSX doesn't like noexcept
 		//! Assignment operator to assign value of type T.
-		C14CONSTEXPR state_var &operator=(const T &rhs) noexcept { m_value = rhs; return *this; }
+		constexpr state_var &operator=(const T &rhs) noexcept { m_value = rhs; return *this; }
 		//! Assignment move operator to assign value of type T.
-		C14CONSTEXPR state_var &operator=(T &&rhs) noexcept { std::swap(m_value, rhs); return *this; }
+		constexpr state_var &operator=(T &&rhs) noexcept { std::swap(m_value, rhs); return *this; }
 		//! Return non-const value of state variable.
-		C14CONSTEXPR operator T & () noexcept { return m_value; }
+		constexpr operator T & () noexcept { return m_value; }
 		//! Return const value of state variable.
 		constexpr operator const T & () const noexcept { return m_value; }
 		//! Return non-const value of state variable.
-		C14CONSTEXPR T & var() noexcept { return m_value; }
+		constexpr T & var() noexcept { return m_value; }
 		//! Return const value of state variable.
 		constexpr const T & var() const noexcept { return m_value; }
 		//! Return non-const value of state variable.
-		C14CONSTEXPR T & operator ()() noexcept { return m_value; }
+		constexpr T & operator ()() noexcept { return m_value; }
 		//! Return const value of state variable.
 		constexpr const T & operator ()() const noexcept { return m_value; }
-		//! Return pointer to state variable.
-		C14CONSTEXPR T * ptr() noexcept { return &m_value; }
-		//! Return const pointer to state variable.
-		constexpr const T * ptr() const noexcept{ return &m_value; }
 		//! Access state variable by ->.
-		C14CONSTEXPR T * operator->() noexcept { return &m_value; }
+		constexpr T * operator->() noexcept { return &m_value; }
 		//! Access state variable by const ->.
 		constexpr const T * operator->() const noexcept{ return &m_value; }
 
@@ -478,12 +481,13 @@ namespace netlist
 				try
 				{
 					auto ret(store().find(obj));
-					nl_assert(ret != store().end());
+					if (ret == store().end())
+						return nullptr;
 					return &ret->second;
 				}
 				catch (...)
 				{
-					nl_assert_always(true, "exception in property_store_t.get()");
+					plib::terminate("exception in property_store_t.get()");
 					return static_cast<value_type *>(nullptr);
 				}
 			}
@@ -572,7 +576,7 @@ namespace netlist
 
 			// to ease template design
 			template<typename T, typename... Args>
-			unique_pool_ptr<T> make_object(Args&&... args);
+			unique_pool_ptr<T> make_pool_object(Args&&... args);
 
 		private:
 			netlist_t & m_netlist;
@@ -738,22 +742,22 @@ namespace netlist
 
 			void toggle_new_Q() noexcept { m_new_Q = (m_cur_Q ^ 1);   }
 
-			void toggle_and_push_to_queue(netlist_time delay) noexcept
+			void toggle_and_push_to_queue(const netlist_time &delay) noexcept
 			{
 				toggle_new_Q();
 				push_to_queue(delay);
 			}
 
-			void push_to_queue(netlist_time delay) noexcept;
-			bool is_queued() const noexcept { return m_in_queue == queue_status::QUEUED; }
+			void push_to_queue(const netlist_time &delay) noexcept;
+			NVCC_CONSTEXPR bool is_queued() const noexcept { return m_in_queue == queue_status::QUEUED; }
 
 			template <bool KEEP_STATS>
-			void update_devs() noexcept;
+			inline void update_devs() noexcept;
 
 			netlist_time_ext next_scheduled_time() const noexcept { return m_next_scheduled_time; }
 			void set_next_scheduled_time(netlist_time_ext ntime) noexcept { m_next_scheduled_time = ntime; }
 
-			bool is_rail_net() const noexcept { return !(m_railterminal == nullptr); }
+			NVCC_CONSTEXPR bool is_rail_net() const noexcept { return !(m_railterminal == nullptr); }
 			core_terminal_t & railterminal() const noexcept { return *m_railterminal; }
 
 			bool has_connections() const noexcept { return !m_core_terms.empty(); }
@@ -782,7 +786,7 @@ namespace netlist
 		protected:
 
 			// only used for logic nets
-			netlist_sig_t Q() const noexcept { return m_cur_Q; }
+			NVCC_CONSTEXPR netlist_sig_t Q() const noexcept { return m_cur_Q; }
 
 			// only used for logic nets
 			void initial(netlist_sig_t val) noexcept
@@ -792,7 +796,7 @@ namespace netlist
 			}
 
 			// only used for logic nets
-			void set_Q_and_push(netlist_sig_t newQ, netlist_time delay) noexcept
+			inline void set_Q_and_push(const netlist_sig_t &newQ, const netlist_time &delay) noexcept
 			{
 				if (newQ != m_new_Q)
 				{
@@ -802,7 +806,7 @@ namespace netlist
 			}
 
 			// only used for logic nets
-			void set_Q_time(netlist_sig_t newQ, netlist_time_ext at) noexcept
+			inline void set_Q_time(const netlist_sig_t &newQ, const netlist_time_ext &at) noexcept
 			{
 				if (newQ != m_new_Q)
 				{
@@ -821,9 +825,6 @@ namespace netlist
 			// internal state support
 			// FIXME: get rid of this and implement export/import in MAME
 
-			// only used for logic nets
-			netlist_sig_t *Q_state_ptr() noexcept { return m_cur_Q.ptr(); }
-
 		private:
 			state_var<netlist_sig_t>     m_new_Q;
 			state_var<netlist_sig_t>     m_cur_Q;
@@ -834,8 +835,8 @@ namespace netlist
 			plib::linkedlist_t<core_terminal_t> m_list_active;
 			std::vector<core_terminal_t *> m_core_terms; // save post-start m_list ...
 
-			template <bool KEEP_STATS, typename T>
-			void process(T mask, netlist_sig_t sig) noexcept;
+			template <bool KEEP_STATS, typename T, typename S>
+			void process(T mask, const S &sig) noexcept;
 		};
 	} // namespace detail
 
@@ -941,17 +942,12 @@ namespace netlist
 		logic_input_t(device_t &dev, const pstring &aname,
 				nldelegate delegate = nldelegate());
 
-		netlist_sig_t operator()() const noexcept
-		{
-			return Q();
-		}
+		inline netlist_sig_t operator()() const noexcept;
 
 		void inactivate() noexcept;
 		void activate() noexcept;
 		void activate_hl() noexcept;
 		void activate_lh() noexcept;
-	private:
-		netlist_sig_t Q() const noexcept;
 	};
 
 	// -----------------------------------------------------------------------------
@@ -991,7 +987,6 @@ namespace netlist
 		using detail::net_t::initial;
 		using detail::net_t::set_Q_and_push;
 		using detail::net_t::set_Q_time;
-		using detail::net_t::Q_state_ptr;
 	};
 
 	class analog_net_t : public detail::net_t
@@ -1004,7 +999,8 @@ namespace netlist
 
 		nl_fptype Q_Analog() const noexcept { return m_cur_Analog; }
 		void set_Q_Analog(nl_fptype v) noexcept { m_cur_Analog = v; }
-		nl_fptype *Q_Analog_state_ptr() noexcept { return m_cur_Analog.ptr(); }
+		// used by solver code ...
+		nl_fptype *Q_Analog_state_ptr() noexcept { return &m_cur_Analog(); }
 
 		//FIXME: needed by current solver code
 		solver::matrix_solver_t *solver() const noexcept { return m_solver; }
@@ -1041,12 +1037,12 @@ namespace netlist
 
 		void initial(netlist_sig_t val) noexcept;
 
-		void push(netlist_sig_t newQ, netlist_time delay) noexcept
+		inline void push(const netlist_sig_t &newQ, const netlist_time &delay) noexcept
 		{
 			m_my_net.set_Q_and_push(newQ, delay); // take the shortcut
 		}
 
-		void set_Q_time(netlist_sig_t newQ, netlist_time_ext at) noexcept
+		inline void set_Q_time(const netlist_sig_t &newQ, const netlist_time_ext &at) noexcept
 		{
 			m_my_net.set_Q_time(newQ, at); // take the shortcut
 		}
@@ -1059,8 +1055,8 @@ namespace netlist
 		///
 		/// This function throws an exception if actually called.
 		///
-		[[noreturn]] void set_tristate(bool v,
-			netlist_time ts_off_on, netlist_time ts_on_off) const
+		[[noreturn]] static void set_tristate(netlist_sig_t v,
+			netlist_time ts_off_on, netlist_time ts_on_off)
 		{
 			plib::unused_var(v, ts_off_on, ts_on_off);
 			throw nl_exception("set_tristate on logic_output should never be called!");
@@ -1104,13 +1100,13 @@ namespace netlist
 			m_last_logic = newQ;
 		}
 
-		void set_tristate(bool v,
+		void set_tristate(netlist_sig_t v,
 			netlist_time ts_off_on, netlist_time ts_on_off) noexcept
 		{
 			if (!m_force_logic)
 				if (v != m_tristate)
 				{
-					logic_output_t::push(v ? OUT_TRISTATE() : m_last_logic, v ? ts_off_on : ts_on_off);
+					logic_output_t::push((v != 0) ? OUT_TRISTATE() : m_last_logic, v ? ts_off_on : ts_on_off);
 					m_tristate = v;
 				}
 		}
@@ -1138,11 +1134,10 @@ namespace netlist
 	public:
 		analog_output_t(core_device_t &dev, const pstring &aname);
 
-		void push(nl_fptype val) noexcept { set_Q(val); }
+		void push(nl_fptype val) noexcept;
 		void initial(nl_fptype val) noexcept;
 
 	private:
-		void set_Q(nl_fptype newQ) noexcept;
 		analog_net_t m_my_net;
 	};
 
@@ -1167,7 +1162,7 @@ namespace netlist
 		param_t(core_device_t &device, const pstring &name);
 
 		PCOPYASSIGNMOVE(param_t, delete)
-		virtual ~param_t() noexcept = default;
+		virtual ~param_t() noexcept;
 
 		param_type_t param_type() const noexcept(false);
 
@@ -1199,6 +1194,8 @@ namespace netlist
 	class param_num_t final: public param_t
 	{
 	public:
+		using value_type = T;
+
 		param_num_t(core_device_t &device, const pstring &name, T val) noexcept(false);
 
 		T operator()() const noexcept { return m_param; }
@@ -1219,6 +1216,8 @@ namespace netlist
 	class param_enum_t final: public param_t
 	{
 	public:
+		using value_type = T;
+
 		param_enum_t(core_device_t &device, const pstring &name, T val) noexcept(false);
 
 		T operator()() const noexcept { return T(m_param); }
@@ -1366,7 +1365,7 @@ namespace netlist
 
 		param_rom_t(core_device_t &device, const pstring &name);
 
-		ST operator[] (std::size_t n) const noexcept { return m_data[n]; }
+		const ST & operator[] (std::size_t n) const noexcept { return m_data[n]; }
 	protected:
 		void changed() noexcept override
 		{
@@ -1430,7 +1429,7 @@ namespace netlist
 			plib::pperfcount_t<true> m_stat_inc_active;
 		};
 
-		stats_t * stats() noexcept { return m_stats.get(); }
+		stats_t * stats() const noexcept { return m_stats.get(); }
 
 		virtual void update() noexcept { }
 		virtual void reset() { }
@@ -1510,6 +1509,7 @@ namespace netlist
 
 		~device_t() noexcept override = default;
 
+		nldelegate default_delegate() { return nldelegate(&device_t::update, this); }
 	protected:
 
 		NETLIB_UPDATEI() { }
@@ -1537,12 +1537,12 @@ namespace netlist
 
 		class queue_t :
 				//public timed_queue<pqentry_t<net_t *, netlist_time>, false, NL_KEEP_STATISTICS>,
-				public timed_queue<plib::pqentry_t<net_t *, netlist_time_ext>, false>,
+				public timed_queue<plib::pqentry_t<netlist_time_ext, net_t *>, false>,
 				public netlist_object_t,
 				public plib::state_manager_t::callback_t
 		{
 		public:
-			using entry_t = plib::pqentry_t<net_t *, netlist_time_ext>;
+			using entry_t = plib::pqentry_t<netlist_time_ext, net_t *>;
 			using base_queue = timed_queue<entry_t, false>;
 			explicit queue_t(netlist_t &nl, const pstring &name);
 			~queue_t() noexcept override = default;
@@ -1751,7 +1751,7 @@ namespace netlist
 		family_collection_type &family_cache() { return m_family_cache; }
 
 		template<typename T, typename... Args>
-		unique_pool_ptr<T> make_object(Args&&... args)
+		unique_pool_ptr<T> make_pool_object(Args&&... args)
 		{
 			return m_pool.make_unique<T>(std::forward<Args>(args)...);
 		}
@@ -1882,13 +1882,13 @@ namespace netlist
 
 		const detail::queue_t &queue() const noexcept { return m_queue; }
 
-		template <typename E>
-		void qpush(E && e) noexcept
+		template<typename... Args>
+		void qpush(Args&&...args) noexcept
 		{
 			if (!NL_USE_QUEUE_STATS || !m_use_stats)
-				m_queue.push<false>(std::forward<E>(e)); // NOLINT(performance-move-const-arg)
+				m_queue.emplace<false>(std::forward<Args>(args)...); // NOLINT(performance-move-const-arg)
 			else
-				m_queue.push<true>(std::forward<E>(e)); // NOLINT(performance-move-const-arg)
+				m_queue.emplace<true>(std::forward<Args>(args)...); // NOLINT(performance-move-const-arg)
 		}
 
 		template <class R>
@@ -1972,18 +1972,18 @@ namespace netlist
 				this->emplace(i, dev, formatted(fmt, i));
 		}
 
-		template<class D>
-		object_array_base_t(D &dev, std::size_t offset, const pstring &fmt,  bool force_logic = false)
+		template<class D, typename... Args>
+		object_array_base_t(D &dev, std::size_t offset, const pstring &fmt, Args&&... args)
 		{
 			for (std::size_t i = 0; i<N; i++)
-				this->emplace(i, dev, formatted(fmt, i+offset), force_logic);
+				this->emplace(i, dev, formatted(fmt, i+offset), std::forward<Args>(args)...);
 		}
 
 		template<class D>
-		object_array_base_t(D &dev, std::size_t offset, const pstring &fmt, nldelegate &&delegate)
+		object_array_base_t(D &dev, std::size_t offset, const pstring &fmt, nldelegate delegate)
 		{
 			for (std::size_t i = 0; i<N; i++)
-				this->emplace(i, dev, formatted(fmt, i+offset), std::move(delegate));
+				this->emplace(i, dev, formatted(fmt, i+offset), delegate);
 		}
 
 		template<class D>
@@ -2000,15 +2000,14 @@ namespace netlist
 	protected:
 		object_array_base_t() = default;
 
-	protected:
 		static pstring formatted(const pstring &fmt, std::size_t n)
 		{
 			if (N != 1)
 				return plib::pfmt(fmt)(n);
-			else
-				return plib::pfmt(fmt)("");
+			return plib::pfmt(fmt)("");
 		}
 	};
+
 
 	template<class C, std::size_t N>
 	class object_array_t : public object_array_base_t<C, N>
@@ -2094,11 +2093,9 @@ namespace netlist
 				(*this)[i].push((v >> i) & 1, t);
 		}
 
-		template<typename T, std::size_t NT>
-		void push(const T &v, const std::array<netlist_time, NT> &t)
+		template<typename T>
+		void push(const T &v, const netlist_time * t)
 		{
-			static_assert(NT >= N, "Not enough timing entries provided");
-
 			if (N >= 1) (*this)[0].push((v >> 0) & 1, t[0]);
 			if (N >= 2) (*this)[1].push((v >> 1) & 1, t[1]);
 			if (N >= 3) (*this)[2].push((v >> 2) & 1, t[2]);
@@ -2111,7 +2108,15 @@ namespace netlist
 				(*this)[i].push((v >> i) & 1, t[i]);
 		}
 
-		void set_tristate(bool v,
+		template<typename T, std::size_t NT>
+		void push(const T &v, const std::array<netlist_time, NT> &t)
+		{
+			static_assert(NT >= N, "Not enough timing entries provided");
+
+			push(v, t.data());
+		}
+
+		void set_tristate(netlist_sig_t v,
 			netlist_time ts_off_on, netlist_time ts_on_off) noexcept
 		{
 			for (std::size_t i = 0; i < N; i++)
@@ -2141,7 +2146,7 @@ namespace netlist
 				(*this)[i].push((v >> i) & 1, t);
 		}
 
-		void set_tristate(bool v,
+		void set_tristate(netlist_sig_t v,
 			netlist_time ts_off_on, netlist_time ts_on_off) noexcept
 		{
 			for (std::size_t i = 0; i < N; i++)
@@ -2161,10 +2166,12 @@ namespace netlist
 	class nld_power_pins
 	{
 	public:
+		using this_type = nld_power_pins;
+
 		explicit nld_power_pins(device_t &owner, const pstring &sVCC = sPowerVCC,
 			const pstring &sGND = sPowerGND)
-		: m_VCC(owner, sVCC, NETLIB_DELEGATE(power_pins, noop))
-		, m_GND(owner, sGND, NETLIB_DELEGATE(power_pins, noop))
+		: m_VCC(owner, sVCC, NETLIB_DELEGATE(noop))
+		, m_GND(owner, sGND, NETLIB_DELEGATE(noop))
 		{
 		}
 
@@ -2184,7 +2191,278 @@ namespace netlist
 	};
 
 	// -----------------------------------------------------------------------------
-	// inline implementations
+	// Hot section
+	//
+	// Any changes below will impact performance.
+	// -----------------------------------------------------------------------------
+
+	inline void logic_input_t::inactivate() noexcept
+	{
+		if (!is_state(STATE_INP_PASSIVE))
+		{
+			set_state(STATE_INP_PASSIVE);
+			net().remove_from_active_list(*this);
+		}
+	}
+
+	inline void logic_input_t::activate() noexcept
+	{
+		if (is_state(STATE_INP_PASSIVE))
+		{
+			net().add_to_active_list(*this);
+			set_state(STATE_INP_ACTIVE);
+		}
+	}
+
+	inline void logic_input_t::activate_hl() noexcept
+	{
+		if (is_state(STATE_INP_PASSIVE))
+		{
+			net().add_to_active_list(*this);
+			set_state(STATE_INP_HL);
+		}
+	}
+
+	inline void logic_input_t::activate_lh() noexcept
+	{
+		if (is_state(STATE_INP_PASSIVE))
+		{
+			net().add_to_active_list(*this);
+			set_state(STATE_INP_LH);
+		}
+	}
+
+	inline void detail::net_t::push_to_queue(const netlist_time &delay) noexcept
+	{
+		if (has_connections())
+		{
+			if (!!is_queued())
+				exec().qremove(this);
+
+			const auto nst(exec().time() + delay);
+			m_next_scheduled_time = nst;
+
+			if (!m_list_active.empty())
+			{
+				m_in_queue = queue_status::QUEUED;
+				exec().qpush(nst, this);
+			}
+			else
+			{
+				m_in_queue = queue_status::DELAYED_DUE_TO_INACTIVE;
+				update_inputs();
+			}
+		}
+	}
+
+	inline void detail::net_t::add_to_active_list(core_terminal_t &term) noexcept
+	{
+		if (!m_list_active.empty())
+		{
+			term.set_copied_input(m_cur_Q);
+			m_list_active.push_front(&term);
+		}
+		else
+		{
+			m_list_active.push_front(&term);
+			railterminal().device().do_inc_active();
+			if (m_in_queue == queue_status::DELAYED_DUE_TO_INACTIVE)
+			{
+				if (m_next_scheduled_time > exec().time())
+				{
+					m_in_queue = queue_status::QUEUED;     // pending
+					exec().qpush(m_next_scheduled_time, this);
+				}
+				else
+				{
+					m_in_queue = queue_status::DELIVERED;
+					m_cur_Q = m_new_Q;
+				}
+				update_inputs();
+			}
+			else
+				term.set_copied_input(m_cur_Q);
+		}
+	}
+
+	inline void detail::net_t::remove_from_active_list(core_terminal_t &term) noexcept
+	{
+		m_list_active.remove(&term);
+		if (m_list_active.empty())
+			railterminal().device().do_dec_active();
+	}
+
+	inline const analog_net_t & analog_t::net() const noexcept
+	{
+		return static_cast<const analog_net_t &>(core_terminal_t::net());
+	}
+
+	inline analog_net_t & analog_t::net() noexcept
+	{
+		return static_cast<analog_net_t &>(core_terminal_t::net());
+	}
+
+	inline nl_fptype terminal_t::operator ()() const noexcept { return net().Q_Analog(); }
+
+	inline logic_net_t & logic_t::net() noexcept
+	{
+		return static_cast<logic_net_t &>(core_terminal_t::net());
+	}
+
+	inline const logic_net_t & logic_t::net() const noexcept
+	{
+		return static_cast<const logic_net_t &>(core_terminal_t::net());
+	}
+
+	inline netlist_sig_t logic_input_t::operator()() const noexcept
+	{
+		nl_assert(terminal_state() != STATE_INP_PASSIVE);
+#if NL_USE_COPY_INSTEAD_OF_REFERENCE
+		return m_Q;
+#else
+		return net().Q();
+#endif
+	}
+
+	inline nl_fptype analog_input_t::Q_Analog() const noexcept
+	{
+		return net().Q_Analog();
+	}
+
+	inline void analog_output_t::push(nl_fptype val) noexcept
+	{
+		if (val != m_my_net.Q_Analog())
+		{
+			m_my_net.set_Q_Analog(val);
+			m_my_net.toggle_and_push_to_queue(netlist_time::quantum());
+		}
+	}
+
+	inline netlist_t &detail::device_object_t::exec() noexcept
+	{
+		return m_device->exec();
+	}
+
+	inline const netlist_t &detail::device_object_t::exec() const noexcept
+	{
+		return m_device->exec();
+	}
+
+	template <bool KEEP_STATS, typename T, typename S>
+	inline void detail::net_t::process(T mask, const S &sig) noexcept
+	{
+		m_cur_Q = sig;
+
+		if (KEEP_STATS)
+		{
+			for (auto & p : m_list_active)
+			{
+				p.set_copied_input(sig);
+				auto *stats(p.device().stats());
+				stats->m_stat_call_count.inc();
+				if ((p.terminal_state() & mask))
+				{
+					auto g(stats->m_stat_total_time.guard());
+					p.run_delegate();
+				}
+			}
+		}
+		else
+		{
+			for (auto &p : m_list_active)
+			{
+				p.set_copied_input(sig);
+				if ((p.terminal_state() & mask) != 0)
+					p.run_delegate();
+			}
+		}
+	}
+
+	template <bool KEEP_STATS>
+	inline void detail::net_t::update_devs() noexcept
+	{
+		nl_assert(this->is_rail_net());
+
+		m_in_queue = queue_status::DELIVERED; // mark as taken ...
+		if (m_new_Q ^ m_cur_Q)
+		{
+			process<KEEP_STATS>((m_new_Q << core_terminal_t::INP_LH_SHIFT)
+				| (m_cur_Q << core_terminal_t::INP_HL_SHIFT), m_new_Q);
+		}
+	}
+
+	template <bool KEEP_STATS>
+	inline void netlist_t::process_queue_stats(const netlist_time_ext delta) noexcept
+	{
+		netlist_time_ext stop(m_time + delta);
+
+		qpush(stop, nullptr);
+
+		if (m_mainclock == nullptr)
+		{
+			m_time = m_queue.top().exec_time();
+			detail::net_t *obj(m_queue.top().object());
+			m_queue.pop();
+
+			while (obj != nullptr)
+			{
+				obj->template update_devs<KEEP_STATS>();
+				if (KEEP_STATS)
+					m_perf_out_processed.inc();
+				const detail::queue_t::entry_t *top = &m_queue.top();
+				m_time = top->exec_time();
+				obj = top->object();
+				m_queue.pop();
+			}
+		}
+		else
+		{
+			logic_net_t &mc_net(m_mainclock->m_Q.net());
+			const netlist_time inc(m_mainclock->m_inc);
+			netlist_time_ext mc_time(mc_net.next_scheduled_time());
+
+			do
+			{
+				const detail::queue_t::entry_t *top = &m_queue.top();
+				while (top->exec_time() > mc_time)
+				{
+					m_time = mc_time;
+					mc_net.toggle_new_Q();
+					mc_net.update_devs<KEEP_STATS>();
+					top = &m_queue.top();
+					mc_time += inc;
+				}
+
+				m_time = top->exec_time();
+				auto *const obj(top->object());
+				m_queue.pop();
+				if (obj != nullptr)
+					obj->template update_devs<KEEP_STATS>();
+				else
+					break;
+				if (KEEP_STATS)
+					m_perf_out_processed.inc();
+			} while (true);
+
+			mc_net.set_next_scheduled_time(mc_time);
+		}
+	}
+
+	inline void netlist_t::process_queue(netlist_time_ext delta) noexcept
+	{
+		if (!m_use_stats)
+			process_queue_stats<false>(delta);
+		else
+		{
+			auto sm_guard(m_stat_mainloop.guard());
+			process_queue_stats<true>(delta);
+		}
+	}
+
+	
+	
+	// -----------------------------------------------------------------------------
+	// inline implementations - cold
 	// -----------------------------------------------------------------------------
 
 	inline netlist_state_t & detail::netlist_object_t::state() noexcept
@@ -2198,9 +2476,9 @@ namespace netlist
 	}
 
 	template<typename T, typename... Args>
-	inline unique_pool_ptr<T> detail::netlist_object_t::make_object(Args&&... args)
+	inline unique_pool_ptr<T> detail::netlist_object_t::make_pool_object(Args&&... args)
 	{
-		return state().make_object<T>(std::forward<Args>(args)...);
+		return state().make_pool_object<T>(std::forward<Args>(args)...);
 	}
 
 	inline void param_t::update_param() noexcept
@@ -2268,167 +2546,7 @@ namespace netlist
 	template<class O, class C, typename... Args>
 	void base_device_t::create_and_register_subdevice(O &owner, const pstring &name, unique_pool_ptr<C> &dev, Args&&... args)
 	{
-		dev = state().make_object<C>(owner, name, std::forward<Args>(args)...);
-	}
-
-	inline void logic_input_t::inactivate() noexcept
-	{
-		if (!is_state(STATE_INP_PASSIVE))
-		{
-			set_state(STATE_INP_PASSIVE);
-			net().remove_from_active_list(*this);
-		}
-	}
-
-	inline void logic_input_t::activate() noexcept
-	{
-		if (is_state(STATE_INP_PASSIVE))
-		{
-			net().add_to_active_list(*this);
-			set_state(STATE_INP_ACTIVE);
-		}
-	}
-
-	inline void logic_input_t::activate_hl() noexcept
-	{
-		if (is_state(STATE_INP_PASSIVE))
-		{
-			net().add_to_active_list(*this);
-			set_state(STATE_INP_HL);
-		}
-	}
-
-	inline void logic_input_t::activate_lh() noexcept
-	{
-		if (is_state(STATE_INP_PASSIVE))
-		{
-			net().add_to_active_list(*this);
-			set_state(STATE_INP_LH);
-		}
-	}
-
-	inline void detail::net_t::push_to_queue(netlist_time delay) noexcept
-	{
-		// FIXME: checking for has_connection doesn't have any noticable effect
-		//        on performance.
-		if (has_connections())
-		{
-			m_next_scheduled_time = exec().time() + delay;
-
-			if (!!is_queued())
-				exec().qremove(this);
-
-			if (!m_list_active.empty())
-			{
-				m_in_queue = queue_status::QUEUED;
-				exec().qpush(queue_t::entry_t(m_next_scheduled_time, this));
-			}
-			else
-			{
-				m_in_queue = queue_status::DELAYED_DUE_TO_INACTIVE;
-				update_inputs();
-			}
-		}
-	}
-
-	inline void detail::net_t::add_to_active_list(core_terminal_t &term) noexcept
-	{
-		if (m_list_active.empty())
-		{
-			m_list_active.push_front(&term);
-			railterminal().device().do_inc_active();
-			if (m_in_queue == queue_status::DELAYED_DUE_TO_INACTIVE)
-			{
-				if (m_next_scheduled_time > exec().time())
-				{
-					m_in_queue = queue_status::QUEUED;     // pending
-					exec().qpush(detail::queue_t::entry_t(m_next_scheduled_time, this));
-				}
-				else
-				{
-					m_in_queue = queue_status::DELIVERED;
-					m_cur_Q = m_new_Q;
-				}
-				update_inputs();
-			}
-			else
-				term.set_copied_input(m_cur_Q);
-		}
-		else
-		{
-			term.set_copied_input(m_cur_Q);
-			m_list_active.push_front(&term);
-		}
-	}
-
-	inline void detail::net_t::remove_from_active_list(core_terminal_t &term) noexcept
-	{
-		m_list_active.remove(&term);
-		if (m_list_active.empty())
-			railterminal().device().do_dec_active();
-	}
-
-	inline const analog_net_t & analog_t::net() const noexcept
-	{
-		return static_cast<const analog_net_t &>(core_terminal_t::net());
-	}
-
-	inline analog_net_t & analog_t::net() noexcept
-	{
-		return static_cast<analog_net_t &>(core_terminal_t::net());
-	}
-
-	inline solver::matrix_solver_t *analog_t::solver() const noexcept
-	{
-		return (this->has_net() ? net().solver() : nullptr);
-	}
-
-	inline nl_fptype terminal_t::operator ()() const noexcept { return net().Q_Analog(); }
-
-	inline void terminal_t::set_ptrs(nl_fptype *gt, nl_fptype *go, nl_fptype *Idr) noexcept(false)
-	{
-		if (!(gt && go && Idr) && (gt || go || Idr))
-		{
-			throw nl_exception("Inconsistent nullptrs for terminal {}", name());
-		}
-
-		m_gt = gt;
-		m_go = go;
-		m_Idr = Idr;
-	}
-
-	inline logic_net_t & logic_t::net() noexcept
-	{
-		return static_cast<logic_net_t &>(core_terminal_t::net());
-	}
-
-	inline const logic_net_t & logic_t::net() const noexcept
-	{
-		return static_cast<const logic_net_t &>(core_terminal_t::net());
-	}
-
-	inline netlist_sig_t logic_input_t::Q() const noexcept
-	{
-		nl_assert(terminal_state() != STATE_INP_PASSIVE);
-#if NL_USE_COPY_INSTEAD_OF_REFERENCE
-		return m_Q;
-#else
-		return net().Q();
-#endif
-	}
-
-	inline nl_fptype analog_input_t::Q_Analog() const noexcept
-	{
-		return net().Q_Analog();
-	}
-
-	inline void analog_output_t::set_Q(nl_fptype newQ) noexcept
-	{
-		if (newQ != m_my_net.Q_Analog())
-		{
-			m_my_net.set_Q_Analog(newQ);
-			m_my_net.toggle_and_push_to_queue(netlist_time::quantum());
-		}
+		dev = state().make_pool_object<C>(owner, name, std::forward<Args>(args)...);
 	}
 
 	inline netlist_state_t &detail::device_object_t::state() noexcept
@@ -2441,14 +2559,9 @@ namespace netlist
 		return m_device->state();
 	}
 
-	inline netlist_t &detail::device_object_t::exec() noexcept
+	inline solver::matrix_solver_t *analog_t::solver() const noexcept
 	{
-		return m_device->exec();
-	}
-
-	inline const netlist_t &detail::device_object_t::exec() const noexcept
-	{
-		return m_device->exec();
+		return (this->has_net() ? net().solver() : nullptr);
 	}
 
 	template <typename T>
@@ -2485,120 +2598,50 @@ namespace netlist
 		owner.state().save(owner, *static_cast<C *>(this), owner.name(), name);
 	}
 
-	// -----------------------------------------------------------------------------
-	// Hot section
-	//
-	// Any changes below will impact performance.
-	// -----------------------------------------------------------------------------
+	extern template struct state_var<std::uint8_t>;
+	extern template struct state_var<std::uint16_t>;
+	extern template struct state_var<std::uint32_t>;
+	extern template struct state_var<std::uint64_t>;
+	extern template struct state_var<std::int8_t>;
+	extern template struct state_var<std::int16_t>;
+	extern template struct state_var<std::int32_t>;
+	extern template struct state_var<std::int64_t>;
+	extern template struct state_var<bool>;
 
-	template <bool KEEP_STATS, typename T>
-	inline void detail::net_t::process(T mask, netlist_sig_t sig) noexcept
-	{
-		m_cur_Q = sig;
+	extern template class param_num_t<std::uint8_t>;
+	extern template class param_num_t<std::uint16_t>;
+	extern template class param_num_t<std::uint32_t>;
+	extern template class param_num_t<std::uint64_t>;
+	extern template class param_num_t<std::int8_t>;
+	extern template class param_num_t<std::int16_t>;
+	extern template class param_num_t<std::int32_t>;
+	extern template class param_num_t<std::int64_t>;
+	extern template class param_num_t<float>;
+	extern template class param_num_t<double>;
+	extern template class param_num_t<long double>;
+	extern template class param_num_t<bool>;
 
-		if (KEEP_STATS)
-		{
-			for (auto & p : m_list_active)
-			{
-				p.set_copied_input(sig);
-				auto *stats(p.device().stats());
-				stats->m_stat_call_count.inc();
-				if ((p.terminal_state() & mask))
-				{
-					auto g(stats->m_stat_total_time.guard());
-					p.run_delegate();
-				}
-			}
-		}
-		else
-		{
-			for (auto &p : m_list_active)
-			{
-				p.set_copied_input(sig);
-				if ((p.terminal_state() & mask))
-					p.run_delegate();
-			}
-		}
-	}
+	extern template class param_model_t::value_base_t<float>;
+	extern template class param_model_t::value_base_t<double>;
+	extern template class param_model_t::value_base_t<long double>;
 
-	template <bool KEEP_STATS>
-	inline void detail::net_t::update_devs() noexcept
-	{
-		nl_assert(this->is_rail_net());
+	extern template class object_array_t<logic_input_t, 1>;
+	extern template class object_array_t<logic_input_t, 2>;
+	extern template class object_array_t<logic_input_t, 3>;
+	extern template class object_array_t<logic_input_t, 4>;
+	extern template class object_array_t<logic_input_t, 5>;
+	extern template class object_array_t<logic_input_t, 6>;
+	extern template class object_array_t<logic_input_t, 7>;
+	extern template class object_array_t<logic_input_t, 8>;
 
-		m_in_queue = queue_status::DELIVERED; // mark as taken ...
-		if (m_new_Q ^ m_cur_Q)
-			process<KEEP_STATS>((m_new_Q << core_terminal_t::INP_LH_SHIFT)
-				| (m_cur_Q << core_terminal_t::INP_HL_SHIFT), m_new_Q);
-	}
-
-	template <bool KEEP_STATS>
-	inline void netlist_t::process_queue_stats(const netlist_time_ext delta) noexcept
-	{
-		netlist_time_ext stop(m_time + delta);
-
-		qpush(detail::queue_t::entry_t(stop, nullptr));
-
-		if (m_mainclock == nullptr)
-		{
-			m_time = m_queue.top().exec_time();
-			detail::net_t *obj(m_queue.top().object());
-			m_queue.pop();
-
-			while (obj != nullptr)
-			{
-				obj->template update_devs<KEEP_STATS>();
-				if (KEEP_STATS)
-					m_perf_out_processed.inc();
-				const detail::queue_t::entry_t *top = &m_queue.top();
-				m_time = top->exec_time();
-				obj = top->object();
-				m_queue.pop();
-			}
-		}
-		else
-		{
-			logic_net_t &mc_net(m_mainclock->m_Q.net());
-			const netlist_time inc(m_mainclock->m_inc);
-			netlist_time_ext mc_time(mc_net.next_scheduled_time());
-
-			do
-			{
-				const detail::queue_t::entry_t *top = &m_queue.top();
-				while (top->exec_time() > mc_time)
-				{
-					m_time = mc_time;
-					mc_net.toggle_new_Q();
-					mc_net.update_devs<KEEP_STATS>();
-					top = &m_queue.top();
-					mc_time += inc;
-				}
-
-				m_time = top->exec_time();
-				auto *const obj(top->object());
-				m_queue.pop();
-				if (obj != nullptr)
-					obj->template update_devs<KEEP_STATS>();
-				else
-					break;
-				if (KEEP_STATS)
-					m_perf_out_processed.inc();
-			} while (true);
-
-			mc_net.set_next_scheduled_time(mc_time);
-		}
-	}
-
-	inline void netlist_t::process_queue(netlist_time_ext delta) noexcept
-	{
-		if (!m_use_stats)
-			process_queue_stats<false>(delta);
-		else
-		{
-			auto sm_guard(m_stat_mainloop.guard());
-			process_queue_stats<true>(delta);
-		}
-	}
+	extern template class object_array_t<logic_output_t, 1>;
+	extern template class object_array_t<logic_output_t, 2>;
+	extern template class object_array_t<logic_output_t, 3>;
+	extern template class object_array_t<logic_output_t, 4>;
+	extern template class object_array_t<logic_output_t, 5>;
+	extern template class object_array_t<logic_output_t, 6>;
+	extern template class object_array_t<logic_output_t, 7>;
+	extern template class object_array_t<logic_output_t, 8>;
 
 } // namespace netlist
 

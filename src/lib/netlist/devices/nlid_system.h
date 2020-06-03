@@ -9,9 +9,9 @@
 
 #include "netlist/analog/nlid_twoterm.h"
 #include "netlist/nl_base.h"
-#include "netlist/nl_setup.h"
-#include "netlist/plib/putil.h"
+#include "netlist/nl_factory.h"
 #include "netlist/plib/prandom.h"
+#include "netlist/plib/putil.h"
 
 #include <random>
 
@@ -67,7 +67,7 @@ namespace devices
 
 		NETLIB_UPDATEI()
 		{
-			m_Q.push(!m_feedback(), m_inc);
+			m_Q.push(m_feedback() ^ 1, m_inc);
 		}
 
 	private:
@@ -104,7 +104,7 @@ namespace devices
 		{
 			m_funcparam[0] = exec().time().as_fp<nl_fptype>();
 			const netlist_time m_inc = netlist_time::from_fp(m_compiled->evaluate(m_funcparam));
-			m_Q.push(!m_feedback(), m_inc);
+			m_Q.push(m_feedback() ^ 1, m_inc);
 		}
 
 	private:
@@ -353,7 +353,7 @@ namespace devices
 			for (int i=0; i < m_N(); i++)
 			{
 				pstring inpname = plib::pfmt("A{1}")(i);
-				m_I.push_back(state().make_object<analog_input_t>(*this, inpname));
+				m_I.push_back(state().make_pool_object<analog_input_t>(*this, inpname));
 				inps.push_back(inpname);
 				m_vals.push_back(nlconst::zero());
 			}
@@ -376,13 +376,14 @@ namespace devices
 		}
 
 	private:
+		using pf_type = plib::pfunction<nl_fptype>;
 		param_int_t m_N;
 		param_str_t m_func;
 		analog_output_t m_Q;
 		std::vector<unique_pool_ptr<analog_input_t>> m_I;
 
-		std::vector<nl_fptype> m_vals;
-		state_var<plib::pfunction<nl_fptype>> m_compiled;
+		pf_type::values_container m_vals;
+		state_var<pf_type> m_compiled;
 
 	};
 
@@ -416,7 +417,7 @@ namespace devices
 			if (state != m_last_state)
 			{
 				m_last_state = state;
-				const nl_fptype R = state ? m_RON() : m_ROFF();
+				const nl_fptype R = (state != 0) ? m_RON() : m_ROFF();
 
 				m_R.change_state([this, &R]()
 				{
@@ -475,8 +476,8 @@ namespace devices
 			{
 				m_last_state = state;
 				//printf("Here %d\n", state);
-				const nl_fptype G1 = state ? m_GON() : m_GOFF();
-				const nl_fptype G2 = state ? m_GOFF() : m_GON();
+				const nl_fptype G1 = (state != 0) ? m_GON() : m_GOFF();
+				const nl_fptype G2 = (state != 0) ? m_GOFF() : m_GON();
 				if (m_R1.solver() == m_R2.solver())
 				{
 					m_R1.change_state([this, &G1, &G2]()

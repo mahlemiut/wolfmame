@@ -72,6 +72,7 @@
 #include "machine/i7220.h"
 #include "machine/i80130.h"
 #include "machine/i8255.h"
+#include "machine/mm58174.h"
 #include "machine/ram.h"
 #include "machine/tms9914.h"
 #include "machine/z80sio.h"
@@ -104,6 +105,7 @@ public:
 		: driver_device(mconfig, type, tag)
 		, m_maincpu(*this, "maincpu")
 		, m_osp(*this, I80130_TAG)
+		, m_rtc(*this, "rtc")
 		, m_modem(*this, "modem")
 		, m_uart8274(*this, "uart8274")
 		, m_speaker(*this, "speaker")
@@ -123,6 +125,7 @@ public:
 private:
 	required_device<cpu_device> m_maincpu;
 	required_device<i80130_device> m_osp;
+	required_device<mm58174_device> m_rtc;
 	required_device<i8255_device> m_modem;
 	optional_device<i8274_device> m_uart8274;
 	required_device<speaker_sound_device> m_speaker;
@@ -134,14 +137,14 @@ private:
 
 	IRQ_CALLBACK_MEMBER(irq_callback);
 
-	DECLARE_READ16_MEMBER(grid_9ff0_r);
-	DECLARE_READ16_MEMBER(grid_keyb_r);
-	DECLARE_READ8_MEMBER(grid_modem_r);
-	DECLARE_WRITE16_MEMBER(grid_keyb_w);
-	DECLARE_WRITE8_MEMBER(grid_modem_w);
+	uint16_t grid_9ff0_r(offs_t offset);
+	uint16_t grid_keyb_r(offs_t offset);
+	uint8_t grid_modem_r(offs_t offset);
+	void grid_keyb_w(offs_t offset, uint16_t data);
+	void grid_modem_w(offs_t offset, uint8_t data);
 
-	DECLARE_WRITE8_MEMBER(grid_dma_w);
-	DECLARE_READ8_MEMBER(grid_dma_r);
+	void grid_dma_w(offs_t offset, uint8_t data);
+	uint8_t grid_dma_r(offs_t offset);
 
 	uint32_t screen_update_110x(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);
 	uint32_t screen_update_113x(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);
@@ -160,7 +163,7 @@ private:
 };
 
 
-READ16_MEMBER(gridcomp_state::grid_9ff0_r)
+uint16_t gridcomp_state::grid_9ff0_r(offs_t offset)
 {
 	uint16_t data = 0;
 
@@ -176,7 +179,7 @@ READ16_MEMBER(gridcomp_state::grid_9ff0_r)
 	return data;
 }
 
-READ16_MEMBER(gridcomp_state::grid_keyb_r)
+uint16_t gridcomp_state::grid_keyb_r(offs_t offset)
 {
 	uint16_t data = 0;
 
@@ -199,7 +202,7 @@ READ16_MEMBER(gridcomp_state::grid_keyb_r)
 	return data;
 }
 
-WRITE16_MEMBER(gridcomp_state::grid_keyb_w)
+void gridcomp_state::grid_keyb_w(offs_t offset, uint16_t data)
 {
 	LOGKBD("%02x <- %02x\n", 0xdffc0 + (offset << 1), data);
 }
@@ -213,7 +216,7 @@ void gridcomp_state::kbd_put(u16 data)
 
 
 // reject all commands
-READ8_MEMBER(gridcomp_state::grid_modem_r)
+uint8_t gridcomp_state::grid_modem_r(offs_t offset)
 {
 	uint8_t data = 0;
 	LOG("MDM %02x == %02x\n", 0xdfec0 + (offset << 1), data);
@@ -221,18 +224,18 @@ READ8_MEMBER(gridcomp_state::grid_modem_r)
 	return data;
 }
 
-WRITE8_MEMBER(gridcomp_state::grid_modem_w)
+void gridcomp_state::grid_modem_w(offs_t offset, uint8_t data)
 {
 	LOG("MDM %02x <- %02x\n", 0xdfec0 + (offset << 1), data);
 }
 
-WRITE8_MEMBER(gridcomp_state::grid_dma_w)
+void gridcomp_state::grid_dma_w(offs_t offset, uint8_t data)
 {
 	m_tms9914->write(7, data);
 	// LOG("DMA %02x <- %02x\n", offset, data);
 }
 
-READ8_MEMBER(gridcomp_state::grid_dma_r)
+uint8_t gridcomp_state::grid_dma_r(offs_t offset)
 {
 	int ret = m_tms9914->read(7);
 	// LOG("DMA %02x == %02x\n", offset, ret);
@@ -307,7 +310,7 @@ void gridcomp_state::grid1101_map(address_map &map)
 	map(0xdfea0, 0xdfeaf).unmaprw(); // ??
 	map(0xdfec0, 0xdfecf).rw(FUNC(gridcomp_state::grid_modem_r), FUNC(gridcomp_state::grid_modem_w)).umask16(0x00ff); // incl. DTMF generator
 	map(0xdff00, 0xdff1f).rw("uart8274", FUNC(i8274_device::ba_cd_r), FUNC(i8274_device::ba_cd_w)).umask16(0x00ff);
-	map(0xdff40, 0xdff5f).noprw();   // ?? machine ID EAROM, RTC
+	map(0xdff40, 0xdff5f).rw(m_rtc, FUNC(mm58174_device::read), FUNC(mm58174_device::write)).umask16(0xff00);
 	map(0xdff80, 0xdff8f).rw("hpib", FUNC(tms9914_device::read), FUNC(tms9914_device::write)).umask16(0x00ff);
 	map(0xdffc0, 0xdffcf).rw(FUNC(gridcomp_state::grid_keyb_r), FUNC(gridcomp_state::grid_keyb_w)); // Intel 8741 MCU
 	map(0xe0000, 0xeffff).rw(FUNC(gridcomp_state::grid_dma_r), FUNC(gridcomp_state::grid_dma_w)); // DMA
@@ -326,7 +329,7 @@ void gridcomp_state::grid1121_map(address_map &map)
 	map(0xdfe80, 0xdfe83).rw("i7220", FUNC(i7220_device::read), FUNC(i7220_device::write)).umask16(0x00ff);
 	map(0xdfea0, 0xdfeaf).unmaprw(); // ??
 	map(0xdfec0, 0xdfecf).rw(FUNC(gridcomp_state::grid_modem_r), FUNC(gridcomp_state::grid_modem_w)).umask16(0x00ff); // incl. DTMF generator
-	map(0xdff40, 0xdff5f).noprw();   // ?? machine ID EAROM, RTC
+	map(0xdff40, 0xdff5f).rw(m_rtc, FUNC(mm58174_device::read), FUNC(mm58174_device::write)).umask16(0xff00);
 	map(0xdff80, 0xdff8f).rw("hpib", FUNC(tms9914_device::read), FUNC(tms9914_device::write)).umask16(0x00ff);
 	map(0xdffc0, 0xdffcf).rw(FUNC(gridcomp_state::grid_keyb_r), FUNC(gridcomp_state::grid_keyb_w)); // Intel 8741 MCU
 	map(0xfc000, 0xfffff).rom().region("user1", 0);
@@ -362,6 +365,8 @@ void gridcomp_state::grid1101(machine_config &config)
 
 	I80130(config, m_osp, XTAL(15'000'000)/3);
 	m_osp->irq().set_inputline("maincpu", 0);
+
+	MM58174(config, m_rtc, 32.768_kHz_XTAL);
 
 	SPEAKER(config, "mono").front_center();
 	SPEAKER_SOUND(config, m_speaker).add_route(ALL_OUTPUTS, "mono", 1.00);

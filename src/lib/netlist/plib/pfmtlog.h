@@ -8,6 +8,7 @@
 #ifndef PFMT_H_
 #define PFMT_H_
 
+#include "penum.h"
 #include "pstring.h"
 #include "ptypes.h"
 #include "putil.h"
@@ -26,7 +27,7 @@
 
 namespace plib {
 
-	P_ENUM(plog_level,
+	PENUM(plog_level,
 		DEBUG,
 		VERBOSE,
 		INFO,

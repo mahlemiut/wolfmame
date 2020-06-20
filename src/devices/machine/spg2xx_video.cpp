@@ -103,22 +103,22 @@ uint32_t spg2xx_video_device::screen_update(screen_device &screen, bitmap_rgb32 
 
 	const uint32_t page1_addr = 0x40 * m_video_regs[0x20];
 	const uint32_t page2_addr = 0x40 * m_video_regs[0x21];
+	const uint32_t sprite_addr = 0x40 * m_video_regs[0x22];
+		
 	uint16_t *page1_scroll = m_video_regs + 0x10;
 	uint16_t *page2_scroll = m_video_regs + 0x16;
 	uint16_t *page1_regs = m_video_regs + 0x12;
 	uint16_t *page2_regs = m_video_regs + 0x18;
 
-	bitmap.fill(0, cliprect);
-
 	for (uint32_t scanline = (uint32_t)cliprect.min_y; scanline <= (uint32_t)cliprect.max_y; scanline++)
 	{
-		uint32_t* dst = &bitmap.pix32(scanline, cliprect.min_x);
+		m_renderer->new_line(cliprect);
 
 		for (int i = 0; i < 4; i++)
 		{
-			m_renderer->draw_page(cliprect, dst, scanline, i, page1_addr, page1_scroll, page1_regs, mem, m_paletteram, m_scrollram);
-			m_renderer->draw_page(cliprect, dst, scanline, i, page2_addr, page2_scroll, page2_regs, mem, m_paletteram, m_scrollram);
-			m_renderer->draw_sprites(cliprect, dst, scanline, i, mem, m_paletteram, m_spriteram, m_sprlimit_read_cb());
+			m_renderer->draw_page(false, false, false, 0, cliprect, scanline, i, page1_addr, page1_scroll, page1_regs, mem, m_paletteram, m_scrollram, 0);
+			m_renderer->draw_page(false, false, false, 0, cliprect, scanline, i, page2_addr, page2_scroll, page2_regs, mem, m_paletteram, m_scrollram, 1);
+			m_renderer->draw_sprites(false, false, false, 0, false, cliprect, scanline, i, sprite_addr, mem, m_paletteram, m_spriteram, m_sprlimit_read_cb());
 		}
 
 		m_renderer->apply_saturation_and_fade(bitmap, cliprect, scanline);
@@ -151,7 +151,7 @@ void spg2xx_video_device::do_sprite_dma(uint32_t len)
 	}
 }
 
-READ16_MEMBER(spg2xx_video_device::video_r)
+uint16_t spg2xx_video_device::video_r(offs_t offset)
 {
 	switch (offset)
 	{
@@ -177,7 +177,7 @@ READ16_MEMBER(spg2xx_video_device::video_r)
 
 	case 0x22: // Sprite Segment Address
 		LOGMASKED(LOG_PPU_READS, "video_r: Sprite Segment Address\n");
-		return m_renderer->get_video_reg_22();
+		return m_video_regs[offset];
 
 	case 0x2a: // Blend Level Control
 		LOGMASKED(LOG_PPU_READS, "video_r: Blend Level Control\n");
@@ -223,7 +223,7 @@ READ16_MEMBER(spg2xx_video_device::video_r)
 	return m_video_regs[offset];
 }
 
-WRITE16_MEMBER(spg2xx_video_device::video_w)
+void spg2xx_video_device::video_w(offs_t offset, uint16_t data)
 {
 	switch (offset)
 	{
@@ -334,7 +334,6 @@ WRITE16_MEMBER(spg2xx_video_device::video_w)
 	case 0x22: // Sprite Segment Address
 		LOGMASKED(LOG_PPU_WRITES, "video_w: Sprite Segment Address = %04x\n", data);
 		m_video_regs[offset] = data;
-		m_renderer->set_video_reg_22(data);
 		break;
 
 	case 0x2a: // Blend Level Control

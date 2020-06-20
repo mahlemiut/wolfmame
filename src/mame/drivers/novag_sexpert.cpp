@@ -23,7 +23,7 @@ To distinguish between versions, press the Set Level button.
 - version B: default selectivity 3
 - version C: default selectivity 5
 
-Note that the H8 option doesn't appear to work with sexperta1, but when doing a
+Note that the H8 option doesn't appear to work with sexperta2, but when doing a
 hex compare with sexperta, the program differences are minor.
 
 TODO:
@@ -429,6 +429,7 @@ void sexpert_state::sexpert(machine_config &config)
 	SENSORBOARD(config, m_board).set_type(sensorboard_device::MAGNETS);
 	m_board->init_cb().set(m_board, FUNC(sensorboard_device::preset_chess));
 	m_board->set_delay(attotime::from_msec(200));
+	m_board->set_nvram_enable(true);
 
 	/* video hardware */
 	SCREEN(config, m_screen, SCREEN_TYPE_LCD);
@@ -472,6 +473,7 @@ void sforte_state::sforte(machine_config &config)
 	/* basic machine hardware */
 	m_maincpu->set_addrmap(AS_PROGRAM, &sforte_state::sforte_map);
 	m_irq_on->set_start_delay(m_irq_on->period() - attotime::from_usec(10)); // tlow measured between 8us and 12us (unstable)
+
 	m_board->set_type(sensorboard_device::BUTTONS);
 
 	config.set_default_layout(layout_novag_sforte);
@@ -492,16 +494,16 @@ ROM_END
 
 ROM_START( sexperta1 ) // from model 878
 	ROM_REGION( 0x18000, "maincpu", 0 )
-	ROM_LOAD("se_lo_b15.u3", 0x0000, 0x8000, CRC(6cc9527c) SHA1(29bab809399f2863a88a9c41535ecec0a4fd65ea) )
-	ROM_LOAD("se_hi1_b15.u1", 0x8000, 0x8000, CRC(6e57f0c0) SHA1(ea44769a6f54721fd4543366bda932e86e497d43) )
-	ROM_LOAD("se_sf_hi0_a23.u2", 0x10000, 0x8000, CRC(7d4e1528) SHA1(53c7d458a5571afae402f00ae3d0f5066634b068) )
+	ROM_LOAD("se_202_l.u3", 0x0000, 0x8000, CRC(d51fed16) SHA1(01aaddab36a721a4b9efde94979256d397cd1953) ) // NEC D27C256AD-12
+	ROM_LOAD("se_202_h1.u1", 0x8000, 0x8000, CRC(933eafa8) SHA1(293f63a5bc7d760ad675522c98f9f0a49e61aef5) ) // "
+	ROM_LOAD("se_c22_h0.u2", 0x10000, 0x8000, CRC(3e42cf7c) SHA1(b2faa36a127e08e5755167a25ed4a07f12d62957) ) // "
 ROM_END
 
 ROM_START( sexperta2 ) // from model 878
 	ROM_REGION( 0x18000, "maincpu", 0 )
-	ROM_LOAD("se_202_l.u3", 0x0000, 0x8000, CRC(d51fed16) SHA1(01aaddab36a721a4b9efde94979256d397cd1953) ) // NEC D27C256AD-12
-	ROM_LOAD("se_202_h1.u1", 0x8000, 0x8000, CRC(933eafa8) SHA1(293f63a5bc7d760ad675522c98f9f0a49e61aef5) ) // "
-	ROM_LOAD("se_c22_h0.u2", 0x10000, 0x8000, CRC(3e42cf7c) SHA1(b2faa36a127e08e5755167a25ed4a07f12d62957) ) // "
+	ROM_LOAD("se_lo_b15.u3", 0x0000, 0x8000, CRC(6cc9527c) SHA1(29bab809399f2863a88a9c41535ecec0a4fd65ea) )
+	ROM_LOAD("se_hi1_b15.u1", 0x8000, 0x8000, CRC(6e57f0c0) SHA1(ea44769a6f54721fd4543366bda932e86e497d43) )
+	ROM_LOAD("se_sf_hi0_a23.u2", 0x10000, 0x8000, CRC(7d4e1528) SHA1(53c7d458a5571afae402f00ae3d0f5066634b068) )
 ROM_END
 
 ROM_START( sexpertb ) // from model 887

@@ -43,14 +43,6 @@
 
 #define LOGMASKED(mask, ...) do { if (LOG_MASK & (mask)) (LOG_OUTPUT_FUNC)(__VA_ARGS__); } while (false)
 
-
-// Workaround for return value optimization failure in some older versions of clang
-#if defined(__APPLE__) && defined(__clang__) && __clang_major__ < 8
-#define MOVE_UNIQUE_PTR(x) (std::move(x))
-#else
-#define MOVE_UNIQUE_PTR(x) (x)
-#endif
-
 DEFINE_DEVICE_TYPE(NETLIST_CORE,  netlist_mame_device,       "netlist_core",  "Netlist Core Device")
 DEFINE_DEVICE_TYPE(NETLIST_CPU,   netlist_mame_cpu_device,   "netlist_cpu",   "Netlist CPU Device")
 DEFINE_DEVICE_TYPE(NETLIST_SOUND, netlist_mame_sound_device, "netlist_sound", "Netlist Sound Device")
@@ -124,10 +116,10 @@ protected:
 		}
 	}
 
-	plib::unique_ptr<plib::dynlib_base> static_solver_lib() const noexcept override
+	netlist::host_arena::unique_ptr<plib::dynlib_base> static_solver_lib() const noexcept override
 	{
 		//return plib::make_unique<plib::dynlib_static>(nullptr);
-		return plib::make_unique<plib::dynlib_static>(nl_static_solver_syms);
+		return plib::make_unique<plib::dynlib_static, netlist::host_arena>(nl_static_solver_syms);
 	}
 
 private:
@@ -167,9 +159,9 @@ protected:
 		}
 	}
 
-	plib::unique_ptr<plib::dynlib_base> static_solver_lib() const noexcept override
+	netlist::host_arena::unique_ptr<plib::dynlib_base> static_solver_lib() const noexcept override
 	{
-		return plib::make_unique<plib::dynlib_static>(nullptr);
+		return plib::make_unique<plib::dynlib_static, netlist::host_arena>(nullptr);
 	}
 
 private:
@@ -181,12 +173,12 @@ class netlist_mame_device::netlist_mame_t : public netlist::netlist_state_t
 public:
 
 	netlist_mame_t(netlist_mame_device &parent, const pstring &name)
-		: netlist::netlist_state_t(name, plib::make_unique<netlist_mame_device::netlist_mame_callbacks_t>(parent))
+		: netlist::netlist_state_t(name, plib::make_unique<netlist_mame_device::netlist_mame_callbacks_t, netlist::host_arena>(parent))
 		, m_parent(parent)
 	{
 	}
 
-	netlist_mame_t(netlist_mame_device &parent, const pstring &name, plib::unique_ptr<netlist::callbacks_t> cbs)
+	netlist_mame_t(netlist_mame_device &parent, const pstring &name, netlist::host_arena::unique_ptr<netlist::callbacks_t> cbs)
 		: netlist::netlist_state_t(name, std::move(cbs))
 		, m_parent(parent)
 	{
@@ -234,13 +226,12 @@ class netlist_source_memregion_t : public netlist::source_netlist_t
 {
 public:
 
-
 	netlist_source_memregion_t(device_t &dev, pstring name)
 	: netlist::source_netlist_t(), m_dev(dev), m_name(name)
 	{
 	}
 
-	virtual plib::unique_ptr<std::istream> stream(const pstring &name) override;
+	virtual stream_ptr stream(const pstring &name) override;
 private:
 	device_t &m_dev;
 	pstring m_name;
@@ -251,7 +242,7 @@ class netlist_data_memregions_t : public netlist::source_data_t
 public:
 	netlist_data_memregions_t(const device_t &dev);
 
-	virtual plib::unique_ptr<std::istream> stream(const pstring &name) override;
+	virtual stream_ptr stream(const pstring &name) override;
 
 private:
 	const device_t &m_dev;
@@ -262,14 +253,14 @@ private:
 // memregion source support
 // ----------------------------------------------------------------------------------------
 
-plib::unique_ptr<std::istream> netlist_source_memregion_t::stream(const pstring &name)
+netlist_source_memregion_t::stream_ptr netlist_source_memregion_t::stream(const pstring &name)
 {
 	if (m_dev.has_running_machine())
 	{
 		memory_region *mem = m_dev.memregion(m_name.c_str());
-		auto ret(plib::make_unique<std::istringstream>(pstring(reinterpret_cast<char *>(mem->base()), mem->bytes())));
+		stream_ptr ret(std::make_unique<std::istringstream>(pstring(reinterpret_cast<char *>(mem->base()), mem->bytes())));
 		ret->imbue(std::locale::classic());
-		return MOVE_UNIQUE_PTR(ret);
+		return ret;
 	}
 	else
 		throw memregion_not_set("memregion unavailable for {1} in source {2}", name, m_name);
@@ -300,7 +291,7 @@ static bool rom_exists(device_t &root, pstring name)
 	return false;
 }
 
-plib::unique_ptr<std::istream> netlist_data_memregions_t::stream(const pstring &name)
+netlist_data_memregions_t::stream_ptr netlist_data_memregions_t::stream(const pstring &name)
 {
 	//memory_region *mem = static_cast<netlist_mame_device::netlist_mame_t &>(setup().setup().exec()).parent().memregion(name.c_str());
 	if (m_dev.has_running_machine())
@@ -308,12 +299,12 @@ plib::unique_ptr<std::istream> netlist_data_memregions_t::stream(const pstring &
 		memory_region *mem = m_dev.memregion(name.c_str());
 		if (mem != nullptr)
 		{
-			auto ret(plib::make_unique<std::istringstream>(std::string(reinterpret_cast<char *>(mem->base()), mem->bytes()), std::ios_base::binary));
+			stream_ptr ret(std::make_unique<std::istringstream>(std::string(reinterpret_cast<char *>(mem->base()), mem->bytes()), std::ios_base::binary));
 			ret->imbue(std::locale::classic());
-			return MOVE_UNIQUE_PTR(ret);
+			return ret;
 		}
 		else
-			return plib::unique_ptr<std::istream>(nullptr);
+			return stream_ptr(nullptr);
 	}
 	else
 	{
@@ -321,12 +312,12 @@ plib::unique_ptr<std::istream> netlist_data_memregions_t::stream(const pstring &
 		if (rom_exists(m_dev.mconfig().root_device(), pstring(m_dev.tag()) + ":" + name))
 		{
 			// Create an empty stream.
-			auto ret(plib::make_unique<std::istringstream>(std::ios_base::binary));
+			stream_ptr ret(std::make_unique<std::istringstream>(std::ios_base::binary));
 			ret->imbue(std::locale::classic());
-			return MOVE_UNIQUE_PTR(ret);
+			return ret;
 		}
 		else
-			return plib::unique_ptr<std::istream>(nullptr);
+			return stream_ptr(nullptr);
 	}
 }
 
@@ -792,15 +783,25 @@ void netlist_mame_stream_output_device::set_params(int channel, const char *out_
 ///
 struct save_helper
 {
-	save_helper(device_t *dev, pstring prefix)
+	save_helper(device_t *dev, const pstring &prefix)
 	: m_device(dev), m_prefix(prefix)
 	{}
 
-	template<typename T>
-	void save_item(T &&item, pstring name)
+	template<typename T, typename X = void *>
+	void save_item(T &&item, const pstring &name, X = nullptr)
 	{
 		m_device->save_item(item, (m_prefix + "_" + name).c_str());
 	}
+
+	template <typename X = void *>
+	std::enable_if_t<plib::compile_info::has_int128::value && std::is_pointer<X>::value, void>
+	save_item(INT128 &item, const pstring &name, X = nullptr)
+	{
+		auto *p = reinterpret_cast<std::uint64_t *>(&item);
+		m_device->save_item(p[0], (m_prefix + "_" + name + "_1").c_str());
+		m_device->save_item(p[1], (m_prefix + "_" + name + "_2").c_str());
+	}
+
 private:
 	device_t *m_device;
 	pstring m_prefix;
@@ -965,11 +966,12 @@ void netlist_mame_device::common_dev_start(netlist::netlist_state_t *lnetlist) c
 	}
 }
 
-plib::unique_ptr<netlist::netlist_state_t> netlist_mame_device::base_validity_check(validity_checker &valid) const
+netlist::host_arena::unique_ptr<netlist::netlist_state_t> netlist_mame_device::base_validity_check(validity_checker &valid) const
 {
 	try
 	{
-		auto lnetlist = plib::make_unique<netlist::netlist_state_t>("netlist", plib::make_unique<netlist_validate_callbacks_t>());
+		auto lnetlist = plib::make_unique<netlist::netlist_state_t, netlist::host_arena>("netlist",
+			plib::make_unique<netlist_validate_callbacks_t, netlist::host_arena>());
 		// enable validation mode
 		lnetlist->set_extended_validation(true);
 		common_dev_start(lnetlist.get());
@@ -1000,7 +1002,7 @@ plib::unique_ptr<netlist::netlist_state_t> netlist_mame_device::base_validity_ch
 	{
 		osd_printf_error("%s\n", err.what());
 	}
-	return plib::unique_ptr<netlist::netlist_state_t>(nullptr);
+	return netlist::host_arena::unique_ptr<netlist::netlist_state_t>(nullptr);
 }
 
 void netlist_mame_device::device_validity_check(validity_checker &valid) const
@@ -1123,10 +1125,8 @@ void netlist_mame_device::save_state()
 				save_pointer((int16_t *) s->ptr(), s->name().c_str(), s->count());
 			else if (s->dt().size() == sizeof(int8_t))
 				save_pointer((int8_t *) s->ptr(), s->name().c_str(), s->count());
-#if (PHAS_INT128)
-			else if (s->dt().size() == sizeof(INT128))
+			else if (plib::compile_info::has_int128::value && s->dt().size() == sizeof(INT128))
 				save_pointer((int64_t *) s->ptr(), s->name().c_str(), s->count() * 2);
-#endif
 			else
 				netlist().log().fatal("Unknown integral type size {1} for {2}\n", s->dt().size(), s->name().c_str());
 		}

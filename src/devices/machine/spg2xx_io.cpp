@@ -27,7 +27,7 @@ DEFINE_DEVICE_TYPE(SPG28X_IO, spg28x_io_device, "spg28x_io", "SPG280-series Syst
 #define LOG_EXT_MEM         (1U << 27)
 #define LOG_EXTINT          (1U << 28)
 #define LOG_SPI             (1U << 29)
-#define LOG_ADC				(1U << 30)
+#define LOG_ADC             (1U << 30)
 #define LOG_IO              (LOG_IO_READS | LOG_IO_WRITES | LOG_IRQS | LOG_GPIO | LOG_UART | LOG_I2C | LOG_TIMERS | LOG_EXTINT | LOG_UNKNOWN_IO | LOG_SPI | LOG_ADC)
 #define LOG_ALL             (LOG_IO | LOG_VLINES | LOG_SEGMENT | LOG_WATCHDOG | LOG_FIQ | LOG_SIO | LOG_EXT_MEM | LOG_ADC)
 
@@ -1625,12 +1625,8 @@ void spg2xx_io_device::uart_receive_tick()
 void spg2xx_io_device::extint_w(int channel, bool state)
 {
 	LOGMASKED(LOG_EXTINT, "Setting extint channel %d to %s\n", channel, state ? "true" : "false");
-	bool old = m_extint[channel];
 	m_extint[channel] = state;
-	if (old != state)
-	{
-		check_extint_irq(channel);
-	}
+	check_extint_irq(channel);
 }
 
 void spg2xx_io_device::check_extint_irq(int channel)
@@ -1655,7 +1651,7 @@ void spg2xx_io_device::check_irqs(const uint16_t changed)
 	if (changed & 0x0c00) // Timer A, Timer B IRQ
 	{
 		LOGMASKED(LOG_TIMERS, "%ssserting IRQ2 (%04x, %04x)\n", (IO_IRQ_ENABLE & IO_IRQ_STATUS & 0x0c00) ? "A" : "Dea", (IO_IRQ_ENABLE & IO_IRQ_STATUS & 0x0c00), changed);
-		
+
 		if (m_timer_irq_cb)
 			m_timer_irq_cb((IO_IRQ_ENABLE & IO_IRQ_STATUS & 0x0c00) ? ASSERT_LINE : CLEAR_LINE);
 		else
@@ -1673,7 +1669,7 @@ void spg2xx_io_device::check_irqs(const uint16_t changed)
 
 	if (changed & 0x1200) // External IRQ
 	{
-		LOGMASKED(LOG_UART, "%ssserting IRQ5 (%04x, %04x)\n", (IO_IRQ_ENABLE & IO_IRQ_STATUS & 0x1200) ? "A" : "Dea", (IO_IRQ_ENABLE & IO_IRQ_STATUS & 0x1200), changed);
+		LOGMASKED(LOG_EXTINT, "%ssserting IRQ5 (%04x, %04x)\n", (IO_IRQ_ENABLE & IO_IRQ_STATUS & 0x1200) ? "A" : "Dea", (IO_IRQ_ENABLE & IO_IRQ_STATUS & 0x1200), changed);
 		if (m_external_irq_cb)
 			m_external_irq_cb((IO_IRQ_ENABLE & IO_IRQ_STATUS & 0x1200) ? ASSERT_LINE : CLEAR_LINE);
 		else
@@ -1693,7 +1689,7 @@ void spg2xx_io_device::check_irqs(const uint16_t changed)
 	if (changed & 0x008b) // TMB1, TMB2, 4Hz, key change IRQ
 	{
 		LOGMASKED(LOG_IRQS, "%ssserting IRQ7 (%04x, %04x)\n", (IO_IRQ_ENABLE & IO_IRQ_STATUS & 0x008b) ? "A" : "Dea", (IO_IRQ_ENABLE & IO_IRQ_STATUS & 0x008b), changed);
-		if (m_ffreq_tmr2_irq_cb)	
+		if (m_ffreq_tmr2_irq_cb)
 			m_ffreq_tmr2_irq_cb((IO_IRQ_ENABLE & IO_IRQ_STATUS & 0x008b) ? ASSERT_LINE : CLEAR_LINE);
 		else
 			logerror("spg2xx_io_device::check_irqs, attempted to use m_ffreq_tmr2_irq_cb without setting it\n");

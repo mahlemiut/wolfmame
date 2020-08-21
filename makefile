@@ -392,6 +392,13 @@ ifndef NOASM
 endif
 endif
 
+# ppc has inline assembly support but no DRC
+ifeq ($(findstring ppc,$(UNAME)),ppc)
+ifndef FORCE_DRC_C_BACKEND
+	FORCE_DRC_C_BACKEND := 1
+endif
+endif
+
 # Autodetect BIGENDIAN
 # MacOSX
 ifndef BIGENDIAN
@@ -1704,14 +1711,14 @@ endif
 
 ifeq (posix,$(SHELLTYPE))
 $(GENDIR)/version.cpp: makefile $(GENDIR)/git_desc | $(GEN_FOLDERS)
-	@echo '#define BARE_BUILD_VERSION "0.222"' > $@
+	@echo '#define BARE_BUILD_VERSION "0.223"' > $@
 	@echo 'extern const char bare_build_version[];' >> $@
 	@echo 'extern const char build_version[];' >> $@
 	@echo 'const char bare_build_version[] = BARE_BUILD_VERSION;' >> $@
 	@echo 'const char build_version[] = BARE_BUILD_VERSION "W ($(NEW_GIT_VERSION))";' >> $@
 else
 $(GENDIR)/version.cpp: makefile $(GENDIR)/git_desc | $(GEN_FOLDERS)
-	@echo #define BARE_BUILD_VERSION "0.222" > $@
+	@echo #define BARE_BUILD_VERSION "0.223" > $@
 	@echo extern const char bare_build_version[]; >> $@
 	@echo extern const char build_version[]; >> $@
 	@echo const char bare_build_version[] = BARE_BUILD_VERSION; >> $@

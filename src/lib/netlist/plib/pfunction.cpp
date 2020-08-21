@@ -11,10 +11,10 @@
 
 #include <array>
 #include <map>
+#include <map>
 #include <stack>
 #include <type_traits>
 #include <utility>
-#include <map>
 
 namespace plib {
 
@@ -312,7 +312,7 @@ namespace plib {
 			opstk.pop();
 		}
 		//for (auto &e : postfix)
-		//	printf("\t%s\n", e.c_str());
+		//  printf("\t%s\n", e.c_str());
 		compile_postfix(inputs, postfix, expr);
 	}
 

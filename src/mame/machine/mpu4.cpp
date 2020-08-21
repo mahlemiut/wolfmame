@@ -23,7 +23,7 @@
   This is the core driver, no video specific stuff should go in here.
   This driver holds all the mechanical games.
 
-	Old logs shown here from pre-GIT days:
+    Old logs shown here from pre-GIT days:
      06-2011: Fixed boneheaded interface glitch that was causing samples to not be cancelled correctly.
               Added the ability to read each segment of an LED display separately, this may be necessary for some
               games that use them as surrogate lamp lines.
@@ -159,7 +159,7 @@ IRQ line connected to CPU
            |   |                 |
            |   |                 |                    PA0-PA7, INPUT AUX1 connector
            |   |                 |
-           |   |                 |             CA2  OUTPUT, serial port Transmit line
+           |   |                 |             CA2  OUTPUT, serial port Transmit line (Tx)
            |   |                 |             CA1  not connected
            |   |                 |             IRQA connected to IRQ of CPU
            |   |                 |
@@ -253,7 +253,7 @@ TODO: - Distinguish door switches using manual
       - Complete stubs for hoppers (needs slightly better 68681 emulation, and new 'hoppers' device emulation)
       - It seems that the MPU4 core program relies on some degree of persistence when switching strobes and handling
       writes to the various hardware ports. This explains the occasional lamping/LED blackout and switching bugs.
-	  Ideally, this needs converting to the PWM device, but that will be a complex job with this many outputs.
+      Ideally, this needs converting to the PWM device, but that will be a complex job with this many outputs.
       - Fix BwB characteriser, need to be able to calculate stabiliser bytes. Anyone fancy reading 6809 source?
       - Strange bug in Andy's Great Escape - Mystery nudge sound effect is not played, mpu4 latches in silence instead (?)
 
@@ -353,7 +353,7 @@ void mpu4_state::led_write_extender(int latch, int data, int starting_column)
 	int diff,i,j, ext_strobe;
 
 	diff = (latch ^ m_last_latch) & latch;
-	ext_strobe = (7 - starting_column) * 8; 
+	ext_strobe = (7 - starting_column) * 8;
 
 	data = ~data;//invert drive lines
 	for (i=0; i<5; i++)
@@ -705,6 +705,13 @@ void mpu4_state::device_timer(emu_timer &timer, device_timer_id id, int param, v
 }
 
 
+WRITE_LINE_MEMBER(mpu4_state::dataport_rxd)
+{
+	m_serial_data = state;
+	m_pia4->cb1_w(state);
+	LOG_IC3(("Dataport RX %x\n",state));
+}
+
 /* IC4, 7 seg leds, 50Hz timer reel sensors, current sensors */
 void mpu4_state::pia_ic4_porta_w(uint8_t data)
 {
@@ -743,16 +750,13 @@ void mpu4_state::pia_ic4_portb_w(uint8_t data)
 
 uint8_t mpu4_state::pia_ic4_portb_r()
 {
-	/// TODO: this shouldn't be clocked from a read callback
 	if ( m_serial_data )
 	{
 		m_ic4_input_b |=  0x80;
-		m_pia4->cb1_w(1);
 	}
 	else
 	{
 		m_ic4_input_b &= ~0x80;
-		m_pia4->cb1_w(0);
 	}
 
 	if (!m_reel_mux)
@@ -1031,7 +1035,7 @@ void mpu4_state::pia_ic5_portb_w(uint8_t data)
 			{
 				m_mpu4leds[( ( (7 - m_input_strobe) + 8) << 3) | i] = BIT(m_pia4->a_output(), i);
 			}
-			m_digits[(7 - m_input_strobe) + 8] = m_pia4->a_output();	
+			m_digits[(7 - m_input_strobe) + 8] = m_pia4->a_output();
 		}
 		m_led_strobe = m_input_strobe;
 	}
@@ -1072,7 +1076,7 @@ uint8_t mpu4_state::pia_ic5_portb_r()
 WRITE_LINE_MEMBER(mpu4_state::pia_ic5_ca2_w)
 {
 	LOG(("%s: IC5 PIA Write CA2 (Serial Tx) %2x\n",machine().describe_context(),state));
-	m_serial_data = state;
+	m_dataport->write_txd(state);
 }
 
 
@@ -1361,6 +1365,7 @@ void mpu4_state::pia_gb_portb_w(uint8_t data)
 			}
 
 			{
+				LOG_SS(("%s: GAMEBOARD: Volume Set to %2x\n", machine().describe_context(),data));
 				float percent = (32-m_global_volume)/32.0;
 				m_msm6376->set_output_gain(0, percent);
 				m_msm6376->set_output_gain(1, percent);
@@ -1392,7 +1397,6 @@ uint8_t mpu4_state::pia_gb_portb_r()
 WRITE_LINE_MEMBER(mpu4_state::pia_gb_ca2_w)
 {
 	LOG_SS(("%s: GAMEBOARD: OKI RESET data = %02X\n", machine().describe_context(), state));
-
 //  reset line
 }
 
@@ -1599,9 +1603,9 @@ INPUT_PORTS_START( mpu4 )
 
 	PORT_START("AUX2")
 	PORT_BIT(0x01, IP_ACTIVE_HIGH, IPT_CUSTOM) //Lockouts, in same order as below
-	PORT_BIT(0x02, IP_ACTIVE_HIGH, IPT_CUSTOM) 
-	PORT_BIT(0x04, IP_ACTIVE_HIGH, IPT_CUSTOM) 
-	PORT_BIT(0x08, IP_ACTIVE_HIGH, IPT_CUSTOM) 
+	PORT_BIT(0x02, IP_ACTIVE_HIGH, IPT_CUSTOM)
+	PORT_BIT(0x04, IP_ACTIVE_HIGH, IPT_CUSTOM)
+	PORT_BIT(0x08, IP_ACTIVE_HIGH, IPT_CUSTOM)
 	PORT_BIT(0x10, IP_ACTIVE_HIGH, IPT_COIN1) PORT_NAME("10p")//PORT_IMPULSE(5)
 	PORT_BIT(0x20, IP_ACTIVE_HIGH, IPT_COIN2) PORT_NAME("20p")//PORT_IMPULSE(5)
 	PORT_BIT(0x40, IP_ACTIVE_HIGH, IPT_COIN3) PORT_NAME("50p")//PORT_IMPULSE(5)
@@ -3058,6 +3062,9 @@ void mpu4_state::mpu4_common(machine_config &config)
 	m_pia8->irqb_handler().set(FUNC(mpu4_state::cpu0_irq));
 
 	METERS(config, m_meters, 0).set_number(8);
+
+	BACTA_DATALOGGER(config, m_dataport, 0);
+	m_dataport->rxd_handler().set(FUNC(mpu4_state::dataport_rxd));
 }
 
 void mpu4_state::mpu4_common2(machine_config &config)
@@ -3066,15 +3073,14 @@ void mpu4_state::mpu4_common2(machine_config &config)
 	m_ptm_ic3ss->set_external_clocks(0, 0, 0);
 	m_ptm_ic3ss->o1_callback().set("ptm_ic3ss", FUNC(ptm6840_device::set_c2));
 	m_ptm_ic3ss->o2_callback().set("ptm_ic3ss", FUNC(ptm6840_device::set_c1));
-	//m_ptm_ic3ss->o3_callback().set("ptm_ic3ss", FUNC(ptm6840_device::set_g1));
-	//m_ptm_ic3ss->irq_callback().set(FUNC(mpu4_state::cpu1_ptm_irq));
+	m_ptm_ic3ss->o3_callback().set("ptm_ic3ss", FUNC(ptm6840_device::set_g1));
 
-	pia6821_device &pia_ic4ss(PIA6821(config, "pia_ic4ss", 0));
-	pia_ic4ss.readpb_handler().set(FUNC(mpu4_state::pia_gb_portb_r));
-	pia_ic4ss.writepa_handler().set(FUNC(mpu4_state::pia_gb_porta_w));
-	pia_ic4ss.writepb_handler().set(FUNC(mpu4_state::pia_gb_portb_w));
-	pia_ic4ss.ca2_handler().set(FUNC(mpu4_state::pia_gb_ca2_w));
-	pia_ic4ss.cb2_handler().set(FUNC(mpu4_state::pia_gb_cb2_w));
+	PIA6821(config, m_pia_ic4ss, 0);
+	m_pia_ic4ss->readpb_handler().set(FUNC(mpu4_state::pia_gb_portb_r));
+	m_pia_ic4ss->writepa_handler().set(FUNC(mpu4_state::pia_gb_porta_w));
+	m_pia_ic4ss->writepb_handler().set(FUNC(mpu4_state::pia_gb_portb_w));
+	m_pia_ic4ss->ca2_handler().set(FUNC(mpu4_state::pia_gb_ca2_w));
+	m_pia_ic4ss->cb2_handler().set(FUNC(mpu4_state::pia_gb_cb2_w));
 }
 
 /* machine driver for MOD 2 board */

@@ -317,6 +317,14 @@ void spg2xx_game_gssytts_state::mem_map_upperbank(address_map &map)
 	map(0x200000, 0x3fffff).bankr("upperbank");
 }
 
+
+void spg2xx_game_wfcentro_state::mem_map_wfcentro(address_map &map)
+{
+	map(0x000000, 0x37ffff).bankr("cartbank");
+	map(0x380000, 0x3fffff).ram();
+}
+
+
 static INPUT_PORTS_START( spg2xx ) // base structure for easy debugging / figuring out of inputs
 	PORT_START("P1")
 	PORT_DIPNAME( 0x0001, 0x0001, "P1:0001" )
@@ -629,6 +637,19 @@ static INPUT_PORTS_START( abltenni )
 	PORT_MODIFY("P3")
 INPUT_PORTS_END
 
+
+static INPUT_PORTS_START( ordentv )
+	PORT_INCLUDE( spg2xx )
+
+	PORT_MODIFY("P2")
+	PORT_BIT( 0x0001, IP_ACTIVE_HIGH, IPT_JOYSTICK_UP )
+	PORT_BIT( 0x0002, IP_ACTIVE_HIGH, IPT_JOYSTICK_DOWN )
+	PORT_BIT( 0x0004, IP_ACTIVE_HIGH, IPT_JOYSTICK_LEFT )
+	PORT_BIT( 0x0008, IP_ACTIVE_HIGH, IPT_JOYSTICK_RIGHT )
+	PORT_BIT( 0x0010, IP_ACTIVE_HIGH, IPT_BUTTON1 )
+	PORT_BIT( 0x0020, IP_ACTIVE_HIGH, IPT_BUTTON2 )
+INPUT_PORTS_END
+
 static INPUT_PORTS_START( fordrace )
 	PORT_INCLUDE( spg2xx )
 
@@ -677,7 +698,7 @@ static INPUT_PORTS_START( totspies )
 
 	PORT_MODIFY("P2")
 	PORT_BIT( 0xffff, IP_ACTIVE_LOW, IPT_UNKNOWN )
-		
+
 	// unit also has a 'select' button next to 'OK' and while test mode shows it onscreen too, it doesn't get tested, so probably isn't connected to anything?
 	PORT_MODIFY("P3")
 	PORT_BIT( 0x0001, IP_ACTIVE_LOW, IPT_BUTTON3 ) PORT_NAME("OK")
@@ -1482,6 +1503,20 @@ void spg2xx_game_gssytts_state::gssytts(machine_config &config)
 }
 
 
+void spg2xx_game_wfcentro_state::wfcentro(machine_config &config)
+{
+	SPG24X(config, m_maincpu, XTAL(27'000'000), m_screen);
+	m_maincpu->set_addrmap(AS_PROGRAM, &spg2xx_game_wfcentro_state::mem_map_wfcentro);
+
+	spg2xx_base(config);
+
+	m_maincpu->porta_in().set(FUNC(spg2xx_game_wfcentro_state::base_porta_r));
+	m_maincpu->portb_in().set(FUNC(spg2xx_game_wfcentro_state::base_portb_r));
+	m_maincpu->portc_in().set(FUNC(spg2xx_game_wfcentro_state::base_portc_r));
+}
+
+
+
 void spg2xx_game_senwfit_state::portc_w(offs_t offset, uint16_t data, uint16_t mem_mask)
 {
 	int bank = 0;
@@ -1560,6 +1595,26 @@ void spg2xx_game_state::rad_crik(machine_config &config)
 	m_maincpu->i2c_r().set(FUNC(spg2xx_game_state::i2c_r));
 }
 
+uint16_t spg2xx_game_ordentv_state::ordentv_portc_r(offs_t offset, uint16_t mem_mask)
+{
+	uint16_t data = m_io_p3->read() ^ (machine().rand() & 1);
+	logerror("%s: Port C Read: %04x (%04x)\n", machine().describe_context(), data, mem_mask);
+	return data;
+}
+
+void spg2xx_game_ordentv_state::ordentv(machine_config &config)
+{
+	SPG24X(config, m_maincpu, XTAL(27'000'000), m_screen);
+	m_maincpu->set_addrmap(AS_PROGRAM, &spg2xx_game_ordentv_state::mem_map_4m);
+
+	spg2xx_base(config);
+
+	m_maincpu->porta_in().set(FUNC(spg2xx_game_ordentv_state::base_porta_r));
+	m_maincpu->portb_in().set(FUNC(spg2xx_game_ordentv_state::base_portb_r));
+	m_maincpu->portc_in().set(FUNC(spg2xx_game_ordentv_state::ordentv_portc_r));
+}
+
+
 ROM_START( rad_skat )
 	ROM_REGION( 0x800000, "maincpu", ROMREGION_ERASE00 )
 	ROM_LOAD16_WORD_SWAP( "skateboarder.bin", 0x000000, 0x400000, CRC(08b9ab91) SHA1(6665edc4740804956136c68065890925a144626b) )
@@ -1600,7 +1655,6 @@ ROM_END
 ROM_START( ablkickb )
 	ROM_REGION( 0x1000000, "maincpu", ROMREGION_ERASE00 )
 	ROM_LOAD16_WORD_SWAP( "ablkickboxing.bin", 0x000000, 0x800000,  CRC(61394c45) SHA1(291d28a39edcb32a8f5d776a5e5c05e6fd0abece) )
-	ROM_LOAD16_WORD_SWAP( "fm25q16a.bin", 0x800000, 0x200000, CRC(aeb472ac) SHA1(500c24b725f6d3308ef8cbdf4259f5be556c7c92) )
 ROM_END
 
 ROM_START( lxspidaj )
@@ -1716,6 +1770,21 @@ ROM_START( senspeed )
 	ROM_LOAD16_WORD_SWAP( "speedracer.bin", 0x000000, 0x800000, CRC(4efbcd39) SHA1(2edffbaa9ea309ad308fa60f32d8b7a98ee313c7) )
 ROM_END
 
+ROM_START( ordentv )
+	ROM_REGION( 0x800000, "maincpu", ROMREGION_ERASE00 )
+	ROM_LOAD16_WORD_SWAP( "taikeeordenadortv.bin", 0x000000, 0x800000, CRC(ba15895a) SHA1(0a18076cbc3264c91473b8518dfb10d679321b47) )
+ROM_END
+
+ROM_START( wfcentro )
+	ROM_REGION( 0x800000, "maincpu", ROMREGION_ERASE00 )
+	ROM_LOAD16_WORD_SWAP( "winfuncentro.bin", 0x000000, 0x800000, CRC(fd6ad052) SHA1(78af844729bf4843dc70531349e38a8c25caf748) )
+ROM_END
+
+ROM_START( tiktokmm )
+	ROM_REGION( 0x800000, "maincpu", ROMREGION_ERASE00 )
+	ROM_LOAD16_WORD_SWAP( "webcamthingy.bin", 0x000000, 0x800000, CRC(54c0d4a9) SHA1(709ee607ca447baa6f7e686268df1998372fe617) )
+ROM_END
+
 void spg2xx_game_state::init_crc()
 {
 	// several games have a byte sum checksum listed at the start of ROM, this little helper function logs what it should match.
@@ -1764,6 +1833,13 @@ void spg2xx_game_albkickb_state::init_ablkickb()
 	decrypt_ac_ff(ROM, size);
 }
 
+void spg2xx_game_ordentv_state::init_ordentv()
+{
+	// the game will die by jumping to an infinite loop if this check fails, what is it checking?
+	uint16_t* rom = (uint16_t*)memregion("maincpu")->base();
+	rom[0x4fef8] = 0xee07;
+}
+
 
 // year, name, parent, compat, machine, input, class, init, company, fullname, flags
 
@@ -1782,7 +1858,7 @@ CONS( 2006, ablkickb,   0,        0, ablkickb,  ablkickb,  spg2xx_game_albkickb_
 
 CONS( 2007, lxspidaj,   0,        0, spg2xx_pal,lxspidaj,  spg2xx_game_albkickb_state, init_ablkickb, "Lexibook",                                               "Spider-Man Super TV Air Jet (Lexibook Junior, JG6000SP)",               MACHINE_IMPERFECT_SOUND | MACHINE_IMPERFECT_GRAPHICS )
 
-CONS( 2006, totspies,   0,        0, spg2xx_pal,totspies,  spg2xx_game_state,          empty_init,    "Senario / Marathon - Mystery Animation Inc.",            "Totally Spies! (France)",												 MACHINE_IMPERFECT_SOUND | MACHINE_IMPERFECT_GRAPHICS )
+CONS( 2006, totspies,   0,        0, spg2xx_pal,totspies,  spg2xx_game_state,          empty_init,    "Senario / Marathon - Mystery Animation Inc.",            "Totally Spies! (France)",                                               MACHINE_IMPERFECT_SOUND | MACHINE_IMPERFECT_GRAPHICS )
 
 CONS( 2006, fordrace,   0,        0, fordrace,  fordrace,  spg2xx_game_fordrace_state, empty_init,    "Excalibur Electronics",                                  "Ford Racing",                                                           MACHINE_IMPERFECT_SOUND | MACHINE_IMPERFECT_GRAPHICS )
 
@@ -1825,6 +1901,11 @@ CONS( 2007, dreamlss,   0,        0, dreamlss,  dreamlss,  spg2xx_game_dreamlss_
 CONS( 2008, swclone,    0,        0, swclone,   swclone,   spg2xx_game_swclone_state,  init_swclone,  "Hasbro / Tiger Electronics",                             "Star Wars - The Clone Wars",                                            MACHINE_IMPERFECT_SOUND | MACHINE_IMPERFECT_GRAPHICS )
 
 // Mattel games
-CONS( 2005, mattelcs,   0,        0, rad_skat, mattelcs,   spg2xx_game_state,          empty_init,    "Mattel",                                                 "Mattel Classic Sports",                                                 MACHINE_IMPERFECT_SOUND )
+CONS( 2005, mattelcs,   0,        0, rad_skat,  mattelcs,  spg2xx_game_state,          empty_init,    "Mattel",                                                 "Mattel Classic Sports",                                                 MACHINE_IMPERFECT_SOUND )
 
-// Both the WiWi and Fox Sports units seem to be related to the 'Virtual Interactive' (aka 'Vi') console
+CONS( 2007, ordentv,    0,        0, ordentv,   ordentv,   spg2xx_game_ordentv_state,  init_ordentv,  "Taikee / V-Tac",                                         "Ordenador-TV (Spain)",                                                  MACHINE_NOT_WORKING )
+
+CONS( 200?, wfcentro,   0,        0, wfcentro,  spg2xx,    spg2xx_game_wfcentro_state, empty_init,    "WinFun",                                                 "Centro TV de Diseno Artistico (Spain)",                                 MACHINE_NOT_WORKING )
+
+// set 2862 to 0003 (irq enable) when it stalls on boot to show something (doesn't turn on IRQs again otherwise?) needs camera emulating
+CONS( 200?, tiktokmm,   0,        0, spg2xx,    spg2xx,    spg2xx_game_wfcentro_state, empty_init,    "TikTokTech Ltd. / 3T Games / Senario",                   "Moving Music (MM-TV110)",                                 MACHINE_NOT_WORKING )

@@ -41,10 +41,10 @@ The Grid         v1.2   10/18/2000
 
 #include "crusnexo.lh"
 
-#define LOG_FIREWIRE	(1 << 1)
-#define LOG_DISK		(1 << 2)
-#define LOG_DISK_JR		(1 << 3)
-#define LOG_UNKNOWN		(1 << 4)
+#define LOG_FIREWIRE    (1 << 1)
+#define LOG_DISK        (1 << 2)
+#define LOG_DISK_JR     (1 << 3)
+#define LOG_UNKNOWN     (1 << 4)
 
 #define VERBOSE (LOG_FIREWIRE)
 #include "logmacro.h"
@@ -114,9 +114,9 @@ private:
 
 	void update_firewire_irq();
 
-	uint32_t	m_disk_asic[0x10];
-	int			m_fw_int_enable;
-	int			m_fw_int;
+	uint32_t    m_disk_asic[0x10];
+	int         m_fw_int_enable;
+	int         m_fw_int;
 
 	required_device<zeus2_device> m_zeus;
 	required_device<tsb12lv01a_device> m_fw_link;
@@ -1417,7 +1417,7 @@ ROM_START( invasnab ) /* Version 5.0 Program ROMs, v4.0 Graphics ROMs, v2.0 Soun
 	ROM_LOAD16_BYTE( "invasion2.u5", 0xc00000, 0x200000, CRC(e42805c9) SHA1(e5b71eb1852809a649ac43a82168b3bdaf4b1526) )
 
 	ROM_REGION( 0x2000, "pic", 0 ) /* PIC16c57 Code */
-	ROM_LOAD( "pic16c57.u76", 0x00000, 0x2000, CRC(f62729c9) SHA1(9642c53dd7eceeb7eb178497d367691c44abc5c5) ) // is this even a valid dump?
+	ROM_LOAD( "pic16c57.u76", 0x00000, 0x2000, BAD_DUMP CRC(f62729c9) SHA1(9642c53dd7eceeb7eb178497d367691c44abc5c5) ) // is this even a valid dump?
 
 	ROM_REGION32_LE( 0x1800000, "user1", 0 )
 	ROM_LOAD32_WORD( "invasion5.u10", 0x0000000, 0x200000, CRC(8c7785d9) SHA1(701602314cd4eba4215c47ea0ae75fd4eddad43b) ) /* Roms U10 & U11 were labeled as v5.0 */
@@ -1440,7 +1440,7 @@ ROM_START( invasnab4 ) /* Version 4.0 Program ROMs & Graphics ROMs, v2.0 Sound R
 	ROM_LOAD16_BYTE( "invasion2.u5", 0xc00000, 0x200000, CRC(e42805c9) SHA1(e5b71eb1852809a649ac43a82168b3bdaf4b1526) )
 
 	ROM_REGION( 0x2000, "pic", 0 ) /* PIC16c57 Code */
-	ROM_LOAD( "pic16c57.u76", 0x00000, 0x2000, CRC(f62729c9) SHA1(9642c53dd7eceeb7eb178497d367691c44abc5c5) ) // is this even a valid dump?
+	ROM_LOAD( "pic16c57.u76", 0x00000, 0x2000, BAD_DUMP CRC(f62729c9) SHA1(9642c53dd7eceeb7eb178497d367691c44abc5c5) ) // is this even a valid dump?
 
 	ROM_REGION32_LE( 0x1800000, "user1", 0 )
 	ROM_LOAD32_WORD( "invasion4.u10", 0x0000000, 0x200000, CRC(b3ce958b) SHA1(ed51c167d85bc5f6155b8046ec056a4f4ad5cf9d) ) /* These ROM were all labeled as v4.0 */
@@ -1463,7 +1463,7 @@ ROM_START( invasnab3 ) /* Version 3.0 Program ROMs & v2.0 Graphics ROMs, v2.0 So
 	ROM_LOAD16_BYTE( "invasion2.u5", 0xc00000, 0x200000, CRC(e42805c9) SHA1(e5b71eb1852809a649ac43a82168b3bdaf4b1526) )
 
 	ROM_REGION( 0x2000, "pic", 0 ) /* PIC16c57 Code */
-	ROM_LOAD( "pic16c57.u76", 0x00000, 0x2000, CRC(f62729c9) SHA1(9642c53dd7eceeb7eb178497d367691c44abc5c5) ) // is this even a valid dump?
+	ROM_LOAD( "pic16c57.u76", 0x00000, 0x2000, BAD_DUMP CRC(f62729c9) SHA1(9642c53dd7eceeb7eb178497d367691c44abc5c5) ) // is this even a valid dump?
 
 	ROM_REGION32_LE( 0x1800000, "user1", 0 )
 	ROM_LOAD32_WORD( "invasion3.u10", 0x0000000, 0x200000, CRC(8404830e) SHA1(808fea45fb09fb7bf60f9f1e195a51d39e9966f5) ) /* Roms U10 through U13 were labeled as v3.0 Dated 8/30 */

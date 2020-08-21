@@ -2,11 +2,14 @@
 // copyright-holders:Sterophonick, Phil Thomas
 /*****************************************************************************
  *
- * Skeleton device for Gigatron CPU Core
+ * Gigatron CPU Core
+ *
+ * Based on Gigatron.js by Phil Thomas
+ * https://github.com/PhilThomas/gigatron
+ *
+ * Ported to MAME framework by Sterophonick
  *
  *****************************************************************************/
-
- //https://github.com/PhilThomas/gigatron/blob/master/src/gigatron.js
 
 #ifndef MAME_CPU_GTRON_H
 #define MAME_CPU_GTRON_H
@@ -50,7 +53,7 @@ protected:
 
 	// device_memory_interface overrides
 	virtual space_config_vector memory_space_config() const override;
-	
+
 	void reset_cpu();
 
 	void branchOp(uint8_t op, uint8_t mode, uint8_t bus, uint8_t d);
@@ -74,7 +77,7 @@ private:
 	address_space_config m_program_config;
 	address_space_config m_data_config;
 
-	uint16_t  m_pc;   /* registers */
+	uint16_t  m_pc;   /* program counter */
 	uint8_t   m_flags;  /* flags */
 	address_space *m_program;
 	address_space *m_data;

@@ -304,12 +304,12 @@ uint8_t i8244_device::read(offs_t offset)
 		{
 			data = m_control_status;
 
-			// position strobe status
-			data |= m_vdc.s.control & 0x02;
-
 			// hstatus (not same as hblank), goes high at falling edge of X=0x70
 			int h = screen().hpos();
 			data |= (h >= 225 && h < m_bgate_start && get_y_beam() <= m_vblank_start) ? 1 : 0;
+
+			// position strobe status
+			data |= m_pos_hold ? 2 : 0;
 
 			m_irq_func(CLEAR_LINE);
 			m_control_status &= ~0xcc;
@@ -328,7 +328,7 @@ uint8_t i8244_device::read(offs_t offset)
 				data = m_y_latch;
 				m_y_hold = false;
 			}
-			else if (m_pos_hold || !(m_vdc.s.control & 0x02))
+			else if (m_pos_hold)
 				data = m_y_beam_pos;
 			else
 				data = get_y_beam();
@@ -337,7 +337,7 @@ uint8_t i8244_device::read(offs_t offset)
 
 		case 0xa5:
 		{
-			if (m_pos_hold || !(m_vdc.s.control & 0x02))
+			if (m_pos_hold)
 			{
 				data = m_x_beam_pos;
 				m_pos_hold = false;
@@ -347,7 +347,7 @@ uint8_t i8244_device::read(offs_t offset)
 
 			// Y is latched when reading X
 			m_y_hold = true;
-			m_y_latch = (m_vdc.s.control & 0x02) ? get_y_beam() : m_y_beam_pos;
+			m_y_latch = get_y_beam();
 
 			break;
 		}
@@ -369,7 +369,7 @@ void i8244_device::write(offs_t offset, uint8_t data)
 		return;
 
 	// update screen before accessing video registers
-	if (offset < 0xa4 || offset >= 0xc0)
+	if (offset >= 0x80 && offset < 0xa4)
 		screen().update_now();
 
 	// color registers d4-d7 are not connected
@@ -518,13 +518,13 @@ uint32_t i8244_device::screen_update(screen_device &screen, bitmap_ind16 &bitmap
 			int w = ( m_vdc.s.control & 0x80 ) ? width : 2;
 
 			/* Draw horizontal part of the grid */
-			for ( int j = 1, y = 0; y < 9; y++, j <<= 1 )
+			for ( int y = 0; y < 9; y++ )
 			{
 				if ( y_grid_offset + y * height <= scanline && scanline < y_grid_offset + y * height + 3 )
 				{
 					for ( int i = 0; i < 9; i++ )
 					{
-						if ( ( m_vdc.s.hgrid[0][i] & j ) || ( m_vdc.s.hgrid[1][i] & ( j >> 8 ) ) )
+						if ( BIT(m_vdc.s.hgrid[1][i] << 8 | m_vdc.s.hgrid[0][i], y) )
 						{
 							for ( int k = 0; k < width + 2; k++ )
 							{

@@ -368,8 +368,6 @@ namespace plib {
 			bind<const_specific_member_function<O>>(object, &mftp);
 		}
 
-		bool is_set() const noexcept { return m_resolved != nullptr; }
-
 		generic_class *object() const noexcept { return m_obj; }
 		bool has_object() const noexcept { return m_obj != nullptr; }
 
@@ -379,11 +377,12 @@ namespace plib {
 			bind<specific_member_function<O>>(object, &mftp);
 		}
 
-		inline R operator()(Targs... args) const noexcept(true)
+		R operator()(Targs... args) const noexcept(true)
 		{
 			return this->call(std::forward<Targs>(args)...);
 		}
 
+		operator bool() const noexcept { return m_resolved != nullptr; }
 	private:
 		template<typename SPC, typename O, typename MF>
 		void bind(O * object, MF *fraw)

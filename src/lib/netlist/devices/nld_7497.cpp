@@ -37,8 +37,7 @@
  *  Unity/cascade is used to inhibit output Y (UNITY L -> Y H)
  */
 
-#include "nld_7497.h"
-#include "netlist/nl_base.h"
+#include "nl_base.h"
 
 namespace netlist
 {
@@ -47,6 +46,8 @@ namespace netlist
 
 	static constexpr const std::array<netlist_time, 2> out_delay_CLK_Y = { NLTIME_FROM_NS(20), NLTIME_FROM_NS(26) }; // tPHL, tPLH
 	static constexpr const std::array<netlist_time, 2> out_delay_CLK_Z = { NLTIME_FROM_NS(17), NLTIME_FROM_NS(12) };
+
+	// FIXME: room for improvement -> clock handling
 
 	NETLIB_OBJECT(7497)
 	{
@@ -75,8 +76,6 @@ namespace netlist
 			m_rate = 0;
 			m_lastclock = 0;
 		}
-
-		NETLIB_HANDLERI(noop) { }
 
 		NETLIB_HANDLERI(unity)
 		{

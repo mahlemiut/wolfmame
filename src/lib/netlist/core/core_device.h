@@ -31,23 +31,27 @@ namespace netlist
 
 		void do_inc_active() noexcept
 		{
-			if (m_hint_deactivate)
+			gsl_Expects(m_active_outputs >= 0);
+
+			if (m_activate && m_hint_deactivate)
 			{
 				if (++m_active_outputs == 1)
 				{
 					if (m_stats)
 						m_stats->m_stat_inc_active.inc();
-					inc_active();
+					m_activate(true);//inc_active();
 				}
 			}
 		}
 
 		void do_dec_active() noexcept
 		{
-			if (m_hint_deactivate)
+			gsl_Expects(m_active_outputs >= 1);
+
+			if (m_activate && m_hint_deactivate)
 				if (--m_active_outputs == 0)
 				{
-					dec_active();
+					m_activate(false); //dec_active();
 				}
 		}
 
@@ -66,15 +70,17 @@ namespace netlist
 		};
 
 		stats_t * stats() const noexcept { return m_stats.get(); }
-#if 0
-		virtual void update() noexcept { }
-#endif
+
 		virtual void reset() { }
 
-	protected:
+		void handler_noop()
+		{
+		}
 
-		virtual void inc_active() noexcept {  }
-		virtual void dec_active() noexcept {  }
+	protected:
+		using activate_delegate = plib::pmfp<void, bool>;
+
+		activate_delegate m_activate;
 
 		log_type & log();
 

@@ -798,8 +798,8 @@ void gunfight_audio_device::device_add_mconfig(machine_config &config)
 	// the outputs before the power amps so that the highest output spikes
 	// of +/- 3 volts just reach the clipping limits for signed 16-bit
 	// samples.
-	NETLIST_STREAM_OUTPUT(config, "sound_nl:cout0", 0, "OUT_L").set_mult_offset(32767.0 / 3.0, 0.0);
-	NETLIST_STREAM_OUTPUT(config, "sound_nl:cout1", 1, "OUT_R").set_mult_offset(32767.0 / 3.0, 0.0);
+	NETLIST_STREAM_OUTPUT(config, "sound_nl:cout0", 0, "OUT_L").set_mult_offset(1.0 / 3.0, 0.0);
+	NETLIST_STREAM_OUTPUT(config, "sound_nl:cout1", 1, "OUT_R").set_mult_offset(1.0 / 3.0, 0.0);
 
 	// Netlist volume-potentiometer interfaces
 	NETLIST_ANALOG_INPUT(config, "sound_nl:pot_left_master_vol", "R103.DIAL");
@@ -3737,24 +3737,24 @@ void zzzap_common_audio_device::device_add_mconfig(machine_config &config)
 			.add_route(ALL_OUTPUTS, "mono", 1.0);
 
 		NETLIST_LOGIC_INPUT(config, "sound_nl:pedal_bit0",
-				    "I_PEDAL_BIT0", 0);
+					"I_PEDAL_BIT0", 0);
 		NETLIST_LOGIC_INPUT(config, "sound_nl:pedal_bit1",
-				    "I_PEDAL_BIT1", 0);
+					"I_PEDAL_BIT1", 0);
 		NETLIST_LOGIC_INPUT(config, "sound_nl:pedal_bit2",
-				    "I_PEDAL_BIT2", 0);
+					"I_PEDAL_BIT2", 0);
 		NETLIST_LOGIC_INPUT(config, "sound_nl:pedal_bit3",
-				    "I_PEDAL_BIT3", 0);
+					"I_PEDAL_BIT3", 0);
 		NETLIST_LOGIC_INPUT(config, "sound_nl:hi_shift",
-				    "I_HI_SHIFT", 0);
+					"I_HI_SHIFT", 0);
 		NETLIST_LOGIC_INPUT(config, "sound_nl:lo_shift",
-				    "I_LO_SHIFT", 0);
+					"I_LO_SHIFT", 0);
 		NETLIST_LOGIC_INPUT(config, "sound_nl:boom", "I_BOOM", 0);
 		NETLIST_LOGIC_INPUT(config, "sound_nl:engine_sound_off",
-				    "I_ENGINE_SOUND_OFF", 0);
+					"I_ENGINE_SOUND_OFF", 0);
 		NETLIST_LOGIC_INPUT(config, "sound_nl:noise_cr_1",
-				    "I_NOISE_CR_1", 0);
+					"I_NOISE_CR_1", 0);
 		NETLIST_LOGIC_INPUT(config, "sound_nl:noise_cr_2",
-				    "I_NOISE_CR_2", 0);
+					"I_NOISE_CR_2", 0);
 
 		// The audio output is taken from an LM3900 op-amp whose
 		// output has a peak-to-peak range of about 5 volts, centered
@@ -3768,7 +3768,7 @@ void zzzap_common_audio_device::device_add_mconfig(machine_config &config)
 		// just reach the clipping limits for signed 16-bit samples.
 		// So turning the volume up much higher than the default will
 		// give clipped output.
-		NETLIST_STREAM_OUTPUT(config, "sound_nl:cout0", 0, "OUTPUT").set_mult_offset(32767.0 / 1.25, -(32767.0 / 1.25) * 2.50);
+		NETLIST_STREAM_OUTPUT(config, "sound_nl:cout0", 0, "OUTPUT").set_mult_offset(1.0 / 1.25, -(1.0 / 1.25) * 2.50);
 
 		// Netlist volume-potentiometer interface
 		NETLIST_ANALOG_INPUT(config, "sound_nl:pot_master_vol", "R70.DIAL");
@@ -3786,13 +3786,13 @@ void zzzap_common_audio_device::device_start()
 
 
 zzzap_audio_device::zzzap_audio_device(machine_config const &mconfig, char const *tag, device_t *owner, u32 clock) :
-        zzzap_common_audio_device(mconfig, ZZZAP_AUDIO, tag, owner, clock, NETLIST_NAME(280zzzap))
+		zzzap_common_audio_device(mconfig, ZZZAP_AUDIO, tag, owner, clock, NETLIST_NAME(280zzzap))
 {
 }
 
 
 lagunar_audio_device::lagunar_audio_device(machine_config const &mconfig, char const *tag, device_t *owner, u32 clock) :
-        zzzap_common_audio_device(mconfig, LAGUNAR_AUDIO, tag, owner, clock, NETLIST_NAME(lagunar))
+		zzzap_common_audio_device(mconfig, LAGUNAR_AUDIO, tag, owner, clock, NETLIST_NAME(lagunar))
 {
 }
 

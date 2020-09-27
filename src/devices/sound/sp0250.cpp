@@ -5,17 +5,8 @@
 
    By O. Galibert.
 
-   Unknown:
-   - Exact clock divider
-   - Exact noise algorithm
-   - Exact noise pitch (probably ok)
-   - 7 bits output mapping
-   - Whether the pitch starts counting from 0 or 1
-
    Unimplemented:
    - Direct Data test mode (pin 7)
-
-   Sound quite reasonably already though.
 */
 
 #include "emu.h"
@@ -72,10 +63,7 @@ void sp0250_device::device_start()
 	// output PWM data at the ROMCLOCK frequency
 	int sample_rate = clock() / 2;
 	int frame_rate = sample_rate / (4 * PWM_CLOCKS);
-	if (!m_pwm_mode)
-		m_stream = machine().sound().stream_alloc(*this, 0, 1, frame_rate);
-	else
-		m_stream = machine().sound().stream_alloc(*this, 0, 1, sample_rate);
+	m_stream = stream_alloc(0, 1, m_pwm_mode ? sample_rate : frame_rate);
 
 	// if a DRQ callback is offered, run a timer at the frame rate
 	// to ensure the DRQ gets picked up in a timely manner
@@ -100,13 +88,11 @@ void sp0250_device::device_start()
 	save_item(NAME(m_pcount));
 	save_item(NAME(m_repeat));
 	save_item(NAME(m_rcount));
-	for (int index = 0; index < 6; index++)
-	{
-		save_item(NAME(m_filter[index].F), index);
-		save_item(NAME(m_filter[index].B), index);
-		save_item(NAME(m_filter[index].z1), index);
-		save_item(NAME(m_filter[index].z2), index);
-	}
+
+	save_item(STRUCT_MEMBER(m_filter, F));
+	save_item(STRUCT_MEMBER(m_filter, B));
+	save_item(STRUCT_MEMBER(m_filter, z1));
+	save_item(STRUCT_MEMBER(m_filter, z2));
 
 	// FIFO state
 	save_item(NAME(m_fifo));
@@ -208,17 +194,16 @@ int8_t sp0250_device::next()
 		}
 	}
 
+	// 15-bit LFSR algorithm verified by dump from actual hardware
+	// clocks every cycle regardless of voiced/unvoiced setting
+	m_lfsr ^= (m_lfsr ^ (m_lfsr >> 1)) << 15;
+	m_lfsr >>= 1;
+
 	int16_t z0;
 	if (m_voiced)
 		z0 = (m_pcount == 0) ? m_amp : 0;
 	else
-	{
 		z0 = (m_lfsr & 1) ? m_amp : -m_amp;
-
-		// 15-bit LFSR algorithm verified by dump from actual hardware
-		m_lfsr ^= (m_lfsr ^ (m_lfsr >> 1)) << 15;
-		m_lfsr >>= 1;
-	}
 
 	for (int f = 0; f < 6; f++)
 		z0 = m_filter[f].apply(z0);
@@ -251,12 +236,11 @@ int8_t sp0250_device::next()
 	//    DAC  62 -> 33,32,33,32
 	//    DAC  63 -> 33,33,33,32
 	m_pwm_counts = (((dac + 68 + 3) >> 2) << 0) +
-	               (((dac + 68 + 1) >> 2) << 8) +
+				   (((dac + 68 + 1) >> 2) << 8) +
 				   (((dac + 68 + 2) >> 2) << 16) +
 				   (((dac + 68 + 0) >> 2) << 24);
 
-	m_pcount++;
-	if (m_pcount >= m_pitch)
+	if (m_pcount++ == m_pitch)
 	{
 		m_pcount = 0;
 		m_rcount++;
@@ -268,17 +252,18 @@ int8_t sp0250_device::next()
 //  sound_stream_update - handle a stream update
 //-------------------------------------------------
 
-void sp0250_device::sound_stream_update(sound_stream &stream, stream_sample_t **inputs, stream_sample_t **outputs, int samples)
+void sp0250_device::sound_stream_update(sound_stream &stream, std::vector<read_stream_view> const &inputs, std::vector<write_stream_view> &outputs)
 {
-	stream_sample_t *output = outputs[0];
+	auto &output = outputs[0];
+
 	if (!m_pwm_mode)
 	{
-		while (samples-- != 0)
-			*output++ = next() << 8;
+		for (int sampindex = 0; sampindex < output.samples(); sampindex++)
+			output.put_int(sampindex, next(), 128);
 	}
 	else
 	{
-		while (samples != 0)
+		for (int sampindex = 0; sampindex < output.samples(); )
 		{
 			// see where we're at in the current PWM cycle
 			if (m_pwm_index >= PWM_CLOCKS)
@@ -292,28 +277,27 @@ void sp0250_device::sound_stream_update(sound_stream &stream, stream_sample_t **
 
 			// determine the value to fill and the number of samples remaining
 			// until it changes
-			stream_sample_t value;
+			stream_buffer::sample_t value;
 			int remaining;
 			if (m_pwm_index < m_pwm_count)
 			{
-				value = 32767;
+				value = 1.0;
 				remaining = m_pwm_count - m_pwm_index;
 			}
 			else
 			{
-				value = 0;
+				value = 0.0;
 				remaining = PWM_CLOCKS - m_pwm_index;
 			}
 
 			// clamp to the number of samples requested and advance the counters
-			if (remaining > samples)
-				remaining = samples;
+			if (remaining > output.samples() - sampindex)
+				remaining = output.samples() - sampindex;
 			m_pwm_index += remaining;
-			samples -= remaining;
 
 			// fill the output
 			while (remaining-- != 0)
-				*output++ = value;
+				outputs[0].put(sampindex++, value);
 		}
 	}
 }

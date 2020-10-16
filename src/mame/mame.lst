@@ -2408,6 +2408,7 @@ astrof                          // (c) [1980?]
 astrof2                         // (c) [1980?]
 astrof3                         // (c) [1980?]
 astroff                         // bootleg (Famaresa)
+astroff2                        // bootleg (Famaresa)
 spfghmk2                        // (c) [1979] Data East Corporation
 spfghmk22                       // (c) [1979] Data East Corporation
 sstarbtl                        // bootleg
@@ -3141,7 +3142,8 @@ badlandsb2                      // bootleg set 2
 bagman                          // (c) 1982
 bagmanj                         // (c) 1982
 bagmans                         // (c) 1982 + Stern license
-bagmans2                        // (c) 1982 + Stern license
+bagmans3                        // (c) 1982 + Stern license
+bagmans4                        // (c) 1982 + Stern license
 bagnard                         // (c) 1982
 bagnarda                        // (c) 1982
 bagnardi                        // (c) 1983 + Itisa license
@@ -3277,7 +3279,8 @@ bbcmc                           // 1986 BBC Master Compact
 bbcmc_ar                        // 1986 BBC Master Compact (Arabic)
 bbcmet                          // 1986 BBC Master ET
 bbcmt                           // 1986 BBC Master Turbo
-cfa3000                         // 1989 Henson CFA 3000
+cfa3000bp                       // 1989 Henson CFA 3000 (B+)
+cfa3000                         // 1989 Henson CFA 3000 (Master)
 daisy                           // 1987 Comus Daisy
 discmon                         // 1988 Arbiter Discmonitor
 discmate                        // 1988 Arbiter Discmate
@@ -9305,6 +9308,7 @@ ilpag                           // (c) 199? unknown
 maxidbl                         // (c) 1992 Blitz Systems Inc.
 megadble                        // (c) 1990 Blitz Systems Inc.
 megadblj                        // (c) 1990 Blitz Systems Inc.
+megastrp                        // (c) 1992 Blitz Systems Inc.
 poker52                         // (c) 1993 Blitz Systems Inc. ?
 steaser                         // (c) 1993 unknown
 texasrls                        // (c) 1998 Cadillac Jack
@@ -10134,6 +10138,9 @@ millpac                         // Valadon
 multiped                        // hack
 warlords                        // 037153-037159    (c) 1980
 
+@source:ceres.cpp
+ceres1                          // Eidgenössische Technische Hochschule Zürich Ceres-1
+
 @source:cesclass.cpp
 ccclass                         //
 hrclass                         //
@@ -10667,6 +10674,10 @@ panich                          // 8015 (c) 1980
 
 @source:cosmicos.cpp
 cosmicos                        //
+
+@source:cowtipping.cpp
+cowtipp                         //
+cowtippa                        //
 
 @source:cp1.cpp
 cp1                             //
@@ -14804,9 +14815,12 @@ suprpokrb                       // (c) 1986 Grayhound Electronics
 rp200
 
 @source:generalplus_gpl_unknown.cpp
+mapacman
+taspinv
+
+@source:generalplus_gpl162xx_lcdtype.cpp
 pcp8718
 pcp8728
-unkunsp
 bkid218
 
 @source:generalplus_gpl16250_mobigo.cpp
@@ -14841,6 +14855,7 @@ gormiti
 tkmag220                        //
 myac220
 imgame
+beijuehh
 
 @source:generalplus_gpl16250_romram.cpp
 paccon
@@ -14863,6 +14878,7 @@ jak_tmnthp
 jak_dchp
 jak_ddhp
 jak_prhp
+zippity
 
 @source:geneve.cpp
 geneve                          // 1987 Myarc Geneve 9640
@@ -16651,6 +16667,7 @@ tarzan                          // (c) 1999
 tarzana                         // (c) 1999
 tarzanc                         // (c) 1999
 tjsb                            // (c) 1997
+unkigs                          // (c) 2001?
 
 @source:igspc.cpp
 eztouch                         // (c) 200?
@@ -19893,9 +19910,11 @@ macpb180                        // 1992 Apple Macintosh PowerBook 180
 macpb180c                       // 1992 Apple Macintosh PowerBook 180c
 macpd210                        // 1992 Apple Macintosh PowerBook Duo 210
 macprtb                         // 1989 Apple Macintosh Portable
-macqd700                        // 1991 Apple Macintosh Quadra 700
 macse30                         // 1989 Apple Macintosh SE/30
 pmac6100                        // 1993 Apple Power Macintosh 6100
+
+@source:macquadra700.cpp
+macqd700                        // 1991 Apple Macintosh Quadra 700
 
 @source:mac128.cpp
 mac128k                         // 1984 Apple Macintosh
@@ -22746,7 +22765,9 @@ tankbatl                        // (c) 1992 Microprose Games Inc.
 dm3270                          //
 
 @source:microdar.cpp
-dibifuca                        //
+dibifuca                        // (c) 199? Compumatic
+dibif743                        // (c) 199? Compumatic
+dibif727                        // (c) 199? Compumatic
 cfarwest                        // (c) 1997 Compumatic
 prospdp                         // (c) 1997 Compumatic
 diolakoa                        // (c) 1997 Compumatic
@@ -31440,6 +31461,7 @@ monkeyba                        // 2001.05 Monkey Ball
 mslug6                          // 2006.02 Metal Slug 6
 mushi2k4                        // 2004.?? MushiKing The King Of Beetles 2004 Second (Japan)
 mushi2k5                        // 2005.?? MushiKing The King Of Beetles 2005 First (Japan)
+mushi2k62                       // 2006.?? MushiKing The King Of Beetles 2006 Second (Japan)
 mushike                         // 2004.?? MushiKing The King Of Beetle (2K3 2ND Ver. 1.003-, World)
 mushikeo                        // 2004.?? MushiKing The King Of Beetle (2K3 2ND Ver. 1.002-, World)
 mushikep                        // 2004.?? MushiKing The King Of Beetle (Prototype)
@@ -32163,6 +32185,8 @@ ablwikid
 maxx5in1
 maxx6in1
 max10in1
+vsmaxx25
+vsmaxx15
 
 @source:nes_vt.cpp
 vdogdeme
@@ -32196,13 +32220,20 @@ rtvgc300
 rtvgc300fz
 red5mam
 cybar120
+sen101
 mc_dg101
 mc_aa2
 mc_105te
 mc_sp69
 vsmaxx17
+vsmaxtx2
+vsmaxx77
+vsmaxxvd
 polmega
 silv35
+dturbogt
+rcapnp
+ventur25
 lpgm240
 mc_dcat8
 mc_dcat8a
@@ -32632,8 +32663,8 @@ racingj                         // GX676 (c)1998
 racingj2                        // GX888 (c)1999 (EAE)
 racingj2j                       // GX888 (c)1999 (JAE)
 thrilld                         // GX713 (c)1998 Japan JAE
-thrilldae                       // GX713 (c)1998 Europe EAA
 thrilldb                        // GX713 (c)1998 Japan JAB
+thrilldbe                       // GX713 (c)1998 Europe EAB
 
 @source:nycaptor.cpp
 bronx                           // bootleg
@@ -34164,6 +34195,10 @@ photoply2ksp                    // (c) 2000 Funworld
 photoply2k1it                   // (c) 2001 Funworld
 photoply2k4                     // (c) 2004 Funworld
 
+@source:photoplysx.cpp
+photopsxsp                      // (c) 2004 Funworld
+photopsxusp                     // (c) 200? Funworld
+
 @source:phunsy.cpp
 phunsy                          //
 
@@ -35356,6 +35391,7 @@ sarpc_j233                      //
 
 @source:rltennis.cpp
 rltennis                        // (c) 1993 TCH
+rltennisa                       // (c) 1993 TCH
 
 @source:rm380z.cpp
 rm380z                          //
@@ -36476,6 +36512,7 @@ endurord                        // bootleg
 hangon                          // (c) 1985 (Rev A)
 hangon1                         // (c) 1985
 hangon2                         // (c) 1985
+hangonvf                        // bootleg
 shangonrb                       // (c) 1992 (but bootleg, hangon hw?)
 shangonrb2                      // bootleg (Beta)
 shangonro                       // (c) 1987 (FD1094)
@@ -38194,6 +38231,7 @@ lexizeus                        // Lexibook
 lexiseal                        //
 discpal
 vgcaplet
+vgcap35
 vsplus
 
 @source:spg2xx_mysprtch.cpp

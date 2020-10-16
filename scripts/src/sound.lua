@@ -10,6 +10,8 @@
 ----------------------------------------------------------------------------
 
 files {
+	MAME_DIR .. "src/devices/sound/flt_biquad.cpp",
+	MAME_DIR .. "src/devices/sound/flt_biquad.h",
 	MAME_DIR .. "src/devices/sound/flt_vol.cpp",
 	MAME_DIR .. "src/devices/sound/flt_vol.h",
 	MAME_DIR .. "src/devices/sound/flt_rc.cpp",
@@ -657,6 +659,8 @@ if (SOUNDS["NES_APU"]~=null) then
 		MAME_DIR .. "src/devices/sound/nes_apu.cpp",
 		MAME_DIR .. "src/devices/sound/nes_apu.h",
 		MAME_DIR .. "src/devices/sound/nes_defs.h",
+		MAME_DIR .. "src/devices/sound/nes_apu_vt.cpp",
+		MAME_DIR .. "src/devices/sound/nes_apu_vt.h",
 	}
 end
 
@@ -1599,5 +1603,17 @@ if (SOUNDS["RP2C33_SOUND"]~=null) then
 	files {
 		MAME_DIR .. "src/devices/sound/rp2c33_snd.cpp",
 		MAME_DIR .. "src/devices/sound/rp2c33_snd.h",
+	}
+end
+
+---------------------------------------------------
+--
+--@src/devices/sound/tt5665.h,SOUNDS["TT5665"] = true
+---------------------------------------------------
+
+if (SOUNDS["TT5665"]~=null) then
+	files {
+		MAME_DIR .. "src/devices/sound/tt5665.cpp",
+		MAME_DIR .. "src/devices/sound/tt5665.h",
 	}
 end

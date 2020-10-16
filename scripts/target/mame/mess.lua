@@ -308,6 +308,7 @@ SOUNDS["SWP20"] = true
 SOUNDS["SWP30"] = true
 SOUNDS["S_DSP"] = true
 SOUNDS["ROLANDPCM"] = true
+--SOUNDS["TT5665"] = true
 SOUNDS["RP2C33_SOUND"] = true
 
 --------------------------------------------------
@@ -780,6 +781,8 @@ MACHINES["EDLC"] = true
 MACHINES["WTL3132"] = true
 MACHINES["CXD1185"] = true
 MACHINES["BL_HANDHELDS_MENUCONTROL"] = true
+MACHINES["NS32081"] = true
+MACHINES["NS32202"] = true
 
 --------------------------------------------------
 -- specify available bus cores
@@ -840,6 +843,7 @@ BUSES["ELECTRON"] = true
 BUSES["ELECTRON_CART"] = true
 BUSES["EP64"] = true
 BUSES["EPSON_SIO"] = true
+BUSES["FMT_SCSI"] = true
 BUSES["GAMATE"] = true
 BUSES["GAMEBOY"] = true
 BUSES["GAMEGEAR"] = true
@@ -1168,6 +1172,7 @@ function linkProjects_mame_mess(_target, _subtarget)
 		"cccp",
 		"cce",
 		"ccs",
+		"ceres",
 		"chessking",
 		"chromatics",
 		"chrysler",
@@ -1748,6 +1753,7 @@ files {
 	MAME_DIR .. "src/mame/machine/lisa.cpp",
 	MAME_DIR .. "src/mame/drivers/lwriter.cpp",
 	MAME_DIR .. "src/mame/drivers/mac128.cpp",
+	MAME_DIR .. "src/mame/drivers/macquadra700.cpp",
 	MAME_DIR .. "src/mame/drivers/mac.cpp",
 	MAME_DIR .. "src/mame/includes/mac.h",
 	MAME_DIR .. "src/mame/machine/egret.cpp",
@@ -2017,6 +2023,11 @@ files {
 	MAME_DIR .. "src/mame/drivers/ccs2810.cpp",
 }
 
+createMESSProjects(_target, _subtarget, "ceres")
+files {
+	MAME_DIR .. "src/mame/drivers/ceres.cpp",
+}
+
 createMESSProjects(_target, _subtarget, "chessking")
 files {
 	MAME_DIR .. "src/mame/drivers/cking_master.cpp",
@@ -2162,7 +2173,6 @@ files {
 	MAME_DIR .. "src/mame/machine/dc305.cpp",
 	MAME_DIR .. "src/mame/machine/dc305.h",
 	MAME_DIR .. "src/mame/drivers/jensen.cpp",
-	MAME_DIR .. "src/mame/includes/jensen.h",
 	MAME_DIR .. "src/mame/drivers/pdp11.cpp",
 	MAME_DIR .. "src/mame/drivers/vax11.cpp",
 	MAME_DIR .. "src/mame/drivers/rainbow.cpp",
@@ -2646,7 +2656,6 @@ files {
 createMESSProjects(_target, _subtarget, "interpro")
 files {
 	MAME_DIR .. "src/mame/drivers/interpro.cpp",
-	MAME_DIR .. "src/mame/includes/interpro.h",
 	MAME_DIR .. "src/mame/machine/cammu.h",
 	MAME_DIR .. "src/mame/machine/cammu.cpp",
 	MAME_DIR .. "src/mame/machine/interpro_ioga.h",
@@ -2686,7 +2695,6 @@ files {
 createMESSProjects(_target, _subtarget, "jazz")
 files {
 	MAME_DIR .. "src/mame/drivers/jazz.cpp",
-	MAME_DIR .. "src/mame/includes/jazz.h",
 	MAME_DIR .. "src/mame/machine/mct_adr.cpp",
 	MAME_DIR .. "src/mame/machine/mct_adr.h",
 }
@@ -2868,7 +2876,6 @@ files {
 createMESSProjects(_target, _subtarget, "mips")
 files {
 	MAME_DIR .. "src/mame/drivers/mips.cpp",
-	MAME_DIR .. "src/mame/includes/mips.h",
 	MAME_DIR .. "src/mame/machine/mips_rambo.h",
 	MAME_DIR .. "src/mame/machine/mips_rambo.cpp",
 }
@@ -4025,6 +4032,7 @@ files {
 	MAME_DIR .. "src/mame/machine/generalplus_gpl16250.cpp",
 	MAME_DIR .. "src/mame/machine/generalplus_gpl16250.h",
 	MAME_DIR .. "src/mame/drivers/generalplus_gpl32612.cpp",
+	MAME_DIR .. "src/mame/drivers/generalplus_gpl162xx_lcdtype.cpp",
 	MAME_DIR .. "src/mame/drivers/generalplus_gpl_unknown.cpp",
 	MAME_DIR .. "src/mame/drivers/xavix.cpp",
 	MAME_DIR .. "src/mame/includes/xavix.h",

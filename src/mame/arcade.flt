@@ -258,6 +258,7 @@ cops.cpp
 copsnrob.cpp
 corona.cpp
 cosmic.cpp
+cowtipping.cpp
 cps1.cpp
 cps1bl_5205.cpp
 cps1bl_pic.cpp
@@ -939,6 +940,7 @@ phoenix.cpp
 photon.cpp
 photon2.cpp
 photoply.cpp
+photoplysx.cpp
 piggypas.cpp
 pinball2k.cpp
 pingpong.cpp

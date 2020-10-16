@@ -1,12 +1,12 @@
 // license:BSD-3-Clause
 // copyright-holders:David Haywood
-
-#ifndef MAME_MACHINE_NES_VT_H
-#define MAME_MACHINE_NES_VT_H
+#ifndef MAME_MACHINE_NES_VT_SOC_H
+#define MAME_MACHINE_NES_VT_SOC_H
 
 #pragma once
 
 #include "cpu/m6502/n2a03.h"
+#include "sound/nes_apu_vt.h"
 #include "machine/m6502_vtscr.h"
 #include "machine/m6502_swap_op_d5_d6.h"
 #include "video/ppu2c0x_vt.h"
@@ -67,7 +67,7 @@ protected:
 	required_device<cpu_device> m_maincpu;
 	required_device<screen_device> m_screen;
 	required_device<ppu_vt03_device> m_ppu;
-	required_device<nesapu_device> m_apu;
+	required_device<nes_apu_vt_device> m_apu;
 
 	void nes_vt_map(address_map& map);
 
@@ -340,4 +340,4 @@ DECLARE_DEVICE_TYPE(NES_VT_SOC_4KRAM_FP_PAL, nes_vt_soc_4kram_fp_pal_device)
 DECLARE_DEVICE_TYPE(NES_VT_SOC_8KRAM_DG, nes_vt_soc_8kram_dg_device)
 DECLARE_DEVICE_TYPE(NES_VT_SOC_8KRAM_FA, nes_vt_soc_8kram_fa_device)
 
-#endif // MAME_MACHINE_NES_VT_H
+#endif // MAME_MACHINE_NES_VT_SOC_H

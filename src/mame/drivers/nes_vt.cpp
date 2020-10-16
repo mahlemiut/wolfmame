@@ -124,6 +124,9 @@ public:
 	void vt_external_space_map_1mbyte(address_map& map);
 	void vt_external_space_map_512kbyte(address_map& map);
 
+	void nes_vt_1mb_majkon(machine_config& config);
+	void vt_external_space_map_1mbyte_majkon(address_map& map);
+
 	void init_protpp();
 
 protected:
@@ -140,7 +143,7 @@ public:
 
 	void nes_vt_vh2009(machine_config& config);
 	void nes_vt_vh2009_1mb(machine_config& config);
-	void nes_vt_vh2009_2mb_alt(machine_config& config);
+	void nes_vt_vh2009_2mb(machine_config& config);
 	void nes_vt_vh2009_4mb(machine_config& config);
 	void nes_vt_vh2009_8mb(machine_config& config);
 
@@ -363,13 +366,12 @@ public:
 	void nes_vt_hh_8mb(machine_config& config);
 
 	void nes_vt_vg(machine_config& config);
+	void nes_vt_vg_2mb(machine_config& config);
 	void nes_vt_vg_4mb(machine_config& config);
 	void nes_vt_vg_4mb_rasterhack(machine_config& config);
 	void nes_vt_vg_8mb(machine_config& config);
 	void nes_vt_vg_16mb(machine_config& config);
 
-
-	void nes_vt_vg_1mb_majkon(machine_config& config);
 	void nes_vt_fp(machine_config& config);
 	void nes_vt_fp_16mb(machine_config& config);
 	void nes_vt_fp_32mb(machine_config& config);
@@ -479,6 +481,12 @@ void nes_vt_swap_op_d5_d6_state::vt_external_space_map_senwld_512kbyte(address_m
 	map(0x0000000, 0x007ffff).r(FUNC(nes_vt_swap_op_d5_d6_state::vt_rom_r));
 	map(0x0100000, 0x010ffff).ram();
 	map(0x0180000, 0x01fffff).r(FUNC(nes_vt_swap_op_d5_d6_state::vt_rom_r));
+}
+
+void nes_vt_state::vt_external_space_map_1mbyte_majkon(address_map &map)
+{
+	map(0x0000000, 0x00fffff).mirror(0x1f00000).r(FUNC(nes_vt_state::vt_rom_r));
+	map(0x1400000, 0x1401fff).ram(); // rush'n attack writes to chr space, after setting the program and character outer bank to a mirror, is the correct way to handle it?	
 }
 
 // bitboy is 2 16Mbyte banks
@@ -1098,6 +1106,12 @@ void nes_vt_hh_state::nes_vt_vg_8mb(machine_config& config)
 	m_soc->set_addrmap(AS_PROGRAM, &nes_vt_hh_state::vt_external_space_map_8mbyte);
 }
 
+void nes_vt_hh_state::nes_vt_vg_2mb(machine_config& config)
+{
+	nes_vt_vg(config);
+	m_soc->set_addrmap(AS_PROGRAM, &nes_vt_hh_state::vt_external_space_map_2mbyte);
+}
+
 void nes_vt_hh_state::nes_vt_vg_4mb(machine_config& config)
 {
 	nes_vt_vg(config);
@@ -1115,13 +1129,6 @@ void nes_vt_hh_state::nes_vt_vg_16mb(machine_config& config)
 {
 	nes_vt_vg(config);
 	m_soc->set_addrmap(AS_PROGRAM, &nes_vt_hh_state::vt_external_space_map_16mbyte);
-}
-
-void nes_vt_hh_state::nes_vt_vg_1mb_majkon(machine_config &config)
-{
-	nes_vt_dg(config);
-	m_soc->set_addrmap(AS_PROGRAM, &nes_vt_hh_state::vt_external_space_map_1mbyte);
-	m_soc->force_raster_timing_hack();
 }
 
 
@@ -1158,6 +1165,16 @@ void nes_vt_hh_state::nes_vt_hh_4mb(machine_config& config)
 	nes_vt_hh(config);
 	m_soc->set_addrmap(AS_PROGRAM, &nes_vt_hh_state::vt_external_space_map_4mbyte);
 }
+
+
+void nes_vt_state::nes_vt_1mb_majkon(machine_config& config)
+{
+	NES_VT_SOC(config, m_soc, NTSC_APU_CLOCK);
+	configure_soc(m_soc);
+	m_soc->set_addrmap(AS_PROGRAM, &nes_vt_state::vt_external_space_map_1mbyte_majkon);
+	m_soc->force_raster_timing_hack();
+}
+
 
 static INPUT_PORTS_START( nes_vt )
 	PORT_START("IO0")
@@ -1377,7 +1394,7 @@ void nes_vt_swap_op_d5_d6_state::nes_vt_vh2009_1mb(machine_config& config)
 	m_soc->set_addrmap(AS_PROGRAM, &nes_vt_swap_op_d5_d6_state::vt_external_space_map_1mbyte);
 }
 
-void nes_vt_swap_op_d5_d6_state::nes_vt_vh2009_2mb_alt(machine_config& config)
+void nes_vt_swap_op_d5_d6_state::nes_vt_vh2009_2mb(machine_config& config)
 {
 	nes_vt_vh2009(config);
 	m_soc->set_addrmap(AS_PROGRAM, &nes_vt_swap_op_d5_d6_state::vt_external_space_map_2mbyte);
@@ -1742,6 +1759,11 @@ ROM_START( cybar120 )
 	ROM_LOAD( "m2500p-vt09-epson,20091222ver05,_30r-sx1067-01_pcb,_12r0cob128m_12001-3d05_fw.bin", 0x00000, 0x1000000, CRC(f7138980) SHA1(de31264ee3a5a5c77a86733b2e2d6845fee91ea5) )
 ROM_END
 
+ROM_START( sen101 )
+	ROM_REGION( 0x400000, "mainrom", 0 )
+	ROM_LOAD( "101n1.bin", 0x00000, 0x400000, CRC(b03e1824) SHA1(c9ac4e16220414c1aa679133191140ced9986e9c) )
+ROM_END
+
 
 ROM_START( mc_dg101 )
 	ROM_REGION( 0x400000, "mainrom", 0 )
@@ -1763,9 +1785,34 @@ ROM_START( mc_sp69 )
 	ROM_LOAD( "sports game 69-in-1.prg", 0x00000, 0x400000, CRC(1242da7f) SHA1(bb8f99b1f4a4783b3f7e54d74f1f2a6a628da154) )
 ROM_END
 
+ROM_START( vsmaxtx2 )
+	ROM_REGION( 0x400000, "mainrom", 0 )
+	ROM_LOAD( "tx2.bin", 0x00000, 0x400000, CRC(eddf0ca8) SHA1(b87c5c3e945d1efdcb953325425d4ddb0fded00a) )
+ROM_END
+
 ROM_START( vsmaxx17 )
 	ROM_REGION( 0x200000, "mainrom", 0 )
 	ROM_LOAD( "vsmaxx17.bin", 0x00000, 0x200000, CRC(f3fccbb9) SHA1(8b70b10d28f03e72f6b35199001955033a65fd5d) )  // M6MG3D641RB
+ROM_END
+
+ROM_START( vsmaxx77 )
+	ROM_REGION( 0x800000, "mainrom", 0 )
+	ROM_LOAD( "vsmaxx77.bin", 0x00000, 0x800000, CRC(03f1f4b5) SHA1(13f7ecea3765cffcd3065de713abdabd24946b99) )
+ROM_END
+
+ROM_START( vsmaxxvd )
+	ROM_REGION( 0x800000, "mainrom", 0 )
+	ROM_LOAD( "vsmaxxvideo.bin", 0x00000, 0x800000, CRC(af365a77) SHA1(8119fcef3e1a2ade93d36740d5df451919f0e541) )
+ROM_END
+
+ROM_START( dturbogt )
+	ROM_REGION( 0x800000, "mainrom", 0 )
+	ROM_LOAD( "dgturbogt.bin", 0x00000, 0x800000, CRC(9532fb78) SHA1(cd188672f9b8e9c12069612ad0d0b70d3dd6c1b1) )
+ROM_END
+
+ROM_START( rcapnp )
+	ROM_REGION( 0x200000, "mainrom", 0 )
+	ROM_LOAD( "rcapnp_mx29lv160ab_00c22249.bin", 0x00000, 0x200000, CRC(8cc30a47) SHA1(815bfc26360b01ed3fa077016222939d2184408c) )
 ROM_END
 
 ROM_START( polmega )
@@ -1776,6 +1823,11 @@ ROM_END
 ROM_START( silv35 )
 	ROM_REGION( 0x400000, "mainrom", 0 )
 	ROM_LOAD( "silverlit35.bin", 0x00000, 0x400000, CRC(7540e350) SHA1(a0cb456136560fa4d8a365dd44d815ec0e9fc2e7) )
+ROM_END
+
+ROM_START( ventur25 )
+	ROM_REGION( 0x400000, "mainrom", 0 )
+	ROM_LOAD( "25games_m5m29gt320vp_001c0020.bin", 0x00000, 0x400000, CRC(3f78a45a) SHA1(3e97333c13e09c580e66518dd2e1e031371d399c) )
 ROM_END
 
 ROM_START( sporzpp )
@@ -2190,7 +2242,7 @@ CONS( 2005, ablpinb, 0,  0,  nes_vt_pal_2mb,    ablpinb, nes_vt_ablpinb_state, e
 CONS( 2004, sporzpp,   0,  0,  nes_vt_waixing_alt_4mb_sporzpp,        sporzpp, nes_vt_waixing_alt_sporzpp_state, empty_init, "Macro Winners", "Game Sporz Wireless Duet Play Ping-Pong", MACHINE_IMPERFECT_GRAPHICS | MACHINE_IMPERFECT_SOUND )
 // has some longer than expected delays when sounds should play on the Boxing part, but NES hacks are all functional
 CONS( 2004, sporzbx,   0,  0,  nes_vt_waixing_alt_4mb_sporzpp,        sporzpp, nes_vt_waixing_alt_sporzpp_state, empty_init, "Macro Winners", "Game Sporz Wireless Boxing", MACHINE_IMPERFECT_GRAPHICS | MACHINE_IMPERFECT_SOUND )
-// has some longer than expected delays when sounds should play on the Tennis part, but NES hacks are all functional
+// has some longer than expected delays when sounds should play on the Tennis part, but NES hacks are all functional, US version is sold in DreamGear branded box.
 CONS( 2004, sporztn,   0,  0,  nes_vt_pal_4mb,        sporzpp, nes_vt_wldsoctv_state, empty_init, "Macro Winners (Play Vision license)", "Wireless Tennis (PAL, Play Vision)", MACHINE_IMPERFECT_GRAPHICS | MACHINE_IMPERFECT_SOUND )
 // missing PCM audio, but regular APU SFX work
 CONS( 200?, wldsoctv,  0,  0,  nes_vt_pal_4mb,        nes_vt,  nes_vt_wldsoctv_state, empty_init, "Taikee", "World Soccer TV Game 10-in-1 (PAL)", MACHINE_IMPERFECT_GRAPHICS | MACHINE_IMPERFECT_SOUND )
@@ -2202,11 +2254,11 @@ CONS( 200?, mc_dgear,  0,  0,  nes_vt_4mb,    nes_vt, nes_vt_state, empty_init, 
 
 // all software in this runs in the VT03 enhanced mode, it also includes an actual licensed VT03 port of Frogger.
 // all games work OK except Frogger which has serious graphical issues
-CONS( 2006, vgtablet,  0, 0,  nes_vt_vg_4mb_rasterhack,  nes_vt, nes_vt_hh_state, empty_init, "Performance Designed Products (licensed by Konami)", "VG Pocket Tablet (VG-4000)", MACHINE_IMPERFECT_GRAPHICS | MACHINE_IMPERFECT_SOUND ) // raster timing for Frogger needs a hack
+CONS( 2006, vgtablet,  0, 0,  nes_vt_vg_4mb_rasterhack,  nes_vt, nes_vt_hh_state, empty_init, "Performance Designed Products (licensed by Konami) / JungleTac", "VG Pocket Tablet (VG-4000)", MACHINE_IMPERFECT_GRAPHICS | MACHINE_IMPERFECT_SOUND ) // raster timing for Frogger needs a hack
 // There is a 2004 Majesco Frogger "TV game" that appears to contain the same version of Frogger as above but with no other games, so probably fits here.
-CONS( 2004, majkon,    0, 0,  nes_vt_vg_1mb_majkon, nes_vt, nes_vt_hh_state, empty_init, "Majesco (licensed from Konami)", "Konami Collector's Series Arcade Advanced", MACHINE_NOT_WORKING ) // raster timing for Frogger needs a hack, Green Beret has other serious issues
+CONS( 2004, majkon,    0, 0,  nes_vt_1mb_majkon, nes_vt, nes_vt_state, empty_init, "Majesco (licensed from Konami) / JungleTac", "Konami Collector's Series Arcade Advanced", MACHINE_IMPERFECT_GRAPHICS | MACHINE_IMPERFECT_SOUND ) // raster timing for Frogger needs a hack, Rush'n Attack also has raster timing issues on the status bar split
 
-CONS( 200?, majgnc,    0, 0,  nes_vt_vg_1mb_majgnc, majgnc, nes_vt_vg_1mb_majgnc_state,  empty_init, "Majesco", "Golden Nugget Casino", MACHINE_IMPERFECT_GRAPHICS | MACHINE_IMPERFECT_SOUND )
+CONS( 200?, majgnc,    0, 0,  nes_vt_vg_1mb_majgnc, majgnc, nes_vt_vg_1mb_majgnc_state,  empty_init, "Majesco / JungleTac", "Golden Nugget Casino", MACHINE_IMPERFECT_GRAPHICS | MACHINE_IMPERFECT_SOUND )
 
 // small black unit, dpad on left, 4 buttons (A,B,X,Y) on right, Start/Reset/Select in middle, unit text "Sudoku Plug & Play TV Game"
 CONS( 200?, sudopptv,  0, 0,  nes_vt_waixing_512kb_rasterhack,        nes_vt, nes_vt_waixing_state, empty_init, "Smart Planet", "Sudoku Plug & Play TV Game '6 Intelligent Games'", MACHINE_IMPERFECT_GRAPHICS | MACHINE_IMPERFECT_SOUND )
@@ -2226,25 +2278,34 @@ CONS( 200?, timetp36,  0, 0,  nes_vt_pal_4mb, timetp36, nes_vt_timetp36_state,  
 
 CONS( 200?, timetp7,   0, 0,  nes_vt_pal_2mb, timetp36, nes_vt_timetp36_state,        empty_init, "TimeTop", "Super Game 7-in-1 (TimeTop SuperGame) (PAL)", MACHINE_IMPERFECT_GRAPHICS | MACHINE_IMPERFECT_SOUND )
 
-// this is VT09 based
-CONS( 2009, cybar120,  0,  0,  nes_vt_vg_16mb, nes_vt, nes_vt_hh_state, empty_init, "Defender", "Defender M2500P 120-in-1", MACHINE_IMPERFECT_GRAPHICS | MACHINE_IMPERFECT_SOUND )
-CONS( 2005, vgpocket,  0,  0,  nes_vt_vg_4mb, nes_vt, nes_vt_hh_state, empty_init, "Performance Designed Products", "VG Pocket (VG-2000)", MACHINE_IMPERFECT_GRAPHICS | MACHINE_IMPERFECT_SOUND ) // Butterfly Catch (same game as Insect Chase in polmega) is broken
-CONS( 200?, vgpmini,   0,  0,  nes_vt_vg_4mb, nes_vt, nes_vt_hh_state, empty_init, "Performance Designed Products", "VG Pocket Mini (VG-1500)", MACHINE_IMPERFECT_GRAPHICS | MACHINE_IMPERFECT_SOUND )
-// VG Pocket Max (VG-2500) (blue case, 75 games)
-// VG Pocket Max (VG-3000) (white case, 75 games) (does the game selection differ, or only the case?)
-// VG Pocket Caplet is SunPlus hardware instead, see spg2xx_lexibook.cpp
-
 // Runs fine, non-sport 121 in 1 games perfect, but minor graphical issues in
 // sport games, also no sound in menu or sport games due to missing PCM
 // emulation
 CONS( 200?, dgun2500,  0,  0,  nes_vt_dg_baddma_16mb, nes_vt, nes_vt_dg_state, empty_init, "dreamGEAR", "dreamGEAR Wireless Motion Control with 130 games (DGUN-2500)", MACHINE_IMPERFECT_GRAPHICS | MACHINE_IMPERFECT_SOUND)
 
+// this is VT09 based
+CONS( 2009, cybar120,  0,  0,  nes_vt_vg_16mb,nes_vt, nes_vt_hh_state, empty_init, "Defender / JungleTac", "Defender M2500P 120-in-1", MACHINE_IMPERFECT_GRAPHICS | MACHINE_IMPERFECT_SOUND )
+CONS( 200?, vsmaxtx2,  0,  0,  nes_vt_vg_4mb, nes_vt, nes_vt_hh_state, empty_init, "Senario / JungleTac", "Vs Maxx TX-2 50-in-1", MACHINE_IMPERFECT_GRAPHICS | MACHINE_IMPERFECT_SOUND )
+CONS( 200?, rcapnp,    0,  0,  nes_vt_vg_2mb, nes_vt, nes_vt_hh_state, empty_init, "RCA / JungleTac", "RCA NS-500 30-in-1", MACHINE_IMPERFECT_GRAPHICS | MACHINE_IMPERFECT_SOUND ) // from a Green unit, '17 Classic & Racing Game'
+CONS( 200?, dturbogt,  0,  0,  nes_vt_vg_8mb, nes_vt, nes_vt_hh_state, empty_init, "dreamGEAR / JungleTac", "Turbo GT 50-in-1", MACHINE_IMPERFECT_GRAPHICS | MACHINE_IMPERFECT_SOUND )
+CONS( 200?, ventur25,  0,  0,  nes_vt_vg_4mb, nes_vt, nes_vt_hh_state, empty_init, "<unknown> / JungleTac", "Venturer '25 Games' 25-in-1", MACHINE_IMPERFECT_GRAPHICS | MACHINE_IMPERFECT_SOUND )
+CONS( 2005, vgpocket,  0,  0,  nes_vt_vg_4mb, nes_vt, nes_vt_hh_state, empty_init, "Performance Designed Products / JungleTac", "VG Pocket (VG-2000)", MACHINE_IMPERFECT_GRAPHICS | MACHINE_IMPERFECT_SOUND )
+CONS( 200?, vgpmini,   0,  0,  nes_vt_vg_4mb, nes_vt, nes_vt_hh_state, empty_init, "Performance Designed Products / JungleTac", "VG Pocket Mini (VG-1500)", MACHINE_IMPERFECT_GRAPHICS | MACHINE_IMPERFECT_SOUND )
+// VG Pocket Max (VG-2500) (blue case, 75 games)
+// VG Pocket Max (VG-3000) (white case, 75 games) (does the game selection differ, or only the case?)
+// VG Pocket Caplet is SunPlus hardware instead, see spg2xx_lexibook.cpp
+
 // CPU die is marked 'VH2009' There's also a 62256 RAM chip on the PCB, some scrambled opcodes
-CONS( 2004, polmega,   0,  0,  nes_vt_vh2009_4mb,        nes_vt, nes_vt_swap_op_d5_d6_state, empty_init, "Polaroid", "Megamax GPD001SDG", MACHINE_NOT_WORKING ) // Insect Chase is broken
-CONS( 2004, vsmaxx17,  0,  0,  nes_vt_vh2009_2mb_alt,    nes_vt, nes_vt_swap_op_d5_d6_state, empty_init, "Senario", "Vs. Maxx 17-in-1", MACHINE_IMPERFECT_GRAPHICS | MACHINE_IMPERFECT_SOUND ) // from a Green unit, '17 Classic & Racing Game'
-CONS( 200?, silv35,    0,  0,  nes_vt_vh2009_4mb,        nes_vt, nes_vt_swap_op_d5_d6_state, empty_init, "SilverLit", "35 in 1 Super Twins", MACHINE_IMPERFECT_GRAPHICS | MACHINE_IMPERFECT_SOUND )
+CONS( 2004, polmega,   0,  0,  nes_vt_vh2009_4mb,        nes_vt, nes_vt_swap_op_d5_d6_state, empty_init, "Polaroid / JungleTac", "TV MegaMax active power game system 30-in-1 (MegaMax GPD001SDG)", MACHINE_IMPERFECT_GRAPHICS | MACHINE_IMPERFECT_SOUND )
+CONS( 2004, vsmaxx17,  0,  0,  nes_vt_vh2009_2mb,        nes_vt, nes_vt_swap_op_d5_d6_state, empty_init, "Senario / JungleTac", "Vs Maxx 17-in-1", MACHINE_IMPERFECT_GRAPHICS | MACHINE_IMPERFECT_SOUND ) // from a Green unit, '17 Classic & Racing Game'
+CONS( 200?, silv35,    0,  0,  nes_vt_vh2009_4mb,        nes_vt, nes_vt_swap_op_d5_d6_state, empty_init, "SilverLit / JungleTac", "35 in 1 Super Twins", MACHINE_IMPERFECT_GRAPHICS | MACHINE_IMPERFECT_SOUND )
 // die is marked as VH2009, as above, but no scrambled opcodes here
 CONS( 201?, techni4,   0,  0,  nes_vt_pal_2mb,      nes_vt, nes_vt_state,        empty_init, "Technigame", "Technigame Super 4-in-1 Sports (PAL)", MACHINE_IMPERFECT_GRAPHICS )
+
+
+CONS( 2004, vsmaxxvd,  0,  0,  nes_vt_vh2009_8mb,        nes_vt, nes_vt_swap_op_d5_d6_state, empty_init, "Senario / JungleTac", "Vs Maxx Video Extreme 50-in-1 (with Speed Racer and Snood)", MACHINE_IMPERFECT_GRAPHICS | MACHINE_IMPERFECT_SOUND )
+CONS( 2004, vsmaxx77,  0,  0,  nes_vt_vh2009_8mb,        nes_vt, nes_vt_swap_op_d5_d6_state, empty_init, "Senario / JungleTac", "Vs Maxx Wireless 77-in-1", MACHINE_IMPERFECT_GRAPHICS | MACHINE_IMPERFECT_SOUND )
+
 
  // seems to use PCM for all sound, some garbage at bottom of screen, needs correct inputs (seems to respond to start, and any direction input for 'hit' - check if they're power related)
 CONS( 200?, protpp,   0,  0,  nes_vt_vh2009_1mb,      nes_vt, nes_vt_swap_op_d5_d6_state,        init_protpp, "Protocol", "Virtual Ping Pong (Protocol)", MACHINE_NOT_WORKING | MACHINE_NO_SOUND )
@@ -2290,6 +2351,9 @@ CONS( 2006, ddrstraw,   0,        0,  nes_vt_2mb, nes_vt_ddr, nes_vt_state, empt
 // there is also a 'Spectra Light Edition' which could be a different ROM as the title screen on this one does show the unit type.
 CONS( 2006, dbdancem,   0,        0,  nes_vt_2mb, dbdancem, nes_vt_state, empty_init, "Senario", "Double Dance Mania - Techno Light Edition",           MACHINE_IMPERFECT_GRAPHICS | MACHINE_IMPERFECT_SOUND )
 
+// unlike other Senario products this one is mostly just NES games, it also appears to be one of the final Senario products.  Some games aren't what they claim to be, Warpman is Soccer for example.
+CONS( 2009, sen101,   0,        0,  nes_vt_4mb,    nes_vt, nes_vt_state, empty_init, "Senario", "101 Games in 1 (Senario)", MACHINE_IMPERFECT_GRAPHICS )
+
 // unsorted, these were all in nes.xml listed as ONE BUS systems
 CONS( 200?, mc_dg101,   0,        0,  nes_vt_4mb,    nes_vt, nes_vt_state, empty_init, "dreamGEAR", "dreamGEAR 101 in 1", MACHINE_IMPERFECT_GRAPHICS ) // dreamGear, but no enhanced games?
 CONS( 200?, mc_aa2,     0,        0,  nes_vt_4mb,    nes_vt, nes_vt_state, empty_init, "<unknown>", "100 in 1 Arcade Action II (AT-103)", MACHINE_IMPERFECT_GRAPHICS )
@@ -2301,7 +2365,6 @@ CONS( 200?, mc_7x6ss,   0,        0,  nes_vt_1mb,    nes_vt, nes_vt_state, empty
 CONS( 200?, mc_8x6ss,   0,        0,  nes_vt_1mb,    nes_vt, nes_vt_state, empty_init, "<unknown>", "888888 in 1 (8 bit Slim Station, NEWPXP-DVT22-A PCB)", MACHINE_IMPERFECT_GRAPHICS )
 CONS( 2004, mc_dcat8,   0,        0,  nes_vt_8mb,    nes_vt, nes_vt_state, empty_init, "<unknown>", "100 in 1 (D-CAT8 8bit Console, set 1) (v5.01.11-frd, BL 20041217)", MACHINE_IMPERFECT_GRAPHICS )
 CONS( 2004, mc_dcat8a,  mc_dcat8, 0,  nes_vt_8mb,    nes_vt, nes_vt_state, empty_init, "<unknown>", "100 in 1 (D-CAT8 8bit Console, set 2)", MACHINE_IMPERFECT_GRAPHICS )
-
 
 // Runs well, only issues in SMB3 which crashes
 CONS( 2017, bittboy,    0,        0,  nes_vt_bt_2x16mb, nes_vt, nes_vt_cy_state, empty_init, "BittBoy",   "BittBoy Mini FC 300 in 1", MACHINE_IMPERFECT_GRAPHICS ) // has external banking (2x 16mbyte banks)

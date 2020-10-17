@@ -2764,9 +2764,15 @@ void ioport_manager::record_init()
 
 	// disable cheats
 	machine().options().set_value(OPTION_CHEAT, 0, OPTION_PRIORITY_MAXIMUM);
-	
+
+	// disable LUA console
+	machine().options().set_value(OPTION_CONSOLE, 0, OPTION_PRIORITY_MAXIMUM);
+
 	// disable LUA boot script
 	machine().options().set_value(OPTION_AUTOBOOT_SCRIPT, "", OPTION_PRIORITY_MAXIMUM);
+
+	// disable LUA plugins
+	machine().options().set_value(OPTION_PLUGINS, 0, OPTION_PRIORITY_MAXIMUM);
 
 	// disable rewinding
 	machine().options().set_value(OPTION_REWIND, 0, OPTION_PRIORITY_MAXIMUM);
@@ -2852,7 +2858,7 @@ void ioport_manager::record_end(const char *message)
 		uint8_t data[8];
 		machine().current_datetime(systime);
 		m_record_file.compress(FCOMPRESS_NONE);  // disable compression
-		m_record_file.seek(0x38,SEEK_SET);  // TODO: modernise this to match use of the header class		
+		m_record_file.seek(0x38,SEEK_SET);  // TODO: modernise this to match use of the header class
 		data[0x00] = systime.time >> 0;
 		data[0x01] = systime.time >> 8;
 		data[0x02] = systime.time >> 16;
@@ -2869,7 +2875,7 @@ void ioport_manager::record_end(const char *message)
 		// pop a message
 		if (message != nullptr)
 			machine().popmessage("Recording Ended\nReason: %s", message);
-			
+
 		// clear record filename so that INP is not overwritten if returning to the select game menu (aka the __empty driver)
 		machine().options().set_value(OPTION_RECORD,"",OPTION_PRIORITY_HIGH);
 	}
@@ -3779,13 +3785,13 @@ float analog_field::crosshair_read()
 	return float(rawvalue - m_adjmin) / float(m_adjmax - m_adjmin);
 }
 
-ioport_value ioport_manager::get_digital(ioport_port* port) 
-{ 
+ioport_value ioport_manager::get_digital(ioport_port* port)
+{
 	return port->live().digital;
 }
 
-ioport_value ioport_manager::get_defvalue(ioport_port* port) 
-{ 
+ioport_value ioport_manager::get_defvalue(ioport_port* port)
+{
 	return port->live().defvalue;
 }
 
@@ -3871,7 +3877,7 @@ int ioport_manager::sprintframetime(char *timearray)
 		*tptr++ = '0'+hours%10;
 		*tptr++ = ':';
 	}
-	/* always display minutes seconds and centiseconds */					
+	/* always display minutes seconds and centiseconds */
 	minutes = seconds/(60);
 	seconds -= minutes*(60);
 	*tptr++ = '0'+minutes/10;

@@ -190,6 +190,8 @@ void mame_machine_manager::start_luaengine()
 		plugin *p = m_plugins->find(OPTION_CONSOLE);
 		if (!p)
 			fatalerror("Fatal error: Console plugin not found.\n");
+		if (std::string(options().record()) != "")
+			fatalerror("Fatal error: Lua Console not available during INP recording.\n");
 
 		p->m_start = true;
 	}

@@ -4,11 +4,17 @@ Based on the MAME(tm) source, modified by Barry Rodewald
 ------------------------------------------------------------------------------------------------
 
 
+New in 0.226
+------------
+
+ - Disabled Lua console and plugins during recording
+
+
 New in 0.183
 ------------
 
  - Forced speed throttling on during recording
- 
+
 
 New in 0.172
 ------------
@@ -19,21 +25,21 @@ New in 0.172
 New in 0.171
 ------------
 
- - Added a Record INP toolbar button to the new MEWUI frontend.  (Still a bit experimental, 
+ - Added a Record INP toolbar button to the new MEWUI frontend.  (Still a bit experimental,
    please test it out though)
- 
+
 
 New in 0.169
 ------------
 
  - Disabled autoboot_script when recording.
- 
+
 
 New in 0.164
 ------------
 
  - Removed pause on quit confirmation while recording.
- 
+
 
 New in 0.159
 ------------
@@ -53,7 +59,7 @@ New in 0.153
 Usage
 -----
 
-Same as MAME.  Read the docs included with standard MAME for a guide, or go to 
+Same as MAME.  Read the docs included with standard MAME for a guide, or go to
 http://www.mameworld.info/easyemu/ if you're completely clueless.
 
 Also included, is ui.tcl.  This is a very simple Tcl/Tk script, to aid in making INPs for MARP,
@@ -61,7 +67,7 @@ including disabling NVRAM use for you.  It also has the advantage of working on 
 without needing any changes (not tested on OS X).  Windows users will need a Tcl interpreter
 to be installed to be able to run it, Linux/Unix/OS X/BSD users should be able to just run it as is.
 
-Eventually, I'll rewrite the INP recording and playback guide (again) available at MARP to be more up 
+Eventually, I'll rewrite the INP recording and playback guide (again) available at MARP to be more up
 to date.
 
 

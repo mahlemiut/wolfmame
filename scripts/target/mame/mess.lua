@@ -295,7 +295,6 @@ SOUNDS["L7A1045"] = true
 SOUNDS["UPD1771"] = true
 SOUNDS["GB_SOUND"] = true
 SOUNDS["PCD3311"] = true
-SOUNDS["VOLT_REG"] = true
 SOUNDS["MEA8000"] = true
 --SOUNDS["DAC76"] = true
 --SOUNDS["MM5837"] = true
@@ -700,7 +699,7 @@ MACHINES["UPD1990A"] = true
 MACHINES["UPD4701"] = true
 MACHINES["UPD7001"] = true
 MACHINES["UPD7002"] = true
---MACHINES["UPD7004"] = true
+MACHINES["UPD7004"] = true
 MACHINES["UPD71071"] = true
 MACHINES["UPD765"] = true
 MACHINES["FDC_PLL"] = true
@@ -980,6 +979,7 @@ FORMATS["APOLLO_DSK"] = true
 FORMATS["APPLIX_DSK"] = true
 FORMATS["APRIDISK"] = true
 FORMATS["AP_DSK35"] = true
+FORMATS["AQUARIUS_CAQ"] = true
 FORMATS["ASST128_DSK"] = true
 FORMATS["ASTROCADE_WAV"] = true
 FORMATS["ATARI_DSK"] = true
@@ -1754,6 +1754,8 @@ files {
 	MAME_DIR .. "src/mame/drivers/lwriter.cpp",
 	MAME_DIR .. "src/mame/drivers/mac128.cpp",
 	MAME_DIR .. "src/mame/drivers/macquadra700.cpp",
+	MAME_DIR .. "src/mame/drivers/macprtb.cpp",
+	MAME_DIR .. "src/mame/drivers/macpwrbk030.cpp",
 	MAME_DIR .. "src/mame/drivers/mac.cpp",
 	MAME_DIR .. "src/mame/includes/mac.h",
 	MAME_DIR .. "src/mame/machine/egret.cpp",
@@ -2271,6 +2273,7 @@ files {
 
 createMESSProjects(_target, _subtarget, "emusys")
 files {
+	MAME_DIR .. "src/mame/drivers/emax.cpp",
 	MAME_DIR .. "src/mame/drivers/emu2.cpp",
 	MAME_DIR .. "src/mame/drivers/emu3.cpp",
 	MAME_DIR .. "src/mame/drivers/emu68k.cpp",
@@ -3048,7 +3051,9 @@ files {
 	MAME_DIR .. "src/mame/includes/nes.h",
 	MAME_DIR .. "src/mame/machine/nes.cpp",
 	MAME_DIR .. "src/mame/video/nes.cpp",
-	MAME_DIR .. "src/mame/drivers/nes_vt.cpp",
+	MAME_DIR .. "src/mame/drivers/nes_vt02_vt03.cpp",
+	MAME_DIR .. "src/mame/drivers/nes_vt09.cpp",
+	MAME_DIR .. "src/mame/drivers/nes_vt32_vt369.cpp",
 	MAME_DIR .. "src/mame/machine/nes_vt_soc.cpp",
 	MAME_DIR .. "src/mame/machine/nes_vt_soc.h",
 	MAME_DIR .. "src/mame/drivers/nes_sh6578.cpp",
@@ -3644,7 +3649,9 @@ files {
 
 createMESSProjects(_target, _subtarget, "sony")
 files {
+	MAME_DIR .. "src/mame/drivers/betacam.cpp",
 	MAME_DIR .. "src/mame/drivers/bvm.cpp",
+	MAME_DIR .. "src/mame/drivers/dfs500.cpp",
 	MAME_DIR .. "src/mame/drivers/pockstat.cpp",
 	MAME_DIR .. "src/mame/drivers/psx.cpp",
 	MAME_DIR .. "src/mame/machine/psxcd.cpp",
@@ -3652,6 +3659,7 @@ files {
 	MAME_DIR .. "src/mame/drivers/pve500.cpp",
 	MAME_DIR .. "src/mame/drivers/smc777.cpp",
 	MAME_DIR .. "src/mame/drivers/ps2sony.cpp",
+	MAME_DIR .. "src/mame/drivers/umatic.cpp",
 }
 
 createMESSProjects(_target, _subtarget, "sony_news")

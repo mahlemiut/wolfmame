@@ -3368,6 +3368,11 @@ bestleaw                        // bootleg
 @source:beta.cpp
 beta                            //
 
+@source:betacam.cpp
+uvw1200                         // 199? Sony Betacam-SP UVW-1200
+uvw1600                         // 199? Sony Betacam-SP UVW-1600
+uvw1800                         // 199? Sony Betacam-SP UVW-1800
+
 @source:bfcobra.cpp
 beeline                         // 1991 BFM
 brkball                         // 1994 BFM / ATOD
@@ -12113,6 +12118,9 @@ destroyr1                       // 030131-030136    1977/10 [6800]
 dfruit                          //
 gemcrush
 
+@source:dfs500.cpp
+dfs500                          // 1994 Sony DFS-500 Video Mixer
+
 @source:dg680.cpp
 dg680                           //
 
@@ -13072,6 +13080,11 @@ elf2                            //
 @source:elwro800.cpp
 elwro800                        //
 
+@source:emax.cpp
+emax                            //
+emax2                           //
+emaxp                           //
+
 @source:embargo.cpp
 embargo                         //
 
@@ -13082,7 +13095,6 @@ emma2                           // 1979 L.J.Technical Systems
 emu2                            //
 
 @source:emu3.cpp
-emax2                           //
 emu3                            //
 
 @source:emu68k.cpp
@@ -16982,6 +16994,7 @@ wcbowl16                        // (c) 1995 Incredible Technologies
 wcbowl161                       // (c) 1995 Incredible Technologies
 wcbowl165                       // (c) 1995 Incredible Technologies
 wcbowldx                        // (c) 1999 Incredible Technologies
+shoottv							// (c) 199? Incredible Technologies
 
 @source:itech8.cpp
 arlingtn                        // (c) 1991 Strata/Incredible Technologies
@@ -19075,6 +19088,12 @@ korgwssr                        //
 @source:korgz3.cpp
 korgz3                          //
 
+@source:kpython.cpp
+kpython                         // Konami Python Bios
+wswe                            // World Soccer Winning Eleven
+wswe2k3                         // World Soccer Winning Eleven 2003
+popn9                           // 2003
+
 @source:kramermc.cpp
 kramermc                        // 1987 Kramer MC
 
@@ -19900,7 +19919,17 @@ maclc                           // 1990 Apple Macintosh LC
 maclc2                          // 1991 Apple Macintosh LC II
 maclc3                          // 1993 Apple Macintosh LC III
 maclc520                        // 1993 Apple Macintosh LC 520
+macse30                         // 1989 Apple Macintosh SE/30
+pmac6100                        // 1993 Apple Power Macintosh 6100
+
+@source:macquadra700.cpp
+macqd700                        // 1991 Apple Macintosh Quadra 700
+
+@source:macprtb.cpp
+macprtb                         // 1989 Apple Macintosh Portable
 macpb100                        // 1991 Apple Macintosh PowerBook 100
+
+@source:macpwrbk030.cpp
 macpb140                        // 1991 Apple Macintosh PowerBook 140
 macpb145                        // 1992 Apple Macintosh PowerBook 145
 macpb145b                       // 1993 Apple Macintosh PowerBook 145B
@@ -19909,12 +19938,6 @@ macpb170                        // 1991 Apple Macintosh PowerBook 170
 macpb180                        // 1992 Apple Macintosh PowerBook 180
 macpb180c                       // 1992 Apple Macintosh PowerBook 180c
 macpd210                        // 1992 Apple Macintosh PowerBook Duo 210
-macprtb                         // 1989 Apple Macintosh Portable
-macse30                         // 1989 Apple Macintosh SE/30
-pmac6100                        // 1993 Apple Power Macintosh 6100
-
-@source:macquadra700.cpp
-macqd700                        // 1991 Apple Macintosh Quadra 700
 
 @source:mac128.cpp
 mac128k                         // 1984 Apple Macintosh
@@ -22241,6 +22264,7 @@ rad_sf2                         // (c)2004 Radica
 rad_sf2p                        // (c)2004 Radica
 rad_gen1                        // (c)2004 Radica
 rad_gen2                        // (c)2004 Radica
+rad_md1
 rad_ssoc                        // (c)2004 Radica
 rad_sonic
 rad_orun
@@ -32188,116 +32212,122 @@ max10in1
 vsmaxx25
 vsmaxx15
 
-@source:nes_vt.cpp
+@source:nes_vt02_vt03.cpp
 vdogdeme
 vdogdemo
-pinkjelly                       // From V.R. Technology VT SDK
-vtpinball                       // From V.R. Technology VT SDK
-vtsndtest                       // From V.R. Technology VT SDK
-vtboxing                        // From V.R. Technology VT SDK
+pinkjelly
+vtpinball
+vtsndtest
+vtboxing
+ablpinb
+sporzpp
+sporzbx
+sporztn
+wldsoctv
+mc_dgear
+sudopptv
+megapad
+ablmini
+solargm
+zudugo
+timetp36
+timetp7
+majkon
+majgnc
+vsmaxx17
+polmega
+dgun851
+silv35
+vsmaxxvd
+vsmaxx77
+techni4
+senwld
+protpp
+mc_sp69
+ablping
+mc_sam60
+zdog
+pjoyn50
+pjoys30
+pjoys60
+sarc110
+sarc110a
+mc_110cb
+mc_138cb
+cbrs8
+rfcp168
+gprnrs1
+gprnrs16
+ddrdismx
+ddrstraw
+dbdancem
+sen101
+mc_dg101
+mc_aa2
+mc_105te
+mc_8x6cb
+mc_9x6ss
+mc_9x6sa
+mc_7x6ss
+mc_8x6ss
+mc_dcat8
+mc_dcat8a
+mc_89in1
+mc_tv200
+dgun2500
+ppgc200g
+
+@source:nes_vt09.cpp
 msiwwe
 msiwwea
 msidd
 msimpac
-msisinv
 msimm2
+msisinv
 msifrog
-ablpinb
-mc_dgear
-dgun2500
+cybar120
+vsmaxtx2
+senario25
+rcapnp
+dturbogt
+ventur25
+vgpocket
+vgpmini
+vgtablet
+
+@source:nes_vt32_vt369.cpp
+bittboy
+mc_pg150
+mc_hh210
+dvnimbus
+unkra200
+fapocket
+sy889
+sy888b
+mc_cb280
+mog_m320
+dgun2573
+dgun2573a
+rminitv
+fcpocket
 dgun2561
+dgun2593
 lxcmcy
 lxcmc250
 lxcmcysw
 lxcmcyfz
 lxcmcydp
 lxcmcysp
-lxcmcypp
 lxcmcycr
+lxcmcypp
 lxccminn
 lxccplan
 rtvgc300
 rtvgc300fz
 red5mam
-cybar120
-sen101
-mc_dg101
-mc_aa2
-mc_105te
-mc_sp69
-vsmaxx17
-vsmaxtx2
-vsmaxx77
-vsmaxxvd
-polmega
-silv35
-dturbogt
-rcapnp
-ventur25
-lpgm240
-mc_dcat8
-mc_dcat8a
-pjoyn50
-pjoys30
-pjoys60
-sarc110
-sarc110a
-mc_8x6cb
-mc_9x6ss
-mc_9x6sa
-mc_110cb
-mc_138cb
-mc_7x6ss
-mc_8x6ss
-mc_sam60
-vgtablet
-gprnrs1
-gprnrs16
-ddrdismx                        // (c) 2006 Majesco / Konami [(c) 2001 Disney on title screen]
-ddrstraw                        // (c) 2006 Majesco / Konami
-dbdancem
-megapad
-timetp36
-timetp7
-majkon
-majgnc
-sudopptv
-zudugo
-ablping
-protpp
-vgpocket
-vgpmini
-sy889
-sy888b
-rfcp168
-dgun2573
-dgun2573a
-dgun2593
-bittboy
-mc_89in1
-mc_cb280
-mc_pg150
-mc_hh210
-dvnimbus
-cbrs8
-mc_tv200
-rminitv
-unkra200
-ppgc200g
-fcpocket
-mog_m320
-fapocket
-zdog
-otrail
 denv150
-techni4
-sporzpp
-sporzbx
-sporztn
-wldsoctv
-solargm
-ablmini
-senwld
+lpgm240
+otrail
 zonefusn
 
 @source:newbrain.cpp
@@ -32638,7 +32668,9 @@ ns5652                          //
 pitchhit                        //
 
 @source:nsm.cpp
+cosflnsm                        //
 firebird                        //
+gamesnsm                        //
 
 @source:nsmpoker.cpp
 nsmpoker                        //
@@ -35039,11 +35071,6 @@ px8                             //
 pyl601                          //
 pyl601a                         //
 
-@source:pyson.cpp
-pyson                           // Konami Pyson Bios
-wswe                            // World Soccer Winning Eleven
-wswe2k3                         // World Soccer Winning Eleven 2003
-
 @source:pzletime.cpp
 pzletime                        //
 
@@ -35377,6 +35404,9 @@ rex6000                         //
 
 @source:rfslots8085.cpp
 unkrfslt                        //
+
+@source:rfslotspcpent.cpp
+rfsantafeg                      // (c) 2014 Recreativos Franco
 
 @source:rgum.cpp
 rgum                            //
@@ -37647,6 +37677,8 @@ sitcomtmr                       //
 
 @source:sk1.cpp
 sk1                             //
+sk2                             //
+sk10                            //
 
 @source:sk101bl.cpp
 sk101bl                         //
@@ -40891,6 +40923,9 @@ ultratnk                        // 009801           1978/02 [6502]
 @source:ultrsprt.cpp
 fiveside                        // GX479 (c)1995
 
+@source:umatic.cpp
+vo5850pm                        // Sony U-Matic VO-5850PM
+
 @source:umipoker.cpp
 saiyukip                        //
 umipoker                        //
@@ -41312,7 +41347,6 @@ p911ea                          // 2001
 p911j                           // 2001
 p911kc                          // 2001
 p911uc                          // 2001
-popn9                           // 2003
 ppp2nd                          // 2001
 sogeki                          // 2001
 sscopefh                        // 2002
@@ -41422,7 +41456,6 @@ suprmrio                        // (c) 1986 Nintendo
 suprmrioa                       // (c) 1986 Nintendo
 suprmriobl                      // bootleg
 suprmriobl2                     // bootleg
-suprmriobl3                     // bootleg
 supxevs                         // (c) 1986 Nintendo
 tkoboxng                        // (c) 1987 Data East
 topgun                          // (c) 1987 Konami

@@ -274,7 +274,6 @@ SOUNDS["ES1373"] = true
 SOUNDS["L7A1045"] = true
 SOUNDS["AD1848"] = true
 --SOUNDS["UPD1771"] = true
-SOUNDS["VOLT_REG"] = true
 SOUNDS["MEA8000"] = true
 SOUNDS["DAC76"] = true
 SOUNDS["TA7630"] = true
@@ -2506,6 +2505,7 @@ files {
 	MAME_DIR .. "src/mame/drivers/konmedal68k.cpp",
 	MAME_DIR .. "src/mame/drivers/kontest.cpp",
 	MAME_DIR .. "src/mame/drivers/konendev.cpp",
+	MAME_DIR .. "src/mame/drivers/kpython.cpp",
 	MAME_DIR .. "src/mame/drivers/ksys573.cpp",
 	MAME_DIR .. "src/mame/machine/k573cass.cpp",
 	MAME_DIR .. "src/mame/machine/k573cass.h",
@@ -2567,7 +2567,6 @@ files {
 	MAME_DIR .. "src/mame/drivers/pooyan.cpp",
 	MAME_DIR .. "src/mame/includes/pooyan.h",
 	MAME_DIR .. "src/mame/video/pooyan.cpp",
-	MAME_DIR .. "src/mame/drivers/pyson.cpp",
 	MAME_DIR .. "src/mame/drivers/qdrmfgp.cpp",
 	MAME_DIR .. "src/mame/includes/qdrmfgp.h",
 	MAME_DIR .. "src/mame/video/qdrmfgp.cpp",
@@ -5036,6 +5035,7 @@ files {
 	MAME_DIR .. "src/mame/drivers/rcorsair.cpp",
 	MAME_DIR .. "src/mame/drivers/re900.cpp",
 	MAME_DIR .. "src/mame/drivers/rfslots8085.cpp",
+	MAME_DIR .. "src/mame/drivers/rfslotspcpent.cpp",
 	MAME_DIR .. "src/mame/drivers/rgum.cpp",
 	MAME_DIR .. "src/mame/drivers/roul.cpp",
 	MAME_DIR .. "src/mame/drivers/rulechan.cpp",

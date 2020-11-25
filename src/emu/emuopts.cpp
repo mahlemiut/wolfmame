@@ -569,7 +569,7 @@ bool emu_options::add_and_remove_slot_options()
 		// create the configuration
 		machine_config config(*m_system, *this);
 
-		for (const device_slot_interface &slot : slot_interface_iterator(config.root_device()))
+		for (const device_slot_interface &slot : slot_interface_enumerator(config.root_device()))
 		{
 			// come up with the canonical name of the slot
 			const char *slot_option_name = slot.slot_name();
@@ -666,7 +666,7 @@ bool emu_options::add_and_remove_image_options()
 		machine_config config(*m_system, *this);
 
 		// iterate through all image devices
-		for (device_image_interface &image : image_interface_iterator(config.root_device()))
+		for (device_image_interface &image : image_interface_enumerator(config.root_device()))
 		{
 			const std::string &canonical_name(image.canonical_instance_name());
 
@@ -747,7 +747,7 @@ void emu_options::reevaluate_default_card_software()
 		found = false;
 
 		// iterate through all slot devices
-		for (device_slot_interface &slot : slot_interface_iterator(config.root_device()))
+		for (device_slot_interface &slot : slot_interface_enumerator(config.root_device()))
 		{
 			// retrieve info about the device instance
 			auto &slot_opt(slot_option(slot.slot_name()));
@@ -885,7 +885,7 @@ emu_options::software_options emu_options::evaluate_initial_softlist_options(con
 
 		// and set up a configuration
 		machine_config config(*m_system, *this);
-		software_list_device_iterator iter(config.root_device());
+		software_list_device_enumerator iter(config.root_device());
 		if (iter.count() == 0)
 			throw emu_fatalerror(EMU_ERR_FATALERROR, "Error: unknown option: %s\n", software_identifier.c_str());
 

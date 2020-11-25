@@ -423,8 +423,9 @@
     three ROMs, and a smaller board with lots of ROMs,
     the CPU, the 6821 PIAs, and the two "Special Chip 2"
     custom BIT/BLT chips.
-    Joust 2 has an additional music/speech board that has a
-    68B09E CPU, 68B21 PIA, Harris 55564-5 CVSD, and a YM2151.
+    Joust 2 has an additional D-11298 Williams System 11 background
+    music/speech board (the older board version from PIN*BOT)
+    that has a 68B09E CPU, 68B21 PIA, Harris 55564-5 CVSD, and a YM2151.
 
     Contact Michael Soderstrom (ichael@geocities.com) if you
     have any additional information or corrections.
@@ -625,7 +626,7 @@ void spdball_state::main_map(address_map &map)
 void blaster_state::main_map(address_map &map)
 {
 	map(0x0000, 0x3fff).bankr("mainbank").writeonly().share("videoram");
-	map(0x4000, 0x8fff).bankr("blaster_bankb").writeonly();
+	map(0x4000, 0x8fff).bankr("blaster_bankb").writeonly().share("bankb");
 	map(0x9000, 0xbaff).ram();
 	map(0xbb00, 0xbbff).ram().share("blaster_pal0");
 	map(0xbc00, 0xbcff).ram().share("blaster_scan");

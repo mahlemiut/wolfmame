@@ -76,6 +76,7 @@ end
 local function handle_main_menu(index, event, buttons)
 	local section, adjusted_index = menu_section(index)
 	if section == MENU_SECTIONS.CONTENT then
+		manager:machine():popmessage(_('Press UI Clear to delete'))
 		if event == 'select' then
 			current_button = buttons[adjusted_index]
 			table.insert(menu_stack, MENU_TYPES.EDIT)
@@ -108,39 +109,40 @@ end
 -- Borrowed from the cheat plugin
 local function poll_for_hotkey()
 	local input = manager:machine():input()
+	local poller = input:switch_sequence_poller()
 	manager:machine():popmessage(_('Press button for hotkey or wait to leave unchanged'))
 	manager:machine():video():frame_update(true)
-	input:seq_poll_start('switch')
+	poller:start()
 	local time = os.clock()
 	local clearmsg = true
-	while (not input:seq_poll()) and (input:seq_poll_modified() or (os.clock() < time + 1)) do
-		if input:seq_poll_modified() then
-			if not input:seq_poll_valid() then
+	while (not poller:poll()) and (poller.modified or (os.clock() < time + 1)) do
+		if poller.modified then
+			if not poller.valid then
 				manager:machine():popmessage(_("Invalid sequence entered"))
 				clearmsg = false
 				break
 			end
-			manager:machine():popmessage(input:seq_name(input:seq_poll_sequence()))
+			manager:machine():popmessage(input:seq_name(poller.sequence))
 			manager:machine():video():frame_update(true)
 		end
 	end
 	if clearmsg then
 		manager:machine():popmessage()
 	end
-	return input:seq_poll_valid() and input:seq_poll_final() or nil
+	return poller.valid and poller.sequence or nil
 end
 
 local function handle_configure_menu(index, event)
-	-- Input
 	if index == 1 then
+		-- Input
 		if event == 'select' then
 			table.insert(menu_stack, MENU_TYPES.BUTTON)
 			return true
 		else
 			return false
 		end
-	-- Hotkey
 	elseif index == 2 then
+		-- Hotkey
 		if event == 'select' then
 			local keycode = poll_for_hotkey()
 			if keycode then
@@ -152,16 +154,16 @@ local function handle_configure_menu(index, event)
 		else
 			return false
 		end
-	-- On frames
 	elseif index == 3 then
+		-- On frames
 		manager:machine():popmessage(_('Number of frames button will be pressed'))
 		if event == 'left' then
 			current_button.on_frames = current_button.on_frames - 1
 		elseif event == 'right' then
 			current_button.on_frames = current_button.on_frames + 1
 		end
-	-- Off frames
 	elseif index == 4 then
+		-- Off frames
 		manager:machine():popmessage(_('Number of frames button will be released'))
 		if event == 'left' then
 			current_button.off_frames = current_button.off_frames - 1

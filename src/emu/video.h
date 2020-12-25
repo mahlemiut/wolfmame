@@ -51,7 +51,6 @@ public:
 	bool throttled() const { return (m_machine.ioport().get_record_file()->is_open()) ? true : m_throttled; }
 	float throttle_rate() const { return m_throttle_rate; }
 	bool fastforward() const { return m_fastforward; }
-	bool is_recording() const;
 
 	// setters
 	void set_frameskip(int frameskip);
@@ -76,6 +75,8 @@ public:
 	int effective_frameskip() const;
 
 	// snapshots
+	bool snap_native() const { return m_snap_native; }
+	render_target &snapshot_target() { return *m_snap_target; }
 	void save_snapshot(screen_device *screen, emu_file &file);
 	void save_active_screen_snapshots();
 	void save_input_timecode();
@@ -84,6 +85,7 @@ public:
 	void begin_recording(const char *name, movie_recording::format format);
 	void end_recording();
 	void add_sound_to_recording(const s16 *sound, int numsamples);
+	bool is_recording() const { return !m_movie_recordings.empty(); }
 
 	void set_timecode_enabled(bool value) { m_timecode_enabled = value; }
 	bool get_timecode_enabled() { return m_timecode_enabled; }

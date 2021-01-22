@@ -20,6 +20,7 @@
 #include "mame.h"
 #include "ioport.h"
 
+#include "corestr.h"
 #include "drivenum.h"
 #include "rendutil.h"
 #include "uiinput.h"

@@ -286,12 +286,12 @@ u8 i8244_device::read(offs_t offset)
 		default:
 			data = m_vdc.reg[offset];
 
-			// object x/y/attr registers are not readable when display is enabled
+			// object x/y/attr registers are not accessible when display is enabled
 			// (sprite shape registers still are)
 			if (offset < 0x80 && m_vdc.s.control & 0x20)
 				data = 0;
 
-			// grid registers are not readable when grid is enabled
+			// grid registers are not accessible when grid is enabled
 			else if (offset >= 0xc0 && m_vdc.s.control & 0x08)
 				data = 0;
 
@@ -306,8 +306,9 @@ void i8244_device::write(offs_t offset, u8 data)
 {
 	offset = fix_register_mirrors(offset);
 
-	// object registers are not accessible when display is enabled
-	if (offset < 0xa0 && m_vdc.s.control & 0x20)
+	// object x/y/attr registers are not accessible when display is enabled
+	// (sprite shape registers still are)
+	if (offset < 0x80 && m_vdc.s.control & 0x20)
 		return;
 
 	// grid registers are not accessible when grid is enabled
@@ -316,7 +317,7 @@ void i8244_device::write(offs_t offset, u8 data)
 		return;
 
 	// update screen before accessing video registers
-	if ((offset == 0xa0 || offset == 0xa2 || offset == 0xa3) && data != m_vdc.reg[offset])
+	if ((offset <= 0xa0 || offset == 0xa2 || offset == 0xa3) && data != m_vdc.reg[offset])
 		screen().update_now();
 
 	// color registers d4-d7 are not connected
@@ -590,7 +591,7 @@ void i8244_device::char_pixel(u8 index, int x, int y, u8 pixel, u16 color, bitma
 void i8244_device::draw_major(int scanline, bitmap_ind16 &bitmap, const rectangle &cliprect)
 {
 	// quad objects
-	for (int i = ARRAY_LENGTH(m_vdc.s.quad) - 1; i >= 0; i--)
+	for (int i = std::size(m_vdc.s.quad) - 1; i >= 0; i--)
 	{
 		int y = m_vdc.s.quad[i].single[0].y;
 		if (is_ntsc() && y < 0xe)
@@ -604,7 +605,7 @@ void i8244_device::draw_major(int scanline, bitmap_ind16 &bitmap, const rectangl
 		{
 			int x = (m_vdc.s.quad[i].single[0].x + 5) * 2;
 
-			for (int j = 0; j < ARRAY_LENGTH(m_vdc.s.quad[0].single); j++, x += 16)
+			for (int j = 0; j < std::size(m_vdc.s.quad[0].single); j++, x += 16)
 			{
 				int offset = (m_vdc.s.quad[i].single[j].ptr | ((m_vdc.s.quad[i].single[j].color & 0x01) << 8)) + (y >> 1) + ((scanline - y) >> 1);
 
@@ -616,7 +617,7 @@ void i8244_device::draw_major(int scanline, bitmap_ind16 &bitmap, const rectangl
 	}
 
 	// regular foreground objects
-	for (int i = ARRAY_LENGTH(m_vdc.s.foreground) - 1; i >= 0; i--)
+	for (int i = std::size(m_vdc.s.foreground) - 1; i >= 0; i--)
 	{
 		int y = m_vdc.s.foreground[i].y;
 		if (is_ntsc() && y < 0xe)
@@ -641,7 +642,7 @@ void i8244_device::draw_major(int scanline, bitmap_ind16 &bitmap, const rectangl
 void i8244_device::draw_minor(int scanline, bitmap_ind16 &bitmap, const rectangle &cliprect)
 {
 	// minor system (sprites)
-	for (int i = ARRAY_LENGTH(m_vdc.s.sprites) - 1; i >= 0; i--)
+	for (int i = std::size(m_vdc.s.sprites) - 1; i >= 0; i--)
 	{
 		int y = m_vdc.s.sprites[i].y;
 		int height = 8;

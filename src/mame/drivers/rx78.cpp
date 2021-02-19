@@ -15,6 +15,8 @@ TODO:
  -- the colours are verified correct for all games in the software lists, except:
    -- chlgolf - it's almost correct, just a few minor things in the background. Perfectly playable.
    -- cracer - this game has a lot of issues, including incorrect behaviour. It's still playable though.
+- RAM handling can't be right: PCB has 30KB shared RAM (manual also says this in the technical specs),
+  but MAME allocates much more
 
 Notes:
 - BS-BASIC v1.0 notes:
@@ -54,6 +56,14 @@ Summary of Monitor commands.
 *R          This is a block transfer load from a mystery parallel device, using ports E0 and E1,
             using handshaking similar to a centronics printer. The incoming file is loaded into
             memory and it appears that the operator is not provided any information of what happened.
+
+==============================================================================================================
+
+Known issues:
+- Excite baseball: Graphics issues, unplayable
+- Sekigahara: Joystick problem
+- Mobile Gundam: Bad sound at the intro screen
+- Champion Racer: Graphics and Colour.
 
 *************************************************************************************************************/
 

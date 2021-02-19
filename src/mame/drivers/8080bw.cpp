@@ -1976,6 +1976,8 @@ MACHINE_START_MEMBER(_8080bw_state,polaris)
 	save_pointer(&m_scattered_colorram[0], "m_scattered_colorram", 0x800);
 	save_item(NAME(m_polaris_cloud_speed));
 	save_item(NAME(m_polaris_cloud_pos));
+
+	m_polaris_cloud_pos = m_polaris_cloud_speed = 0;
 }
 
 uint8_t _8080bw_state::polaris_port00_r()
@@ -3892,13 +3894,13 @@ void cane_state::cane_unknown_port0_w(u8 data)
 
 ***********************************************************************************************************************************/
 
-u8 orbite_state::orbite_scattered_colorram_r(ATTR_UNUSED address_space &space, ATTR_UNUSED offs_t offset, ATTR_UNUSED u8 mem_mask)
+u8 orbite_state::orbite_scattered_colorram_r(address_space &space, offs_t offset, u8 mem_mask)
 {
 	return m_scattered_colorram[(offset & 0x1f) | ((offset & 0x1f80) >> 2)];
 }
 
 
-void orbite_state::orbite_scattered_colorram_w(ATTR_UNUSED address_space &space, ATTR_UNUSED offs_t offset, ATTR_UNUSED u8 data, ATTR_UNUSED u8 mem_mask)
+void orbite_state::orbite_scattered_colorram_w(address_space &space, offs_t offset, u8 data, u8 mem_mask)
 {
 	m_scattered_colorram[(offset & 0x1f) | ((offset & 0x1f80) >> 2)] = data;
 }

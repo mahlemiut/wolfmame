@@ -145,6 +145,7 @@ blktiger.cpp
 blktiger_ms.cpp
 blmbycar.cpp
 blockade.cpp
+blockch.cpp
 blockhl.cpp
 blockout.cpp
 blocktax.cpp
@@ -472,6 +473,7 @@ gberet.cpp
 gcpinbal.cpp
 gei.cpp
 getaway.cpp
+gfamily.cpp
 ggconnie.cpp
 ghosteo.cpp
 giclassic.cpp

@@ -46,7 +46,7 @@ ui_menu_record_inp::ui_menu_record_inp(mame_ui_manager &mui, render_container &c
 			m_warning[0] = true;
 		}
 	}
-	
+
 	// DIFF file
 	m_warning[1] = false;
 	path = mui.machine().options().diff_directory();
@@ -59,7 +59,7 @@ ui_menu_record_inp::ui_menu_record_inp(mame_ui_manager &mui, render_container &c
 		m_warning_count++;
 		m_warning[1] = true;
 	}
-	
+
 	// Lua console
 	m_warning[2] = false;
 	if(mui.machine().options().console())
@@ -103,7 +103,7 @@ void ui_menu_record_inp::handle()
 				// if it's any other key and we're not maxed out, update
 				else if ((menu_event->unichar >= ' ' && menu_event->unichar < 0x7f))
 				{
-					buflen += utf8_from_uchar(&m_filename_entry[buflen], ARRAY_LENGTH(m_filename_entry) - buflen, menu_event->unichar);
+					buflen += utf8_from_uchar(&m_filename_entry[buflen], std::size(m_filename_entry) - buflen, menu_event->unichar);
 					m_filename_entry[buflen] = 0;
 					reset(reset_options::SELECT_FIRST);
 				}
@@ -161,7 +161,7 @@ void ui_menu_record_inp::custom_render(void *selectedref, float top, float botto
 	mui.draw_outlined_box(container(), 0.1f,origy1 - (height*2),0.9f,origy1, mui.colors().background_color());
 	mui.draw_text_full(container(),_("Please enter a filename for the INP..."),0.1f,origy1 - (height*2),0.8f, ui::text_layout::CENTER, ui::text_layout::TRUNCATE, mame_ui_manager::NORMAL, mui.colors().text_color(), mui.colors().text_bg_color(), nullptr, nullptr);
 	mui.draw_text_full(container(),str.c_str(),0.1f,origy1 - height,0.8f, ui::text_layout::CENTER, ui::text_layout::TRUNCATE, mame_ui_manager::NORMAL, mui.colors().text_color(), mui.colors().text_bg_color(), nullptr, nullptr);
-	
+
 	// warning display
 	if(m_warning_count > 0)
 	{
@@ -222,7 +222,7 @@ void ui_menu_record_inp::start_inp()
 
 
 // INP playback class
-ui_menu_playback_inp::ui_menu_playback_inp(mame_ui_manager &mui, render_container &container, const game_driver *driver) 
+ui_menu_playback_inp::ui_menu_playback_inp(mame_ui_manager &mui, render_container &container, const game_driver *driver)
 	: ui_menu_record_inp(mui, container, driver),
 	  browse_done(false)
 {
@@ -284,7 +284,7 @@ void ui_menu_playback_inp::handle()
 				// if it's any other key and we're not maxed out, update
 				else if ((menu_event->unichar >= ' ' && menu_event->unichar < 0x7f))
 				{
-					buflen += utf8_from_uchar(&m_filename_entry[buflen], ARRAY_LENGTH(m_filename_entry) - buflen, menu_event->unichar);
+					buflen += utf8_from_uchar(&m_filename_entry[buflen], std::size(m_filename_entry) - buflen, menu_event->unichar);
 					m_filename_entry[buflen] = 0;
 					reset(reset_options::SELECT_FIRST);
 				}
@@ -341,7 +341,7 @@ void ui_menu_playback_inp::start_inp()
 		f.close();
 		return;
 	}
-	
+
 	// check if the correct game is selected (at this stage, auto-selecting the game from the INP header would be awkward from here)
 	hdr.read(f);
 	if(strcmp(m_driver->name,hdr.get_sysname().c_str()) != 0)
@@ -350,9 +350,9 @@ void ui_menu_playback_inp::start_inp()
 		f.close();
 		return;
 	}
-	
+
 	f.close();
-	
+
 	// if everything looks good, schedule the new driver
 /*	if (summary == media_auditor::CORRECT || summary == media_auditor::BEST_AVAILABLE || summary == media_auditor::NONE_NEEDED)
 	{

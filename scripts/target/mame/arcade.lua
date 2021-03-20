@@ -119,6 +119,7 @@ CPUS["COSMAC"] = true
 CPUS["UNSP"] = true
 CPUS["HCD62121"] = true
 CPUS["PPS4"] = true
+--CPUS["PPS41"] = true
 CPUS["UPD7725"] = true
 CPUS["HD61700"] = true
 CPUS["LC8670"] = true
@@ -239,7 +240,7 @@ SOUNDS["CDDA"] = true
 SOUNDS["ICS2115"] = true
 SOUNDS["I5000_SND"] = true
 SOUNDS["ST0016"] = true
-SOUNDS["NILE"] = true
+SOUNDS["SETAPCM"] = true
 SOUNDS["X1_010"] = true
 SOUNDS["VRENDER0"] = true
 SOUNDS["VOTRAX"] = true
@@ -708,6 +709,7 @@ MACHINES["STEPPERS"] = true
 --MACHINES["SWIM1"] = true
 --MACHINES["SWIM2"] = true
 --MACHINES["SWIM3"] = true
+--MACHINES["MAC_VIDEO_SONORA"] = true
 --MACHINES["DIABLO_HD"] = true
 MACHINES["PCI9050"] = true
 MACHINES["TMS1024"] = true
@@ -849,10 +851,9 @@ FORMATS["AMI_DSK"] = true
 FORMATS["SC3000_BIT"] = true
 FORMATS["WD177X_DSK"] = true
 FORMATS["NASLITE_DSK"] = true
-FORMATS["UPD765_DSK"] = true
-FORMATS["PC_DSK"] = true
 FORMATS["BASICDSK"] = true
 FORMATS["IBMXDF_DSK"] = true
+FORMATS["IPF_DSK"] = true
 
 --------------------------------------------------
 -- this is the list of driver libraries that
@@ -878,6 +879,7 @@ function linkProjects_mame_arcade(_target, _subtarget)
 		"capcom",
 		"ces",
 		"cinemat",
+		"cirsa",
 		"comad",
 		"cvs",
 		"dataeast",
@@ -1643,6 +1645,15 @@ files {
 	MAME_DIR .. "src/mame/video/leland.cpp",
 }
 
+createMAMEProjects(_target, _subtarget, "cirsa")
+files {
+	MAME_DIR .. "src/mame/drivers/cirsa820xxx.cpp",
+	MAME_DIR .. "src/mame/drivers/cirsa910510.cpp",
+	MAME_DIR .. "src/mame/drivers/miniguay.cpp",
+	MAME_DIR .. "src/mame/drivers/missbamby.cpp",
+	MAME_DIR .. "src/mame/drivers/neptunp2.cpp",
+}
+
 createMAMEProjects(_target, _subtarget, "comad")
 files {
 	MAME_DIR .. "src/mame/drivers/funybubl.cpp",
@@ -2003,6 +2014,9 @@ files {
 	MAME_DIR .. "src/mame/drivers/funworld.cpp",
 	MAME_DIR .. "src/mame/includes/funworld.h",
 	MAME_DIR .. "src/mame/video/funworld.cpp",
+	MAME_DIR .. "src/mame/drivers/photoply.cpp",
+	MAME_DIR .. "src/mame/drivers/photoplys.cpp",
+	MAME_DIR .. "src/mame/drivers/photoplysx.cpp",
 	MAME_DIR .. "src/mame/drivers/snookr10.cpp",
 	MAME_DIR .. "src/mame/includes/snookr10.h",
 	MAME_DIR .. "src/mame/video/snookr10.cpp",
@@ -3662,8 +3676,6 @@ files {
 	MAME_DIR .. "src/mame/machine/fd1089.h",
 	MAME_DIR .. "src/mame/machine/fd1094.cpp",
 	MAME_DIR .. "src/mame/machine/fd1094.h",
-	MAME_DIR .. "src/mame/machine/fddebug.cpp",
-	MAME_DIR .. "src/mame/machine/fddebug.h",
 	MAME_DIR .. "src/mame/machine/mc8123.cpp",
 	MAME_DIR .. "src/mame/machine/mc8123.h",
 	MAME_DIR .. "src/mame/machine/segaic16.cpp",
@@ -3819,7 +3831,6 @@ files {
 	MAME_DIR .. "src/mame/machine/st0016.cpp",
 	MAME_DIR .. "src/mame/machine/st0016.h",
 	MAME_DIR .. "src/mame/drivers/simple_st0016.cpp",
-	MAME_DIR .. "src/mame/includes/simple_st0016.h",
 	MAME_DIR .. "src/mame/video/seta001.cpp",
 	MAME_DIR .. "src/mame/video/seta001.h",
 	MAME_DIR .. "src/mame/video/x1_012.cpp",
@@ -4815,7 +4826,6 @@ files {
 	MAME_DIR .. "src/mame/drivers/chexx.cpp",
 	MAME_DIR .. "src/mame/drivers/chicago.cpp",
 	MAME_DIR .. "src/mame/drivers/chsuper.cpp",
-	MAME_DIR .. "src/mame/drivers/cirsa820xxx.cpp",
 	MAME_DIR .. "src/mame/drivers/clowndwn.cpp",
 	MAME_DIR .. "src/mame/drivers/clpoker.cpp",
 	MAME_DIR .. "src/mame/drivers/cocoloco.cpp",
@@ -4995,10 +5005,8 @@ files {
 	MAME_DIR .. "src/mame/drivers/midas.cpp",
 	MAME_DIR .. "src/mame/drivers/mil4000.cpp",
 	MAME_DIR .. "src/mame/drivers/miniboy7.cpp",
-	MAME_DIR .. "src/mame/drivers/miniguay.cpp",
 	MAME_DIR .. "src/mame/drivers/minivideo.cpp",
 	MAME_DIR .. "src/mame/drivers/mirax.cpp",
-	MAME_DIR .. "src/mame/drivers/missbamby.cpp",
 	MAME_DIR .. "src/mame/drivers/mjsenpu.cpp",
 	MAME_DIR .. "src/mame/drivers/mole.cpp",
 	MAME_DIR .. "src/mame/drivers/mosaic.cpp",
@@ -5011,7 +5019,6 @@ files {
 	MAME_DIR .. "src/mame/drivers/murogem.cpp",
 	MAME_DIR .. "src/mame/drivers/murogmbl.cpp",
 	MAME_DIR .. "src/mame/drivers/neoprint.cpp",
-	MAME_DIR .. "src/mame/drivers/neptunp2.cpp",
 	MAME_DIR .. "src/mame/drivers/news.cpp",
 	MAME_DIR .. "src/mame/includes/news.h",
 	MAME_DIR .. "src/mame/video/news.cpp",
@@ -5038,10 +5045,9 @@ files {
 	MAME_DIR .. "src/mame/drivers/piggypas.cpp",
 	MAME_DIR .. "src/mame/video/pk8000.cpp",
 	MAME_DIR .. "src/mame/drivers/photon2.cpp",
-	MAME_DIR .. "src/mame/drivers/photoply.cpp",
-	MAME_DIR .. "src/mame/drivers/photoplysx.cpp",
 	MAME_DIR .. "src/mame/drivers/pipeline.cpp",
 	MAME_DIR .. "src/mame/drivers/pkscram.cpp",
+	MAME_DIR .. "src/mame/drivers/playcenter.cpp",
 	MAME_DIR .. "src/mame/drivers/pntnpuzl.cpp",
 	MAME_DIR .. "src/mame/drivers/policetr.cpp",
 	MAME_DIR .. "src/mame/includes/policetr.h",
@@ -5076,6 +5082,7 @@ files {
 	MAME_DIR .. "src/mame/drivers/shangkid.cpp",
 	MAME_DIR .. "src/mame/includes/shangkid.h",
 	MAME_DIR .. "src/mame/video/shangkid.cpp",
+	MAME_DIR .. "src/mame/drivers/silverball.cpp",
 	MAME_DIR .. "src/mame/drivers/skeetsht.cpp",
 	MAME_DIR .. "src/mame/drivers/skimaxx.cpp",
 	MAME_DIR .. "src/mame/drivers/skopro.cpp",

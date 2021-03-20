@@ -18,8 +18,8 @@
 
     These are sort of an intermediate step between the SE and Mac II in terms
     of functional layout: ASC and SWIM are present, but there's only 1 VIA
-    and an M50753 microcontroller "PMU" handles power management, ADB, and
-    clock/PRAM.
+    (CMDμ G65SC22PE-2, not the "6523" variant normally used in ADB Macs) and an
+    M50753 microcontroller "PMU" handles power management, ADB, and clock/PRAM.
 
     VIA connections:
     Port A: 8-bit bidirectional data bus to the PMU
@@ -239,8 +239,9 @@ private:
 	int m_adb_line;
 	void set_adb_line(int state) { m_adb_line = state; }
 	u8 pmu_adb_r() { return (m_adb_line<<1); }
-	void pmu_adb_w(u8 data) { m_macadb->adb_linechange_w(data & 1); }
+	void pmu_adb_w(u8 data) { m_macadb->adb_linechange_w((data & 1) ^ 1); }
 	u8 pmu_in_r() { return 0x20; }  // bit 5 is 0 if the Target Disk Mode should be enabled on the PB100
+	u8 ad_in_r() { return 0xff; }
 };
 
 void macportable_state::field_interrupts()
@@ -282,6 +283,7 @@ void macportable_state::machine_start()
 	m_irq_count = m_ca1_data = m_ca2_data = 0;
 	m_pmu_via_bus = 0;
 	m_pmu_ack = m_pmu_req = 0;
+	m_adb_line = 1;
 
 	m_6015_timer = machine().scheduler().timer_alloc(timer_expired_delegate(FUNC(macportable_state::mac_6015_tick),this));
 	m_6015_timer->adjust(attotime::never);
@@ -388,6 +390,7 @@ TIMER_CALLBACK_MEMBER(macportable_state::mac_6015_tick)
 	m_via1->write_ca1(m_ca1_data);
 
 	m_pmu->set_input_line(m50753_device::M50753_INT1_LINE, ASSERT_LINE);
+	m_macadb->adb_vblank();
 
 	if (++m_irq_count == 60)
 	{
@@ -440,6 +443,7 @@ void macportable_state::macprtb_map(address_map &map)
 	map(0xfb0000, 0xfbffff).rw(m_asc, FUNC(asc_device::read), FUNC(asc_device::write));
 	map(0xfc0000, 0xfcffff).r(FUNC(macportable_state::mac_config_r));
 	map(0xfd0000, 0xfdffff).rw(FUNC(macportable_state::mac_scc_r), FUNC(macportable_state::mac_scc_2_w));
+	map(0xfe0000, 0xfe0001).noprw();
 	map(0xfffff0, 0xffffff).rw(FUNC(macportable_state::mac_autovector_r), FUNC(macportable_state::mac_autovector_w));
 }
 
@@ -516,6 +520,8 @@ void macportable_state::macprtb(machine_config &config)
 	m_pmu->read_p<4>().set(FUNC(macportable_state::pmu_adb_r));
 	m_pmu->write_p<4>().set(FUNC(macportable_state::pmu_adb_w));
 	m_pmu->read_in_p().set(FUNC(macportable_state::pmu_in_r));
+	m_pmu->ad_in<0>().set(FUNC(macportable_state::ad_in_r));
+	m_pmu->ad_in<1>().set(FUNC(macportable_state::ad_in_r));
 
 	M50740(config, "kybd", 3.93216_MHz_XTAL).set_disable();
 
@@ -550,7 +556,7 @@ void macportable_state::macprtb(machine_config &config)
 	SCC85C30(config, m_scc, C7M);
 //  m_scc->intrq_callback().set(FUNC(macportable_state::set_scc_interrupt));
 
-	R65NC22(config, m_via1, C7M/10);
+	R65C22(config, m_via1, C7M/10);
 	m_via1->readpa_handler().set(FUNC(macportable_state::mac_via_in_a));
 	m_via1->readpb_handler().set(FUNC(macportable_state::mac_via_in_b));
 	m_via1->writepa_handler().set(FUNC(macportable_state::mac_via_out_a));

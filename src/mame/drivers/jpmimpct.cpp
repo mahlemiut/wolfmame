@@ -295,7 +295,7 @@ void jpmimpct_state::volume_w(offs_t offset, uint16_t data, uint16_t mem_mask)
 		int changed = m_volume_latch^(data&0xf0);
 		m_upd7759->set_rom_bank((data >> 1) & 3);
 		m_upd7759->reset_w(BIT(data, 0));
-		
+
 		if ( changed & 0x10)
 		{ // digital volume clock line changed
 			if ( !(data & 0x10) )
@@ -1369,6 +1369,21 @@ void jpmimpct_state::impact_nonvideo_altreels(machine_config &config)
 	m_reel[5]->optic_handler().set(FUNC(jpmimpct_state::reel_optic_cb<5>));
 }
 
+void jpmimpct_state::impact_nonvideo_big50(machine_config &config)
+{
+	impact_nonvideo_base(config);
+
+	REEL(config, m_reel[0], STARPOINT_48STEP_REEL, 1, 3, 0x09, 4);
+	m_reel[0]->optic_handler().set(FUNC(jpmimpct_state::reel_optic_cb<0>));
+	REEL(config, m_reel[1], STARPOINT_48STEP_REEL, 1, 3, 0x09, 4);
+	m_reel[1]->optic_handler().set(FUNC(jpmimpct_state::reel_optic_cb<1>));
+	REEL(config, m_reel[2], STARPOINT_48STEP_REEL, 1, 3, 0x09, 4);
+	m_reel[2]->optic_handler().set(FUNC(jpmimpct_state::reel_optic_cb<2>));
+	// this is a wheel, not a standard reel, there are 2 open windows into it, and all other cards on it can be seen through grilles
+	// to render this properly in the layout would require a new type of element
+	REEL(config, m_reel[3], STARPOINT_48STEP_REEL, 1, 3, 0x09, 4);
+	m_reel[3]->optic_handler().set(FUNC(jpmimpct_state::reel_optic_inv_cb<3>));
+}
 
 void jpmimpct_video_state::impact_video(machine_config &config)
 {

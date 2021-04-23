@@ -1175,7 +1175,10 @@ void menu::do_handle()
 		// add an item to return - this is a really hacky way of doing this
 		if (!m_parent)
 		{
-			item_append(_("Return to Machine"), 0, nullptr);
+			if (machine().phase() == machine_phase::INIT)
+				item_append(_("Start Machine"), 0, nullptr);
+			else
+				item_append(_("Return to Machine"), 0, nullptr);
 		}
 		else if (m_parent->is_special_main_menu())
 		{

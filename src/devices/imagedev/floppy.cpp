@@ -377,7 +377,8 @@ void floppy_image_device::set_rpm(float _rpm)
 void floppy_image_device::setup_write(floppy_image_format_t *_output_format)
 {
 	output_format = _output_format;
-	commit_image();
+	if(image)
+		commit_image();
 }
 
 void floppy_image_device::commit_image()
@@ -713,6 +714,7 @@ static io_generic *ram_open(std::vector<u8> &data)
 
 void floppy_image_device::init_fs(const fs_info *fs)
 {
+	assert(image);
 	if (fs->m_type)
 	{
 		std::vector<u8> img(fs->m_image_size);
@@ -722,7 +724,6 @@ void floppy_image_device::init_fs(const fs_info *fs)
 		source_format->load(iog, floppy_image::FF_UNKNOWN, variants, image.get());
 		delete source_format;
 		delete iog;
-
 	} else
 		fs->m_manager->floppy_instantiate_raw(fs->m_key, image.get());
 }
@@ -1157,14 +1158,16 @@ void floppy_image_device::write_flux(const attotime &start, const attotime &end,
 		buf.push_back(floppy_image::MG_N);
 	}
 
+	uint32_t cur_mg;
 	if((buf[index] & floppy_image::TIME_MASK) == start_pos) {
 		if(index)
-			index--;
+			cur_mg = buf[index-1];
 		else
-			index = buf.size() - 1;
-	}
+			cur_mg = buf[buf.size() - 1];
+	} else
+			cur_mg = buf[index];
 
-	uint32_t cur_mg = buf[index] & floppy_image::MG_MASK;
+	cur_mg &= floppy_image::MG_MASK;
 	if(cur_mg == floppy_image::MG_N || cur_mg == floppy_image::MG_D)
 		cur_mg = floppy_image::MG_A;
 
@@ -1293,7 +1296,6 @@ void floppy_image_device::write_zone(uint32_t *buf, int &cells, int &index, uint
 				spos = epos;
 			}
 		}
-
 	}
 }
 

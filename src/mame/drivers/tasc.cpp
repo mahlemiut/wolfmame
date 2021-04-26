@@ -11,8 +11,8 @@ on PC, however the prototype Gideon 2.1(internally: Rebel 2.01) is not.
 WARNING: Don't configure more than 512KB RAM for R30 The King 2.50, it will still
 be playable but will actually use less than 512KB RAM and become weaker.
 
-The King 2.23 version was not released to the public. It has an opening book
-meant for chesscomputer competitions.
+The King 2.23 version was not sold to consumers. It has an opening book meant
+for chesscomputer competitions.
 For more information, see: http://chesseval.com/ChessEvalJournal/R30v223.htm
 
 R30 hardware notes:
@@ -27,6 +27,9 @@ R40 hardware notes:
 - +512KB extra RAM piggybacked
 - rest same as R30
 
+Documentation for the Toshiba chips is hard to find, but similar chips exist:
+T7778 is equivalent to T6A39, T7900 is equivalent to T6A40.
+
 EPROMs are interchangable between R30 and R40, with some limitations with
 The King 2.50 (see below).
 
@@ -34,9 +37,6 @@ Regarding RAM: The King 2.2x will work fine with RAM expanded up to 8MB.
 The King 2.50 appears to be protected against RAM upgrades though, and will
 limit itself to 128KB if it detects a non-default amount of RAM. Gideon doesn't
 use RAM above 128KB either, perhaps the R30 prototype only had 128KB RAM.
-
-Documentation for the Toshiba chips is hard to find, but similar chips exist:
-T7778 is equivalent to T6A39, T7900 is equivalent to T6A40.
 
 references:
 - https://www.schach-computer.info/wiki/index.php?title=Tasc_R30
@@ -52,6 +52,7 @@ TODO:
 - bootrom disable timer shouldn't be needed, real ARM has already fetched the next opcode
 - more accurate dynamic cpu clock divider (same problem as in saitek_risc2500.cpp),
   sound pitch is correct now though
+- does the R40 version have the same clock divider value?
 
 ******************************************************************************/
 
@@ -180,7 +181,7 @@ u32 tasc_state::input_r()
 	{
 		// disconnect bootrom from the bus after next opcode
 		if (m_bootrom_enabled && !m_disable_bootrom->enabled())
-			m_disable_bootrom->adjust(m_maincpu->cycles_to_attotime(5));
+			m_disable_bootrom->adjust(m_maincpu->cycles_to_attotime(10));
 
 		m_maincpu->set_input_line(ARM_FIRQ_LINE, CLEAR_LINE);
 	}
@@ -231,10 +232,10 @@ u32 tasc_state::rom_r(offs_t offset)
 		u32 prev_pc = m_prev_pc;
 		m_prev_pc = pc;
 
-		if (diff >= 0)
+		if (diff > 0)
 		{
 			static constexpr int arm_branch_cycles = 3;
-			static constexpr int arm_max_cycles = 17; // block data transfer
+			static constexpr int arm_max_cycles = 17; // datablock transfer
 			static constexpr int divider = -7 + 1;
 
 			// this takes care of almost all cases, otherwise, total cycles taken can't be determined
@@ -277,24 +278,24 @@ void tasc_state::nvram_map(address_map &map)
 
 static INPUT_PORTS_START( tasc )
 	PORT_START("IN.0")
-	PORT_BIT(0x20, IP_ACTIVE_HIGH, IPT_KEYPAD) PORT_CODE(KEYCODE_G)     PORT_NAME("PLAY")
-	PORT_BIT(0x40, IP_ACTIVE_HIGH, IPT_KEYPAD) PORT_CODE(KEYCODE_LEFT)  PORT_NAME("LEFT")
+	PORT_BIT(0x20, IP_ACTIVE_HIGH, IPT_KEYPAD) PORT_CODE(KEYCODE_G) PORT_NAME("PLAY")
+	PORT_BIT(0x40, IP_ACTIVE_HIGH, IPT_KEYPAD) PORT_CODE(KEYCODE_LEFT) PORT_NAME("LEFT")
 	PORT_BIT(0x80, IP_ACTIVE_HIGH, IPT_UNUSED)
 
 	PORT_START("IN.1")
-	PORT_BIT(0x20, IP_ACTIVE_HIGH, IPT_KEYPAD) PORT_CODE(KEYCODE_BACKSPACE) PORT_NAME("BACK")
+	PORT_BIT(0x20, IP_ACTIVE_HIGH, IPT_KEYPAD) PORT_CODE(KEYCODE_B) PORT_CODE(KEYCODE_BACKSPACE) PORT_NAME("BACK")
 	PORT_BIT(0x40, IP_ACTIVE_HIGH, IPT_KEYPAD) PORT_CODE(KEYCODE_RIGHT) PORT_NAME("RIGHT")
 	PORT_BIT(0x80, IP_ACTIVE_HIGH, IPT_UNUSED)
 
 	PORT_START("IN.2")
-	PORT_BIT(0x20, IP_ACTIVE_HIGH, IPT_KEYPAD) PORT_CODE(KEYCODE_M)     PORT_NAME("MENU")
-	PORT_BIT(0x40, IP_ACTIVE_HIGH, IPT_KEYPAD) PORT_CODE(KEYCODE_UP)    PORT_NAME("UP")
-	PORT_BIT(0x80, IP_ACTIVE_HIGH, IPT_KEYPAD) PORT_CODE(KEYCODE_L)     PORT_NAME("Left Clock")
+	PORT_BIT(0x20, IP_ACTIVE_HIGH, IPT_KEYPAD) PORT_CODE(KEYCODE_M) PORT_NAME("MENU")
+	PORT_BIT(0x40, IP_ACTIVE_HIGH, IPT_KEYPAD) PORT_CODE(KEYCODE_UP) PORT_NAME("UP")
+	PORT_BIT(0x80, IP_ACTIVE_HIGH, IPT_KEYPAD) PORT_CODE(KEYCODE_L) PORT_NAME("Left Clock")
 
 	PORT_START("IN.3")
-	PORT_BIT(0x20, IP_ACTIVE_HIGH, IPT_KEYPAD) PORT_CODE(KEYCODE_ENTER) PORT_NAME("ENTER")
-	PORT_BIT(0x40, IP_ACTIVE_HIGH, IPT_KEYPAD) PORT_CODE(KEYCODE_DOWN)  PORT_NAME("DOWN")
-	PORT_BIT(0x80, IP_ACTIVE_HIGH, IPT_KEYPAD) PORT_CODE(KEYCODE_R)     PORT_NAME("Right Clock")
+	PORT_BIT(0x20, IP_ACTIVE_HIGH, IPT_KEYPAD) PORT_CODE(KEYCODE_ENTER) PORT_CODE(KEYCODE_ENTER_PAD) PORT_NAME("ENTER")
+	PORT_BIT(0x40, IP_ACTIVE_HIGH, IPT_KEYPAD) PORT_CODE(KEYCODE_DOWN) PORT_NAME("DOWN")
+	PORT_BIT(0x80, IP_ACTIVE_HIGH, IPT_KEYPAD) PORT_CODE(KEYCODE_R) PORT_NAME("Right Clock")
 
 	PORT_START("FAKE")
 	PORT_CONFNAME( 0x01, 0x00, "CPU Frequency" ) PORT_CHANGED_MEMBER(DEVICE_SELF, tasc_state, switch_cpu_freq, 0)

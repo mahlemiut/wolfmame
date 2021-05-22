@@ -126,7 +126,7 @@ Dip location and recommended settings verified with the US manual
 #include "cpu/m6809/hd6309.h"
 #include "cpu/z80/z80.h"
 #include "machine/watchdog.h"
-#include "sound/ym2203.h"
+#include "sound/ymopn.h"
 #include "speaker.h"
 
 
@@ -695,7 +695,7 @@ void combatsc_state::combatsc(machine_config &config)
 	WATCHDOG_TIMER(config, "watchdog");
 
 	KONAMI_007452_MATH(config, "k007452");
-	
+
 	/* video hardware */
 	SCREEN(config, m_screen, SCREEN_TYPE_RASTER);
 //  m_screen->set_refresh_hz(60);

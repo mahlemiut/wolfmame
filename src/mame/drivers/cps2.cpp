@@ -104,7 +104,7 @@ Notes:
       5863      - Sony CXK5863BP-35 8k x8 SRAM (DIP28)
       8464      - Fujitsu MB8464A-10L 8k x8 SRAM (SOP28)
       HM514260  - Hitachi HM514260AJ8 256k x 16 DRAM (SOJ40)
-      HM658128  - Hitachi HM658128ADFP-10 128k x8 SRAM (SOP32)
+      HM658128  - Hitachi HM658128ADFP-10 128k x8 PSRAM (SOP32)
       M5195B    - Mitsubishi Electric Corp. M5195B Voltage Detection and System Reset IC (SIP5)
       LM833     - National Semiconductor LM833 Dual Audio Operational Amplifier (DIP8)
       TDA1543   - Philips TDA1543 Dual 16-bit DAC (DIP8)
@@ -5491,10 +5491,10 @@ ROM_START( mpangu )
 	ROM_CONTINUE(         0x10000, 0x18000 )
 
 	ROM_REGION( 0x400000, "qsound", 0 ) // QSound samples
-	ROM_LOAD16_WORD_SWAP( "mpn.q1",   0x000000, 0x100000, CRC(d21c1f5a) SHA1(94cfcf01e656c0fb690e6204964ac70fbc89064d) ) /* This version uses roms chips */
-	ROM_LOAD16_WORD_SWAP( "mpn.q2",   0x100000, 0x100000, CRC(d22090b1) SHA1(0ba65c0efb46af3cfb8ea3fe5087186248c57420) )
-	ROM_LOAD16_WORD_SWAP( "mpn.q3",   0x200000, 0x100000, CRC(60aa5ef2) SHA1(03fa994d7f5b43e05e8417a8769e07c22548a27a) )
-	ROM_LOAD16_WORD_SWAP( "mpn.q4",   0x300000, 0x100000, CRC(3a67d203) SHA1(7213364745d0c4c7fe11573afb9678483e24acb4) )
+	ROM_LOAD( "mpn.q1",   0x000000, 0x100000, CRC(d21c1f5a) SHA1(94cfcf01e656c0fb690e6204964ac70fbc89064d) ) /* This version uses roms chips */
+	ROM_LOAD( "mpn.q2",   0x100000, 0x100000, CRC(d22090b1) SHA1(0ba65c0efb46af3cfb8ea3fe5087186248c57420) )
+	ROM_LOAD( "mpn.q3",   0x200000, 0x100000, CRC(60aa5ef2) SHA1(03fa994d7f5b43e05e8417a8769e07c22548a27a) )
+	ROM_LOAD( "mpn.q4",   0x300000, 0x100000, CRC(3a67d203) SHA1(7213364745d0c4c7fe11573afb9678483e24acb4) )
 
 	ROM_REGION( 0x20, "key", 0 )
 	ROM_LOAD( "mpang.key",    0x000000, 0x000014, CRC(95354b0f) SHA1(6e015eda29ac94aa420d7c70cdebffee52fde032) )

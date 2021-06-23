@@ -24,6 +24,9 @@ known issues:
     - sprite/tilemap orthogonality needed
     - bad road colors in Final Lap and Suzuka series
 
+    Final Lap & Final Lap 2:
+    - by default, the graphics are way too bright if compared to original PCB/monitor output
+
     Finest Hour:
     - roz plane colors are bad in-game
 
@@ -1788,6 +1791,7 @@ void namcos2_state::configure_c45road_standard(machine_config &config)
 {
 	NAMCO_C45_ROAD(config, m_c45_road);
 	m_c45_road->set_palette(m_c116);
+	m_c45_road->set_xoffset(-72);
 }
 
 void namcos2_state::configure_namcos2_sprite_standard(machine_config &config)
@@ -1926,19 +1930,27 @@ void namcos2_state::finallap_noio(machine_config &config)
 	configure_c123tmap_standard(config);
 	configure_c45road_standard(config);
 
-	m_ns2sprite->force_32x32_sprites(true);
-
 	m_c140->add_route(0, "lspeaker", 0.75);
 	m_c140->add_route(1, "rspeaker", 0.75);
 
 	YM2151(config, "ymsnd", YM2151_SOUND_CLOCK).add_route(0, "lspeaker", 0.80).add_route(1, "rspeaker", 0.80); /* 3.579545MHz */
 }
 
-void namcos2_state::finallap(machine_config &config)
+void namcos2_state::base_fl(machine_config &config)
 {
 	finallap_noio(config);
 	configure_c65_standard(config);
 }
+
+void namcos2_state::finallap(machine_config &config)
+{
+	base_fl(config);
+
+	NAMCOS2_SPRITE_FINALLAP(config.replace(), m_ns2sprite, 0);
+	m_ns2sprite->set_gfxdecode_tag("gfxdecode");
+	m_ns2sprite->set_spriteram_tag("spriteram");
+}
+
 
 void namcos2_state::finallap_c68(machine_config &config)
 {
@@ -1950,11 +1962,9 @@ void namcos2_state::finallap_c68(machine_config &config)
 // finalap2 has different mangle
 void namcos2_state::finalap2(machine_config &config)
 {
-	finallap(config);
+	base_fl(config);
 
 	m_c123tmap->set_tile_callback(namco_c123tmap_device::c123_tilemap_delegate(&namcos2_state::TilemapCB_finalap2, this));
-
-	m_ns2sprite->force_32x32_sprites(false);
 }
 
 void namcos2_state::finalap3(machine_config &config)
@@ -1962,8 +1972,6 @@ void namcos2_state::finalap3(machine_config &config)
 	finallap_c68(config);
 
 	m_c123tmap->set_tile_callback(namco_c123tmap_device::c123_tilemap_delegate(&namcos2_state::TilemapCB_finalap2, this));
-
-	m_ns2sprite->force_32x32_sprites(false);
 }
 
 
@@ -2087,7 +2095,10 @@ void namcos2_state::metlhawk(machine_config &config)
 
 	GFXDECODE(config, m_gfxdecode, m_c116, gfx_metlhawk);
 
-	configure_namcos2_sprite_standard(config);
+	NAMCOS2_SPRITE_METALHAWK(config, m_ns2sprite, 0);
+	m_ns2sprite->set_gfxdecode_tag("gfxdecode");
+	m_ns2sprite->set_spriteram_tag("spriteram");
+
 	configure_c123tmap_standard(config);
 	configure_c169roz_standard(config);
 	m_c169roz->set_tile_callback(namco_c169roz_device::c169_tilemap_delegate(&namcos2_state::RozCB_metlhawk, this));
@@ -2701,12 +2712,11 @@ ROM_START( finallap )
 	ROM_REGION( 0x8000, "c65mcu:external", ROMREGION_ERASE00 ) /* I/O MCU */
 	/* no external MCU ROM? previously loaded type C, but the game predates it */
 
-	ROM_REGION( 0x400000, "sprite", 0 ) /* Sprites */
-	ROM_FILL( 0, 0x200000, 0xff )
-	ROM_LOAD32_BYTE( "obj-0b",  0x200003, 0x80000, CRC(c6986523) SHA1(1a4b0e95ade6314850b6e44f2debda0ab6e91397) )
-	ROM_LOAD32_BYTE( "obj-1b",  0x200002, 0x80000, CRC(6af7d284) SHA1(c74f975c301ff15040be1b38359624ec9c83ac76) )
-	ROM_LOAD32_BYTE( "obj-2b",  0x200001, 0x80000, CRC(de45ca8d) SHA1(f476ff1719f60d721d55fd1e40e465f48e7ed019) )
-	ROM_LOAD32_BYTE( "obj-3b",  0x200000, 0x80000, CRC(dba830a2) SHA1(5bd899b39458978dd419bf01082782a02b2d9c20) )
+	ROM_REGION( 0x200000, "sprite", 0 ) /* Sprites */
+	ROM_LOAD32_BYTE( "obj-0b",  0x000003, 0x80000, CRC(c6986523) SHA1(1a4b0e95ade6314850b6e44f2debda0ab6e91397) )
+	ROM_LOAD32_BYTE( "obj-1b",  0x000002, 0x80000, CRC(6af7d284) SHA1(c74f975c301ff15040be1b38359624ec9c83ac76) )
+	ROM_LOAD32_BYTE( "obj-2b",  0x000001, 0x80000, CRC(de45ca8d) SHA1(f476ff1719f60d721d55fd1e40e465f48e7ed019) )
+	ROM_LOAD32_BYTE( "obj-3b",  0x000000, 0x80000, CRC(dba830a2) SHA1(5bd899b39458978dd419bf01082782a02b2d9c20) )
 
 	ROM_REGION( 0x400000, "c123tmap", 0 ) /* Tiles */
 	NAMCOS2_GFXROM_LOAD_128K( "fl1-c0",  0x000000, CRC(cd9d2966) SHA1(39671f846542ba6ae47764674509127cf73e3d71) )
@@ -2747,12 +2757,11 @@ ROM_START( finallapd )
 	ROM_REGION( 0x8000, "c65mcu:external", ROMREGION_ERASE00 ) /* I/O MCU */
 	/* no external MCU ROM? previously loaded type C, but the game predates it */
 
-	ROM_REGION( 0x400000, "sprite", 0 ) /* Sprites */
-	ROM_FILL( 0, 0x200000, 0xff )
-	ROM_LOAD32_BYTE( "obj-0b",  0x200003, 0x80000, CRC(c6986523) SHA1(1a4b0e95ade6314850b6e44f2debda0ab6e91397) )
-	ROM_LOAD32_BYTE( "obj-1b",  0x200002, 0x80000, CRC(6af7d284) SHA1(c74f975c301ff15040be1b38359624ec9c83ac76) )
-	ROM_LOAD32_BYTE( "obj-2b",  0x200001, 0x80000, CRC(de45ca8d) SHA1(f476ff1719f60d721d55fd1e40e465f48e7ed019) )
-	ROM_LOAD32_BYTE( "obj-3b",  0x200000, 0x80000, CRC(dba830a2) SHA1(5bd899b39458978dd419bf01082782a02b2d9c20) )
+	ROM_REGION( 0x200000, "sprite", 0 ) /* Sprites */
+	ROM_LOAD32_BYTE( "obj-0b",  0x000003, 0x80000, CRC(c6986523) SHA1(1a4b0e95ade6314850b6e44f2debda0ab6e91397) )
+	ROM_LOAD32_BYTE( "obj-1b",  0x000002, 0x80000, CRC(6af7d284) SHA1(c74f975c301ff15040be1b38359624ec9c83ac76) )
+	ROM_LOAD32_BYTE( "obj-2b",  0x000001, 0x80000, CRC(de45ca8d) SHA1(f476ff1719f60d721d55fd1e40e465f48e7ed019) )
+	ROM_LOAD32_BYTE( "obj-3b",  0x000000, 0x80000, CRC(dba830a2) SHA1(5bd899b39458978dd419bf01082782a02b2d9c20) )
 
 	ROM_REGION( 0x400000, "c123tmap", 0 ) /* Tiles */
 	NAMCOS2_GFXROM_LOAD_128K( "fl1-c0",  0x000000, CRC(cd9d2966) SHA1(39671f846542ba6ae47764674509127cf73e3d71) )
@@ -2793,12 +2802,11 @@ ROM_START( finallapc )
 	ROM_REGION( 0x8000, "c65mcu:external", ROMREGION_ERASE00 ) /* I/O MCU */
 	/* no external MCU ROM? previously loaded type C, but the game predates it */
 
-	ROM_REGION( 0x400000, "sprite", 0 ) /* Sprites */
-	ROM_FILL( 0, 0x200000, 0xff )
-	ROM_LOAD32_BYTE( "obj-0b",  0x200003, 0x80000, CRC(c6986523) SHA1(1a4b0e95ade6314850b6e44f2debda0ab6e91397) )
-	ROM_LOAD32_BYTE( "obj-1b",  0x200002, 0x80000, CRC(6af7d284) SHA1(c74f975c301ff15040be1b38359624ec9c83ac76) )
-	ROM_LOAD32_BYTE( "obj-2b",  0x200001, 0x80000, CRC(de45ca8d) SHA1(f476ff1719f60d721d55fd1e40e465f48e7ed019) )
-	ROM_LOAD32_BYTE( "obj-3b",  0x200000, 0x80000, CRC(dba830a2) SHA1(5bd899b39458978dd419bf01082782a02b2d9c20) )
+	ROM_REGION( 0x200000, "sprite", 0 ) /* Sprites */
+	ROM_LOAD32_BYTE( "obj-0b",  0x000003, 0x80000, CRC(c6986523) SHA1(1a4b0e95ade6314850b6e44f2debda0ab6e91397) )
+	ROM_LOAD32_BYTE( "obj-1b",  0x000002, 0x80000, CRC(6af7d284) SHA1(c74f975c301ff15040be1b38359624ec9c83ac76) )
+	ROM_LOAD32_BYTE( "obj-2b",  0x000001, 0x80000, CRC(de45ca8d) SHA1(f476ff1719f60d721d55fd1e40e465f48e7ed019) )
+	ROM_LOAD32_BYTE( "obj-3b",  0x000000, 0x80000, CRC(dba830a2) SHA1(5bd899b39458978dd419bf01082782a02b2d9c20) )
 
 	ROM_REGION( 0x400000, "c123tmap", 0 ) /* Tiles */
 	NAMCOS2_GFXROM_LOAD_128K( "fl1-c0",  0x000000, CRC(cd9d2966) SHA1(39671f846542ba6ae47764674509127cf73e3d71) )
@@ -2839,12 +2847,11 @@ ROM_START( finallapjc )
 	ROM_REGION( 0x8000, "c65mcu:external", ROMREGION_ERASE00 ) /* I/O MCU */
 	/* no external MCU ROM? previously loaded type C, but the game predates it */
 
-	ROM_REGION( 0x400000, "sprite", 0 ) /* Sprites */
-	ROM_FILL( 0, 0x200000, 0xff )
-	ROM_LOAD32_BYTE( "obj-0b",  0x200003, 0x80000, CRC(c6986523) SHA1(1a4b0e95ade6314850b6e44f2debda0ab6e91397) )
-	ROM_LOAD32_BYTE( "obj-1b",  0x200002, 0x80000, CRC(6af7d284) SHA1(c74f975c301ff15040be1b38359624ec9c83ac76) )
-	ROM_LOAD32_BYTE( "obj-2b",  0x200001, 0x80000, CRC(de45ca8d) SHA1(f476ff1719f60d721d55fd1e40e465f48e7ed019) )
-	ROM_LOAD32_BYTE( "obj-3b",  0x200000, 0x80000, CRC(dba830a2) SHA1(5bd899b39458978dd419bf01082782a02b2d9c20) )
+	ROM_REGION( 0x200000, "sprite", 0 ) /* Sprites */
+	ROM_LOAD32_BYTE( "obj-0b",  0x000003, 0x80000, CRC(c6986523) SHA1(1a4b0e95ade6314850b6e44f2debda0ab6e91397) )
+	ROM_LOAD32_BYTE( "obj-1b",  0x000002, 0x80000, CRC(6af7d284) SHA1(c74f975c301ff15040be1b38359624ec9c83ac76) )
+	ROM_LOAD32_BYTE( "obj-2b",  0x000001, 0x80000, CRC(de45ca8d) SHA1(f476ff1719f60d721d55fd1e40e465f48e7ed019) )
+	ROM_LOAD32_BYTE( "obj-3b",  0x000000, 0x80000, CRC(dba830a2) SHA1(5bd899b39458978dd419bf01082782a02b2d9c20) )
 
 	ROM_REGION( 0x400000, "c123tmap", 0 ) /* Tiles */
 	NAMCOS2_GFXROM_LOAD_128K( "fl1-c0",  0x000000, CRC(cd9d2966) SHA1(39671f846542ba6ae47764674509127cf73e3d71) )
@@ -2885,12 +2892,11 @@ ROM_START( finallapjb )
 	ROM_REGION( 0x8000, "c65mcu:external", ROMREGION_ERASE00 ) /* I/O MCU */
 	/* no external MCU ROM? previously loaded type C, but the game predates it */
 
-	ROM_REGION( 0x400000, "sprite", 0 ) /* Sprites */
-	ROM_FILL( 0, 0x200000, 0xff )
-	ROM_LOAD32_BYTE( "obj-0b",  0x200003, 0x80000, CRC(c6986523) SHA1(1a4b0e95ade6314850b6e44f2debda0ab6e91397) )
-	ROM_LOAD32_BYTE( "obj-1b",  0x200002, 0x80000, CRC(6af7d284) SHA1(c74f975c301ff15040be1b38359624ec9c83ac76) )
-	ROM_LOAD32_BYTE( "obj-2b",  0x200001, 0x80000, CRC(de45ca8d) SHA1(f476ff1719f60d721d55fd1e40e465f48e7ed019) )
-	ROM_LOAD32_BYTE( "obj-3b",  0x200000, 0x80000, CRC(dba830a2) SHA1(5bd899b39458978dd419bf01082782a02b2d9c20) )
+	ROM_REGION( 0x200000, "sprite", 0 ) /* Sprites */
+	ROM_LOAD32_BYTE( "obj-0b",  0x000003, 0x80000, CRC(c6986523) SHA1(1a4b0e95ade6314850b6e44f2debda0ab6e91397) )
+	ROM_LOAD32_BYTE( "obj-1b",  0x000002, 0x80000, CRC(6af7d284) SHA1(c74f975c301ff15040be1b38359624ec9c83ac76) )
+	ROM_LOAD32_BYTE( "obj-2b",  0x000001, 0x80000, CRC(de45ca8d) SHA1(f476ff1719f60d721d55fd1e40e465f48e7ed019) )
+	ROM_LOAD32_BYTE( "obj-3b",  0x000000, 0x80000, CRC(dba830a2) SHA1(5bd899b39458978dd419bf01082782a02b2d9c20) )
 
 	ROM_REGION( 0x400000, "c123tmap", 0 ) /* Tiles */
 	NAMCOS2_GFXROM_LOAD_128K( "fl1-c0",  0x000000, CRC(cd9d2966) SHA1(39671f846542ba6ae47764674509127cf73e3d71) )
@@ -3308,8 +3314,8 @@ ROM_START( finalap3bl ) // bootleg set
 	ROM_REGION( 8*1024, "user2", 0 ) /* zoom */
 	ROM_LOAD( "04544191.6r", 0, 8*1024, CRC(90db1bf6) SHA1(dbb9e50a8efc3b4012fcf587cc87da9ef42a1b80) )
 
-	ROM_REGION( 0x2000, "nvram", 0 ) /* default settings, including calibration */
-	ROM_LOAD( "finalap3.nv",  0x000000, 0x2000, CRC(efbc6274) SHA1(f542012e467027b7bd5d7102096ff91d8c9adee3) )
+	ROM_REGION( 0x2000, "nvram", 0 ) /* default settings, including calibration and machine ID code that passes protection */
+	ROM_LOAD( "finalap3bl.nv",  0x000000, 0x2000, CRC(60226586) SHA1(d66afd1149c3c95cbb0108337c530cab78327d97) )
 ROM_END
 
 /* FINEST HOUR */
@@ -5519,6 +5525,20 @@ void namcos2_state::init_finalap3()
 	m_finallap_prot_count = 0;
 }
 
+uint16_t namcos2_state::finalap3bl_prot_r()
+{
+	// code at 0x3f22 expects this to be 0x4d00 or it sets a value in NVRAM which prevents booting
+	// address 0x180020 (0x10 in NVRAM) must also be 0x6b (machine ID code first byte) or the same will occur
+	// for the 2nd issue we use a default NVRAM with this set
+	return 0x4d00;
+}
+
+void namcos2_state::init_finalap3bl()
+{
+	init_finalap3();
+	m_maincpu->space(AS_PROGRAM).install_read_handler(0x3ffff0, 0x3ffff1, read16smo_delegate(*this, FUNC(namcos2_state::finalap3bl_prot_r)));
+}
+
 void namcos2_state::init_finehour()
 {
 	m_gametype = NAMCOS2_FINEST_HOUR;
@@ -5711,9 +5731,9 @@ GAME(  1988, pheliosj,   phelios,  base2,    base,     namcos2_state, init_pheli
 
 GAME(  1989, dirtfoxj,   0,        base2,    dirtfox,  namcos2_state, init_dirtfoxj, ROT90,  "Namco", "Dirt Fox (Japan)", MACHINE_NODEVICE_LAN | MACHINE_SUPPORTS_SAVE )
 
-GAMEL( 1989, fourtrax,   0,        finallap, fourtrax, namcos2_state, init_fourtrax, ROT0,   "Namco", "Four Trax (World)", MACHINE_IMPERFECT_GRAPHICS | MACHINE_NODEVICE_LAN | MACHINE_SUPPORTS_SAVE, layout_finallap )
-GAMEL( 1989, fourtraxj,  fourtrax, finallap, fourtrax, namcos2_state, init_fourtrax, ROT0,   "Namco", "Four Trax (Japan)", MACHINE_IMPERFECT_GRAPHICS | MACHINE_NODEVICE_LAN | MACHINE_SUPPORTS_SAVE, layout_finallap )
-GAMEL( 1989, fourtraxa,  fourtrax, finallap, fourtrax, namcos2_state, init_fourtrax, ROT0,   "Namco (Atari license?)", "Four Trax (US?, censored banners)",  MACHINE_IMPERFECT_GRAPHICS | MACHINE_NODEVICE_LAN | MACHINE_SUPPORTS_SAVE, layout_finallap ) // boards using the ROM code FX4 were produced for Atari? there's no US region warning or Atari copyright tho, modded version of the World code
+GAMEL( 1989, fourtrax,   0,        base_fl,  fourtrax, namcos2_state, init_fourtrax, ROT0,   "Namco", "Four Trax (World)", MACHINE_IMPERFECT_GRAPHICS | MACHINE_NODEVICE_LAN | MACHINE_SUPPORTS_SAVE, layout_finallap )
+GAMEL( 1989, fourtraxj,  fourtrax, base_fl,  fourtrax, namcos2_state, init_fourtrax, ROT0,   "Namco", "Four Trax (Japan)", MACHINE_IMPERFECT_GRAPHICS | MACHINE_NODEVICE_LAN | MACHINE_SUPPORTS_SAVE, layout_finallap )
+GAMEL( 1989, fourtraxa,  fourtrax, base_fl,  fourtrax, namcos2_state, init_fourtrax, ROT0,   "Namco (Atari license?)", "Four Trax (US?, censored banners)",  MACHINE_IMPERFECT_GRAPHICS | MACHINE_NODEVICE_LAN | MACHINE_SUPPORTS_SAVE, layout_finallap ) // boards using the ROM code FX4 were produced for Atari? there's no US region warning or Atari copyright tho, modded version of the World code
 
 GAME(  1989, valkyrie,   0,        base3,    base,     namcos2_state, init_valkyrie, ROT90,  "Namco", "Valkyrie no Densetsu (Japan)", MACHINE_SUPPORTS_SAVE )
 
@@ -5758,7 +5778,7 @@ GAMEL( 1992, finalap3,   0,        finalap3, finalap3, namcos2_state, init_final
 GAMEL( 1992, finalap3a,  finalap3, finalap3, finalap3, namcos2_state, init_finalap3, ROT0,   "Namco", "Final Lap 3 (World, set 2)", MACHINE_IMPERFECT_GRAPHICS | MACHINE_NODEVICE_LAN | MACHINE_SUPPORTS_SAVE, layout_finallap )
 GAMEL( 1992, finalap3j,  finalap3, finalap3, finalap3, namcos2_state, init_finalap3, ROT0,   "Namco", "Final Lap 3 (Japan)", MACHINE_IMPERFECT_GRAPHICS | MACHINE_NODEVICE_LAN | MACHINE_SUPPORTS_SAVE, layout_finallap )
 GAMEL( 1992, finalap3jc, finalap3, finalap3, finalap3, namcos2_state, init_finalap3, ROT0,   "Namco", "Final Lap 3 (Japan, Rev C)", MACHINE_IMPERFECT_GRAPHICS | MACHINE_NODEVICE_LAN | MACHINE_SUPPORTS_SAVE, layout_finallap )
-GAMEL( 1992, finalap3bl, finalap3, finalap3, finalap3, namcos2_state, init_finalap3, ROT0,   "Namco", "Final Lap 3 (bootleg)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_GRAPHICS | MACHINE_NODEVICE_LAN | MACHINE_SUPPORTS_SAVE, layout_finallap )
+GAMEL( 1992, finalap3bl, finalap3, finalap3, finalap3, namcos2_state, init_finalap3bl,ROT0,  "Namco", "Final Lap 3 (bootleg)", MACHINE_IMPERFECT_GRAPHICS | MACHINE_NODEVICE_LAN | MACHINE_SUPPORTS_SAVE, layout_finallap )
 
 GAME(  1992, luckywld,   0,        luckywld, luckywld, namcos2_state, init_luckywld, ROT0,   "Namco", "Lucky & Wild", MACHINE_SUPPORTS_SAVE )
 GAME(  1992, luckywldj,  luckywld, luckywld, luckywld, namcos2_state, init_luckywld, ROT0,   "Namco", "Lucky & Wild (Japan)", MACHINE_SUPPORTS_SAVE )

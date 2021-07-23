@@ -16,7 +16,7 @@ static const struct _input_type_definition
 	char name[13];  // NULL-terminated string to identify different type using a possible -inplayout option
 	int lines;  // number of lines to use for this type
 	struct inputs inp[64];  // list of displayed buttons, and the inputs they correspond to (64 max)
-} inptype[INPUT_TYPES] = 
+} inptype[INPUT_TYPES] =
 {
 	{
 		"standard",
@@ -251,7 +251,7 @@ void input_viewer::render_dips()
 				/* get current settings */
 				dip = field.name();
 				portdata = port.second->live().defvalue;
-				for (ioport_setting &ptr : field.settings())
+				for (const ioport_setting &ptr : field.settings())
 				{
 					if(field.enabled())
 					{

@@ -259,6 +259,23 @@ end
 
 ---------------------------------------------------
 --
+--@src/devices/bus/apricot/video/video.h,BUSES["APRICOT_VIDEO"] = true
+---------------------------------------------------
+
+if (BUSES["APRICOT_VIDEO"]~=null) then
+	files {
+		MAME_DIR .. "src/devices/bus/apricot/video/video.cpp",
+		MAME_DIR .. "src/devices/bus/apricot/video/video.h",
+		MAME_DIR .. "src/devices/bus/apricot/video/cards.cpp",
+		MAME_DIR .. "src/devices/bus/apricot/video/cards.h",
+		MAME_DIR .. "src/devices/bus/apricot/video/mono.cpp",
+		MAME_DIR .. "src/devices/bus/apricot/video/mono.h",
+	}
+end
+
+
+---------------------------------------------------
+--
 --@src/devices/bus/aquarius/slot.h,BUSES["AQUARIUS"] = true
 ---------------------------------------------------
 
@@ -1692,6 +1709,8 @@ if (BUSES["MSX_SLOT"]~=null) then
 		MAME_DIR .. "src/devices/bus/msx_cart/disk.h",
 		MAME_DIR .. "src/devices/bus/msx_cart/dooly.cpp",
 		MAME_DIR .. "src/devices/bus/msx_cart/dooly.h",
+		MAME_DIR .. "src/devices/bus/msx_cart/easi_speech.cpp",
+		MAME_DIR .. "src/devices/bus/msx_cart/easi_speech.h",
 		MAME_DIR .. "src/devices/bus/msx_cart/fmpac.cpp",
 		MAME_DIR .. "src/devices/bus/msx_cart/fmpac.h",
 		MAME_DIR .. "src/devices/bus/msx_cart/fs_sr022.cpp",
@@ -2470,6 +2489,8 @@ if (BUSES["A2BUS"]~=null) then
 		MAME_DIR .. "src/devices/bus/a2bus/nippelclock.h",
 		MAME_DIR .. "src/devices/bus/a2bus/pc_xporter.cpp",
 		MAME_DIR .. "src/devices/bus/a2bus/pc_xporter.h",
+		MAME_DIR .. "src/devices/bus/a2bus/q68.cpp",
+		MAME_DIR .. "src/devices/bus/a2bus/q68.h",
 		MAME_DIR .. "src/devices/bus/a2bus/ramcard128k.cpp",
 		MAME_DIR .. "src/devices/bus/a2bus/ramcard128k.h",
 		MAME_DIR .. "src/devices/bus/a2bus/ramcard16k.cpp",

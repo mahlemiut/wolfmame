@@ -112,33 +112,18 @@ nes_8237_device::nes_8237_device(const machine_config &mconfig, const char *tag,
 {
 }
 
-nes_sglionk_device::nes_sglionk_device(const machine_config &mconfig, device_type type, const char *tag, device_t *owner, u32 clock, const u8 *reg_table, const u16 *addr_table)
-	: nes_txrom_device(mconfig, type, tag, owner, clock)
-	, m_mmc3_mode(true)
-	, m_reg_table(reg_table)
-	, m_addr_table(addr_table)
+nes_sglionk_device::nes_sglionk_device(const machine_config &mconfig, device_type type, const char *tag, device_t *owner, u32 clock, int board)
+	: nes_txrom_device(mconfig, type, tag, owner, clock), m_mmc3_mode(true), m_board(board)
 {
 }
 
 nes_sglionk_device::nes_sglionk_device(const machine_config &mconfig, const char *tag, device_t *owner, u32 clock)
-	: nes_sglionk_device(mconfig,
-			     NES_SG_LIONK,
-			     tag,
-			     owner,
-			     clock,
-			     (const u8 []) {0, 3, 1, 5, 6, 7, 2, 4},
-			     (const u16 []) {0xa001, 0xa000, 0x8000, 0xc000, 0x8001, 0xc001, 0xe000, 0xe001})
+	: nes_sglionk_device(mconfig, NES_SG_LIONK, tag, owner, clock, 0)
 {
 }
 
 nes_sgboog_device::nes_sgboog_device(const machine_config &mconfig, const char *tag, device_t *owner, u32 clock)
-	: nes_sglionk_device(mconfig,
-			     NES_SG_BOOG,
-			     tag,
-			     owner,
-			     clock,
-			     (const u8 []) {0, 2, 5, 3, 6, 1, 7, 4},
-			     (const u16 []) {0xa001, 0x8001, 0x8000, 0xc001, 0xa000, 0xc000, 0xe000, 0xe001})
+	: nes_sglionk_device(mconfig, NES_SG_BOOG, tag, owner, clock, 1)
 {
 }
 
@@ -395,22 +380,22 @@ void nes_sglionk_device::pcb_reset()
 /*
 void nes_sgboog_device::device_start()
 {
-	mmc3_start();
-	save_item(NAME(m_reg));
-	save_item(NAME(m_mode));
+    mmc3_start();
+    save_item(NAME(m_reg));
+    save_item(NAME(m_mode));
 }
 
 void nes_sgboog_device::pcb_reset()
 {
-	m_chr_source = m_vrom_chunks ? CHRROM : CHRRAM;
+    m_chr_source = m_vrom_chunks ? CHRROM : CHRRAM;
 
-	m_mode = 0x04;
-	m_reg[0] = 0x00;
-	m_reg[1] = 0xff;
-	m_reg[2] = 0;
-	mmc3_common_initialize(0x1f, 0xff, 0);
-	set_prg(m_prg_base, m_prg_mask);
-	set_chr(m_chr_source, m_chr_base, m_chr_mask);
+    m_mode = 0x04;
+    m_reg[0] = 0x00;
+    m_reg[1] = 0xff;
+    m_reg[2] = 0;
+    mmc3_common_initialize(0x1f, 0xff, 0);
+    set_prg(m_prg_base, m_prg_mask);
+    set_chr(m_chr_source, m_chr_base, m_chr_mask);
 }
 */
 
@@ -1118,9 +1103,21 @@ void nes_sglionk_device::write_h(offs_t offset, u8 data)
 {
 	LOG_MMC(("sglionk write_h, offset: %04x, data: %02x\n", offset, data));
 
-	u16 addr = m_addr_table[bitswap<3>(offset, 14, 13, 0)];
+	static constexpr u8 reg_table[2][8] =
+	{
+		{0, 3, 1, 5, 6, 7, 2, 4},
+		{0, 2, 5, 3, 6, 1, 7, 4}
+	};
+
+	static constexpr u16 addr_table[2][8] =
+	{
+		{0xa001, 0xa000, 0x8000, 0xc000, 0x8001, 0xc001, 0xe000, 0xe001},
+		{0xa001, 0x8001, 0x8000, 0xc001, 0xa000, 0xc000, 0xe000, 0xe001}
+	};
+
+	u16 addr = addr_table[m_board][bitswap<3>(offset, 14, 13, 0)];
 	if (addr == 0x8000)
-		data = (data & 0xc0) | m_reg_table[data & 0x07];
+		data = (data & 0xc0) | reg_table[m_board][data & 0x07];
 	txrom_write(addr & 0x6001, data);
 }
 
@@ -1145,139 +1142,139 @@ void nes_sglionk_device::write_h(offs_t offset, u8 data)
 /*
 void nes_sgboog_device::prg_cb(int start, int bank)
 {
-	if (!(m_reg[0] & 0x80))  // if this is != 0 we should never even arrive here
-	{
-		if (m_reg[1] & 0x08)
-			bank = (bank & 0x1f) | 0x20;
-		else
-			bank = (bank & 0x0f) | (m_reg[1] & 0x10);
+    if (!(m_reg[0] & 0x80))  // if this is != 0 we should never even arrive here
+    {
+        if (m_reg[1] & 0x08)
+            bank = (bank & 0x1f) | 0x20;
+        else
+            bank = (bank & 0x0f) | (m_reg[1] & 0x10);
 
-		prg8_x(start, bank);
-	}
+        prg8_x(start, bank);
+    }
 }
 
 void nes_sgboog_device::chr_cb(int start, int bank, int source)
 {
-	if ((m_reg[1] & 0x04))
-		bank |= 0x100;
-	else
-		bank = (bank & 0x7f) | ((m_reg[1] & 0x10) << 3);
+    if ((m_reg[1] & 0x04))
+        bank |= 0x100;
+    else
+        bank = (bank & 0x7f) | ((m_reg[1] & 0x10) << 3);
 
-	chr1_x(start, bank, source);
+    chr1_x(start, bank, source);
 }
 
 void nes_sgboog_device::set_prg(int prg_base, int prg_mask)
 {
-	if (m_reg[0] & 0x80)
-	{
-		prg16_89ab((m_reg[0] & 0xf0) | (m_reg[1] & 0x10));
-		prg16_cdef((m_reg[0] & 0xf0) | (m_reg[1] & 0x10));
-	}
-	else
-	{
-		// here standard MMC3 bankswitch
-		uint8_t prg_flip = (m_latch & 0x40) ? 2 : 0;
+    if (m_reg[0] & 0x80)
+    {
+        prg16_89ab((m_reg[0] & 0xf0) | (m_reg[1] & 0x10));
+        prg16_cdef((m_reg[0] & 0xf0) | (m_reg[1] & 0x10));
+    }
+    else
+    {
+        // here standard MMC3 bankswitch
+        uint8_t prg_flip = (m_latch & 0x40) ? 2 : 0;
 
-		prg_cb(0, prg_base | (m_mmc_prg_bank[0 ^ prg_flip] & prg_mask));
-		prg_cb(1, prg_base | (m_mmc_prg_bank[1] & prg_mask));
-		prg_cb(2, prg_base | (m_mmc_prg_bank[2 ^ prg_flip] & prg_mask));
-		prg_cb(3, prg_base | (m_mmc_prg_bank[3] & prg_mask));
-	}
+        prg_cb(0, prg_base | (m_mmc_prg_bank[0 ^ prg_flip] & prg_mask));
+        prg_cb(1, prg_base | (m_mmc_prg_bank[1] & prg_mask));
+        prg_cb(2, prg_base | (m_mmc_prg_bank[2 ^ prg_flip] & prg_mask));
+        prg_cb(3, prg_base | (m_mmc_prg_bank[3] & prg_mask));
+    }
 }
 
 void nes_sgboog_device::write_l(offs_t offset, uint8_t data)
 {
-	LOG_MMC(("sgboog write_l, offset: %04x, data: %02x\n", offset, data));
-	offset += 0x100;
+    LOG_MMC(("sgboog write_l, offset: %04x, data: %02x\n", offset, data));
+    offset += 0x100;
 
-	if (offset == 0x1000)
-	{
-		m_reg[0] = data;
-		set_prg(m_prg_base, m_prg_mask);
-	}
-	else if (offset == 0x1001)
-	{
-		m_reg[1] = data;
-		set_chr(m_chr_source, m_chr_base, m_chr_mask);
-	}
-	else if (offset == 0x1007)
-	{
-		m_latch = 0;
-		m_mode = data;
-		set_prg(m_prg_base, m_prg_mask);
-		set_chr(m_chr_source, m_chr_base, m_chr_mask);
-	}
+    if (offset == 0x1000)
+    {
+        m_reg[0] = data;
+        set_prg(m_prg_base, m_prg_mask);
+    }
+    else if (offset == 0x1001)
+    {
+        m_reg[1] = data;
+        set_chr(m_chr_source, m_chr_base, m_chr_mask);
+    }
+    else if (offset == 0x1007)
+    {
+        m_latch = 0;
+        m_mode = data;
+        set_prg(m_prg_base, m_prg_mask);
+        set_chr(m_chr_source, m_chr_base, m_chr_mask);
+    }
 }
 
 void nes_sgboog_device::write_m(offs_t offset, uint8_t data)
 {
-	LOG_MMC(("sgboog write_m, offset: %04x, data: %02x\n", offset, data));
+    LOG_MMC(("sgboog write_m, offset: %04x, data: %02x\n", offset, data));
 
-	if (offset == 0x0000)
-	{
-		m_reg[0] = data;
-		set_prg(m_prg_base, m_prg_mask);
-	}
-	else if (offset == 0x0001)
-	{
-		m_reg[1] = data;
-		set_chr(m_chr_source, m_chr_base, m_chr_mask);
-	}
-	else if (offset == 0x0007)
-	{
-		m_latch = 0;
-		m_mode = data;
-		set_prg(m_prg_base, m_prg_mask);
-		set_chr(m_chr_source, m_chr_base, m_chr_mask);
-	}
+    if (offset == 0x0000)
+    {
+        m_reg[0] = data;
+        set_prg(m_prg_base, m_prg_mask);
+    }
+    else if (offset == 0x0001)
+    {
+        m_reg[1] = data;
+        set_chr(m_chr_source, m_chr_base, m_chr_mask);
+    }
+    else if (offset == 0x0007)
+    {
+        m_latch = 0;
+        m_mode = data;
+        set_prg(m_prg_base, m_prg_mask);
+        set_chr(m_chr_source, m_chr_base, m_chr_mask);
+    }
 }
 
 void nes_sgboog_device::write_h(offs_t offset, uint8_t data)
 {
-	static const uint8_t conv_table[8] = {0,2,5,3,6,1,7,4};
-	LOG_MMC(("sgboog write_h, offset: %04x, data: %02x\n", offset, data));
+    static const uint8_t conv_table[8] = {0,2,5,3,6,1,7,4};
+    LOG_MMC(("sgboog write_h, offset: %04x, data: %02x\n", offset, data));
 
-	if (m_mode)
-	{
-		switch (offset & 0x6001)
-		{
-			case 0x0000:
-				break;
+    if (m_mode)
+    {
+        switch (offset & 0x6001)
+        {
+            case 0x0000:
+                break;
 
-			case 0x0001:
-				if (m_reg[2] && ((m_reg[0] & 0x80) == 0 || (m_latch & 0x07) < 6)) // if we use the prg16 banks and cmd=6,7 DON'T enter!
-				{
-					m_reg[2] = 0;
-					txrom_write(0x0001, data);
-				}
-				break;
+            case 0x0001:
+                if (m_reg[2] && ((m_reg[0] & 0x80) == 0 || (m_latch & 0x07) < 6)) // if we use the prg16 banks and cmd=6,7 DON'T enter!
+                {
+                    m_reg[2] = 0;
+                    txrom_write(0x0001, data);
+                }
+                break;
 
-			case 0x2000:
-				data = (data & 0xc0) | conv_table[data & 0x07];
-				m_reg[2] = 1;
-				txrom_write(0x0000, data);
-				break;
+            case 0x2000:
+                data = (data & 0xc0) | conv_table[data & 0x07];
+                m_reg[2] = 1;
+                txrom_write(0x0000, data);
+                break;
 
-			case 0x4000:
-				set_nt_mirroring(((data >> 7) | data) & 0x01 ? PPU_MIRROR_HORZ : PPU_MIRROR_VERT);
-				break;
+            case 0x4000:
+                set_nt_mirroring(((data >> 7) | data) & 0x01 ? PPU_MIRROR_HORZ : PPU_MIRROR_VERT);
+                break;
 
-			case 0x4001:
-				txrom_write(0x6001, data);
-				break;
+            case 0x4001:
+                txrom_write(0x6001, data);
+                break;
 
-			case 0x6001:
-				txrom_write(0x4000, data);
-				txrom_write(0x4001, data);
-				break;
+            case 0x6001:
+                txrom_write(0x4000, data);
+                txrom_write(0x4001, data);
+                break;
 
-			default:
-				txrom_write(offset, data);
-				break;
-		}
-	}
-	else
-		txrom_write(offset, data);
+            default:
+                txrom_write(offset, data);
+                break;
+        }
+    }
+    else
+        txrom_write(offset, data);
 }
 */
 

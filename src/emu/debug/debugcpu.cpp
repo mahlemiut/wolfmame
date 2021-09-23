@@ -168,8 +168,8 @@ bool debugger_cpu::comment_save()
 		if (found_comments)
 		{
 			emu_file file(m_machine.options().comment_directory(), OPEN_FLAG_WRITE | OPEN_FLAG_CREATE | OPEN_FLAG_CREATE_PATHS);
-			osd_file::error filerr = file.open(m_machine.basename() + ".cmt");
-			if (filerr == osd_file::error::NONE)
+			std::error_condition const filerr = file.open(m_machine.basename() + ".cmt");
+			if (!filerr)
 			{
 				root->write(file);
 				comments_saved = true;
@@ -194,10 +194,10 @@ bool debugger_cpu::comment_load(bool is_inline)
 {
 	// open the file
 	emu_file file(m_machine.options().comment_directory(), OPEN_FLAG_READ);
-	osd_file::error filerr = file.open(m_machine.basename() + ".cmt");
+	std::error_condition const filerr = file.open(m_machine.basename() + ".cmt");
 
 	// if an error, just return false
-	if (filerr != osd_file::error::NONE)
+	if (filerr)
 		return false;
 
 	// wrap in a try/catch to handle errors
@@ -1607,12 +1607,20 @@ void device_debug::prepare_for_step_overout(offs_t pc)
 	}
 
 	// if we're stepping out and this isn't a step out instruction, reset the steps until stop to a high number
+	// (TODO: this doesn't work with conditional return instructions)
 	if ((m_flags & DEBUG_FLAG_STEPPING_OUT) != 0)
 	{
 		if ((dasmresult & util::disasm_interface::SUPPORTED) != 0 && (dasmresult & util::disasm_interface::STEP_OUT) == 0)
 			m_stepsleft = 100;
 		else
-			m_stepsleft = 1;
+		{
+			// add extra instructions for delay slots
+			int extraskip = (dasmresult & util::disasm_interface::OVERINSTMASK) >> util::disasm_interface::OVERINSTSHIFT;
+			m_stepsleft = extraskip + 1;
+
+			// take the last few steps normally
+			m_flags = (m_flags | DEBUG_FLAG_STEPPING) & ~DEBUG_FLAG_STEPPING_OUT;
+		}
 	}
 }
 

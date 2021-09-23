@@ -39,7 +39,8 @@ ui_menu_record_inp::ui_menu_record_inp(mame_ui_manager &mui, render_container &c
 	if(!strcmp(mui.machine().options().nvram_directory(),"NUL") && !strcmp(mui.machine().options().nvram_directory(),"/dev/null"))
 	{
 		// silence warning if nvram folder doesn't exist
-		if(f.open(path.c_str()) == osd_file::error::NONE)
+		std::error_condition const filerr = f.open(path);
+		if (filerr)
 		{
 			f.close();
 			m_warning_count++;
@@ -53,7 +54,8 @@ ui_menu_record_inp::ui_menu_record_inp(mame_ui_manager &mui, render_container &c
 	path += "/";
 	path += m_driver->name;
 	path += ".dif";
-	if(f.open(path.c_str()) == osd_file::error::NONE)
+	std::error_condition const filerr = f.open(path);
+	if (filerr)
 	{
 		f.close();
 		m_warning_count++;
@@ -335,7 +337,8 @@ void ui_menu_playback_inp::start_inp()
 	fname = machine().options().input_directory();
 	fname += "/";
 	fname += m_filename_entry;
-	if(f.open(fname.c_str()) != osd_file::error::NONE)
+	std::error_condition const filerr = f.open(fname.c_str());
+	if (filerr)
 	{
 		machine().popmessage(_("Cannot find or open INP file."));
 		f.close();

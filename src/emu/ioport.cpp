@@ -3012,7 +3012,7 @@ void ioport_manager::record_end(const char *message)
 		system_time systime;
 		uint8_t data[8];
 		machine().current_datetime(systime);
-		m_record_stream = util::zlib_write(util::core_file_read_write(m_record_file), 1, 16384);  // disable compression
+		m_record_stream = util::zlib_write(m_record_file, 1, 16384);  // disable compression
 		m_record_file.seek(0x38,SEEK_SET);  // TODO: modernise this to match use of the header class
 		data[0x00] = systime.time >> 0;
 		data[0x01] = systime.time >> 8;

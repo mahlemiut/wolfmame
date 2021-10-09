@@ -440,7 +440,7 @@ endif
 endif # BIGENDIAN
 
 ifndef PYTHON_EXECUTABLE
-PYTHON := python
+PYTHON := python3
 else
 PYTHON := $(PYTHON_EXECUTABLE)
 endif
@@ -1756,14 +1756,14 @@ endif
 
 ifeq (posix,$(SHELLTYPE))
 $(GENDIR)/version.cpp: makefile $(GENDIR)/git_desc | $(GEN_FOLDERS)
-	@echo '#define BARE_BUILD_VERSION "0.235"' > $@
+	@echo '#define BARE_BUILD_VERSION "0.236"' > $@
 	@echo 'extern const char bare_build_version[];' >> $@
 	@echo 'extern const char build_version[];' >> $@
 	@echo 'const char bare_build_version[] = BARE_BUILD_VERSION;' >> $@
 	@echo 'const char build_version[] = BARE_BUILD_VERSION "W ($(NEW_GIT_VERSION))";' >> $@
 else
 $(GENDIR)/version.cpp: makefile $(GENDIR)/git_desc | $(GEN_FOLDERS)
-	@echo #define BARE_BUILD_VERSION "0.235" > $@
+	@echo #define BARE_BUILD_VERSION "0.236" > $@
 	@echo extern const char bare_build_version[]; >> $@
 	@echo extern const char build_version[]; >> $@
 	@echo const char bare_build_version[] = BARE_BUILD_VERSION; >> $@
@@ -1803,39 +1803,24 @@ tests: $(REGTESTS)
 cleansrc:
 	@echo Cleaning up tabs/spaces/end of lines....
 ifeq (posix,$(SHELLTYPE))
-	$(SILENT) find src -name \*.c -exec ./srcclean {} \; >&2
-	$(SILENT) find src -name \*.cpp -exec ./srcclean {} \; >&2
-	$(SILENT) find src -name \*.h -exec ./srcclean {} \; >&2
-	$(SILENT) find src -name \*.hpp -exec ./srcclean {} \; >&2
-	$(SILENT) find src -name \*.hxx -exec ./srcclean {} \; >&2
-	$(SILENT) find src -name \*.ipp -exec ./srcclean {} \; >&2
-	$(SILENT) find src -name \*.lay -exec ./srcclean {} \; >&2
-	$(SILENT) find src -name \*.lst -exec ./srcclean {} \; >&2
-	$(SILENT) find src -name \*.mak -exec ./srcclean {} \; >&2
-	$(SILENT) find src -name \*.mm -exec ./srcclean {} \; >&2
-	$(SILENT) find hash -name \*.hsi -exec ./srcclean {} \; >&2
-	$(SILENT) find hash -name \*.xml -exec ./srcclean {} \; >&2
-	$(SILENT) find bgfx -name \*.json -exec ./srcclean {} \; >&2
-	$(SILENT) find plugins -name \*.lua -exec ./srcclean {} \; >&2
-	$(SILENT) find plugins -name \*.json -exec ./srcclean {} \; >&2
-	$(SILENT) find scripts -name \*.lua -exec ./srcclean {} \; >&2
+	$(SILENT) find src \
+		-name \*.c -o -name \*.cpp -o \
+		-name \*.h -o -name \*.hpp -o -name \*.hxx -o \
+		-name \*.ipp -o \
+		-name \*.mm -o \
+		-name \*.lay -o \
+		-name \*.lst \
+		-exec ./srcclean {} \; >&2
+	$(SILENT) find hash    -name \*.hsi -o -name \*.xml  -exec ./srcclean {} \; >&2
+	$(SILENT) find bgfx    -name \*.json                 -exec ./srcclean {} \; >&2
+	$(SILENT) find plugins -name \*.lua -o -name \*.json -exec ./srcclean {} \; >&2
+	$(SILENT) find scripts -name \*.lua                  -exec ./srcclean {} \; >&2
 else
-	$(shell for /r src %%i in (*.c) do srcclean %%i >&2 )
-	$(shell for /r src %%i in (*.cpp) do srcclean %%i >&2 )
-	$(shell for /r src %%i in (*.h) do srcclean %%i >&2 )
-	$(shell for /r src %%i in (*.hpp) do srcclean %%i >&2 )
-	$(shell for /r src %%i in (*.hxx) do srcclean %%i >&2 )
-	$(shell for /r src %%i in (*.ipp) do srcclean %%i >&2 )
-	$(shell for /r src %%i in (*.lay) do srcclean %%i >&2 )
-	$(shell for /r src %%i in (*.lst) do srcclean %%i >&2 )
-	$(shell for /r src %%i in (*.mak) do srcclean %%i >&2 )
-	$(shell for /r src %%i in (*.mm) do srcclean %%i >&2 )
-	$(shell for /r hash %%i in (*.hsi) do srcclean %%i >&2 )
-	$(shell for /r hash %%i in (*.xml) do srcclean %%i >&2 )
-	$(shell for /r bgfx %%i in (*.json) do srcclean %%i >&2 )
-	$(shell for /r plugins %%i in (*.lua) do srcclean %%i >&2 )
-	$(shell for /r plugins %%i in (*.json) do srcclean %%i >&2 )
-	$(shell for /r scripts %%i in (*.lua) do srcclean %%i >&2 )
+	$(shell for /r src     %%i in (*.c, *.cpp, *.h, *.hpp, *.hxx, *.ipp, *.mm, *.lay, *.lst) do srcclean %%i >&2 )
+	$(shell for /r hash    %%i in (*.hsi, *.xml)  do srcclean %%i >&2 )
+	$(shell for /r bgfx    %%i in (*.json)        do srcclean %%i >&2 )
+	$(shell for /r plugins %%i in (*.lua, *.json) do srcclean %%i >&2 )
+	$(shell for /r scripts %%i in (*.lua)         do srcclean %%i >&2 )
 endif
 
 #-------------------------------------------------
@@ -1930,8 +1915,10 @@ shaders: bgfx-tools
 
 $(GENDIR)/mame.pot: FORCE
 	$(SILENT) echo Generating mame.pot
-	$(SILENT) find src -iname "*.cpp" -print0 | xargs -0 xgettext --from-code=UTF-8 -k_ -k__ -o $@
-	$(SILENT) find plugins -iname "*.lua" -print0 | xargs -0 xgettext --from-code=UTF-8 -k_ -k__ -j -o $@
+	$(SILENT) find src "(" -name "*.cpp" -o -name "*.ipp" ")" -print0 | xargs -0 \
+		xgettext -o $@ --from-code=UTF-8 --language=C++ -k_:1,1t -k_:1c,2,2t -kN_ -kN_p:1c,2
+	$(SILENT) find plugins -name "*.lua" -print0 | xargs -0 \
+		xgettext -o $@ --from-code=UTF-8 --language=Lua -k_:1,1t -k_:1c,2,2t -kN_ -kN_p:1c,2 -j
 
 translation: $(GENDIR)/mame.pot
 	$(SILENT) find language -name "*.po" -print0 | xargs -0 -n 1 -I %% msgmerge -U -N %% $<

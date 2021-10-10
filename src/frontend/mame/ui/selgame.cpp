@@ -178,10 +178,13 @@ private:
 
 		// try to load localised descriptions
 		if (try_titles)
+		{
 			load_titles(titles_file);
 
-		// populate parent descriptions while still ordered by shortname
-		populate_parents();
+			// populate parent descriptions while still ordered by shortname
+			// already done on the first pass if built-in titles are used
+			populate_parents();
+		}
 
 		// get rid of the "empty" driver - we don't need positions to line up any more
 		m_sorted_list.erase(m_sorted_list.begin() + driver_list::find(GAME_NAME(___empty)));
@@ -189,10 +192,8 @@ private:
 		// sort drivers and notify
 		std::collate<wchar_t> const &coll = std::use_facet<std::collate<wchar_t> >(std::locale());
 		auto const compare_names =
-				[&coll] (std::string const &x, std::string const &y) -> bool
+				[&coll] (std::wstring const &wx, std::wstring const &wy) -> bool
 				{
-					std::wstring const wx = wstring_from_utf8(x);
-					std::wstring const wy = wstring_from_utf8(y);
 					return 0 > coll.compare(wx.data(), wx.data() + wx.size(), wy.data(), wy.data() + wy.size());
 				};
 		std::stable_sort(
@@ -203,48 +204,52 @@ private:
 					game_driver const &x(*lhs.driver);
 					game_driver const &y(*rhs.driver);
 
-					bool clonex = (x.parent[0] != '0') || x.parent[1];
-					int cx = -1;
-					if (clonex)
+					if (!lhs.is_clone && !rhs.is_clone)
 					{
-						cx = driver_list::find(x.parent);
-						if ((0 > cx) || (driver_list::driver(cx).flags & machine_flags::IS_BIOS_ROOT))
-							clonex = false;
+						return compare_names(
+								lhs.reading_description.empty() ? wstring_from_utf8(lhs.description) : lhs.reading_description,
+								rhs.reading_description.empty() ? wstring_from_utf8(rhs.description) : rhs.reading_description);
 					}
-
-					bool cloney = (y.parent[0] != '0') || y.parent[1];
-					int cy = -1;
-					if (cloney)
-					{
-						cy = driver_list::find(y.parent);
-						if ((0 > cy) || (driver_list::driver(cy).flags & machine_flags::IS_BIOS_ROOT))
-							cloney = false;
-					}
-
-					if (!clonex && !cloney)
-					{
-						return compare_names(lhs.description, rhs.description);
-					}
-					else if (clonex && cloney)
+					else if (lhs.is_clone && rhs.is_clone)
 					{
 						if (!std::strcmp(x.parent, y.parent))
-							return compare_names(lhs.description, rhs.description);
+						{
+							return compare_names(
+									lhs.reading_description.empty() ? wstring_from_utf8(lhs.description) : lhs.reading_description,
+									rhs.reading_description.empty() ? wstring_from_utf8(rhs.description) : rhs.reading_description);
+						}
 						else
-							return compare_names(lhs.parent, rhs.parent);
+						{
+							return compare_names(
+									lhs.reading_parent.empty() ? wstring_from_utf8(lhs.parent) : lhs.reading_parent,
+									rhs.reading_parent.empty() ? wstring_from_utf8(rhs.parent) : rhs.reading_parent);
+						}
 					}
-					else if (!clonex && cloney)
+					else if (!lhs.is_clone && rhs.is_clone)
 					{
 						if (!std::strcmp(x.name, y.parent))
+						{
 							return true;
+						}
 						else
-							return compare_names(lhs.description, rhs.parent);
+						{
+							return compare_names(
+									lhs.reading_description.empty() ? wstring_from_utf8(lhs.description) : lhs.reading_description,
+									rhs.reading_parent.empty() ? wstring_from_utf8(rhs.parent) : rhs.reading_parent);
+						}
 					}
 					else
 					{
 						if (!std::strcmp(x.parent, y.name))
+						{
 							return false;
+						}
 						else
-							return compare_names(lhs.parent, rhs.description);
+						{
+							return compare_names(
+									lhs.reading_parent.empty() ? wstring_from_utf8(lhs.parent) : lhs.reading_parent,
+									rhs.reading_description.empty() ? wstring_from_utf8(rhs.description) : rhs.reading_description);
+						}
 					}
 				});
 		notify_available(AVAIL_SORTED_LIST);
@@ -317,6 +322,29 @@ private:
 				if (driver.flags & machine_flags::IS_BIOS_ROOT)
 					++m_bios_count;
 
+				if ((driver.parent[0] != '0') || driver.parent[1])
+				{
+					auto const parentindex(driver_list::find(driver.parent));
+					if (copydesc)
+					{
+						if (0 <= parentindex)
+						{
+							game_driver const &parentdriver(driver_list::driver(parentindex));
+							ins.is_clone = !(parentdriver.flags & machine_flags::IS_BIOS_ROOT);
+							ins.parent = parentdriver.type.fullname();
+						}
+						else
+						{
+							ins.is_clone = false;
+							ins.parent = driver.parent;
+						}
+					}
+					else
+					{
+						ins.is_clone = (0 <= parentindex) && !(driver_list::driver(parentindex).flags & machine_flags::IS_BIOS_ROOT);
+					}
+				}
+
 				if (copydesc)
 					ins.description = driver.type.fullname();
 
@@ -329,11 +357,17 @@ private:
 	void load_titles(util::core_file &file)
 	{
 		char readbuf[1024];
+		std::string convbuf;
 		while (file.gets(readbuf, std::size(readbuf)))
 		{
-			// shortname and description separated by tab
-			auto const split(std::find(std::begin(readbuf), std::end(readbuf), '\t'));
-			if (std::end(readbuf) == split)
+			// shortname, description, and description reading separated by tab
+			auto const eoln(
+					std::find_if(
+						std::begin(readbuf),
+						std::end(readbuf),
+						[] (char ch) { return !ch || ('\n' == ch) || ('\r' == ch); }));
+			auto const split(std::find(std::begin(readbuf), eoln, '\t'));
+			if (eoln == split)
 				continue;
 			std::string_view const shortname(readbuf, split - readbuf);
 
@@ -353,10 +387,10 @@ private:
 				continue;
 			}
 
-			// strip additional columns
-			auto const start(std::next(split));
-			auto const end(std::find(start, std::end(readbuf), '\t'));
-			auto const description(strtrimspace(std::string_view(start, end - start)));
+			// find the end of the description
+			auto const descstart(std::next(split));
+			auto const descend(std::find(descstart, eoln, '\t'));
+			auto const description(strtrimspace(std::string_view(descstart, descend - descstart)));
 			if (description.empty())
 			{
 				osd_printf_warning("Empty translated description for system '%s'\n", shortname);
@@ -373,6 +407,26 @@ private:
 			{
 				found->description = description;
 			}
+
+			// populate the reading if it's present
+			if (eoln == descend)
+				continue;
+			auto const readstart(std::next(descend));
+			auto const readend(std::find(readstart, eoln, '\t'));
+			auto const reading(strtrimspace(std::string_view(readstart, readend - readstart)));
+			if (reading.empty())
+			{
+				osd_printf_warning("Empty translated description reading for system '%s'\n", shortname);
+			}
+			else
+			{
+				found->reading_description = wstring_from_utf8(reading);
+				found->ucs_reading_description = ustr_from_utf8(normalize_unicode(reading, unicode_normalization_form::D, true));
+				convbuf.assign(found->driver->manufacturer);
+				convbuf.append(1, ' ');
+				convbuf.append(reading);
+				found->ucs_manufacturer_reading_description = ustr_from_utf8(normalize_unicode(convbuf, unicode_normalization_form::D, true));
+			}
 		}
 
 		// fill in untranslated descriptions
@@ -387,7 +441,7 @@ private:
 	{
 		for (ui_system_info &info : m_sorted_list)
 		{
-			if (info.driver->parent[0] != '0')
+			if ((info.driver->parent[0] != '0') || info.driver->parent[1])
 			{
 				auto const found(
 						std::lower_bound(
@@ -399,9 +453,14 @@ private:
 								return a.driver->name < b;
 							}));
 				if (m_sorted_list.end() != found)
+				{
 					info.parent = found->description;
+					info.reading_parent = found->reading_description;
+				}
 				else
+				{
 					info.parent = info.driver->parent;
+				}
 			}
 		}
 	}
@@ -757,15 +816,7 @@ void menu_select_game::populate(float &customtop, float &custombottom)
 			if (old_item_selected == -1 && elem.driver->name == reselect_last::driver())
 				old_item_selected = curitem;
 
-			bool cloneof = strcmp(elem.driver->parent, "0");
-			if (cloneof)
-			{
-				int cx = driver_list::find(elem.driver->parent);
-				if (cx != -1 && ((driver_list::driver(cx).flags & machine_flags::IS_BIOS_ROOT) != 0))
-					cloneof = false;
-			}
-
-			item_append(elem.description, (cloneof) ? (FLAGS_UI | FLAG_INVERT) : FLAGS_UI, (void *)&elem);
+			item_append(elem.description, elem.is_clone ? (FLAGS_UI | FLAG_INVERT) : FLAGS_UI, (void *)&elem);
 			curitem++;
 		}
 	}
@@ -777,7 +828,7 @@ void menu_select_game::populate(float &customtop, float &custombottom)
 		mame_machine_manager::instance()->favorite().apply_sorted(
 				[this, &old_item_selected, curitem = 0] (ui_software_info const &info) mutable
 				{
-					if (info.startempty == 1)
+					if (info.startempty)
 					{
 						if (old_item_selected == -1 && info.shortname == reselect_last::driver())
 							old_item_selected = curitem;
@@ -803,26 +854,20 @@ void menu_select_game::populate(float &customtop, float &custombottom)
 				});
 	}
 
-	item_append(menu_item_type::SEPARATOR, FLAGS_UI);
-
 	// add special items
 	if (stack_has_special_main_menu())
 	{
+		item_append(menu_item_type::SEPARATOR, FLAGS_UI);
 		item_append(_("Configure Options"), FLAGS_UI, (void *)(uintptr_t)CONF_OPTS);
 		item_append(_("Configure Machine"), FLAGS_UI, (void *)(uintptr_t)CONF_MACHINE);
-		skip_main_items = 2;
-		if (machine().options().plugins())
-		{
-			item_append(_("Plugins"), FLAGS_UI, (void *)(uintptr_t)CONF_PLUGINS);
-			skip_main_items++;
-		}
+		skip_main_items = 3;
 	}
 	else
 		skip_main_items = 0;
 
 	// configure the custom rendering
 	customtop = 3.0f * ui().get_line_height() + 5.0f * ui().box_tb_border();
-	custombottom = 5.0f * ui().get_line_height() + 3.0f * ui().box_tb_border();
+	custombottom = 4.0f * ui().get_line_height() + 3.0f * ui().box_tb_border();
 
 	// reselect prior game launched, if any
 	if (old_item_selected != -1)
@@ -987,11 +1032,6 @@ void menu_select_game::inkey_select(const event *menu_event)
 			menu::stack_push<menu_machine_configure>(ui(), container(), *reinterpret_cast<const ui_system_info *>(m_prev_selected));
 		return;
 	}
-	else if (uintptr_t(system) == CONF_PLUGINS)
-	{
-		// special case for configure plugins
-		menu::stack_push<menu_plugins_configure>(ui(), container());
-	}
 	else
 	{
 		// anything else is a driver
@@ -1060,11 +1100,6 @@ void menu_select_game::inkey_select_favorite(const event *menu_event)
 					});
 		}
 		return;
-	}
-	else if (uintptr_t(ui_swinfo) == CONF_PLUGINS)
-	{
-		// special case for configure plugins
-		menu::stack_push<menu_plugins_configure>(ui(), container());
 	}
 	else if (ui_swinfo->startempty == 1)
 	{
@@ -1197,67 +1232,53 @@ void menu_select_game::populate_search()
 	// keep track of what we matched against
 	const std::u32string ucs_search(ustr_from_utf8(normalize_unicode(m_search, unicode_normalization_form::D, true)));
 
-	// match shortnames
+	// check available search data
 	if (m_persistent_data.is_available(persistent_data::AVAIL_UCS_SHORTNAME))
-	{
 		m_searched_fields |= persistent_data::AVAIL_UCS_SHORTNAME;
-		for (std::pair<double, std::reference_wrapper<ui_system_info const> > &info : m_searchlist)
-			info.first = util::edit_distance(ucs_search, info.second.get().ucs_shortname);
-	}
-
-	// match descriptions
 	if (m_persistent_data.is_available(persistent_data::AVAIL_UCS_DESCRIPTION))
-	{
 		m_searched_fields |= persistent_data::AVAIL_UCS_DESCRIPTION;
-		for (std::pair<double, std::reference_wrapper<ui_system_info const> > &info : m_searchlist)
-		{
-			if (info.first)
-			{
-				double const penalty(util::edit_distance(ucs_search, info.second.get().ucs_description));
-				info.first = (std::min)(penalty, info.first);
-			}
-		}
-	}
-
-	// match "<manufacturer> <description>"
 	if (m_persistent_data.is_available(persistent_data::AVAIL_UCS_MANUF_DESC))
-	{
 		m_searched_fields |= persistent_data::AVAIL_UCS_MANUF_DESC;
-		for (std::pair<double, std::reference_wrapper<ui_system_info const> > &info : m_searchlist)
-		{
-			if (info.first)
-			{
-				double const penalty(util::edit_distance(ucs_search, info.second.get().ucs_manufacturer_description));
-				info.first = (std::min)(penalty, info.first);
-			}
-		}
-	}
-
-	// match default description
 	if (m_persistent_data.is_available(persistent_data::AVAIL_UCS_DFLT_DESC))
-	{
 		m_searched_fields |= persistent_data::AVAIL_UCS_DFLT_DESC;
-		for (std::pair<double, std::reference_wrapper<ui_system_info const> > &info : m_searchlist)
-		{
-			if (info.first && !info.second.get().ucs_default_description.empty())
-			{
-				double const penalty(util::edit_distance(ucs_search, info.second.get().ucs_default_description));
-				info.first = (std::min)(penalty, info.first);
-			}
-		}
-	}
-
-	// match default description
 	if (m_persistent_data.is_available(persistent_data::AVAIL_UCS_MANUF_DFLT_DESC))
+		m_searched_fields |= persistent_data::AVAIL_UCS_MANUF_DFLT_DESC;
+
+	for (std::pair<double, std::reference_wrapper<ui_system_info const> > &info : m_searchlist)
 	{
-		m_searched_fields |= persistent_data::AVAIL_UCS_DFLT_DESC;
-		for (std::pair<double, std::reference_wrapper<ui_system_info const> > &info : m_searchlist)
+		info.first = 1.0;
+		ui_system_info const &sys(info.second);
+
+		// match shortnames
+		if (m_searched_fields & persistent_data::AVAIL_UCS_SHORTNAME)
+			info.first = util::edit_distance(ucs_search, sys.ucs_shortname);
+
+		// match reading
+		if (info.first && !sys.ucs_reading_description.empty())
 		{
-			if (info.first && !info.second.get().ucs_manufacturer_default_description.empty())
-			{
-				double const penalty(util::edit_distance(ucs_search, info.second.get().ucs_manufacturer_default_description));
-				info.first = (std::min)(penalty, info.first);
-			}
+			info.first = (std::min)(util::edit_distance(ucs_search, sys.ucs_reading_description), info.first);
+
+			// match "<manufacturer> <reading>"
+			if (info.first)
+				info.first = (std::min)(util::edit_distance(ucs_search, sys.ucs_manufacturer_reading_description), info.first);
+		}
+
+		// match descriptions
+		if (info.first && (m_searched_fields & persistent_data::AVAIL_UCS_DESCRIPTION))
+			info.first = (std::min)(util::edit_distance(ucs_search, sys.ucs_description), info.first);
+
+		// match "<manufacturer> <description>"
+		if (info.first && (m_searched_fields & persistent_data::AVAIL_UCS_MANUF_DESC))
+			info.first = (std::min)(util::edit_distance(ucs_search, sys.ucs_manufacturer_description), info.first);
+
+		// match default description
+		if (info.first && (m_searched_fields & persistent_data::AVAIL_UCS_DFLT_DESC) && !sys.ucs_default_description.empty())
+		{
+			info.first = (std::min)(util::edit_distance(ucs_search, sys.ucs_default_description), info.first);
+
+			// match "<manufacturer> <default description>"
+			if (info.first && (m_searched_fields & persistent_data::AVAIL_UCS_MANUF_DFLT_DESC))
+				info.first = (std::min)(util::edit_distance(ucs_search, sys.ucs_manufacturer_default_description), info.first);
 		}
 	}
 
@@ -1266,194 +1287,6 @@ void menu_select_game::populate_search()
 			m_searchlist.begin(),
 			m_searchlist.end(),
 			[] (auto const &lhs, auto const &rhs) { return lhs.first < rhs.first; });
-}
-
-//-------------------------------------------------
-//  generate general info
-//-------------------------------------------------
-
-void menu_select_game::general_info(ui_system_info const &system, std::string &buffer)
-{
-	game_driver const &driver(*system.driver);
-	system_flags const &flags(get_system_flags(driver));
-	std::ostringstream str;
-
-	str << "#j2\n";
-
-	util::stream_format(str, _("Romset\t%1$-.100s\n"), driver.name);
-	util::stream_format(str, _("Year\t%1$s\n"), driver.year);
-	util::stream_format(str, _("Manufacturer\t%1$-.100s\n"), driver.manufacturer);
-
-	int cloneof = driver_list::non_bios_clone(driver);
-	if (cloneof != -1)
-		util::stream_format(str, _("Driver is Clone of\t%1$-.100s\n"), system.parent);
-	else
-		str << _("Driver is Parent\t\n");
-
-	if (flags.has_analog())
-		str << _("Analog Controls\tYes\n");
-	if (flags.has_keyboard())
-		str << _("Keyboard Inputs\tYes\n");
-
-	if (flags.machine_flags() & machine_flags::NOT_WORKING)
-		str << _("Overall\tNOT WORKING\n");
-	else if ((flags.unemulated_features() | flags.imperfect_features()) & device_t::feature::PROTECTION)
-		str << _("Overall\tUnemulated Protection\n");
-	else
-		str << _("Overall\tWorking\n");
-
-	if (flags.unemulated_features() & device_t::feature::GRAPHICS)
-		str << _("Graphics\tUnimplemented\n");
-	else if (flags.unemulated_features() & device_t::feature::PALETTE)
-		str << _("Graphics\tWrong Colors\n");
-	else if (flags.imperfect_features() & device_t::feature::PALETTE)
-		str << _("Graphics\tImperfect Colors\n");
-	else if (flags.imperfect_features() & device_t::feature::GRAPHICS)
-		str << _("Graphics\tImperfect\n");
-	else
-		str << _("Graphics\tOK\n");
-
-	if (flags.machine_flags() & machine_flags::NO_SOUND_HW)
-		str << _("Sound\tNone\n");
-	else if (flags.unemulated_features() & device_t::feature::SOUND)
-		str << _("Sound\tUnimplemented\n");
-	else if (flags.imperfect_features() & device_t::feature::SOUND)
-		str << _("Sound\tImperfect\n");
-	else
-		str << _("Sound\tOK\n");
-
-	if (flags.unemulated_features() & device_t::feature::CAPTURE)
-		str << _("Capture\tUnimplemented\n");
-	else if (flags.imperfect_features() & device_t::feature::CAPTURE)
-		str << _("Capture\tImperfect\n");
-
-	if (flags.unemulated_features() & device_t::feature::CAMERA)
-		str << _("Camera\tUnimplemented\n");
-	else if (flags.imperfect_features() & device_t::feature::CAMERA)
-		str << _("Camera\tImperfect\n");
-
-	if (flags.unemulated_features() & device_t::feature::MICROPHONE)
-		str << _("Microphone\tUnimplemented\n");
-	else if (flags.imperfect_features() & device_t::feature::MICROPHONE)
-		str << _("Microphone\tImperfect\n");
-
-	if (flags.unemulated_features() & device_t::feature::CONTROLS)
-		str << _("Controls\tUnimplemented\n");
-	else if (flags.imperfect_features() & device_t::feature::CONTROLS)
-		str << _("Controls\tImperfect\n");
-
-	if (flags.unemulated_features() & device_t::feature::KEYBOARD)
-		str << _("Keyboard\tUnimplemented\n");
-	else if (flags.imperfect_features() & device_t::feature::KEYBOARD)
-		str << _("Keyboard\tImperfect\n");
-
-	if (flags.unemulated_features() & device_t::feature::MOUSE)
-		str << _("Mouse\tUnimplemented\n");
-	else if (flags.imperfect_features() & device_t::feature::MOUSE)
-		str << _("Mouse\tImperfect\n");
-
-	if (flags.unemulated_features() & device_t::feature::MEDIA)
-		str << _("Media\tUnimplemented\n");
-	else if (flags.imperfect_features() & device_t::feature::MEDIA)
-		str << _("Media\tImperfect\n");
-
-	if (flags.unemulated_features() & device_t::feature::DISK)
-		str << _("Disk\tUnimplemented\n");
-	else if (flags.imperfect_features() & device_t::feature::DISK)
-		str << _("Disk\tImperfect\n");
-
-	if (flags.unemulated_features() & device_t::feature::PRINTER)
-		str << _("Printer\tUnimplemented\n");
-	else if (flags.imperfect_features() & device_t::feature::PRINTER)
-		str << _("Printer\tImperfect\n");
-
-	if (flags.unemulated_features() & device_t::feature::TAPE)
-		str << _("Mag. Tape\tUnimplemented\n");
-	else if (flags.imperfect_features() & device_t::feature::TAPE)
-		str << _("Mag. Tape\tImperfect\n");
-
-	if (flags.unemulated_features() & device_t::feature::PUNCH)
-		str << _("Punch Tape\tUnimplemented\n");
-	else if (flags.imperfect_features() & device_t::feature::PUNCH)
-		str << _("Punch Tape\tImperfect\n");
-
-	if (flags.unemulated_features() & device_t::feature::DRUM)
-		str << _("Mag. Drum\tUnimplemented\n");
-	else if (flags.imperfect_features() & device_t::feature::DRUM)
-		str << _("Mag. Drum\tImperfect\n");
-
-	if (flags.unemulated_features() & device_t::feature::ROM)
-		str << _("(EP)ROM\tUnimplemented\n");
-	else if (flags.imperfect_features() & device_t::feature::ROM)
-		str << _("(EP)ROM\tImperfect\n");
-
-	if (flags.unemulated_features() & device_t::feature::COMMS)
-		str << _("Communications\tUnimplemented\n");
-	else if (flags.imperfect_features() & device_t::feature::COMMS)
-		str << _("Communications\tImperfect\n");
-
-	if (flags.unemulated_features() & device_t::feature::LAN)
-		str << _("LAN\tUnimplemented\n");
-	else if (flags.imperfect_features() & device_t::feature::LAN)
-		str << _("LAN\tImperfect\n");
-
-	if (flags.unemulated_features() & device_t::feature::WAN)
-		str << _("WAN\tUnimplemented\n");
-	else if (flags.imperfect_features() & device_t::feature::WAN)
-		str << _("WAN\tImperfect\n");
-
-	if (flags.unemulated_features() & device_t::feature::TIMING)
-		str << _("Timing\tUnimplemented\n");
-	else if (flags.imperfect_features() & device_t::feature::TIMING)
-		str << _("Timing\tImperfect\n");
-
-	str << ((flags.machine_flags() & machine_flags::MECHANICAL)        ? _("Mechanical Machine\tYes\n")         : _("Mechanical Machine\tNo\n"));
-	str << ((flags.machine_flags() & machine_flags::REQUIRES_ARTWORK)  ? _("Requires Artwork\tYes\n")           : _("Requires Artwork\tNo\n"));
-	str << ((flags.machine_flags() & machine_flags::CLICKABLE_ARTWORK) ? _("Requires Clickable Artwork\tYes\n") : _("Requires Clickable Artwork\tNo\n"));
-	if (flags.machine_flags() & machine_flags::NO_COCKTAIL)
-		str << _("Support Cocktail\tNo\n");
-	str << ((flags.machine_flags() & machine_flags::IS_BIOS_ROOT)      ? _("Driver is BIOS\tYes\n")             : _("Driver is BIOS\tNo\n"));
-	str << ((flags.machine_flags() & machine_flags::SUPPORTS_SAVE)     ? _("Support Save\tYes\n")               : _("Support Save\tNo\n"));
-	str << ((flags.machine_flags() & ORIENTATION_SWAP_XY)              ? _("Screen Orientation\tVertical\n")    : _("Screen Orientation\tHorizontal\n"));
-	bool found = false;
-	for (romload::region const &region : romload::entries(driver.rom).get_regions())
-	{
-		if (region.is_diskdata())
-		{
-			found = true;
-			break;
-		}
-	}
-	str << (found ? _("Requires CHD\tYes\n") : _("Requires CHD\tNo\n"));
-
-	// audit the game first to see if we're going to work
-	if (ui().options().info_audit())
-	{
-		driver_enumerator enumerator(machine().options(), driver);
-		enumerator.next();
-		media_auditor auditor(enumerator);
-		media_auditor::summary summary = auditor.audit_media(AUDIT_VALIDATE_FAST);
-		media_auditor::summary summary_samples = auditor.audit_samples();
-
-		// if everything looks good, schedule the new driver
-		if (audit_passed(summary))
-			str << _("ROM Audit Result\tOK\n");
-		else
-			str << _("ROM Audit Result\tBAD\n");
-
-		if (summary_samples == media_auditor::NONE_NEEDED)
-			str << _("Samples Audit Result\tNone Needed\n");
-		else if (audit_passed(summary_samples))
-			str << _("Samples Audit Result\tOK\n");
-		else
-			str << _("Samples Audit Result\tBAD\n");
-	}
-	else
-	{
-		str << _("ROM Audit \tDisabled\nSamples Audit \tDisabled\n");
-	}
-
-	buffer = str.str();
 }
 
 

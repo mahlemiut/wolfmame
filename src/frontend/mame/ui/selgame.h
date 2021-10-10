@@ -34,7 +34,6 @@ private:
 	{
 		CONF_OPTS = 1,
 		CONF_MACHINE,
-		CONF_PLUGINS,
 	};
 
 	using icon_cache = texture_lru<game_driver const *>;
@@ -82,9 +81,6 @@ private:
 	void populate_search();
 	bool load_available_machines();
 	void load_custom_filters();
-
-	// General info
-	virtual void general_info(ui_system_info const &system, std::string &buffer) override;
 
 	// handlers
 	void inkey_select(const event *menu_event);

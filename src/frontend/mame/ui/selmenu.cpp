@@ -14,6 +14,7 @@
 #include "ui/datmenu.h"
 #include "ui/info.h"
 #include "ui/inifile.h"
+#include "ui/recinp.h"
 
 // these hold static bitmap images
 #include "ui/defimg.ipp"
@@ -1769,12 +1770,12 @@ void menu_select_launch::handle_events(uint32_t flags, event &ev)
 				}
 				else if (hover() == HOVER_B_RECORD)
 				{
-					machine().popmessage("clicked");
+					menu::stack_push<ui_menu_record_inp>(ui(),container(),m_info_driver);
 					stop = true;
 				}
 				else if (hover() == HOVER_B_PLAYBACK)
 				{
-					machine().popmessage("clicked");
+					menu::stack_push<ui_menu_playback_inp>(ui(),container(),m_info_driver);
 					stop = true;
 				}
 				else if (hover() == HOVER_BACKTRACK)

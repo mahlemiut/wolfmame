@@ -23,7 +23,7 @@ namespace ui {
 
 // INP recording class
 
-ui_menu_record_inp::ui_menu_record_inp(mame_ui_manager &mui, render_container &container, const game_driver *driver) : menu_select_launch(mui, container, false)
+ui_menu_record_inp::ui_menu_record_inp(mame_ui_manager &mui, render_container &container, const game_driver *driver) : menu(mui, container)
 {
 	std::string path;
 	m_driver = (driver == nullptr) ? mame_options::system(mui.machine().options()) : driver;
@@ -86,7 +86,7 @@ void ui_menu_record_inp::handle()
 	bool changed = false;
 
 	// process the menu
-	const event *menu_event = process(PROCESS_LR_REPEAT);
+	const event *menu_event = process(0);
 
 	if (menu_event != nullptr)
 	{
@@ -174,7 +174,7 @@ void ui_menu_record_inp::custom_render(void *selectedref, float top, float botto
 		{
 			if(m_warning[x])
 			{
-				mui.draw_text_full(container(),m_warning_text[x].c_str(),0.1f,1.0f - (height*line),0.8f, ui::text_layout::LEFT, ui::text_layout::WORD, mame_ui_manager::NORMAL, mui.colors().text_color(), 				mui.colors().text_bg_color(), nullptr, nullptr);
+				mui.draw_text_full(container(),m_warning_text[x].c_str(),0.1f,1.0f - (height*line),0.8f, ui::text_layout::LEFT, ui::text_layout::WORD, mame_ui_manager::NORMAL, mui.colors().text_color(), mui.colors().text_bg_color(), nullptr, nullptr);
 				line += 2;
 			}
 		}
@@ -221,7 +221,40 @@ void ui_menu_record_inp::start_inp()
 		machine().popmessage(_("ROM audit failed.  Cannot start system.  Please check your ROMset is correct and up to date."));
 	}*/
 }
+/*
+void ui_menu_record_inp::inkey_export()
+{
+}
 
+float ui_menu_record_inp::draw_left_panel(float x1, float y1, float x2, float y2)
+{
+	return 0.0f;
+}
+
+void ui_menu_record_inp::get_selection(ui_software_info const *&software, ui_system_info const *&system) const
+{
+	software = nullptr;
+	system = nullptr;
+}
+
+render_texture *ui_menu_record_inp::get_icon_texture(int linenum, void *selectedref)
+{
+	return nullptr;
+}
+
+void ui_menu_record_inp::make_topbox_text(std::string &line0,std::string &line1,std::string &line2) const
+{
+}
+
+std::string ui_menu_record_inp::make_software_description(ui_software_info const &software) const
+{
+	return std::string("what");
+}
+
+void ui_menu_record_inp::filter_selected()
+{
+}
+*/
 
 // INP playback class
 ui_menu_playback_inp::ui_menu_playback_inp(mame_ui_manager &mui, render_container &container, const game_driver *driver)

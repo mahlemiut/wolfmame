@@ -20,7 +20,7 @@
 
 namespace ui {
 
-class ui_menu_record_inp : public menu_select_launch
+class ui_menu_record_inp : public menu
 {
 public:
 	ui_menu_record_inp(mame_ui_manager &mui, render_container &container, const game_driver *driver = nullptr);
@@ -31,7 +31,14 @@ public:
 protected:
 	char m_filename_entry[100];
 	const game_driver *m_driver;
+//	virtual void inkey_export() override;
 private:
+//	virtual float draw_left_panel(float x1, float y1, float x2, float y2) override;
+//	virtual void get_selection(ui_software_info const *&software, ui_system_info const *&system) const override;
+//	virtual render_texture *get_icon_texture(int linenum, void *selectedref) override;
+//	virtual void make_topbox_text(std::string &line0,std::string &line1,std::string &line2) const override;
+//	virtual std::string make_software_description(ui_software_info const &software) const override;
+//	virtual void filter_selected() override;
 	//using s_bios = std::vector<std::pair<std::string, int>>;
 	virtual void start_inp();
 

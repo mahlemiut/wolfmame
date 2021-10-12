@@ -28,7 +28,6 @@ ui_menu_record_inp::ui_menu_record_inp(mame_ui_manager &mui, render_container &c
 	std::string path;
 	m_driver = (driver == nullptr) ? mame_options::system(mui.machine().options()) : driver;
 	m_warning_count = 0;
-	emu_file f(OPEN_FLAG_READ);
 
 	// check if setup is correct for MARP use
 	// first, NVRAM
@@ -36,13 +35,12 @@ ui_menu_record_inp::ui_menu_record_inp(mame_ui_manager &mui, render_container &c
 	path += "/";
 	path += m_driver->name;
 	m_warning[0] = false;
-	if(!strcmp(mui.machine().options().nvram_directory(),"NUL") && !strcmp(mui.machine().options().nvram_directory(),"/dev/null"))
+	if(strcmp(mui.machine().options().nvram_directory(),"NUL") != 0 && strcmp(mui.machine().options().nvram_directory(),"/dev/null") != 0)
 	{
 		// silence warning if nvram folder doesn't exist
-		std::error_condition const filerr = f.open(path);
-		if (filerr)
+		auto e = osd_stat(path);
+		if (e != nullptr)
 		{
-			f.close();
 			m_warning_count++;
 			m_warning[0] = true;
 		}
@@ -54,10 +52,9 @@ ui_menu_record_inp::ui_menu_record_inp(mame_ui_manager &mui, render_container &c
 	path += "/";
 	path += m_driver->name;
 	path += ".dif";
-	std::error_condition const filerr = f.open(path);
-	if (filerr)
+	auto e = osd_stat(path);
+	if (e != nullptr)
 	{
-		f.close();
 		m_warning_count++;
 		m_warning[1] = true;
 	}
@@ -167,15 +164,15 @@ void ui_menu_record_inp::custom_render(void *selectedref, float top, float botto
 	// warning display
 	if(m_warning_count > 0)
 	{
-		float line = 2;
+		float line = 3;
 		int x;
-		mui.draw_outlined_box(container(), 0.1f,1.0f - (height*2*m_warning_count),0.9f,1.0f, UI_YELLOW_COLOR);
+		mui.draw_outlined_box(container(), 0.1f,1.0f - (height*3*m_warning_count),0.9f,1.0f, UI_YELLOW_COLOR);
 		for(x=0;x<TOTAL_WARNINGS;x++)
 		{
 			if(m_warning[x])
 			{
 				mui.draw_text_full(container(),m_warning_text[x].c_str(),0.1f,1.0f - (height*line),0.8f, ui::text_layout::LEFT, ui::text_layout::WORD, mame_ui_manager::NORMAL, mui.colors().text_color(), mui.colors().text_bg_color(), nullptr, nullptr);
-				line += 2;
+				line += 3;
 			}
 		}
 	}

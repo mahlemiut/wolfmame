@@ -15,6 +15,8 @@
 
 #include "ui/filesel.h"
 #include "ui/selgame.h"
+#include "audit.h"
+#include "util/path.h"
 
 #define TOTAL_WARNINGS 3
 
@@ -28,9 +30,14 @@ public:
 	virtual void populate(float &customtop, float &custombottom) override;
 	virtual void handle() override;
 	virtual void custom_render(void *selectedref, float top, float bottom, float x, float y, float x2, float y2) override;
+	static constexpr bool audit_passed(media_auditor::summary summary)
+	{
+		return (media_auditor::CORRECT == summary) || (media_auditor::BEST_AVAILABLE == summary) || (media_auditor::NONE_NEEDED == summary);
+	}
 protected:
 	char m_filename_entry[100];
 	const game_driver *m_driver;
+	void launch_system(mame_ui_manager &mui, game_driver const &driver, bool rec, ui_software_info const *swinfo, std::string const *part, int const *bios);
 //	virtual void inkey_export() override;
 private:
 //	virtual float draw_left_panel(float x1, float y1, float x2, float y2) override;
@@ -41,7 +48,6 @@ private:
 //	virtual void filter_selected() override;
 	//using s_bios = std::vector<std::pair<std::string, int>>;
 	virtual void start_inp();
-
 	int m_warning_count;
 	bool m_warning[TOTAL_WARNINGS];
 	std::string m_warning_text[TOTAL_WARNINGS] =

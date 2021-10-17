@@ -296,11 +296,13 @@ void nes_cart(device_slot_interface &device)
 	device.option_add_internal("mk2",              NES_MK2);
 	device.option_add_internal("unl_43272",        NES_43272);     // used in Gaau Hok Gwong Cheung
 	device.option_add_internal("tf1201",           NES_TF1201);
+	device.option_add_internal("th21311",          NES_TH21311);
 	device.option_add_internal("unl_cfight",       NES_CITYFIGHT); // used by City Fighter IV
 	device.option_add_internal("ninjaryu",         NES_NINJARYU);  // used by Ninja Ryukenden Chinese
 	device.option_add_internal("unl_eh8813a",      NES_EH8813A);   // used by Dr. Mario II
 	device.option_add_internal("zemina",           NES_ZEMINA);    // mapper 190 - Magic Kid GooGoo
 // misc bootleg boards
+	device.option_add_internal("ax40g",            NES_AX40G);
 	device.option_add_internal("ax5705",           NES_AX5705);
 	device.option_add_internal("sc127",            NES_SC127);
 	device.option_add_internal("mariobaby",        NES_MARIOBABY);
@@ -313,6 +315,7 @@ void nes_cart(device_slot_interface &device)
 	device.option_add_internal("smb2jb",           NES_SMB2JB);
 	device.option_add_internal("yung08",           NES_YUNG08);
 	device.option_add_internal("btl_0353",         NES_0353);       // used by Lucky (Roger) Rabbit FDS conversion
+	device.option_add_internal("btl_2yudb",        NES_2YUDB);
 	device.option_add_internal("btl_900218",       NES_900218);
 	device.option_add_internal("09034a",           NES_09034A);
 	device.option_add_internal("l001",             NES_L001);
@@ -378,8 +381,9 @@ void nes_cart(device_slot_interface &device)
 	device.option_add_internal("bmc_60311c",       NES_BMC_60311C);
 	device.option_add_internal("bmc_80013b",       NES_BMC_80013B);
 	device.option_add_internal("bmc_810544c",      NES_BMC_810544C);
-	device.option_add_internal("bmc_830928c",      NES_BMC_830928C);
 	device.option_add_internal("bmc_830425c",      NES_BMC_830425C);
+	device.option_add_internal("bmc_830506c",      NES_BMC_830506C);
+	device.option_add_internal("bmc_830928c",      NES_BMC_830928C);
 	device.option_add_internal("bmc_850437c",      NES_BMC_850437C);
 	device.option_add_internal("bmc_970630c",      NES_BMC_970630C);
 	device.option_add_internal("bmc_jy820845c",    NES_BMC_JY820845C);

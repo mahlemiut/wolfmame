@@ -199,7 +199,7 @@ void input_viewer::render_input()
 			if(input_port_used(inptype[m_layout].inp[port].port,0) != 0)
 			{
 				int col = inptype[m_layout].inp[port].colour;
-				mame_machine_manager::instance()->ui().draw_text_full(ui,txt,(float)(inptype[m_layout].inp[port].x * CHARACTER_WIDTH),1.0f - (float)(height * inptype[m_layout].inp[port].line),1.0f,ui::text_layout::LEFT,ui::text_layout::NEVER,mame_ui_manager::OPAQUE_,col,0,NULL,NULL);
+				mame_machine_manager::instance()->ui().draw_text_full(ui,txt,(float)(inptype[m_layout].inp[port].x * CHARACTER_WIDTH),1.0f - (float)(height * inptype[m_layout].inp[port].line),1.0f,ui::text_layout::text_justify::LEFT,ui::text_layout::word_wrapping::NEVER,mame_ui_manager::OPAQUE_,col,0,NULL,NULL);
 			}
 		}
 		else
@@ -207,7 +207,7 @@ void input_viewer::render_input()
 			if(input_port_used(inptype[m_layout].inp[port].port,m_player-1) != 0)
 			{
 				int col = inptype[m_layout].inp[port].colour;
-				mame_machine_manager::instance()->ui().draw_text_full(ui,txt,(float)(inptype[m_layout].inp[port].x * CHARACTER_WIDTH),1.0f - (float)(height * inptype[m_layout].inp[port].line),1.0f,ui::text_layout::LEFT,ui::text_layout::NEVER,mame_ui_manager::OPAQUE_,col,0,NULL,NULL);
+				mame_machine_manager::instance()->ui().draw_text_full(ui,txt,(float)(inptype[m_layout].inp[port].x * CHARACTER_WIDTH),1.0f - (float)(height * inptype[m_layout].inp[port].line),1.0f,ui::text_layout::text_justify::LEFT,ui::text_layout::word_wrapping::NEVER,mame_ui_manager::OPAQUE_,col,0,NULL,NULL);
 			}
 		}
 		port++;
@@ -262,7 +262,7 @@ void input_viewer::render_dips()
 					}
 				}
 				sprintf(txt,"%s : %s [%s]",dip,value,def);
-				mame_machine_manager::instance()->ui().draw_text_full(ui,txt,0.0f,1.0f - (float)(height * x),1.0f,ui::text_layout::LEFT,ui::text_layout::NEVER,mame_ui_manager::OPAQUE_,COL_WHITE,0,NULL,NULL);
+				mame_machine_manager::instance()->ui().draw_text_full(ui,txt,0.0f,1.0f - (float)(height * x),1.0f,ui::text_layout::text_justify::LEFT,ui::text_layout::word_wrapping::NEVER,mame_ui_manager::OPAQUE_,COL_WHITE,0,NULL,NULL);
 				x--;
 			}
 		}

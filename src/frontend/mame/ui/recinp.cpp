@@ -157,8 +157,8 @@ void ui_menu_record_inp::custom_render(void *selectedref, float top, float botto
 	str += "_";
 
 	mui.draw_outlined_box(container(), 0.1f,origy1 - (height*2),0.9f,origy1, mui.colors().background_color());
-	mui.draw_text_full(container(),_("Please enter a filename for the INP..."),0.1f,origy1 - (height*2),0.8f, ui::text_layout::CENTER, ui::text_layout::TRUNCATE, mame_ui_manager::NORMAL, mui.colors().text_color(), mui.colors().text_bg_color(), nullptr, nullptr);
-	mui.draw_text_full(container(),str.c_str(),0.1f,origy1 - height,0.8f, ui::text_layout::CENTER, ui::text_layout::TRUNCATE, mame_ui_manager::NORMAL, mui.colors().text_color(), mui.colors().text_bg_color(), nullptr, nullptr);
+	mui.draw_text_full(container(),_("Please enter a filename for the INP..."),0.1f,origy1 - (height*2),0.8f, ui::text_layout::text_justify::CENTER, ui::text_layout::word_wrapping::TRUNCATE, mame_ui_manager::NORMAL, mui.colors().text_color(), mui.colors().text_bg_color(), nullptr, nullptr);
+	mui.draw_text_full(container(),str.c_str(),0.1f,origy1 - height,0.8f, ui::text_layout::text_justify::CENTER, ui::text_layout::word_wrapping::TRUNCATE, mame_ui_manager::NORMAL, mui.colors().text_color(), mui.colors().text_bg_color(), nullptr, nullptr);
 
 	// warning display
 	if(m_warning_count > 0)
@@ -170,7 +170,7 @@ void ui_menu_record_inp::custom_render(void *selectedref, float top, float botto
 		{
 			if(m_warning[x])
 			{
-				mui.draw_text_full(container(),m_warning_text[x].c_str(),0.1f,1.0f - (height*line),0.8f, ui::text_layout::LEFT, ui::text_layout::WORD, mame_ui_manager::NORMAL, mui.colors().text_color(), mui.colors().text_bg_color(), nullptr, nullptr);
+				mui.draw_text_full(container(),m_warning_text[x].c_str(),0.1f,1.0f - (height*line),0.8f, ui::text_layout::text_justify::LEFT, ui::text_layout::word_wrapping::WORD, mame_ui_manager::NORMAL, mui.colors().text_color(), mui.colors().text_bg_color(), nullptr, nullptr);
 				line += 3;
 			}
 		}
@@ -223,7 +223,7 @@ void ui_menu_record_inp::start_inp()
 	{
 		if (!swlistdev.get_info().empty())
 		{
-			menu::stack_push<menu_select_software>(ui(), container(), *m_driver);
+//			menu::stack_push<menu_select_software>(ui(), container(), *m_driver);
 			return;
 		}
 	}
@@ -382,7 +382,7 @@ void ui_menu_playback_inp::start_inp()
 	{
 		if (!swlistdev.get_info().empty())
 		{
-			menu::stack_push<menu_select_software>(ui(), container(), *m_driver);
+//			menu::stack_push<menu_select_software>(ui(), container(), *m_driver);
 			return;
 		}
 	}

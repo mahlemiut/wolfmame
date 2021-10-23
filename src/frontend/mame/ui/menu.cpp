@@ -447,8 +447,13 @@ void menu::draw(uint32_t flags)
 	// first draw the FPS counter
 	if (ui().show_fps_counter())
 	{
-		ui().draw_text_full(container(), machine().video().speed_text(), 0.0f, 0.0f, 1.0f,
-				ui::text_layout::RIGHT, ui::text_layout::WORD, mame_ui_manager::OPAQUE_, rgb_t::white(), rgb_t::black(), nullptr, nullptr);
+		ui().draw_text_full(
+				container(),
+				machine().video().speed_text(),
+				0.0f, 0.0f, 1.0f,
+				text_layout::text_justify::RIGHT, text_layout::word_wrapping::WORD,
+				mame_ui_manager::OPAQUE_, rgb_t::white(), rgb_t::black(),
+				nullptr, nullptr);
 	}
 
 	bool const customonly = (flags & PROCESS_CUSTOM_ONLY);
@@ -514,12 +519,14 @@ void menu::draw(uint32_t flags)
 	if (!customonly)
 		ui().draw_outlined_box(container(), x1, y1, x2, y2, ui().colors().background_color());
 
+	if ((m_selected >= (top_line + m_visible_lines)) || (m_selected < (top_line + 1)))
+		top_line = m_selected - (m_visible_lines / 2);
 	if (top_line < 0 || is_first_selected())
 		top_line = 0;
-	if (m_selected >= (top_line + m_visible_lines))
-		top_line = m_selected - (m_visible_lines / 2);
-	if ((top_line > (m_items.size() - m_visible_lines)) || is_last_selected())
+	else if ((top_line > (m_items.size() - m_visible_lines)) || is_last_selected())
 		top_line = m_items.size() - m_visible_lines;
+	else if (m_selected >= (top_line + m_visible_lines - 2))
+		top_line = m_selected - m_visible_lines + ((m_selected == (m_items.size() - 1)) ? 1: 2);
 
 	// if scrolling, show arrows
 	bool const show_top_arrow((m_items.size() > m_visible_lines) && !first_item_visible());
@@ -626,8 +633,13 @@ void menu::draw(uint32_t flags)
 					container().add_line(visible_left, line_y0 + 0.5f * line_height, visible_left + ((visible_width - heading_width) / 2) - lr_border, line_y0 + 0.5f * line_height, UI_LINE_WIDTH, ui().colors().border_color(), PRIMFLAG_BLENDMODE(BLENDMODE_ALPHA));
 					container().add_line(visible_left + visible_width - ((visible_width - heading_width) / 2) + lr_border, line_y0 + 0.5f * line_height, visible_left + visible_width, line_y0 + 0.5f * line_height, UI_LINE_WIDTH, ui().colors().border_color(), PRIMFLAG_BLENDMODE(BLENDMODE_ALPHA));
 				}
-				ui().draw_text_full(container(), itemtext, effective_left, line_y0, effective_width,
-					ui::text_layout::CENTER, ui::text_layout::TRUNCATE, mame_ui_manager::NORMAL, fgcolor, bgcolor, nullptr, nullptr);
+				ui().draw_text_full(
+						container(),
+						itemtext,
+						effective_left, line_y0, effective_width,
+						text_layout::text_justify::CENTER, text_layout::word_wrapping::TRUNCATE,
+						mame_ui_manager::NORMAL, fgcolor, bgcolor,
+						nullptr, nullptr);
 			}
 			else
 			{
@@ -636,8 +648,13 @@ void menu::draw(uint32_t flags)
 				float item_width, subitem_width;
 
 				// draw the left-side text
-				ui().draw_text_full(container(), itemtext, effective_left, line_y0, effective_width,
-					ui::text_layout::LEFT, ui::text_layout::TRUNCATE, mame_ui_manager::NORMAL, fgcolor, bgcolor, &item_width, nullptr);
+				ui().draw_text_full(
+						container(),
+						itemtext,
+						effective_left, line_y0, effective_width,
+						text_layout::text_justify::LEFT, text_layout::word_wrapping::TRUNCATE,
+						mame_ui_manager::NORMAL, fgcolor, bgcolor,
+						&item_width, nullptr);
 
 				if (pitem.flags & FLAG_COLOR_BOX)
 				{
@@ -678,8 +695,13 @@ void menu::draw(uint32_t flags)
 						fgcolor2 = rgb_t(0xff,0xff,0x00);
 
 					// draw the subitem right-justified
-					ui().draw_text_full(container(), subitem_text, effective_left + item_width, line_y0, effective_width - item_width,
-								ui::text_layout::RIGHT, ui::text_layout::TRUNCATE, mame_ui_manager::NORMAL, subitem_invert ? fgcolor3 : fgcolor2, bgcolor, &subitem_width, nullptr);
+					ui().draw_text_full(
+							container(),
+							subitem_text,
+							effective_left + item_width, line_y0, effective_width - item_width,
+							text_layout::text_justify::RIGHT, text_layout::word_wrapping::TRUNCATE,
+							mame_ui_manager::NORMAL, subitem_invert ? fgcolor3 : fgcolor2, bgcolor,
+							&subitem_width, nullptr);
 				}
 
 				// apply arrows
@@ -719,8 +741,13 @@ void menu::draw(uint32_t flags)
 		float target_width, target_height;
 
 		// compute the multi-line target width/height
-		ui().draw_text_full(container(), pitem.subtext, 0, 0, visible_width * 0.75f,
-			ui::text_layout::RIGHT, ui::text_layout::WORD, mame_ui_manager::NONE, rgb_t::white(), rgb_t::black(), &target_width, &target_height);
+		ui().draw_text_full(
+				container(),
+				pitem.subtext,
+				0, 0, visible_width * 0.75f,
+				text_layout::text_justify::RIGHT, text_layout::word_wrapping::WORD,
+				mame_ui_manager::NONE, rgb_t::white(), rgb_t::black(),
+				&target_width, &target_height);
 
 		// determine the target location
 		float const target_x = visible_left + visible_width - target_width - lr_border;
@@ -729,14 +756,19 @@ void menu::draw(uint32_t flags)
 			target_y = line_y - target_height - ui().box_tb_border();
 
 		// add a box around that
-		ui().draw_outlined_box(container(), target_x - lr_border,
-				target_y - ui().box_tb_border(),
-				target_x + target_width + lr_border,
-				target_y + target_height + ui().box_tb_border(),
+		ui().draw_outlined_box(
+				container(),
+				target_x - lr_border, target_y - ui().box_tb_border(),
+				target_x + target_width + lr_border, target_y + target_height + ui().box_tb_border(),
 				subitem_invert ? ui().colors().selected_bg_color() : ui().colors().background_color());
 
-		ui().draw_text_full(container(), pitem.subtext, target_x, target_y, target_width,
-				ui::text_layout::RIGHT, ui::text_layout::WORD, mame_ui_manager::NORMAL, ui().colors().selected_color(), ui().colors().selected_bg_color(), nullptr, nullptr);
+		ui().draw_text_full(
+				container(),
+				pitem.subtext,
+				target_x, target_y, target_width,
+				text_layout::text_justify::RIGHT, text_layout::word_wrapping::WORD,
+				mame_ui_manager::NORMAL, ui().colors().selected_color(), ui().colors().selected_bg_color(),
+				nullptr, nullptr);
 	}
 
 	// if there is something special to add, do it by calling the virtual method
@@ -766,8 +798,13 @@ void menu::draw_text_box()
 	float target_x, target_y;
 
 	// compute the multi-line target width/height
-	ui().draw_text_full(container(), text, 0, 0, 1.0f - 2.0f * lr_border - 2.0f * gutter_width,
-		ui::text_layout::LEFT, ui::text_layout::WORD, mame_ui_manager::NONE, rgb_t::white(), rgb_t::black(), &target_width, &target_height);
+	ui().draw_text_full(
+			container(),
+			text,
+			0, 0, 1.0f - 2.0f * lr_border - 2.0f * gutter_width,
+			text_layout::text_justify::LEFT, text_layout::word_wrapping::WORD,
+			mame_ui_manager::NONE, rgb_t::white(), rgb_t::black(),
+			&target_width, &target_height);
 	target_height += 2.0f * line_height;
 	if (target_height > 1.0f - 2.0f * ui().box_tb_border())
 		target_height = floorf((1.0f - 2.0f * ui().box_tb_border()) / line_height) * line_height;
@@ -791,23 +828,33 @@ void menu::draw_text_box()
 		target_y = 1.0f - ui().box_tb_border() - target_height;
 
 	// add a box around that
-	ui().draw_outlined_box(container(), target_x - lr_border - gutter_width,
-							target_y - ui().box_tb_border(),
-							target_x + target_width + gutter_width + lr_border,
-							target_y + target_height + ui().box_tb_border(),
-							(m_items[0].flags & FLAG_REDTEXT) ?  UI_RED_COLOR : ui().colors().background_color());
-	ui().draw_text_full(container(), text, target_x, target_y, target_width,
-			ui::text_layout::LEFT, ui::text_layout::WORD, mame_ui_manager::NORMAL, ui().colors().text_color(), ui().colors().text_bg_color(), nullptr, nullptr);
+	ui().draw_outlined_box(
+			container(),
+			target_x - lr_border - gutter_width, target_y - ui().box_tb_border(),
+			target_x + target_width + gutter_width + lr_border, target_y + target_height + ui().box_tb_border(),
+			(m_items[0].flags & FLAG_REDTEXT) ?  UI_RED_COLOR : ui().colors().background_color());
+	ui().draw_text_full(
+			container(),
+			text,
+			target_x, target_y, target_width,
+			text_layout::text_justify::LEFT, text_layout::word_wrapping::WORD,
+			mame_ui_manager::NORMAL, ui().colors().text_color(), ui().colors().text_bg_color(),
+			nullptr, nullptr);
 
 	// draw the "return to prior menu" text with a hilight behind it
 	highlight(
-				target_x + 0.5f * UI_LINE_WIDTH,
-				target_y + target_height - line_height,
-				target_x + target_width - 0.5f * UI_LINE_WIDTH,
-				target_y + target_height,
-				ui().colors().selected_bg_color());
-	ui().draw_text_full(container(), backtext, target_x, target_y + target_height - line_height, target_width,
-		ui::text_layout::CENTER, ui::text_layout::TRUNCATE, mame_ui_manager::NORMAL, ui().colors().selected_color(), ui().colors().selected_bg_color(), nullptr, nullptr);
+			target_x + 0.5f * UI_LINE_WIDTH,
+			target_y + target_height - line_height,
+			target_x + target_width - 0.5f * UI_LINE_WIDTH,
+			target_y + target_height,
+			ui().colors().selected_bg_color());
+	ui().draw_text_full(
+			container(),
+			backtext,
+			target_x, target_y + target_height - line_height, target_width,
+			text_layout::text_justify::CENTER, text_layout::word_wrapping::TRUNCATE,
+			mame_ui_manager::NORMAL, ui().colors().selected_color(), ui().colors().selected_bg_color(),
+			nullptr, nullptr);
 
 	// artificially set the hover to the last item so a double-click exits
 	m_hover = m_items.size() - 1;
@@ -874,27 +921,33 @@ void menu::handle_events(uint32_t flags, event &ev)
 				}
 				else if (m_hover == HOVER_ARROW_UP)
 				{
-					if (flags & FLAG_UI_DATS)
+					if (flags & PROCESS_CUSTOM_NAV)
 					{
-						top_line -= m_visible_items - (last_item_visible() ? 1 : 0);
-						return;
+						ev.iptkey = IPT_UI_PAGE_UP;
+						stop = true;
 					}
-					m_selected -= m_visible_items;
-					if (m_selected < 0)
-						m_selected = 0;
-					top_line -= m_visible_items - (last_item_visible() ? 1 : 0);
+					else
+					{
+						m_selected -= m_visible_items;
+						if (m_selected < 0)
+							m_selected = 0;
+						top_line -= m_visible_items - (last_item_visible() ? 1 : 0);
+					}
 				}
 				else if (m_hover == HOVER_ARROW_DOWN)
 				{
-					if ((flags & FLAG_UI_DATS) != 0)
+					if (flags & PROCESS_CUSTOM_NAV)
 					{
-						top_line += m_visible_lines - 2;
-						return;
+						ev.iptkey = IPT_UI_PAGE_DOWN;
+						stop = true;
 					}
-					m_selected += m_visible_lines - 2 + is_first_selected();
-					if (m_selected > m_items.size() - 1)
-						m_selected = m_items.size() - 1;
-					top_line += m_visible_lines - 2;
+					else
+					{
+						m_selected += m_visible_lines - 2 + is_first_selected();
+						if (m_selected > m_items.size() - 1)
+							m_selected = m_items.size() - 1;
+						top_line += m_visible_lines - 2;
+					}
 				}
 				else if (m_hover == HOVER_UI_LEFT)
 				{
@@ -930,13 +983,15 @@ void menu::handle_events(uint32_t flags, event &ev)
 			{
 				if (local_menu_event.zdelta > 0)
 				{
-					if ((flags & FLAG_UI_DATS) != 0)
+					if (flags & PROCESS_CUSTOM_NAV) // FIXME: DAT menu logic - let the derived class handle this
 					{
 						top_line -= local_menu_event.num_lines;
 						return;
 					}
-					if (is_first_selected())
+					else if (is_first_selected())
+					{
 						select_last_item();
+					}
 					else
 					{
 						m_selected -= local_menu_event.num_lines;
@@ -948,13 +1003,15 @@ void menu::handle_events(uint32_t flags, event &ev)
 				}
 				else
 				{
-					if ((flags & FLAG_UI_DATS))
+					if (flags & PROCESS_CUSTOM_NAV) // FIXME: DAT menu logic - let the derived class handle this
 					{
 						top_line += local_menu_event.num_lines;
 						return;
 					}
-					if (is_last_selected())
+					else if (is_last_selected())
+					{
 						select_first_item();
+					}
 					else
 					{
 						m_selected += local_menu_event.num_lines;
@@ -1014,7 +1071,7 @@ void menu::handle_keys(uint32_t flags, int &iptkey)
 	// hitting cancel also pops the stack
 	if (exclusive_input_pressed(iptkey, IPT_UI_CANCEL, 0))
 	{
-		if (!menu_has_search_active())
+		if (!custom_ui_cancel())
 			stack_pop();
 		return;
 	}
@@ -1023,11 +1080,8 @@ void menu::handle_keys(uint32_t flags, int &iptkey)
 	validate_selection(1);
 
 	// swallow left/right keys if they are not appropriate
-	bool ignoreleft = !(flags & PROCESS_LR_ALWAYS) && !(selected_item().flags & FLAG_LEFT_ARROW);
-	bool ignoreright = !(flags & PROCESS_LR_ALWAYS) && !(selected_item().flags & FLAG_RIGHT_ARROW);
-
-	if ((m_items[0].flags & FLAG_UI_DATS))
-		ignoreleft = ignoreright = false;
+	bool const ignoreleft = !(flags & PROCESS_LR_ALWAYS) && !(selected_item().flags & FLAG_LEFT_ARROW);
+	bool const ignoreright = !(flags & PROCESS_LR_ALWAYS) && !(selected_item().flags & FLAG_RIGHT_ARROW);
 
 	// accept left/right keys as-is with repeat
 	if (!ignoreleft && exclusive_input_pressed(iptkey, IPT_UI_LEFT, (flags & PROCESS_LR_REPEAT) ? 6 : 0))
@@ -1038,13 +1092,14 @@ void menu::handle_keys(uint32_t flags, int &iptkey)
 	// up backs up by one item
 	if (exclusive_input_pressed(iptkey, IPT_UI_UP, 6))
 	{
-		if ((m_items[0].flags & FLAG_UI_DATS))
+		if (flags & PROCESS_CUSTOM_NAV)
 		{
-			top_line--;
 			return;
 		}
-		if (is_first_selected())
+		else if (is_first_selected())
+		{
 			select_last_item();
+		}
 		else
 		{
 			--m_selected;
@@ -1058,13 +1113,14 @@ void menu::handle_keys(uint32_t flags, int &iptkey)
 	// down advances by one item
 	if (exclusive_input_pressed(iptkey, IPT_UI_DOWN, 6))
 	{
-		if ((m_items[0].flags & FLAG_UI_DATS))
+		if (flags & PROCESS_CUSTOM_NAV)
 		{
-			top_line++;
 			return;
 		}
-		if (is_last_selected())
+		else if (is_last_selected())
+		{
 			select_first_item();
+		}
 		else
 		{
 			++m_selected;
@@ -1078,6 +1134,8 @@ void menu::handle_keys(uint32_t flags, int &iptkey)
 	// page up backs up by m_visible_items
 	if (exclusive_input_pressed(iptkey, IPT_UI_PAGE_UP, 6))
 	{
+		if (flags & PROCESS_CUSTOM_NAV)
+			return;
 		m_selected -= m_visible_items;
 		top_line -= m_visible_items - (last_item_visible() ? 1 : 0);
 		if (m_selected < 0)
@@ -1088,6 +1146,8 @@ void menu::handle_keys(uint32_t flags, int &iptkey)
 	// page down advances by m_visible_items
 	if (exclusive_input_pressed(iptkey, IPT_UI_PAGE_DOWN, 6))
 	{
+		if (flags & PROCESS_CUSTOM_NAV)
+			return;
 		m_selected += m_visible_lines - 2 + is_first_selected();
 		top_line += m_visible_lines - 2;
 
@@ -1098,11 +1158,19 @@ void menu::handle_keys(uint32_t flags, int &iptkey)
 
 	// home goes to the start
 	if (exclusive_input_pressed(iptkey, IPT_UI_HOME, 0))
+	{
+		if (flags & PROCESS_CUSTOM_NAV)
+			return;
 		select_first_item();
+	}
 
 	// end goes to the last
 	if (exclusive_input_pressed(iptkey, IPT_UI_END, 0))
+	{
+		if (flags & PROCESS_CUSTOM_NAV)
+			return;
 		select_last_item();
+	}
 
 	// pause enables/disables pause
 	if (!ignorepause && exclusive_input_pressed(iptkey, IPT_UI_PAUSE, 0) && !machine().ioport().get_record_file()->is_open())

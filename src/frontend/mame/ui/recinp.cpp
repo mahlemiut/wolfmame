@@ -16,19 +16,17 @@
 #include "ui/utils.h"
 #include "emuopts.h"
 #include "mameopts.h"
-#include "audit.h"
 #include "softlist_dev.h"
 
 namespace ui {
 
 // INP recording class
 
-ui_menu_record_inp::ui_menu_record_inp(mame_ui_manager &mui, render_container &container, const game_driver *driver) : menu_select_launch(mui, container, false)
+ui_menu_record_inp::ui_menu_record_inp(mame_ui_manager &mui, render_container &container, const game_driver *driver) : menu(mui, container)
 {
 	std::string path;
 	m_driver = (driver == nullptr) ? mame_options::system(mui.machine().options()) : driver;
 	m_warning_count = 0;
-	emu_file f(OPEN_FLAG_READ);
 
 	// check if setup is correct for MARP use
 	// first, NVRAM
@@ -36,13 +34,12 @@ ui_menu_record_inp::ui_menu_record_inp(mame_ui_manager &mui, render_container &c
 	path += "/";
 	path += m_driver->name;
 	m_warning[0] = false;
-	if(!strcmp(mui.machine().options().nvram_directory(),"NUL") && !strcmp(mui.machine().options().nvram_directory(),"/dev/null"))
+	if(strcmp(mui.machine().options().nvram_directory(),"NUL") != 0 && strcmp(mui.machine().options().nvram_directory(),"/dev/null") != 0)
 	{
 		// silence warning if nvram folder doesn't exist
-		std::error_condition const filerr = f.open(path);
-		if (filerr)
+		auto e = osd_stat(path);
+		if (e != nullptr)
 		{
-			f.close();
 			m_warning_count++;
 			m_warning[0] = true;
 		}
@@ -54,10 +51,9 @@ ui_menu_record_inp::ui_menu_record_inp(mame_ui_manager &mui, render_container &c
 	path += "/";
 	path += m_driver->name;
 	path += ".dif";
-	std::error_condition const filerr = f.open(path);
-	if (filerr)
+	auto e = osd_stat(path);
+	if (e != nullptr)
 	{
-		f.close();
 		m_warning_count++;
 		m_warning[1] = true;
 	}
@@ -86,7 +82,7 @@ void ui_menu_record_inp::handle()
 	bool changed = false;
 
 	// process the menu
-	const event *menu_event = process(PROCESS_LR_REPEAT);
+	const event *menu_event = process(0);
 
 	if (menu_event != nullptr)
 	{
@@ -167,61 +163,86 @@ void ui_menu_record_inp::custom_render(void *selectedref, float top, float botto
 	// warning display
 	if(m_warning_count > 0)
 	{
-		float line = 2;
+		float line = 3;
 		int x;
-		mui.draw_outlined_box(container(), 0.1f,1.0f - (height*2*m_warning_count),0.9f,1.0f, UI_YELLOW_COLOR);
+		mui.draw_outlined_box(container(), 0.1f,1.0f - (height*3*m_warning_count),0.9f,1.0f, UI_YELLOW_COLOR);
 		for(x=0;x<TOTAL_WARNINGS;x++)
 		{
 			if(m_warning[x])
 			{
 				mui.draw_text_full(container(),m_warning_text[x].c_str(),0.1f,1.0f - (height*line),0.8f, ui::text_layout::text_justify::LEFT, ui::text_layout::word_wrapping::WORD, mame_ui_manager::NORMAL, mui.colors().text_color(), 				mui.colors().text_bg_color(), nullptr, nullptr);
-				line += 2;
+				line += 3;
 			}
 		}
 	}
 }
 
-void ui_menu_record_inp::start_inp()
+void ui_menu_record_inp::launch_system(mame_ui_manager &mui, game_driver const &driver, bool rec, ui_software_info const *swinfo, std::string const *part, int const *bios)
 {
-	// audit the game first to see if we're going to work
-//	driver_enumerator enumerator(machine().options(), *m_driver);
-//	enumerator.next();
-//	media_auditor auditor(enumerator);
-//	media_auditor::summary summary = auditor.audit_media(AUDIT_VALIDATE_FAST);
+	emu_options &moptions(mui.machine().options());
+	moptions.set_system_name(driver.name);
 
-	// if everything looks good, schedule the new driver
-/*	if (summary == media_auditor::CORRECT || summary == media_auditor::BEST_AVAILABLE || summary == media_auditor::NONE_NEEDED)
+	if (swinfo)
 	{
-		if ((m_driver->flags & MACHINE_TYPE_ARCADE) == 0)
+		if (!swinfo->startempty)
 		{
-			for (software_list_device &swlistdev : software_list_device_iterator(enumerator.config()->root_device()))
-				if (!swlistdev.get_info().empty())
-				{
-					menu::stack_push<menu_select_software>(ui(), container(), m_driver);
-					return;
-				}
-		}
+			if (part)
+				moptions.set_value(swinfo->instance, util::string_format("%s:%s:%s", swinfo->listname, swinfo->shortname, *part), OPTION_PRIORITY_CMDLINE);
+			else
+				moptions.set_value(OPTION_SOFTWARENAME, util::string_format("%s:%s", swinfo->listname, swinfo->shortname), OPTION_PRIORITY_CMDLINE);
 
-		s_bios biosname;
-		machine().options().set_value(OPTION_RECORD,m_filename_entry,OPTION_PRIORITY_HIGH);
-		if (!mame_machine_manager::instance()->ui().options().skip_bios_menu()) && has_multiple_bios(m_driver, biosname))
-			menu::stack_push<bios_selection>(ui(), container(), biosname, (void *)m_driver, false, false);
-		else
-		{
-			reselect_last::reset();
-			reselect_last::set_driver(m_driver);
-			mame_machine_manager::instance()->schedule_new_driver(*m_driver);
-			machine().schedule_hard_reset();
-			menu::stack_reset(machine());
+			moptions.set_value(OPTION_SNAPNAME, util::path_concat(swinfo->listname, swinfo->shortname), OPTION_PRIORITY_CMDLINE);
 		}
 	}
-	// otherwise, display an error
+
+	if (bios)
+		moptions.set_value(OPTION_BIOS, *bios, OPTION_PRIORITY_CMDLINE);
+
+	// set input file
+	if(rec)
+		moptions.set_value(OPTION_RECORD, m_filename_entry, OPTION_PRIORITY_CMDLINE);
 	else
-	{
-		machine().popmessage(_("ROM audit failed.  Cannot start system.  Please check your ROMset is correct and up to date."));
-	}*/
+		moptions.set_value(OPTION_PLAYBACK, m_filename_entry, OPTION_PRIORITY_CMDLINE);
+
+	mame_machine_manager::instance()->schedule_new_driver(driver);
+	mui.machine().schedule_hard_reset();
+	stack_reset(mui.machine());
+
 }
 
+void ui_menu_record_inp::start_inp()
+{
+	std::string fname;
+
+	// anything else is a driver
+	driver_enumerator enumerator(machine().options(), *m_driver);
+	enumerator.next();
+
+	// if there are software entries, show a software selection menu
+	for (software_list_device &swlistdev : software_list_device_enumerator(enumerator.config()->root_device()))
+	{
+		if (!swlistdev.get_info().empty())
+		{
+//			menu::stack_push<menu_select_software>(ui(), container(), *m_driver);
+			return;
+		}
+	}
+
+	// audit the system ROMs first to see if we're going to work
+	media_auditor auditor(enumerator);
+	media_auditor::summary const summary = auditor.audit_media(AUDIT_VALIDATE_FAST);
+
+	// if everything looks good, schedule the new driver
+	if (audit_passed(summary))
+	{
+		launch_system(mame_machine_manager::instance()->ui(), *m_driver, true,nullptr,nullptr,nullptr);
+	}
+	else
+	{
+		// otherwise, display an error
+		machine().popmessage("Cannot start system!");
+	}
+}
 
 // INP playback class
 ui_menu_playback_inp::ui_menu_playback_inp(mame_ui_manager &mui, render_container &container, const game_driver *driver)
@@ -324,14 +345,9 @@ void ui_menu_playback_inp::handle()
 
 void ui_menu_playback_inp::start_inp()
 {
-	// audit the game first to see if we're going to work
 	std::string fname;
 	inp_header hdr;
 	emu_file f(OPEN_FLAG_READ);
-//	driver_enumerator enumerator(machine().options(), *m_driver);
-//	enumerator.next();
-//	media_auditor auditor(enumerator);
-//	media_auditor::summary summary = auditor.audit_media(AUDIT_VALIDATE_FAST);
 
 	// check if INP file exists
 	fname = machine().options().input_directory();
@@ -357,37 +373,34 @@ void ui_menu_playback_inp::start_inp()
 	f.close();
 
 	// if everything looks good, schedule the new driver
-/*	if (summary == media_auditor::CORRECT || summary == media_auditor::BEST_AVAILABLE || summary == media_auditor::NONE_NEEDED)
-	{
-		if ((m_driver->flags & MACHINE_TYPE_ARCADE) == 0)
-		{
-			for (software_list_device &swlistdev : software_list_device_iterator(enumerator.config()->root_device()))
-				if (!swlistdev.get_info().empty())
-				{
-					menu::stack_push<menu_select_software>(ui(), container(), m_driver);
-					return;
-				}
-		}
+	// anything else is a driver
+	driver_enumerator enumerator(machine().options(), *m_driver);
+	enumerator.next();
 
-		s_bios biosname;
-		machine().options().set_value(OPTION_PLAYBACK,m_filename_entry,OPTION_PRIORITY_HIGH);
-		if (!mame_machine_manager::instance()->ui().options().skip_bios_menu() && has_multiple_bios(m_driver, biosname))
-			menu::stack_push<bios_selection>(ui(), container(), biosname, (void *)m_driver, false, false);
-		else
+	// if there are software entries, show a software selection menu
+	for (software_list_device &swlistdev : software_list_device_enumerator(enumerator.config()->root_device()))
+	{
+		if (!swlistdev.get_info().empty())
 		{
-			reselect_last::driver = m_driver->name;
-			reselect_last::software.clear();
-			reselect_last::swlist.clear();
-			mame_machine_manager::instance()->schedule_new_driver(*m_driver);
-			machine().schedule_hard_reset();
-			menu::stack_reset(machine());
+//			menu::stack_push<menu_select_software>(ui(), container(), *m_driver);
+			return;
 		}
 	}
-	// otherwise, display an error
+
+	// audit the system ROMs first to see if we're going to work
+	media_auditor auditor(enumerator);
+	media_auditor::summary const summary = auditor.audit_media(AUDIT_VALIDATE_FAST);
+
+	// if everything looks good, schedule the new driver
+	if (audit_passed(summary))
+	{
+		launch_system(mame_machine_manager::instance()->ui(), *m_driver, false,nullptr,nullptr,nullptr);
+	}
 	else
 	{
-		machine().popmessage(_("ROM audit failed.  Cannot start system.  Please check your ROMset is correct and up to date."));
-	}*/
+		// otherwise, display an error
+		machine().popmessage("Cannot start system!");
+	}
 }
 
 } // namespace ui

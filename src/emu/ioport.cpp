@@ -2775,7 +2775,7 @@ void ioport_manager::playback_end(const char *message)
 		osd_printf_info("Average recorded speed: %d%%\n", u32((m_playback_accumulated_speed * 200 + 1) >> 21));
 
 		// clear record filename so that INP is not overwritten if returning to the select game menu (aka the __empty driver)
-		machine().options().set_value(OPTION_PLAYBACK,"",OPTION_PRIORITY_HIGH);
+		machine().options().set_value(OPTION_PLAYBACK,"",OPTION_PRIORITY_CMDLINE);
 
 		// close the program at the end of inp file playback
 		if (machine().options().exit_after_playback())
@@ -3033,7 +3033,7 @@ void ioport_manager::record_end(const char *message)
 			machine().popmessage("Recording Ended\nReason: %s", message);
 
 		// clear record filename so that INP is not overwritten if returning to the select game menu (aka the __empty driver)
-		machine().options().set_value(OPTION_RECORD,"",OPTION_PRIORITY_HIGH);
+		machine().options().set_value(OPTION_RECORD,"",OPTION_PRIORITY_CMDLINE);
 	}
 }
 

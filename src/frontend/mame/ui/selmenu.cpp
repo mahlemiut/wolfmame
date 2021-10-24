@@ -14,6 +14,7 @@
 #include "ui/datmenu.h"
 #include "ui/info.h"
 #include "ui/inifile.h"
+#include "ui/recinp.h"
 
 // these hold static bitmap images
 #include "ui/defimg.ipp"
@@ -1257,7 +1258,7 @@ void menu_select_launch::draw_toolbar(float x1, float y1, float x2, float y2)
 	y2 -= ui().box_tb_border();
 
 	// work out which buttons we're going to draw
-	constexpr unsigned SYS_TOOLBAR_BITMAPS[] = { TOOLBAR_BITMAP_FAVORITE, TOOLBAR_BITMAP_SAVE, TOOLBAR_BITMAP_AUDIT, TOOLBAR_BITMAP_INFO };
+	constexpr unsigned SYS_TOOLBAR_BITMAPS[] = { TOOLBAR_BITMAP_FAVORITE, TOOLBAR_BITMAP_SAVE, TOOLBAR_BITMAP_AUDIT, TOOLBAR_BITMAP_INFO, TOOLBAR_BITMAP_RECORD, TOOLBAR_BITMAP_PLAYBACK };
 	constexpr unsigned SW_TOOLBAR_BITMAPS[] = { TOOLBAR_BITMAP_FAVORITE, TOOLBAR_BITMAP_INFO };
 	bool const have_parent = m_is_swlist || !stack_has_special_main_menu();
 	unsigned const *const toolbar_bitmaps = m_is_swlist ? SW_TOOLBAR_BITMAPS : SYS_TOOLBAR_BITMAPS;
@@ -1769,6 +1770,16 @@ void menu_select_launch::handle_events(uint32_t flags, event &ev)
 				else if (hover() == HOVER_B_DATS)
 				{
 					inkey_dats();
+					stop = true;
+				}
+				else if (hover() == HOVER_B_RECORD)
+				{
+					menu::stack_push<ui_menu_record_inp>(ui(),container(),m_info_driver);
+					stop = true;
+				}
+				else if (hover() == HOVER_B_PLAYBACK)
+				{
+					menu::stack_push<ui_menu_playback_inp>(ui(),container(),m_info_driver);
 					stop = true;
 				}
 				else if (hover() == HOVER_BACKTRACK)

@@ -41,6 +41,22 @@ char const *const toolbar_icons_svg[] = {
 			"<circle cx='50' cy='20' r='10' fill='#ffffff' />"
 			"<path fill='#ffffff' d='m 59,38 v 34 a 10,4 0 0,0 10,4 v 8 h -36 v -8 a 10,4 0 0,0 10,-4 v -23 a 8,4 0 0,0 -8,-4 v -6 z' />"
 		"</svg>",
+		// record
+		u8"<?xml version='1.0' encoding='UTF-8' standalone='no'?>"
+		"<svg width='16.0px' height='16.0px' viewBox='0 0 16.0 16.0' version='1.1' id='SVGRoot' xmlns='http://www.w3.org/2000/svg' xmlns:svg='http://www.w3.org/2000/svg'>"
+		"<defs id='defs9' />"
+			"<g id='layer1'>"
+				"<circle style='fill:#ff0000;fill-rule:evenodd' id='path67' cx='8' cy='8' r='7' />"
+			"</g>"
+		"</svg>",
+		// playback
+		u8"<?xml version='1.0' encoding='UTF-8' standalone='no'?>"
+		"<svg width='16.0px' height='16.0px' viewBox='0 0 16.0 16.0' version='1.1' id='SVGRoot' xmlns='http://www.w3.org/2000/svg' xmlns:svg='http://www.w3.org/2000/svg'>"
+			"<defs id='defs9' />"
+			"<g id='layer1'>"
+				"<path style='fill:#00ff00;stroke:#00ff00;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1' d='M 1,1 V 15 L 15,8 V 7 L 1,1' id='path78' />"
+			"</g>"
+		"</svg>",
 		// previous menu
 		u8"<?xml version='1.0' encoding='UTF-8' standalone='no'?>"
 		"<svg xmlns:svg='http://www.w3.org/2000/svg' xmlns='http://www.w3.org/2000/svg' version='1.1' height='100' width='100'>"
@@ -54,7 +70,8 @@ char const *const toolbar_icons_svg[] = {
 			"<rect y='8' x='8' height='84' width='84' fill='#ff3f3f' fill-opacity='0.8' stroke='#ff3f3f' stroke-opacity='0.8' stroke-width='16' stroke-linejoin='round' />"
 			"<rect y='10' x='10' height='80' width='80' fill='#ff0000' stroke='#ff0000' stroke-width='8' stroke-linejoin='round' />"
 			"<path fill='#ffffff' stroke='#ffffff' stroke-width='8' stroke-linejoin='round' d='m 16,24 8,-8 26,26 26,-26 8,8 -26,26 26,26 -8,8 -26,-26 -26,26 -8,-8 26,-26 z' />"
-		"</svg>" };
+		"</svg>",
+ };
 
 enum
 {
@@ -62,6 +79,8 @@ enum
 	TOOLBAR_BITMAP_SAVE,
 	TOOLBAR_BITMAP_AUDIT,
 	TOOLBAR_BITMAP_INFO,
+	TOOLBAR_BITMAP_RECORD,
+	TOOLBAR_BITMAP_PLAYBACK,
 	TOOLBAR_BITMAP_PREVMENU,
 	TOOLBAR_BITMAP_EXIT
 };

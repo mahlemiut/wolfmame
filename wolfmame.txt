@@ -4,6 +4,12 @@ Based on the MAME(tm) source, modified by Barry Rodewald
 ------------------------------------------------------------------------------------------------
 
 
+New in 0.237
+------------
+
+ - Re-added INP record and playback toolbar buttons on the built-in gui (may still need some testing)
+
+
 New in 0.226
 ------------
 

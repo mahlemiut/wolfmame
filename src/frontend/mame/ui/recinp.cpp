@@ -28,6 +28,8 @@ ui_menu_record_inp::ui_menu_record_inp(mame_ui_manager &mui, render_container &c
 	m_driver = (driver == nullptr) ? mame_options::system(mui.machine().options()) : driver;
 	m_warning_count = 0;
 
+	set_process_flags(PROCESS_LR_REPEAT);
+
 	// check if setup is correct for MARP use
 	// first, NVRAM
 	path = mui.machine().options().nvram_directory();
@@ -77,42 +79,39 @@ ui_menu_record_inp::~ui_menu_record_inp()
 //  handle
 //-------------------------------------------------
 
-void ui_menu_record_inp::handle()
+void ui_menu_record_inp::handle(event const *ev)
 {
 	bool changed = false;
 
-	// process the menu
-	const event *menu_event = process(0);
-
-	if (menu_event != nullptr)
+	if (ev != nullptr)
 	{
-		switch (menu_event->iptkey)
+		switch (ev->iptkey)
 		{
 			case IPT_SPECIAL:
 				int buflen = strlen(m_filename_entry);
 
 				// if it's a backspace and we can handle it, do so
-				if (((menu_event->unichar == 8 || menu_event->unichar == 0x7f) && buflen > 0))
+				if (((ev->unichar == 8 || ev->unichar == 0x7f) && buflen > 0))
 				{
 					*(char *)utf8_previous_char(&m_filename_entry[buflen]) = 0;
 					reset(reset_options::SELECT_FIRST);
 				}
 
 				// if it's any other key and we're not maxed out, update
-				else if ((menu_event->unichar >= ' ' && menu_event->unichar < 0x7f))
+				else if ((ev->unichar >= ' ' && ev->unichar < 0x7f))
 				{
-					buflen += utf8_from_uchar(&m_filename_entry[buflen], std::size(m_filename_entry) - buflen, menu_event->unichar);
+					buflen += utf8_from_uchar(&m_filename_entry[buflen], std::size(m_filename_entry) - buflen, ev->unichar);
 					m_filename_entry[buflen] = 0;
 					reset(reset_options::SELECT_FIRST);
 				}
 				break;
 		}
-		if(menu_event->itemref != nullptr)
+		if(ev->itemref != nullptr)
 		{
-			switch((uintptr_t)menu_event->itemref)
+			switch((uintptr_t)ev->itemref)
 			{
 			case 1:
-				if(menu_event->iptkey == IPT_UI_SELECT)
+				if(ev->iptkey == IPT_UI_SELECT)
 				{
 					// if filename doesn't end in ".inp", then add it
 					if(strcmp(&m_filename_entry[strlen(m_filename_entry)-4],".inp"))
@@ -206,7 +205,7 @@ void ui_menu_record_inp::launch_system(mame_ui_manager &mui, game_driver const &
 
 	mame_machine_manager::instance()->schedule_new_driver(driver);
 	mui.machine().schedule_hard_reset();
-	stack_reset(mui.machine());
+	stack_reset(mui);
 
 }
 
@@ -249,6 +248,7 @@ ui_menu_playback_inp::ui_menu_playback_inp(mame_ui_manager &mui, render_containe
 	: ui_menu_record_inp(mui, container, driver),
 	  browse_done(false)
 {
+	set_process_flags(PROCESS_LR_REPEAT);
 	inp_file = "";
 	inp_dir += mui.machine().options().input_directory();
 }
@@ -273,12 +273,9 @@ void ui_menu_playback_inp::populate(float &customtop, float &custombottom)
 //  handle
 //-------------------------------------------------
 
-void ui_menu_playback_inp::handle()
+void ui_menu_playback_inp::handle(event const *ev)
 {
 	bool changed = false;
-
-	// process the menu
-	const event *menu_event = process(PROCESS_LR_REPEAT);
 
 	if(browse_done)
 	{
@@ -290,35 +287,35 @@ void ui_menu_playback_inp::handle()
 		browse_done = false;
 	}
 
-	if (menu_event != nullptr)
+	if (ev != nullptr)
 	{
-		switch (menu_event->iptkey)
+		switch (ev->iptkey)
 		{
 			case IPT_SPECIAL:
 				int buflen = strlen(m_filename_entry);
 
 				// if it's a backspace and we can handle it, do so
-				if (((menu_event->unichar == 8 || menu_event->unichar == 0x7f) && buflen > 0))
+				if (((ev->unichar == 8 || ev->unichar == 0x7f) && buflen > 0))
 				{
 					*(char *)utf8_previous_char(&m_filename_entry[buflen]) = 0;
 					reset(reset_options::SELECT_FIRST);
 				}
 
 				// if it's any other key and we're not maxed out, update
-				else if ((menu_event->unichar >= ' ' && menu_event->unichar < 0x7f))
+				else if ((ev->unichar >= ' ' && ev->unichar < 0x7f))
 				{
-					buflen += utf8_from_uchar(&m_filename_entry[buflen], std::size(m_filename_entry) - buflen, menu_event->unichar);
+					buflen += utf8_from_uchar(&m_filename_entry[buflen], std::size(m_filename_entry) - buflen, ev->unichar);
 					m_filename_entry[buflen] = 0;
 					reset(reset_options::SELECT_FIRST);
 				}
 				break;
 		}
-		if(menu_event->itemref != nullptr)
+		if(ev->itemref != nullptr)
 		{
-			switch((uintptr_t)menu_event->itemref)
+			switch((uintptr_t)ev->itemref)
 			{
 			case 1:
-				if(menu_event->iptkey == IPT_UI_SELECT)
+				if(ev->iptkey == IPT_UI_SELECT)
 				{
 					// if filename doesn't end in ".inp", then add it
 					if(strcmp(&m_filename_entry[strlen(m_filename_entry)-4],".inp"))
@@ -327,7 +324,7 @@ void ui_menu_playback_inp::handle()
 				}
 				break;
 			case 2:
-				if(menu_event->iptkey == IPT_UI_SELECT)
+				if(ev->iptkey == IPT_UI_SELECT)
 				{
 					// browse for INP file
 					menu::stack_push<menu_file_selector>(ui(), container(), nullptr, inp_dir, inp_file, false, false, false, browse_result);

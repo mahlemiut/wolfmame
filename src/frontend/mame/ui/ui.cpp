@@ -19,6 +19,7 @@
 #include "ui/info.h"
 #include "ui/mainmenu.h"
 #include "ui/menu.h"
+#include "ui/quitmenu.h"
 #include "ui/sliders.h"
 #include "ui/state.h"
 #include "ui/systemlist.h"
@@ -607,7 +608,9 @@ void mame_ui_manager::display_startup_screens(bool first_time)
 
 	// if we're the empty driver, force the menus on
 	if (ui::menu::stack_has_special_main_menu(*this))
+	{
 		show_menu();
+	}
 	else if (config_menu)
 	{
 		show_menu();
@@ -1457,8 +1460,11 @@ uint32_t mame_ui_manager::handler_ingame(render_container &container)
 void mame_ui_manager::request_quit()
 {
 	if (!machine().options().confirm_quit())
+	{
 		machine().schedule_exit();
+	}
 	else
+<<<<<<< HEAD
 		set_handler(ui_callback_type::GENERAL, handler_callback_func(&mame_ui_manager::handler_confirm_quit, this));
 }
 
@@ -1496,12 +1502,12 @@ uint32_t mame_ui_manager::handler_confirm_quit(render_container &container)
 
 	// if the user press ESC, just continue
 	else if (machine().ui_input().pressed(IPT_UI_CANCEL))
+=======
+>>>>>>> upstream/master
 	{
-		machine().resume();
-		state = UI_HANDLER_CANCEL;
+		show_menu();
+		ui::menu::stack_push<ui::menu_confirm_quit>(*this, machine().render().ui_container());
 	}
-
-	return state;
 }
 
 

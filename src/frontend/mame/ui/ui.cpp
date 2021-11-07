@@ -1459,7 +1459,7 @@ uint32_t mame_ui_manager::handler_ingame(render_container &container)
 
 void mame_ui_manager::request_quit()
 {
-	if (!machine().options().confirm_quit())
+	if (!machine().options().confirm_quit() || machine().ioport().get_record_file()->is_open())
 	{
 		machine().schedule_exit();
 	}

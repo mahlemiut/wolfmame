@@ -1764,12 +1764,18 @@ void menu_select_launch::handle_events(uint32_t flags, event &ev)
 				}
 				else if (hover() == HOVER_B_RECORD)
 				{
-					menu::stack_push<ui_menu_record_inp>(ui(),container(),m_info_driver);
+					ui_software_info const *software;
+					ui_system_info const *system;
+					get_selection(software, system);
+					menu::stack_push<ui_menu_record_inp>(ui(),container(),system->driver);
 					stop = true;
 				}
 				else if (hover() == HOVER_B_PLAYBACK)
 				{
-					menu::stack_push<ui_menu_playback_inp>(ui(),container(),m_info_driver);
+					ui_software_info const *software;
+					ui_system_info const *system;
+					get_selection(software, system);
+					menu::stack_push<ui_menu_playback_inp>(ui(),container(),system->driver);
 					stop = true;
 				}
 				else if (hover() == HOVER_BACKTRACK)

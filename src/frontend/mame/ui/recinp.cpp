@@ -28,13 +28,14 @@ ui_menu_record_inp::ui_menu_record_inp(mame_ui_manager &mui, render_container &c
 	m_driver = (driver == nullptr) ? mame_options::system(mui.machine().options()) : driver;
 	m_warning_count = 0;
 
+	strcpy(m_filename_entry,"");
 	set_process_flags(PROCESS_LR_REPEAT);
 
 	// check if setup is correct for MARP use
 	// first, NVRAM
 	path = mui.machine().options().nvram_directory();
 	path += "/";
-	path += m_driver->name;
+	path += std::string(m_driver->name);
 	m_warning[0] = false;
 	if(strcmp(mui.machine().options().nvram_directory(),"NUL") != 0 && strcmp(mui.machine().options().nvram_directory(),"/dev/null") != 0)
 	{
@@ -51,7 +52,7 @@ ui_menu_record_inp::ui_menu_record_inp(mame_ui_manager &mui, render_container &c
 	m_warning[1] = false;
 	path = mui.machine().options().diff_directory();
 	path += "/";
-	path += m_driver->name;
+	path += std::string(m_driver->name);
 	path += ".dif";
 	auto e = osd_stat(path);
 	if (e != nullptr)
@@ -152,7 +153,7 @@ void ui_menu_record_inp::custom_render(void *selectedref, float top, float botto
 
 	// filename entry
 	str = "Filename: ";
-	str += m_filename_entry;
+	str += std::string(m_filename_entry);
 	str += "_";
 
 	mui.draw_outlined_box(container(), 0.1f,origy1 - (height*2),0.9f,origy1, mui.colors().background_color());
@@ -349,7 +350,7 @@ void ui_menu_playback_inp::start_inp()
 	// check if INP file exists
 	fname = machine().options().input_directory();
 	fname += "/";
-	fname += m_filename_entry;
+	fname += std::string(m_filename_entry);
 	std::error_condition const filerr = f.open(fname.c_str());
 	if (filerr)
 	{

@@ -205,7 +205,7 @@ const options_entry emu_options::s_option_entries[] =
 	{ OPTION_RAMSIZE ";ram",                             nullptr,     OPTION_STRING,     "size of RAM (if supported by driver)" },
 	{ OPTION_CONFIRM_QUIT,                               "0",         OPTION_BOOLEAN,    "ask for confirmation before exiting" },
 	{ OPTION_UI_MOUSE,                                   "1",         OPTION_BOOLEAN,    "display UI mouse cursor" },
-	{ OPTION_LANGUAGE ";lang",                           "English",   OPTION_STRING,     "set UI display language" },
+	{ OPTION_LANGUAGE ";lang",                           "",          OPTION_STRING,     "set UI display language" },
 	{ OPTION_NVRAM_SAVE ";nvwrite",                      "1",         OPTION_BOOLEAN,    "save NVRAM data on exit" },
 	{ OPTION_INPVIEW ";iv",                              "0",         OPTION_INTEGER,    "displays the input of the specified player on-screen" },
 	{ OPTION_INPLAYOUT ";il",                            "standard",  OPTION_STRING,     "sets the layout for -inpview (standard, mahjong, dualstick, neogeo, 6button)" },

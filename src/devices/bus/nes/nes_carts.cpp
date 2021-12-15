@@ -343,6 +343,7 @@ void nes_cart(device_slot_interface &device)
 	device.option_add_internal("somari",           NES_SOMARI); // mapper 116
 	device.option_add_internal("huang2",           NES_HUANG2); // mapper 116 also
 	device.option_add_internal("nitra",            NES_NITRA);
+	device.option_add_internal("bmw8544",          NES_BMW8544);
 	device.option_add_internal("fs6",              NES_FS6); // mapper 196 alt? (for Street Fighter VI / Fight Street VI);
 	device.option_add_internal("sbros11",          NES_SBROS11);
 	device.option_add_internal("unl_malisb",       NES_MALISB); //  used by Super Mali Splash Bomb
@@ -403,6 +404,7 @@ void nes_cart(device_slot_interface &device)
 	device.option_add_internal("bmc_k3036",        NES_BMC_K3036);
 	device.option_add_internal("bmc_k3046",        NES_BMC_K3046);
 	device.option_add_internal("bmc_sa005a",       NES_BMC_SA005A);
+	device.option_add_internal("bmc_tf2740",       NES_BMC_TF2740);
 	device.option_add_internal("bmc_tj03",         NES_BMC_TJ03);
 	device.option_add_internal("bmc_ws",           NES_BMC_WS);
 	device.option_add_internal("bmc_g146",         NES_BMC_G146);
@@ -446,7 +448,9 @@ void nes_cart(device_slot_interface &device)
 	device.option_add_internal("nt639",            NES_NT639);
 	device.option_add_internal("resettxrom",       NES_RESETTXROM);
 	device.option_add_internal("s24in1c03",        NES_S24IN1SC03);
+	device.option_add_internal("smd133",           NES_SMD133);
 	device.option_add_internal("tech9in1",         NES_TECHLINE9IN1);
+	device.option_add_internal("bmc_5in1",         NES_BMC_5IN1);
 	device.option_add_internal("bmc_8in1",         NES_BMC_8IN1);
 	device.option_add_internal("bmc_15in1",        NES_BMC_15IN1);
 	device.option_add_internal("bmc_sbig7in1",     NES_BMC_SBIG7);
@@ -473,18 +477,17 @@ void nes_cart(device_slot_interface &device)
 	device.option_add_internal("action53",         NES_ACTION53);
 	device.option_add_internal("batmap_000",       NES_BATMAP_000);
 	device.option_add_internal("batmap_srrx",      NES_BATMAP_SRRX);
+	device.option_add_internal("8bitxmas",         NES_8BITXMAS);
 	device.option_add_internal("cufrom",           NES_CUFROM);
+	device.option_add_internal("dpcmcart",         NES_DPCMCART);
 	device.option_add_internal("unrom512",         NES_UNROM512);
 	device.option_add_internal("2a03pur",          NES_2A03PURITANS);
-	device.option_add_internal("dpcmcart",         NES_DPCMCART);
 	device.option_add_internal("farid_slrom8in1",  NES_FARID_SLROM);
 	device.option_add_internal("farid_unrom8in1",  NES_FARID_UNROM);
 // other unsupported...
 	device.option_add_internal("unl_dance",        NES_NROM);    // UNSUPPORTED
 	device.option_add_internal("onebus",           NES_NROM);    // UNSUPPORTED
 	device.option_add_internal("pec586",           NES_NROM);    // UNSUPPORTED
-	device.option_add_internal("coolboy",          NES_NROM);    // UNSUPPORTED
-	device.option_add_internal("unl_drgnfgt",      NES_NROM);    // UNSUPPORTED
 // are there dumps of games with these boards?
 	device.option_add_internal("bmc_hik_kof",      NES_NROM); // mapper 251 - UNSUPPORTED
 	device.option_add_internal("bmc_13in1jy110",   NES_NROM); //  [mentioned in FCEUMM source - we need more info] - UNSUPPORTED

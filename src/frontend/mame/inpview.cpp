@@ -244,7 +244,7 @@ void input_viewer::render_dips()
 			if (field.type() == IPT_DIPSWITCH)
 			{
 				char txt[512];
-				const char* dip;
+				std::string dip;
 				const char* value = "INVALID";
 				const char* def = "INVALID";
 				ioport_value portdata;
@@ -261,7 +261,7 @@ void input_viewer::render_dips()
 							def = ptr.name();
 					}
 				}
-				sprintf(txt,"%s : %s [%s]",dip,value,def);
+				sprintf(txt,"%s : %s [%s]",dip.c_str(),value,def);
 				mame_machine_manager::instance()->ui().draw_text_full(ui,txt,0.0f,1.0f - (float)(height * x),1.0f,ui::text_layout::text_justify::LEFT,ui::text_layout::word_wrapping::NEVER,mame_ui_manager::OPAQUE_,COL_WHITE,0,NULL,NULL);
 				x--;
 			}

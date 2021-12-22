@@ -2572,6 +2572,8 @@ files {
 createMESSProjects(_target, _subtarget, "hds")
 files {
 	MAME_DIR .. "src/mame/drivers/hds200.cpp",
+	MAME_DIR .. "src/mame/machine/hds200_kbd.cpp",
+	MAME_DIR .. "src/mame/machine/hds200_kbd.h",
 }
 
 createMESSProjects(_target, _subtarget, "heathkit")
@@ -4530,7 +4532,6 @@ files {
 	MAME_DIR .. "src/mame/machine/basf7100_kbd.h",
 	MAME_DIR .. "src/mame/drivers/binbug.cpp",
 	MAME_DIR .. "src/mame/drivers/bert.cpp",
-	MAME_DIR .. "src/mame/drivers/besta.cpp",
 	MAME_DIR .. "src/mame/drivers/bitgraph.cpp",
 	MAME_DIR .. "src/mame/drivers/blit.cpp",
 	MAME_DIR .. "src/mame/drivers/bpmmicro.cpp",

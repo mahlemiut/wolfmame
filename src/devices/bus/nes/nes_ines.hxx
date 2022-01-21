@@ -389,7 +389,7 @@ static const nes_mmc mmc_list[] =
 	{ 351, BMC_TECHLINE9IN1 },
 	{ 352, KAISER_KS106C },        // 4-in-1
 	{ 353, BMC_810305C },          // Super Mario Family multicart
-	// 354 250-in-1 multicart with FDS Bubble Bobble
+	{ 354, BMC_FAM250 },
 	// 355 Hwang Shinwei 3-D Block etc, currently has unemulated PIC16C54
 	{ 356, BMC_JY208 },
 	// 357 Bit Corp 4-in-1 (ID 4602)
@@ -961,6 +961,11 @@ void nes_cart_slot_device::call_load_ines()
 				m_cart->set_pcb_ctrl_mirror(true);
 			break;
 
+		case CONY_BOARD:
+			if (submapper == 0 || submapper == 2)
+				pcb_id = CONY1K_BOARD;
+			break;
+
 		case UNL_LH28_LH54:
 			if (vrom_size)
 				m_pcb_id = (vrom_size == 0x4000) ? UNL_LE05 : UNL_LH31;
@@ -1307,6 +1312,11 @@ const char * nes_cart_slot_device::get_default_card_ines(get_default_card_softwa
 		case BTL_MARIOBABY:
 			if (crc_hack)
 				pcb_id = BTL_AISENSHINICOL;    // Mapper 42 is used for 2 diff boards
+			break;
+
+		case CONY_BOARD:
+			if (submapper == 0 || submapper == 2)
+				pcb_id = CONY1K_BOARD;         // Mapper 83 is used for 3 diff boards
 			break;
 
 		case UNL_LH28_LH54:                            // Mapper 108 is used for 4 diff boards

@@ -20,13 +20,18 @@ There are mistakes in the sound board schematic: IC14 pin12 goes to IC5 pin13 on
 Also, very unobvious is the fact that PIA ports A and B are swapped around compared to the Inder
  soundcard.
 
+Game             Start machine    Start game       End ball
+--------------------------------------------------------------------------------------------------
+Metalman                          1                X
+Bushido          unknown          unknown          unknown
+Mach 2           ASX              1                unknown
+Jolly Park       ASDX             1                unknown
+Verne's World    ASDX             1                unknown
+
 Status:
 - Metal Man is the only playable machine.
-- The other machines firstly need balls in the machine to get attract mode. After the ball begins,
-   then the playfield needs enabling. Each of these situations requires a key combination.
-- mach2/a can start by pressing ASX together.
-- vrnwrld can start by pressing ASDX together.
-- jolypark can start by pressing ASDX together.
+- The other machines firstly need balls in the machine to get attract mode. See above table. After
+   the ball begins, then the playfield needs enabling. These codes are unknown.
 
 ToDo:
 - Multiball games - find out the key combinations
@@ -50,6 +55,7 @@ ToDo:
 #include "speaker.h"
 #include "metalman.lh"
 
+namespace {
 
 class spinb_state : public genpin_class
 {
@@ -138,23 +144,23 @@ private:
 
 	bool m_pc0a = 0;
 	bool m_pc0m = 0;
-	u8 m_game = 0;
-	u8 m_row = 0;
-	u8 m_p3 = 0;
-	u8 m_p32 = 0;
-	u8 m_dmdcmd = 0;
-	u8 m_dmdbank = 0;
-	u8 m_dmdextaddr = 0;
+	u8 m_game = 0U;
+	u8 m_row = 0U;
+	u8 m_p3 = 0U;
+	u8 m_p32 = 0U;
+	u8 m_dmdcmd = 0U;
+	u8 m_dmdbank = 0U;
+	u8 m_dmdextaddr = 0U;
 	u8 m_dmdram[0x2000]{};
-	u8 m_sndcmd = 0;
-	u8 m_sndbank_a = 0;
-	u8 m_sndbank_m = 0;
-	u32 m_sound_addr_a = 0;
-	u32 m_sound_addr_m = 0;
-	u32 m_audio_size = 0;
-	u32 m_music_size = 0;
-	u32 m_dmd_size = 0;
-	u8 m_return_status = 0;
+	u8 m_sndcmd = 0U;
+	u8 m_sndbank_a = 0U;
+	u8 m_sndbank_m = 0U;
+	u32 m_sound_addr_a = 0U;
+	u32 m_sound_addr_m = 0U;
+	u32 m_audio_size = 0U;
+	u32 m_music_size = 0U;
+	u32 m_dmd_size = 0U;
+	u8 m_return_status = 0U;
 	u8 m_segment[8]{}; // metalman
 	required_device<cpu_device> m_maincpu;
 	required_device<cpu_device> m_audiocpu;
@@ -1265,6 +1271,8 @@ ROM_START(vrnwrld)
 	ROM_LOAD("vws6ic26.rom", 0x080000, 0x80000, CRC(bee399c1) SHA1(b2c6e4830641ed32b9643dc8c1fa08a2da5a7e9b))
 	ROM_LOAD("vws7ic27.rom", 0x100000, 0x80000, CRC(7335b29c) SHA1(4de6de09f069feecbad2e5ef50032e8d381ff9b1))
 ROM_END
+
+} // Anonymous namespace
 
 GAME(1992, metalman, 0,       metalman, metalman, spinb_state, init_3, ROT0, "Inder",    "Metal Man",       MACHINE_IS_SKELETON_MECHANICAL )
 GAME(1993, bushido,  0,       spinb,    bushido,  spinb_state, init_0, ROT0, "Inder",    "Bushido (set 1)", MACHINE_IS_SKELETON_MECHANICAL )

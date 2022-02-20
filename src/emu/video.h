@@ -18,6 +18,7 @@
 #define MAME_EMU_VIDEO_H
 
 #include "recording.h"
+#include "fileio.h"
 
 #include <system_error>
 
@@ -50,7 +51,7 @@ public:
 	bool skip_this_frame() const { return m_skipping_this_frame; }
 	int speed_factor() const { return m_speed; }
 	int frameskip() const { return m_auto_frameskip ? -1 : m_frameskip_level; }
-	bool throttled() const { return (m_machine.ioport().get_record_file()->is_open()) ? true : m_throttled; }
+	bool throttled() const { return (m_machine.ioport().get_record_file()) ? true : m_throttled; }
 	float throttle_rate() const { return m_throttle_rate; }
 	bool fastforward() const { return m_fastforward; }
 
@@ -78,7 +79,7 @@ public:
 	// snapshots
 	bool snap_native() const { return m_snap_native; }
 	render_target &snapshot_target() { return *m_snap_target; }
-	void save_snapshot(screen_device *screen, emu_file &file);
+	void save_snapshot(screen_device *screen, util::core_file &file);
 	void save_active_screen_snapshots();
 
 	// movies

@@ -22,6 +22,7 @@
 
 #include "corestr.h"
 #include "drivenum.h"
+#include "fileio.h"
 #include "rendutil.h"
 #include "uiinput.h"
 
@@ -1101,7 +1102,7 @@ void menu::handle_keys(uint32_t flags, int &iptkey)
 	}
 
 	// pause enables/disables pause
-	if (!ignorepause && exclusive_input_pressed(iptkey, IPT_UI_PAUSE, 0) && !machine().ioport().get_record_file()->is_open())
+	if (!ignorepause && exclusive_input_pressed(iptkey, IPT_UI_PAUSE, 0) && !machine().ioport().get_record_file())
 	{
 		if (machine().paused())
 			machine().resume();
@@ -1110,7 +1111,7 @@ void menu::handle_keys(uint32_t flags, int &iptkey)
 	}
 
 	// handle a toggle cheats request
-	if (machine().ui_input().pressed_repeat(IPT_UI_TOGGLE_CHEAT, 0) && !machine().ioport().get_record_file()->is_open())
+	if (machine().ui_input().pressed_repeat(IPT_UI_TOGGLE_CHEAT, 0) && !machine().ioport().get_record_file())
 		mame_machine_manager::instance()->cheat().set_enable(!mame_machine_manager::instance()->cheat().enabled());
 
 	// see if any other UI keys are pressed

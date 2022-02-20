@@ -11,6 +11,7 @@
 #include "emu.h"
 #include "emuopts.h"
 #include "debugger.h"
+#include "fileio.h"
 #include "ui/uimain.h"
 #include "crsshair.h"
 #include "rendersw.hxx"
@@ -314,7 +315,7 @@ std::string video_manager::speed_text()
 	if (partials > 1)
 		util::stream_format(str, "\n%d partial updates", partials);
 
-	if(machine().ioport().get_playback_file()->is_open())
+	if(machine().ioport().get_playback_file())
 		util::stream_format(str,"\nRecorded speed: %f%%",100 * machine().ioport().rec_speed);
 
 	return str.str();
@@ -326,7 +327,7 @@ std::string video_manager::speed_text()
 //  file handle
 //-------------------------------------------------
 
-void video_manager::save_snapshot(screen_device *screen, emu_file &file)
+void video_manager::save_snapshot(screen_device *screen, util::core_file &file)
 {
 	// validate
 	assert(!m_snap_native || screen != nullptr);

@@ -33,6 +33,7 @@
 #include "emuopts.h"
 #include "mameopts.h"
 #include "drivenum.h"
+#include "fileio.h"
 #include "natkeyboard.h"
 #include "render.h"
 #include "cheat.h"
@@ -425,7 +426,7 @@ void mame_ui_manager::display_startup_screens(bool first_time)
 	// or if we are debugging, or if there's no mame window to send inputs to
 	if (!first_time || (str > 0 && str < 60*5) || &machine().system() == &GAME_NAME(___empty) || (machine().debug_flags & DEBUG_FLAG_ENABLED) != 0 || video_none)
 		show_gameinfo = show_warnings = show_mandatory_fileman = false;
-	if (machine().ioport().get_record_file()->is_open())
+	if (machine().ioport().get_record_file())
 		show_gameinfo = show_warnings = false;
 
 #if defined(__EMSCRIPTEN__)
@@ -1139,16 +1140,16 @@ bool mame_ui_manager::can_paste()
 
 bool if_recording_or_playing_back_stop_and_return_true(running_machine& machine)
 {
-	if (machine.ioport().get_playback_file()->is_open() || machine.ioport().get_record_file()->is_open())
+	if (machine.ioport().get_playback_file() || machine.ioport().get_record_file())
 	{
 		char timearray[]="USER TERMINATED %s 100d 00:00:00.00:",bufferx[1000];
 		machine.ioport().sprintframetime(timearray+19);
-		if (machine.ioport().get_playback_file()->is_open())
+		if (machine.ioport().get_playback_file())
 		{
 			snprintf(bufferx, sizeof(bufferx), timearray, "PLAYBACK");
 			machine.ioport().playback_end(bufferx);
 		}
-		if (machine.ioport().get_record_file()->is_open())
+		if (machine.ioport().get_record_file())
 		{
 			snprintf(bufferx, sizeof(bufferx), timearray, "RECORD");
 			machine.ioport().record_end(bufferx);
@@ -1262,7 +1263,7 @@ uint32_t mame_ui_manager::handler_ingame(render_container &container)
 		draw_profiler(container);
 
 	// if we're single-stepping, pause now
-	if (single_step() && !machine().ioport().get_record_file()->is_open())
+	if (single_step() && !machine().ioport().get_record_file())
 	{
 		machine().pause();
 		set_single_step(false);
@@ -1336,7 +1337,7 @@ uint32_t mame_ui_manager::handler_ingame(render_container &container)
 			machine().schedule_soft_reset();
 
 	// handle a request to display graphics/palette
-	if (machine().ui_input().pressed(IPT_UI_SHOW_GFX) && !machine().ioport().get_record_file()->is_open())
+	if (machine().ui_input().pressed(IPT_UI_SHOW_GFX) && !machine().ioport().get_record_file())
 	{
 		if (!is_paused)
 			machine().pause();
@@ -1370,14 +1371,14 @@ uint32_t mame_ui_manager::handler_ingame(render_container &container)
 	}
 
 	// handle a save state request
-	if (machine().ui_input().pressed(IPT_UI_SAVE_STATE) && !machine().ioport().get_record_file()->is_open())
+	if (machine().ui_input().pressed(IPT_UI_SAVE_STATE) && !machine().ioport().get_record_file())
 	{
 		start_save_state();
 		return LOADSAVE_SAVE;
 	}
 
 	// handle a load state request
-	if (machine().ui_input().pressed(IPT_UI_LOAD_STATE) && !machine().ioport().get_record_file()->is_open())
+	if (machine().ui_input().pressed(IPT_UI_LOAD_STATE) && !machine().ioport().get_record_file())
 	{
 		start_load_state();
 		return LOADSAVE_LOAD;
@@ -1388,11 +1389,11 @@ uint32_t mame_ui_manager::handler_ingame(render_container &container)
 		machine().video().save_active_screen_snapshots();
 
 	// toggle pause
-	if (machine().ui_input().pressed(IPT_UI_PAUSE) && !machine().ioport().get_record_file()->is_open())
+	if (machine().ui_input().pressed(IPT_UI_PAUSE) && !machine().ioport().get_record_file())
 		machine().toggle_pause();
 
 	// pause single step
-	if (machine().ui_input().pressed(IPT_UI_PAUSE_SINGLE) && !machine().ioport().get_record_file()->is_open())
+	if (machine().ui_input().pressed(IPT_UI_PAUSE_SINGLE) && !machine().ioport().get_record_file())
 	{
 		machine().rewind_capture();
 		set_single_step(true);
@@ -1400,11 +1401,11 @@ uint32_t mame_ui_manager::handler_ingame(render_container &container)
 	}
 
 	// rewind single step
-	if (machine().ui_input().pressed(IPT_UI_REWIND_SINGLE) && !machine().ioport().get_record_file()->is_open())
+	if (machine().ui_input().pressed(IPT_UI_REWIND_SINGLE) && !machine().ioport().get_record_file())
 		machine().rewind_step();
 
 	// handle a toggle cheats request
-	if (machine().ui_input().pressed(IPT_UI_TOGGLE_CHEAT) && !machine().ioport().get_record_file()->is_open())
+	if (machine().ui_input().pressed(IPT_UI_TOGGLE_CHEAT) && !machine().ioport().get_record_file())
 		mame_machine_manager::instance()->cheat().set_enable(!mame_machine_manager::instance()->cheat().enabled());
 
 	// toggle MNG recording
@@ -1432,7 +1433,7 @@ uint32_t mame_ui_manager::handler_ingame(render_container &container)
 		decrease_frameskip();
 
 	// toggle throttle?
-	if (machine().ui_input().pressed(IPT_UI_THROTTLE) && !machine().ioport().get_record_file()->is_open())
+	if (machine().ui_input().pressed(IPT_UI_THROTTLE) && !machine().ioport().get_record_file())
 	{
 		const bool new_throttle_state = !machine().video().throttled();
 		machine().video().set_throttled(new_throttle_state);
@@ -1441,7 +1442,7 @@ uint32_t mame_ui_manager::handler_ingame(render_container &container)
 	}
 
 	// check for fast forward
-	if (machine().ioport().type_pressed(IPT_UI_FAST_FORWARD) && !machine().ioport().get_record_file()->is_open())
+	if (machine().ioport().type_pressed(IPT_UI_FAST_FORWARD) && !machine().ioport().get_record_file())
 	{
 		machine().video().set_fastforward(true);
 		show_fps_temp(0.5);
@@ -1459,7 +1460,7 @@ uint32_t mame_ui_manager::handler_ingame(render_container &container)
 
 void mame_ui_manager::request_quit()
 {
-	if (!machine().options().confirm_quit() || machine().ioport().get_record_file()->is_open())
+	if (!machine().options().confirm_quit() || machine().ioport().get_record_file())
 	{
 		machine().schedule_exit();
 	}

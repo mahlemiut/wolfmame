@@ -33,6 +33,9 @@ public:
 	// 7/8/10 segment outputs
 	auto write_seg() { return m_write_seg.bind(); }
 
+	// speaker output line (aka SEG0)
+	auto write_spk() { return m_write_spk.bind(); }
+
 protected:
 	// construction/destruction
 	b5000_base_device(const machine_config &mconfig, device_type type, const char *tag, device_t *owner, u32 clock, int prgwidth, address_map_constructor program, int datawidth, address_map_constructor data);
@@ -88,15 +91,14 @@ protected:
 	u8 m_prev2_c;
 	bool m_sr;
 	bool m_skip;
-	u8 m_seg;
+	u16 m_seg;
+	bool m_suppress0;
 
 	u8 m_atbz_step;
-	u8 m_tkbs_step;
 	u8 m_tra_step;
 	u8 m_ret_step;
 
 	virtual void op_atbz() { ; }
-	virtual void op_tkbs() { ; }
 	virtual void op_tra() { ; }
 	virtual void op_ret() { ; }
 
@@ -105,6 +107,7 @@ protected:
 	devcb_read8 m_read_din;
 	devcb_write16 m_write_str;
 	devcb_write16 m_write_seg;
+	devcb_write_line m_write_spk;
 };
 
 

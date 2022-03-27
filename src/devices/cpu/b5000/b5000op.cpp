@@ -1,7 +1,7 @@
 // license:BSD-3-Clause
 // copyright-holders:hap
 
-// B5000 opcode handlers
+// B5000 common opcode handlers
 
 #include "emu.h"
 #include "b5000.h"
@@ -9,28 +9,33 @@
 
 // internal helpers
 
-inline u8 b5000_cpu_device::ram_r()
+u8 b5000_cpu_device::ram_r()
 {
 	return m_data->read_byte(m_ram_addr) & 0xf;
 }
 
-inline void b5000_cpu_device::ram_w(u8 data)
+void b5000_cpu_device::ram_w(u8 data)
 {
 	m_data->write_byte(m_ram_addr, data & 0xf);
 }
 
 void b5000_cpu_device::set_pc(u8 pu, u8 pl)
 {
-	m_pc = ((pu << 6 & 0x3c0) | (pl & 0x3f)) & m_prgmask;
+	m_pc = ((pu << 6) | (pl & 0x3f)) & m_prgmask;
 }
 
 void b5000_cpu_device::set_bu(u8 bu)
 {
 	m_bu = bu & 3;
 
-	// changing from 0 to non-0 or vice versa delays RAM address modification
-	if ((m_bu && !m_prev_bu) || (!m_bu && m_prev_bu))
+	// changing to or from 0 delays RAM address modification
+	if (bool(m_bu) != bool(m_prev_bu))
 		m_bu_delay = true;
+}
+
+void b5000_cpu_device::seg_w(u16 seg)
+{
+	m_write_seg(m_seg = seg);
 }
 
 void b5000_cpu_device::op_illegal()
@@ -54,6 +59,8 @@ void b5000_cpu_device::op_tl()
 
 void b5000_cpu_device::op_tra()
 {
+	assert(m_tra_step > 0);
+
 	// TRA 0/1,x: call/jump to x (multi step)
 	switch (m_tra_step)
 	{
@@ -90,10 +97,13 @@ void b5000_cpu_device::op_tra()
 
 void b5000_cpu_device::op_ret()
 {
+	assert(m_ret_step > 0);
+
 	// RET: return from subroutine (multi step)
 	switch (m_ret_step)
 	{
 		// step 1: skip next opcode
+		// a TL after RET will return to the page specified by TL
 		case 1:
 			m_skip = true;
 			break;
@@ -121,8 +131,8 @@ void b5000_cpu_device::op_nop()
 
 void b5000_cpu_device::op_lb(u8 bl)
 {
-	// LB x,y: load B from x,y (successive LB are ignored)
-	if (!op_is_lb(m_prev_op))
+	// LB x,y: load B from x,y (successive LB/ATB are ignored)
+	if (!op_is_lb(m_prev_op) && !op_is_atb(m_prev_op))
 	{
 		m_bl = bl;
 		set_bu(m_op & 3);
@@ -131,9 +141,12 @@ void b5000_cpu_device::op_lb(u8 bl)
 
 void b5000_cpu_device::op_atb()
 {
-	// ATB: load Bl from A (ignore if previous opcode was LB)
-	if (!op_is_lb(m_prev_op))
+	// ATB: load Bl from A (successive LB/ATB are ignored)
+	if (!op_is_lb(m_prev_op) && !op_is_atb(m_prev_op))
+	{
 		m_bl = m_a;
+		m_bl_delay = true;
+	}
 }
 
 void b5000_cpu_device::op_lda()
@@ -255,11 +268,13 @@ void b5000_cpu_device::op_tc()
 void b5000_cpu_device::op_kseg()
 {
 	// KSEG: reset segment outputs
-	m_write_seg(m_seg = 0);
+	seg_w(0);
 }
 
 void b5000_cpu_device::op_atbz()
 {
+	assert(m_atbz_step > 0);
+
 	// ATBZ (aka ATB on B5xxx): ATB + load strobe (multi step)
 	switch (m_atbz_step)
 	{
@@ -294,26 +309,11 @@ void b5000_cpu_device::op_tkb()
 
 void b5000_cpu_device::op_tkbs()
 {
-	// TKBS: TKB + load segments (multi step)
-	switch (m_tkbs_step)
-	{
-		// step 1: TKB
-		case 1:
-			op_tkb();
-			break;
+	// TKBS: TKB + load segments
+	op_tkb();
 
-		// step 2: load segments from RAM
-		case 2:
-			// note: SEG0(DP) from C flag is delayed 2 cycles
-			m_seg |= decode_digit(ram_r()) << 1 | m_prev2_c;
-			m_write_seg(m_seg);
-			m_tkbs_step = 0;
-			return;
-
-		default:
-			break;
-	}
-	m_tkbs_step++;
+	// note: SEG0(DP) from C flag is delayed 2 cycles
+	seg_w(m_seg | decode_digit(m_prev2_c << 4 | ram_r()));
 }
 
 void b5000_cpu_device::op_read()

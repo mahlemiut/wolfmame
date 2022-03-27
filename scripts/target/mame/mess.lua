@@ -3554,6 +3554,7 @@ files {
 	MAME_DIR .. "src/mame/drivers/roland_sc55.cpp",
 	MAME_DIR .. "src/mame/drivers/roland_sc88.cpp",
 	MAME_DIR .. "src/mame/drivers/roland_tb303.cpp",
+	MAME_DIR .. "src/mame/drivers/roland_tnsc1.cpp",
 	MAME_DIR .. "src/mame/drivers/roland_tr505.cpp",
 	MAME_DIR .. "src/mame/drivers/roland_tr606.cpp",
 	MAME_DIR .. "src/mame/drivers/roland_tr707.cpp",
@@ -3589,6 +3590,7 @@ files {
 	MAME_DIR .. "src/mame/includes/aim65.h",
 	MAME_DIR .. "src/mame/machine/aim65.cpp",
 	MAME_DIR .. "src/mame/drivers/aim65_40.cpp",
+	MAME_DIR .. "src/mame/drivers/hh_b5000.cpp",
 	MAME_DIR .. "src/mame/drivers/hh_pps41.cpp",
 }
 

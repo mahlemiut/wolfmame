@@ -225,7 +225,7 @@ public:
 	screen_device &set_raw(u32 pixclock, u16 htotal, u16 hbend, u16 hbstart, u16 vtotal, u16 vbend, u16 vbstart)
 	{
 		assert(pixclock != 0);
-		m_clock = pixclock;
+		set_clock(pixclock);
 		m_refresh = HZ_TO_ATTOSECONDS(pixclock) * htotal * vtotal;
 		m_vblank = m_refresh / vtotal * (vtotal - (vbstart - vbend));
 		m_width = htotal;
@@ -237,6 +237,10 @@ public:
 	{
 		xtal.validate(std::string("Configuring screen ") + tag());
 		return set_raw(xtal.value(), htotal, hbend, hbstart, vtotal, vbend, vbstart);
+	}
+	screen_device &set_raw(const XTAL &xtal, u16 htotal, u16 vtotal, rectangle visarea)
+	{
+		return set_raw(xtal, htotal, visarea.left(), visarea.right() + 1, vtotal, visarea.top(), visarea.bottom() + 1);
 	}
 	void set_refresh(attoseconds_t rate) { m_refresh = rate; }
 

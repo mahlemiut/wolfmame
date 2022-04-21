@@ -27,15 +27,15 @@
   Konami, 1998-2001
 
   This system uses Konami PSX-based hardware with an ATAPI CDROM drive.
-  Gun Mania (and probably Gun Mania Zone Plus) has no CDROM drive.
+  GunMania (and probably GunMania Zone Plus) has no CDROM drive.
   There is a slot for a security cart (cart is installed in CN14) and also a PCMCIA card slot.
-  The main board and CDROM drive are housed in a black metal box. Gun Mania doesn't have that box.
+  The main board and CDROM drive are housed in a black metal box. GunMania doesn't have that box.
   The games can be swapped by exchanging the CDROM disc and the security cart, whereby the main-board
   FlashROMs are re-programmed after a small wait. On subsequent power-ups, there is a check to test if the
   contents of the FlashROMs matches the CDROM, then the game boots up immediately.
 
   PCMCIA card slot is used by Dance Dance Revolution (2ndMIX link ver. and later),
-  GUITARFREAKS (2ndMIX link ver. and later), drummania (7thMIX and later), and Gun Mania.
+  GUITARFREAKS (2ndMIX link ver. and later), drummania (7thMIX and later), and GunMania.
   DDR and GF: 32M flash card is used to store edit data (players can edit data by PlayStation
   console, and send data to arcade machine via PS memory card).
   DM and GF: network PCB unit (for e-AMUSEMENT) is connected via PCMCIA slot.
@@ -69,7 +69,7 @@ D DDRMAX2 Dance Dance Revolution 7thMIX         2002.03    GCB20 JA          B20
 D Dance Dance Revolution EXTREME                2002.12    GCC36 JA          C36 JA A02
 D Dance Maniax                                  2000.06    GE874 JA          874 JA A(needs redump)
 D Dance Maniax 2ndMIX                           2000.12    GCA39 JA          A39 JA A02
-D *Dance Maniax 2ndMIX APPEND J PARADISE        2001.04
+D Dance Maniax 2ndMIX APPEND J PARADISE         2001.04
 A Dancing Stage                                 1999.08    GN845 EA          845 EA(needs redump)
 D Dancing Stage Euro Mix                        2000       GE936 EA          936 EA A(needs redump)
 D Dancing Stage Euro Mix 2                      2000       G*C23 EA          C23 EA A02
@@ -87,8 +87,8 @@ N drummania 7thMIX                              2002.08    GCC07 JA          C07
 N drummania 7thMIX power-up ver.                2002.08    GEC07 JB          C07 JC A02
 N drummania 8thMIX                              2003.04    GCC38 JA          C38 JA A02
 N drummania 9thMIX                              2003.10    GCD09 JA          D09 JA A02
-N *drummania 10thMIX                            2004.04
-? *Fighting Mania                               2000
+N drummania 10thMIX                             2004.04
+? Fighting Mania                                2000
 P Fisherman's Bait                              1998.06    GE765 UA          765 UA B02
 P Fisherman's Bait 2                            1998       GC865 UA          865 UA B02
 P Fisherman's Bait Marlin Challenge             1999       GX889             889 AA/EA/JA/UA(needs redump)
@@ -106,23 +106,23 @@ N GUITARFREAKS 8thMIX                           2002.08    GCC08 JA          C08
 N GUITARFREAKS 8thMIX power-up ver.             2002.11    GEC08 JB          C08 JB A02
 N GUITARFREAKS 9thMIX                           2003.04    GCC39 JA          C39 JA A02
 N GUITARFREAKS 10thMIX                          2003.10    GCD10 JA          D10 JA A02
-N *GUITARFREAKS 11thMIX                         2004.04
-G *Gun Mania                                    2000.07    G?906 JA          (no CD)
-? *Gun Mania Zone Plus                          2000.10
+N GUITARFREAKS 11thMIX                          2004.04
+G GunMania                                      2000.07    G?906 JA          (no CD)
+? *GunMania Zone Plus                           2000.10
 P Handle Champ                                  1997.12    GQ710 JA          (no CD)
 P Hyper Bishi Bashi Champ                       1998.07    GC876 EA          (no CD)
 P Hyper Bishi Bashi Champ - 2 Player            1999.08    GC908 JA          908    A02
 P Jikkyou Powerful Pro Yakyuu EX                1998.04    GX802 JA          802 JA B02
-P *Jikkyou Powerful Pro Yakyuu EX 98            1998.08
-K *Kick & Kick                                  2001       GNA36 EA          (no CD)
+P Jikkyou Powerful Pro Yakyuu EX 98             1998.08
+K Kick & Kick                                   2001       GNA36 EA          (no CD)
 P Konami 80's Arcade Gallery                    1998.11    GC826 JA          826 JA A01
 P Konami 80's AC Special                        1998       GC826 UA          826 UA A01
-D *Mambo a GoGo                                 2001.06
+D Mambo a GoGo                                  2001.06
 D Punchmania Hokuto no Ken                      2000.03                      918 JA B02
 D Punchmania Hokuto no Ken 2                    2000.12                      A09 JA A02
 P Salary Man Champ
 P Salary Man Champ - 2 Player                   2001.02    GCA18 JA          A18 JA(needs redump)
-P *Step Champ                                   1999.12
+P Step Champ                                    1999.12
 
 P: plain System573
 A: uses ext. analog I/O board GX700-PWB(F)
@@ -294,14 +294,14 @@ K: uses alt. ext. analog I/O board GX700-PWB(K)
 
 GX700-PWB(K)A (C)2000 KONAMI
 |-----------------------------|
-|    CN9        CN4	        |
+|    CN9        CN4         |
 |         CN3          CN5    |
 |                             |
 |   U2 U1                     |
 |                             |-----------------|
 |                                    CN6        |
 |         U3   U4 U5   U6                       |
-|   U7    U8         				 U9-U16       |
+|   U7    U8                         U9-U16     |
 |               U17  U18                        |
 |                                               |
 |    U19                                        |
@@ -310,27 +310,27 @@ GX700-PWB(K)A (C)2000 KONAMI
 |-----------------------------------------------|
 Notes: (all ICs shown)
 
-		CN1        - (bottom) Connector joining this PCB to the MAIN PCB
-		CN2        - (unpopulated custom 80-pin)
-		CN3        - JST ??12
-		CN4        - JST ??12
-		CN5        - JST ??12
-		CN6        - JST ??10
-		CN7        - (unpopulated 5-pin)
-		CN8        - (unpopulated 8-pin)
-		CN9        - (unpopulated 4-pin)
-		U1         - Maxim DS2401 (SOIC6)
-		U2         - (unpopulated SOIC8)
-		U3         - Motorola 74LS74A (SOIC14)
-		U4,U5,U6   - Motorola 74LS244 (SOIC20)
-		U7         - (unpopulated 4-pad)
-		U8         - AMD PALCE16V8Q-15, stamped 'X700K01' (DIP20)
-		U9-16      - Sharp PC817XF (DIP4)
-		U17        - TI 74LV245A (SOIC20)
-		U18        - Motorola 74LS273 (SOIC20)
-		U19        - (unpopulated PLCC44 socket)
-		U20        - (unpopulated SOIC16)
-		U21        - (unpopulated SOIC16)
+        CN1        - (bottom) Connector joining this PCB to the MAIN PCB
+        CN2        - (unpopulated custom 80-pin)
+        CN3        - JST ??12
+        CN4        - JST ??12
+        CN5        - JST ??12
+        CN6        - JST ??10
+        CN7        - (unpopulated 5-pin)
+        CN8        - (unpopulated 8-pin)
+        CN9        - (unpopulated 4-pin)
+        U1         - Maxim DS2401 (SOIC6)
+        U2         - (unpopulated SOIC8)
+        U3         - Motorola 74LS74A (SOIC14)
+        U4,U5,U6   - Motorola 74LS244 (SOIC20)
+        U7         - (unpopulated 4-pad)
+        U8         - AMD PALCE16V8Q-15, stamped 'X700K01' (DIP20)
+        U9-16      - Sharp PC817XF (DIP4)
+        U17        - TI 74LV245A (SOIC20)
+        U18        - Motorola 74LS273 (SOIC20)
+        U19        - (unpopulated PLCC44 socket)
+        U20        - (unpopulated SOIC16)
+        U21        - (unpopulated SOIC16)
 
 
   PCMCIA Flash Card
@@ -1107,8 +1107,11 @@ void ksys573_state::driver_start()
 	m_atapi_timer = machine().scheduler().timer_alloc( timer_expired_delegate( FUNC( ksys573_state::atapi_xfer_end ),this ) );
 	m_atapi_timer->adjust( attotime::never );
 
-	m_available_cdroms[ 0 ] = cdrom_open(machine().rom_load().get_disk_handle(":cdrom0"));
-	m_available_cdroms[ 1 ] = cdrom_open(machine().rom_load().get_disk_handle(":cdrom1"));
+	for (int i = 0; i < 2; i++)
+	{
+		chd_file *chd = machine().rom_load().get_disk_handle(util::string_format(":cdrom%d", i));
+		m_available_cdroms[ i ] = chd ? new cdrom_file(chd) : nullptr;
+	}
 
 	save_item( NAME( m_n_security_control ) );
 	save_item( NAME( m_control ) );

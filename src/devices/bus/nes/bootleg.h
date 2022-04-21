@@ -400,6 +400,7 @@ class nes_whirlwind_device : public nes_nrom_device
 {
 public:
 	virtual u8 read_m(offs_t offset) override;
+
 	virtual void pcb_reset() override;
 
 protected:
@@ -654,12 +655,6 @@ public:
 
 	virtual uint8_t read_m(offs_t offset) override;
 	virtual void write_m(offs_t offset, uint8_t data) override;
-
-	virtual void pcb_reset() override;
-
-protected:
-	// device-level overrides
-	virtual void device_start() override;
 };
 
 
@@ -674,10 +669,6 @@ public:
 	virtual uint8_t read_h(offs_t offset) override;
 
 	virtual void pcb_reset() override;
-
-protected:
-	// device-level overrides
-	virtual void device_start() override;
 };
 
 

@@ -19,9 +19,7 @@
 
 #include <algorithm>
 
-namespace netlist
-{
-namespace solver
+namespace netlist::solver
 {
 
 	template <typename FT, int SIZE>
@@ -283,7 +281,7 @@ namespace solver
 		plib::putf8_fmt_writer w(&t);
 		generate_code(w);
 		//std::hash<typename std::remove_const<std::remove_reference<decltype(t.str())>::type>::type> h;
-		return plib::pfmt("nl_gcr_{1:x}_{2}_{3}_{4}")(plib::hash( t.str().c_str(), t.str().size() ))(mat.nz_num)(str_fptype)(str_floattype);
+		return plib::pfmt("nl_gcr_{1:x}_{2}_{3}_{4}")(plib::hash<uint64_t>( t.str().c_str(), t.str().size() ))(mat.nz_num)(str_fptype)(str_floattype);
 	}
 
 	template <typename FT, int SIZE>
@@ -308,7 +306,7 @@ namespace solver
 		generate_code(strm);
 		strm.writeline("}\n");
 		// some compilers (_WIN32, _WIN64, mac osx) need an explicit cast
-		return std::pair<pstring, pstring>(name, putf8string(t.str()));
+		return { name, putf8string(t.str()) };
 	}
 
 	template <typename FT, int SIZE>
@@ -337,7 +335,6 @@ namespace solver
 		}
 	}
 
-} // namespace solver
-} // namespace netlist
+} // namespace netlist::solver
 
 #endif // NLD_MS_GCR_H_

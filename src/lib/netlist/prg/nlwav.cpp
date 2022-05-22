@@ -88,7 +88,7 @@ public:
 		sample *= mmax;
 		sample = std::max(mmin, sample);
 		sample = std::min(mmax, sample);
-		const auto dest(static_cast<T>(sample));
+		const T dest(static_cast<T>(sample));
 		write(dest);
 	}
 
@@ -177,7 +177,7 @@ private:
 class log_processor
 {
 public:
-	using callback_type = plib::pmfp<void, std::size_t, double, double>;
+	using callback_type = plib::pmfp<void (std::size_t, double, double)>;
 
 	struct elem
 	{
@@ -256,7 +256,7 @@ private:
 
 struct aggregator
 {
-	using callback_type = plib::pmfp<void, std::size_t, double, double>;
+	using callback_type = plib::pmfp<void (std::size_t, double, double)>;
 
 	aggregator(std::size_t channels, double quantum, callback_type cb)
 	: m_channels(channels)
@@ -299,7 +299,7 @@ private:
 
 struct filter_hp
 {
-	using callback_type = plib::pmfp<void, std::size_t, double, double>;
+	using callback_type = plib::pmfp<void (std::size_t, double, double)>;
 
 	filter_hp(double freq, bool boost, std::size_t channels, callback_type cb)
 	: m_cb(cb)
@@ -335,7 +335,7 @@ private:
 
 struct filter_lp
 {
-	using callback_type = plib::pmfp<void, std::size_t, double, double>;
+	using callback_type = plib::pmfp<void (std::size_t, double, double)>;
 
 	filter_lp(double freq, std::size_t channels, callback_type cb)
 	: m_cb(cb)
@@ -825,6 +825,7 @@ int nlwav_app::execute()
 
 PMAIN(nlwav_app)
 
+// spell-checker:disable
 //
 // Der Daten-Abschnitt enth??lt die Abtastwerte:
 // Offset  L??nge  Inhalt  Beschreibung
@@ -846,3 +847,4 @@ PMAIN(nlwav_app)
 // 32 (0x20)   2   <block align>   Frame-Gr????e = <Anzahl der Kan??le>????????((<Bits/Sample (eines Kanals)>???+???7)???/???8)   (Division ohne Rest)
 // 34 (0x22)   2   <bits/sample>   Anzahl der Datenbits pro Samplewert je Kanal (z. B. 12)
 //
+// spell-checker:enable

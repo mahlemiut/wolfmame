@@ -201,6 +201,7 @@
 #include "video/voodoo_pci.h"
 
 #include "screen.h"
+#include "speaker.h"
 
 #include "calspeed.lh"
 #include "vaportrx.lh"
@@ -1849,15 +1850,15 @@ static INPUT_PORTS_START( carnevil )
 	PORT_DIPSETTING(      0x0004, "U.K. 6" )
 	PORT_DIPSETTING(      0x0002, "U.K. 7 ECA" )
 	PORT_DIPSETTING(      0x0000, DEF_STR( Free_Play ))
-	PORT_DIPNAME( 0x0040, 0x0000, DEF_STR( Unknown ))
+	PORT_DIPNAME( 0x0040, 0x0040, DEF_STR( Unused ))
 	PORT_DIPSETTING(      0x0040, DEF_STR( Off ) )
 	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
 	PORT_DIPNAME( 0x0080, 0x0080, "Power Up Test Loop" )
 	PORT_DIPSETTING(      0x0080, DEF_STR( No ))
 	PORT_DIPSETTING(      0x0000, DEF_STR( Yes ))
-	PORT_DIPNAME( 0x0100, 0x0000, DEF_STR( Unknown ))
-	PORT_DIPSETTING(      0x0100, "0" )
-	PORT_DIPSETTING(      0x0000, "1" )
+	PORT_DIPNAME( 0x0100, 0x0100, DEF_STR( Unused ))
+	PORT_DIPSETTING(      0x0100, DEF_STR(Off))
+	PORT_DIPSETTING(      0x0000, DEF_STR(On))
 	PORT_DIPNAME( 0x0600, 0x0400, "Resolution" )
 //  PORT_DIPSETTING(      0x0600, "0" )
 //  PORT_DIPSETTING(      0x0200, DEF_STR( Medium ) )
@@ -1868,9 +1869,9 @@ static INPUT_PORTS_START( carnevil )
 	PORT_DIPSETTING(      0x0800, "47 MHz" )
 	PORT_DIPSETTING(      0x1000, "49 MHz" )
 	PORT_DIPSETTING(      0x1800, "51 MHz" )
-	PORT_DIPNAME( 0x2000, 0x0000, DEF_STR( Unknown ))
-	PORT_DIPSETTING(      0x2000, "0" )
-	PORT_DIPSETTING(      0x0000, "1" )
+	PORT_DIPNAME( 0x2000, 0x2000, DEF_STR( Unused ))
+	PORT_DIPSETTING(      0x2000, DEF_STR(Off))
+	PORT_DIPSETTING(      0x0000, DEF_STR(On))
 	PORT_DIPNAME( 0x4000, 0x0000, "Power On Self Test" )
 	PORT_DIPSETTING(      0x0000, DEF_STR( No ))
 	PORT_DIPSETTING(      0x4000, DEF_STR( Yes ))
@@ -2153,9 +2154,21 @@ void seattle_state::mace(machine_config &config)
 void seattle_state::sfrush(machine_config &config)
 {
 	flagstaff(config);
+	// 5 Channel output (4 Channel input connected to Quad Amp PCB)
+	SPEAKER(config, "flspeaker").front_left();
+	SPEAKER(config, "frspeaker").front_right();
+	SPEAKER(config, "rlspeaker").headrest_left();
+	SPEAKER(config, "rrspeaker").headrest_right();
+	//SPEAKER(config, "subwoofer").seat(); Not implemented, Quad Amp PCB output;
+
 	atari_cage_seattle_device &cage(ATARI_CAGE_SEATTLE(config, "cage", 0));
 	cage.set_speedup(0x5236);
 	cage.irq_handler().set(m_ioasic, FUNC(midway_ioasic_device::cage_irq_handler));
+	// TODO: copied from atarigt.cpp; Same configurations as T-Mek?
+	cage.add_route(0, "frspeaker", 1.0); // Foward Right
+	cage.add_route(1, "rlspeaker", 1.0); // Back Left
+	cage.add_route(2, "flspeaker", 1.0); // Foward Left
+	cage.add_route(3, "rrspeaker", 1.0); // Back Right
 
 	MIDWAY_IOASIC(config, m_ioasic, 0);
 	m_ioasic->set_shuffle(MIDWAY_IOASIC_STANDARD);
@@ -2168,9 +2181,22 @@ void seattle_state::sfrush(machine_config &config)
 void seattle_state::sfrushrk(machine_config &config)
 {
 	flagstaff(config);
+	// 5 Channel output (4 Channel input connected to Quad Amp PCB)
+	SPEAKER(config, "flspeaker").front_left();
+	SPEAKER(config, "frspeaker").front_right();
+	SPEAKER(config, "rlspeaker").headrest_left();
+	SPEAKER(config, "rrspeaker").headrest_right();
+	//SPEAKER(config, "subwoofer").seat(); Not implemented, Quad Amp PCB output;
+
 	atari_cage_seattle_device &cage(ATARI_CAGE_SEATTLE(config, "cage", 0));
 	cage.set_speedup(0x5329);
 	cage.irq_handler().set(m_ioasic, FUNC(midway_ioasic_device::cage_irq_handler));
+	// TODO: copied from atarigt.cpp; Same configurations as T-Mek?
+	cage.add_route(0, "frspeaker", 1.0); // Foward Right
+	cage.add_route(1, "rlspeaker", 1.0); // Back Left
+	cage.add_route(2, "flspeaker", 1.0); // Foward Left
+	cage.add_route(3, "rrspeaker", 1.0); // Back Right
+
 
 	MIDWAY_IOASIC(config, m_ioasic, 0);
 	m_ioasic->set_shuffle(MIDWAY_IOASIC_SFRUSHRK);

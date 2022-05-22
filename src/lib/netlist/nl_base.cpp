@@ -91,7 +91,7 @@ namespace netlist
 	, m_time(netlist_time_ext::zero())
 	, m_mainclock(nullptr)
 	, m_use_stats(false)
-	, m_queue(config::MAX_QUEUE_SIZE::value,
+	, m_queue(config::max_queue_size::value,
 		detail::queue_t::id_delegate(&netlist_state_t :: find_net_id, &state),
 		detail::queue_t::obj_delegate(&netlist_state_t :: net_by_id, &state))
 	{
@@ -140,9 +140,10 @@ namespace netlist
 		//m_setup->parser().register_source<source_pattern_t>("../macro/nlm_{1}.cpp");
 #else
 #if 1
-		m_setup->parser().register_source<source_pattern_t>("src/lib/netlist/macro/nlm_{1}.cpp", true);
-		m_setup->parser().register_source<source_pattern_t>("src/lib/netlist/generated/nlm_{1}.cpp", true);
-		m_setup->parser().register_source<source_pattern_t>("src/lib/netlist/macro/modules/nlmod_{1}.cpp", true);
+		pstring dir = "src/lib/netlist/";
+		m_setup->parser().register_source<source_pattern_t>(dir + "/macro/nlm_{1}.cpp", true);
+		m_setup->parser().register_source<source_pattern_t>(dir + "/generated/nlm_{1}.cpp", true);
+		m_setup->parser().register_source<source_pattern_t>(dir + "/macro/modules/nlmod_{1}.cpp", true);
 		m_setup->parser().include("base_lib");
 #else
 		// FIXME: This is very slow - need optimized parsing scanning
@@ -208,16 +209,14 @@ namespace netlist
 		ENTRY(PHAS_OPENMP)
 		ENTRY(PUSE_OPENMP)
 		ENTRY(PUSE_FLOAT128)
-		ENTRY(PPMF_TYPE)
-		ENTRY(PHAS_PMF_INTERNAL)
-		ENTRY(NL_USE_MEMPOOL)
-		ENTRY(NL_USE_QUEUE_STATS)
+		ENTRY_EX(config::use_mempool::value)
+		ENTRY_EX(config::use_queue_stats::value)
 		ENTRY(NL_USE_COPY_INSTEAD_OF_REFERENCE)
 		ENTRY(NL_USE_FLOAT128)
-		ENTRY(NL_USE_FLOAT_MATRIX)
-		ENTRY(NL_USE_LONG_DOUBLE_MATRIX)
+		ENTRY_EX(config::use_float_matrix::value)
+		ENTRY_EX(config::use_long_double_matrix::value)
 		ENTRY(NL_DEBUG)
-		ENTRY(NVCCBUILD)
+		ENTRY(__NVCC__)
 
 		ENTRY(__cplusplus)
 		ENTRY(__VERSION__)
@@ -257,7 +256,7 @@ namespace netlist
 		ENTRY_EX(sizeof(plib::plog_level))
 
 		ENTRY_EX(sizeof(nldelegate))
-		ENTRY(PPMF_TYPE)
+		ENTRY(PPMF_FORCE_TYPE)
 		ENTRY(PHAS_PMF_INTERNAL)
 
 	#undef ENTRY
@@ -276,7 +275,7 @@ namespace netlist
 
 	void netlist_t::reset()
 	{
-		log().debug("Searching for mainclock\n");
+		log().debug("Searching for main clock\n");
 		m_mainclock = m_state.get_single_device<devices::NETLIB_NAME(mainclock)>("mainclock");
 
 		log().debug("Searching for solver\n");
@@ -411,7 +410,7 @@ namespace netlist
 		log().verbose("Total time     {1:15}", total_time);
 
 		// FIXME: clang complains about unreachable code without
-		const bool clang_workaround_unreachable_code(NL_USE_QUEUE_STATS>0);
+		const bool clang_workaround_unreachable_code(config::use_queue_stats::value);
 		if (clang_workaround_unreachable_code)
 		{
 			// Only one serialization should be counted in total time
@@ -448,7 +447,7 @@ namespace netlist
 		{
 			auto *ep = entry.second.get();
 			auto *stats = ep->stats();
-			// Factor of 3 offers best performace increase
+			// Factor of 3 offers best performance increase
 			if (stats->m_stat_inc_active() > 3 * stats->m_stat_total_time.count()
 				&& stats->m_stat_inc_active() > trigger)
 				log().verbose("HINT({}, NO_DEACTIVATE) // {} {} {}", ep->name(),
@@ -726,7 +725,7 @@ namespace netlist
 		// NOLINTNEXTLINE(readability-implicit-bool-conversion)
 		if (!(gt && go && Idr) && (gt || go || Idr))
 		{
-			throw nl_exception("Inconsistent nullptrs for terminal {}", name());
+			throw nl_exception("Either all pointers must be set or none for terminal {}", name());
 		}
 
 		m_gt = gt;
@@ -769,11 +768,10 @@ namespace netlist
 	// logic_output_t
 	// ----------------------------------------------------------------------------------------
 
-	logic_output_t::logic_output_t(device_t &dev, const pstring &aname, bool dummy)
+	logic_output_t::logic_output_t(device_t &dev, const pstring &aname, [[maybe_unused]] bool dummy)
 		: logic_t(dev, aname, STATE_OUT, nldelegate())
 		, m_my_net(dev.state(), name() + ".net", this)
 	{
-		plib::unused_var(dummy);
 		this->set_net(&m_my_net);
 		state().register_net(device_arena::owned_ptr<logic_net_t>(&m_my_net, false));
 		state().setup().register_term(*this);
@@ -830,7 +828,7 @@ namespace netlist
 	// Parameters ...
 	// ----------------------------------------------------------------------------------------
 
-	// deviceless, it's the responsibility of the owner to register!
+	// device-less, it's the responsibility of the owner to register!
 	param_t::param_t(const pstring &name)
 		: device_object_t(nullptr, name)
 	{
@@ -881,7 +879,7 @@ namespace netlist
 	param_str_t::param_str_t(netlist_state_t &state, const pstring &name, const pstring &val)
 	: param_t(name)
 	{
-		// deviceless parameter, no registration, owner is responsible
+		// device-less parameter, no registration, owner is responsible
 		m_param = plib::make_unique<pstring, host_arena>(val);
 		*m_param = state.setup().get_initial_param_val(this->name(),val);
 	}

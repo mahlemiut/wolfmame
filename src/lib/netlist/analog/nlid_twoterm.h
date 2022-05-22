@@ -44,9 +44,7 @@
 // Implementation
 // -----------------------------------------------------------------------------
 
-namespace netlist
-{
-namespace analog
+namespace netlist::analog
 {
 
 	// -----------------------------------------------------------------------------
@@ -60,9 +58,8 @@ namespace analog
 		return b ? *h : d2;
 	}
 	template<>
-	inline core_device_t &bselect(bool b, netlist_state_t &d1, core_device_t &d2)
+	inline core_device_t &bselect(bool b, [[maybe_unused]] netlist_state_t &d1, core_device_t &d2)
 	{
-		plib::unused_var(d1);
 		if (b)
 			throw nl_exception("bselect with netlist and b==true");
 		return d2;
@@ -687,7 +684,6 @@ namespace analog
 		std::vector<nl_fptype> m_funcparam;
 	};
 
-} // namespace analog
-} // namespace netlist
+} // namespace netlist::analog
 
 #endif // NLD_TWOTERM_H_

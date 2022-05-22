@@ -14181,9 +14181,9 @@ Pang 3b4 - code accesso to $5762b0 and $57a2b0 (PIC)
 uint16_t cps_state::pang3b4_prot_r()
 {
 	if ((m_pang3b4_prot & 0xff) <=7)
-	      return (m_pang3b4_prot & 0xff) + 0x20;  // Game level + extend
+		  return (m_pang3b4_prot & 0xff) + 0x20;  // Game level + extend
 	if (m_pang3b4_prot == 0x17)
-	      return 0x7321;                      // Guessed from code @0x314
+		  return 0x7321;                      // Guessed from code @0x314
 	return 0xffff;
 }
 
@@ -14247,7 +14247,7 @@ void cps_state::init_dinohunt()
 {
 	// is this shared with the new sound hw?
 	m_maincpu->space(AS_PROGRAM).install_read_handler(0xf18000, 0xf19fff, read16smo_delegate(*this, FUNC(cps_state::dinohunt_sound_r)));
-	m_maincpu->space(AS_PROGRAM).install_read_port(0xfc0000, 0xfc0001, "IN2"); ;
+	m_maincpu->space(AS_PROGRAM).install_read_port(0xfc0000, 0xfc0001, "IN2");
 	// the ym2151 doesn't seem to be used. Is it actually on the PCB?
 
 	init_cps1();

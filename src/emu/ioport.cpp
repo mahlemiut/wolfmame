@@ -349,7 +349,7 @@ class inp_header
 public:
 	// parameters
 	static constexpr unsigned MAJVERSION = 3;
-	static constexpr unsigned MINVERSION = 0;
+	static constexpr unsigned MINVERSION = 5;
 
 	bool read(emu_file &f)
 	{

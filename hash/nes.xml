@@ -9079,7 +9079,7 @@ license:CC0
 		<info name="serial" value="DIF-001"/>
 		<info name="alt_title" value="둘리 브라보랜드"/>
 		<part name="cart" interface="nes_cart">
-			<!-- Chip is rather an ASIC UNROM clone with no bus conflict issues(?)  -->
+			<!-- Chip is rather an ASIC UNROM clone with no bus conflict issues(?) -->
 			<feature name="slot" value="uxrom" />
 			<feature name="pcb" value="DAOU-009" />
 			<feature name="mirroring" value="vertical" />
@@ -11675,6 +11675,23 @@ license:CC0
 			</dataarea>
 			<dataarea name="chr" size="8192">
 				<rom name="hvc-fr-0 chr" size="8192" crc="e653dbcb" sha1="f9758fcc8e07890bd733af127defc86bb70f179e" offset="00000" />
+			</dataarea>
+		</part>
+	</software>
+
+	<software name="flstory">
+		<description>The FairyLand Story (Japan, prototype)</description>
+		<year>1986</year>
+		<publisher>Taito</publisher>
+		<part name="cart" interface="nes_cart">
+			<feature name="slot" value="nrom" />
+			<feature name="mirroring" value="horizontal" />
+			<dataarea name="prg" size="32768">
+				<rom name="f.l.s. prg taito 4-25-86" size="16384" crc="13742099" sha1="a7a0015bdb28449091b5e514711a796a9cf22bf7" />    <!-- Original label "F.L.S. PRG TAITO 4/25/86" -->
+				<rom size="16384" offset="0x4000" loadflag="reload" />
+			</dataarea>
+			<dataarea name="chr" size="8192">
+				<rom name="f.l.s. chr taito 4-25-86" size="8192" crc="53818ea0" sha1="521f07825504dba07d2b00c60689c14800d8bc1d" />    <!-- Original label "F.L.S. CH TAITO 4/25/86" -->
 			</dataarea>
 		</part>
 	</software>
@@ -53669,7 +53686,7 @@ preliminary proto for the PAL version, still running on NTSC systems) or the gfx
 	</software>
 
 	<software name="hidchess">
-		<!--  Um Chi (Glommy Chess, Joy Van) in GoodNES, check title -->
+		<!-- Um Chi (Glommy Chess, Joy Van) in GoodNES, check title -->
 		<description>An Qi ~ Hidden Chinese Chess (Tw)</description>
 		<year>1989</year>
 		<publisher>Sachen</publisher>
@@ -54869,7 +54886,7 @@ preliminary proto for the PAL version, still running on NTSC systems) or the gfx
 		</part>
 	</software>
 
-<!-- These have wrong CHR order, probably. Bad dump or different board? I have to investigate....  -->
+<!-- These have wrong CHR order, probably. Bad dump or different board? I have to investigate.... -->
 	<software name="mnq1" cloneof="mnq" supported="no">
 		<description>Mei Nu Quan (Tw, Alt)</description>
 		<year>1990</year>
@@ -55847,7 +55864,7 @@ preliminary proto for the PAL version, still running on NTSC systems) or the gfx
 	</software>
 
 	<software name="chikbik">
-		<!-- Alt. Title: 三国志-赤壁之战 ? ~ SanGuoZhi - ChiBi Zhi Zhan ?  -->
+		<!-- Alt. Title: 三国志-赤壁之战 ? ~ SanGuoZhi - ChiBi Zhi Zhan ? -->
 		<description>Chik Bik Ji Jin - Saam Gwok Ji (Asia)</description>
 		<year>19??</year>
 		<publisher>NTDEC</publisher>
@@ -61002,7 +61019,7 @@ preliminary proto for the PAL version, still running on NTSC systems) or the gfx
 		<publisher>Union Bond</publisher>
 		<info name="serial" value="G-0005"/>
 		<part name="cart" interface="nes_cart">
-			<feature name="slot" value="nanjing" /> <!--  header actually says 164... -->
+			<feature name="slot" value="nanjing" /> <!-- header actually says 164... -->
 			<feature name="pcb" value="UNL-NANJING" />
 			<dataarea name="prg" size="524288">
 				<rom name="ying tao xiao wan zi (g-005) (ch).prg" size="524288" crc="8209ba79" sha1="fa56608d8dcf5a144dd1fc81282cd86fd51060fe" offset="00000" status="baddump" />
@@ -65912,7 +65929,7 @@ preliminary proto for the PAL version, still running on NTSC systems) or the gfx
 <!-- This was included in the DVD release of a 2008 Japanese TV show describing the creation of a Famicom game
 It was also distributed in form of Famicom carts, whose checksums (according to the developer's website) match this set
 Also available (in form of IPS patches from the dev) some hacks featuring alt. levels: Mondo21 hack, gg version & Meteor version
-We don't include these hacks because they were not burned into real carts nor sold!  -->
+We don't include these hacks because they were not burned into real carts nor sold! -->
 	<software name="mrsplash">
 		<description>Mr. Splash! (Jpn)</description>
 		<year>2007</year>
@@ -77682,7 +77699,7 @@ Other
 	</software>
 
 
-<!--  These images have been ripped off from later non-NES games (Konami Classics for PC, Zelda for Game Cube, Animal Crossing for Game Cube, GBA e-Reader cards or GBA Famicom Mini).
+<!-- These images have been ripped off from later non-NES games (Konami Classics for PC, Zelda for Game Cube, Animal Crossing for Game Cube, GBA e-Reader cards or GBA Famicom Mini).
 We include them here as reference if they should coincide with later revisions of the games -->
 
 	<software name="balonfgtgba" cloneof="balonfgt">
@@ -79598,7 +79615,7 @@ be better to redump them properly. -->
 		</part>
 	</software>
 
-<!--  Displays a "Copyright  Hummer Team" message at start -->
+<!-- Displays a "Copyright  Hummer Team" message at start -->
 	<software name="sfz2_97" supported="partial">
 		<description>Street Fighter Zero 2 '97 (Asia)</description>
 		<year>1997</year>
@@ -83512,7 +83529,7 @@ be better to redump them properly. -->
 		</part>
 	</software>
 
-<!--  also 20-in-1 KY2001, 228-in-1, 999999-in-1 via DipSwitches -->
+<!-- also 20-in-1 KY2001, 228-in-1, 999999-in-1 via DipSwitches -->
 	<software name="mc_4y481" supported="partial">
 		<description>4 in 1 (YH-481)</description>
 		<year>19??</year>
@@ -86638,7 +86655,7 @@ be better to redump them properly. -->
 		</part>
 	</software>
 
-<!-- The UNIF file contained separate PRG banks  -->
+<!-- The UNIF file contained separate PRG banks -->
 	<software name="mc_16sv">
 		<description>Super 128k - 16 in 1</description>
 		<year>19??</year>

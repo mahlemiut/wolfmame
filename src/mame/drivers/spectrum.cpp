@@ -737,6 +737,8 @@ void spectrum_state::machine_reset()
 	m_port_fe_data = -1;
 	m_port_7ffd_data = -1;
 	m_port_1ffd_data = -1;
+	m_irq_on_timer->adjust(attotime::never);
+	m_irq_off_timer->adjust(attotime::never);
 }
 
 /* F4 Character Displayer */
@@ -755,27 +757,22 @@ static GFXDECODE_START( gfx_spectrum )
 	GFXDECODE_ENTRY( "maincpu", 0x3d00, spectrum_charlayout, 7, 8 )
 GFXDECODE_END
 
-void spectrum_state::device_timer(emu_timer &timer, device_timer_id id, int param)
+TIMER_CALLBACK_MEMBER(spectrum_state::irq_on)
 {
-	switch (id)
-	{
-	case TIMER_IRQ_ON:
-		m_int_at = m_maincpu->total_cycles();
-		m_int_at -= m_maincpu->attotime_to_cycles(m_maincpu->local_time() - machine().time());
-		m_maincpu->set_input_line(0, ASSERT_LINE);
-		m_irq_off_timer->adjust(m_maincpu->clocks_to_attotime(32));
-		break;
-	case TIMER_IRQ_OFF:
-		m_maincpu->set_input_line(0, CLEAR_LINE);
-		break;
-	default:
-		throw emu_fatalerror("Unknown id in spectrum_state::device_timer");
-	}
+	m_int_at = m_maincpu->total_cycles();
+	m_int_at -= m_maincpu->attotime_to_cycles(m_maincpu->local_time() - machine().time());
+	m_maincpu->set_input_line(0, ASSERT_LINE);
+	m_irq_off_timer->adjust(m_maincpu->clocks_to_attotime(32));
+}
+
+TIMER_CALLBACK_MEMBER(spectrum_state::irq_off)
+{
+	m_maincpu->set_input_line(0, CLEAR_LINE);
 }
 
 INTERRUPT_GEN_MEMBER(spectrum_state::spec_interrupt)
 {
-	timer_set(m_screen->time_until_pos(0, get_screen_area().left()), TIMER_IRQ_ON);
+	m_irq_on_timer->adjust(m_screen->time_until_pos(0, get_screen_area().left()));
 }
 
 void spectrum_state::spectrum_common(machine_config &config)
@@ -799,7 +796,9 @@ void spectrum_state::spectrum_common(machine_config &config)
 	/* video hardware */
 	SCREEN(config, m_screen, SCREEN_TYPE_RASTER);
 
-	m_screen->set_raw(X1 / 2, 448, 312, {get_screen_area().left() - 48, get_screen_area().right() + 48, get_screen_area().top() - 48, get_screen_area().bottom() + 56});
+	rectangle visarea = { get_screen_area().left() - SPEC_LEFT_BORDER, get_screen_area().right() + SPEC_RIGHT_BORDER,
+		get_screen_area().top() - SPEC_TOP_BORDER, get_screen_area().bottom() + SPEC_BOTTOM_BORDER };
+	m_screen->set_raw(X1 / 2, SPEC_CYCLES_PER_LINE * 2, SPEC_UNSEEN_LINES + SPEC_SCREEN_HEIGHT, visarea);
 	m_screen->set_screen_update(FUNC(spectrum_state::screen_update_spectrum));
 	m_screen->set_palette("palette");
 

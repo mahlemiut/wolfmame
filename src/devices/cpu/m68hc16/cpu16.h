@@ -114,20 +114,11 @@ private:
 
 	// misc. state
 	seq m_sequence;
+	seq m_return_sequence;
 	u32 m_ea;
 	u16 m_tmp;
 	bool m_start;
 	s32 m_icount;
-};
-
-class mc68hc16z1_device : public cpu16_device
-{
-public:
-	// device type constructor
-	mc68hc16z1_device(const machine_config &mconfig, const char *tag, device_t *owner, u32 clock);
-
-private:
-	void internal_map(address_map &map);
 };
 
 // device type declaration

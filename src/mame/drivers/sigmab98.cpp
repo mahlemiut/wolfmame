@@ -308,7 +308,6 @@ protected:
 
 private:
 	TIMER_DEVICE_CALLBACK_MEMBER(gocowboy_int);
-	TIMER_DEVICE_CALLBACK_MEMBER(timer_1khz);
 
 	void coin_counter_w(uint8_t data);
 	void leds_w(uint8_t data);
@@ -1497,7 +1496,7 @@ void lufykzku_state::lufykzku(machine_config &config)
 	m_maincpu->set_addrmap(AS_IO, &lufykzku_state::lufykzku_io_map);
 	TIMER(config, "scantimer").configure_scanline(FUNC(lufykzku_state::lufykzku_irq), "screen", 0, 1);
 
-	NVRAM(config, "nvram", nvram_device::DEFAULT_ALL_0);   // battery backed RAM
+	NVRAM(config, "nvram", nvram_device::DEFAULT_ALL_0);   // battery backed RAM (TC55257DFL-70L)
 	// No EEPROM
 
 	MB3773(config, m_watchdog, 0);
@@ -1556,13 +1555,6 @@ TIMER_DEVICE_CALLBACK_MEMBER(sammymdl_state::gocowboy_int)
 		m_kp69->ir_w<1>(1);
 		m_kp69->ir_w<1>(0);
 	}
-}
-
-TIMER_DEVICE_CALLBACK_MEMBER(sammymdl_state::timer_1khz)
-{
-	// FIXME: this is an internally generated timer interrupt
-	m_kp69->ir_w<11>(1);
-	m_kp69->ir_w<11>(0);
 }
 
 void sammymdl_state::sammymdl(machine_config &config)
@@ -1625,7 +1617,6 @@ void sammymdl_state::gocowboy(machine_config &config)
 	m_maincpu->out_p4_callback().set(FUNC(sammymdl_state::gocowboy_leds_w));
 
 	TIMER(config, "scantimer").configure_scanline(FUNC(sammymdl_state::gocowboy_int), "screen", 0, 1);
-	TIMER(config, "1khztimer").configure_periodic(FUNC(sammymdl_state::timer_1khz), attotime::from_msec(1));
 
 	config.device_remove("hopper");
 	TICKET_DISPENSER(config, m_hopper_small, attotime::from_msec(200), TICKET_MOTOR_ACTIVE_LOW, TICKET_STATUS_ACTIVE_LOW );
@@ -1650,7 +1641,6 @@ void sammymdl_state::itazuram(machine_config &config)
 	sammymdl(config);
 
 	TIMER(config, "scantimer").configure_scanline(FUNC(sammymdl_state::gocowboy_int), "screen", 0, 1);
-	TIMER(config, "1khztimer").configure_periodic(FUNC(sammymdl_state::timer_1khz), attotime::from_msec(1));
 
 	m_maincpu->set_addrmap(AS_PROGRAM, &sammymdl_state::itazuram_map);
 

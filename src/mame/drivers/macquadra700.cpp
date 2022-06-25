@@ -12,46 +12,36 @@
 #include "emu.h"
 
 #include "machine/macrtc.h"
-#include "cpu/m68000/m68000.h"
-#include "machine/6522via.h"
-#include "machine/ram.h"
-#include "machine/timer.h"
-#include "machine/z80scc.h"
-#include "machine/macadb.h"
-#include "machine/applefdintf.h"
-#include "machine/swim1.h"
-#include "machine/dp83932c.h"
-#include "machine/nscsi_bus.h"
-#include "machine/ncr5390.h"
-#include "sound/asc.h"
-#include "formats/ap_dsk35.h"
 
 #include "bus/nscsi/devices.h"
-
+#include "bus/nubus/cards.h"
 #include "bus/nubus/nubus.h"
-#include "bus/nubus/nubus_48gc.h"
-#include "bus/nubus/nubus_cb264.h"
-#include "bus/nubus/nubus_vikbw.h"
-#include "bus/nubus/nubus_specpdq.h"
-#include "bus/nubus/nubus_m2hires.h"
-#include "bus/nubus/nubus_spec8.h"
-#include "bus/nubus/nubus_radiustpd.h"
-#include "bus/nubus/nubus_wsportrait.h"
-#include "bus/nubus/nubus_asntmc3b.h"
-#include "bus/nubus/nubus_image.h"
-#include "bus/nubus/nubus_m2video.h"
-#include "bus/nubus/bootbug.h"
-#include "bus/nubus/quadralink.h"
-#include "bus/nubus/laserview.h"
+#include "cpu/m68000/m68000.h"
+#include "machine/6522via.h"
+#include "machine/applefdintf.h"
+#include "machine/dp83932c.h"
+#include "machine/macadb.h"
+#include "machine/ncr5390.h"
+#include "machine/nscsi_bus.h"
+#include "machine/ram.h"
+#include "machine/swim1.h"
+#include "machine/timer.h"
+#include "machine/z80scc.h"
+#include "sound/asc.h"
 
 #include "emupal.h"
 #include "screen.h"
 #include "softlist_dev.h"
 #include "speaker.h"
 
+#include "formats/ap_dsk35.h"
+
 #define C7M (7833600)
 #define C15M (C7M*2)
 #define C32M (C15M*2)
+
+
+namespace {
 
 class macquadra_state : public driver_device
 {
@@ -142,9 +132,9 @@ private:
 	int m_adb_irq_pending = 0;
 
 	DECLARE_WRITE_LINE_MEMBER(irq_539x_1_w);
-	DECLARE_WRITE_LINE_MEMBER(irq_539x_2_w);
+	[[maybe_unused]] DECLARE_WRITE_LINE_MEMBER(irq_539x_2_w);
 	DECLARE_WRITE_LINE_MEMBER(drq_539x_1_w);
-	DECLARE_WRITE_LINE_MEMBER(drq_539x_2_w);
+	[[maybe_unused]] DECLARE_WRITE_LINE_MEMBER(drq_539x_2_w);
 
 	floppy_image_device *m_cur_floppy = nullptr;
 	int m_hdsel = 0;
@@ -931,27 +921,6 @@ INPUT_PORTS_END
     MACHINE DRIVERS
 ***************************************************************************/
 
-static void mac_nubus_cards(device_slot_interface &device)
-{
-	device.option_add("m2video", NUBUS_M2VIDEO);    /* Apple Macintosh II Video Card */
-	device.option_add("48gc", NUBUS_48GC);      /* Apple 4*8 Graphics Card */
-	device.option_add("824gc", NUBUS_824GC);    /* Apple 8*24 Graphics Card */
-	device.option_add("cb264", NUBUS_CB264);    /* RasterOps ColorBoard 264 */
-	device.option_add("vikbw", NUBUS_VIKBW);    /* Moniterm Viking board */
-	device.option_add("image", NUBUS_IMAGE);    /* Disk Image Pseudo-Card */
-	device.option_add("specpdq", NUBUS_SPECPDQ);    /* SuperMac Spectrum PDQ */
-	device.option_add("m2hires", NUBUS_M2HIRES);    /* Apple Macintosh II Hi-Resolution Card */
-	device.option_add("spec8s3", NUBUS_SPEC8S3);    /* SuperMac Spectrum/8 Series III */
-//  device.option_add("thundergx", NUBUS_THUNDERGX);        /* Radius Thunder GX (not yet) */
-	device.option_add("radiustpd", NUBUS_RADIUSTPD);        /* Radius Two Page Display */
-	device.option_add("asmc3nb", NUBUS_ASNTMC3NB);  /* Asante MC3NB Ethernet card */
-	device.option_add("portrait", NUBUS_WSPORTRAIT);    /* Apple Macintosh II Portrait video card */
-	device.option_add("enetnb", NUBUS_APPLEENET);   /* Apple NuBus Ethernet */
-	device.option_add("bootbug", NUBUS_BOOTBUG);    /* Brigent BootBug debugger card */
-	device.option_add("quadralink", NUBUS_QUADRALINK);  /* AE Quadralink serial card */
-	device.option_add("laserview", NUBUS_LASERVIEW);  /* Sigma Designs LaserView monochrome video card */
-}
-
 void macquadra_state::macqd700(machine_config &config)
 {
 	/* basic machine hardware */
@@ -1052,5 +1021,7 @@ ROM_START( macqd700 )
 	ROM_REGION32_BE(0x100000, "bootrom", 0)
 	ROM_LOAD( "420dbff3.rom", 0x000000, 0x100000, CRC(88ea2081) SHA1(7a8ee468d16e64f2ad10cb8d1a45e6f07cc9e212) )
 ROM_END
+
+} // anonymous namespace
 
 COMP( 1991, macqd700, 0, 0, macqd700, macadb, macquadra_state, init_macqd700,  "Apple Computer", "Macintosh Quadra 700", MACHINE_NOT_WORKING | MACHINE_SUPPORTS_SAVE)

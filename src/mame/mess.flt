@@ -51,6 +51,7 @@ apple/lwriter.cpp
 apple/mac.cpp
 apple/mac128.cpp
 apple/maciivx.cpp
+apple/maclc.cpp
 apple/maclc3.cpp
 apple/macpci.cpp
 apple/macpdm.cpp
@@ -69,7 +70,6 @@ atari/atari400.cpp
 atari/atarist.cpp
 atari/lynx.cpp
 atari/pofo.cpp
-atari/tvboy.cpp
 att/att3b2.cpp
 att/att4425.cpp
 att/att610.cpp
@@ -295,6 +295,7 @@ handheld/hh_rw5000.cpp
 handheld/hh_sm510.cpp
 handheld/hh_tms1k.cpp
 handheld/hh_ucom4.cpp
+handheld/lk3000.cpp
 handheld/monty.cpp
 handheld/rzone.cpp
 handheld/scrablex.cpp
@@ -680,6 +681,7 @@ saitek/ssystem3.cpp
 saitek/stratos.cpp
 saitek/superstar.cpp
 samcoupe/samcoupe.cpp
+samsung/dvd-n5xx.cpp
 samsung/spc1000.cpp
 samsung/spc1500.cpp
 sanyo/mbc200.cpp
@@ -862,7 +864,6 @@ skeleton/lee1220.cpp
 skeleton/lft.cpp
 skeleton/lg-dvd.cpp
 skeleton/lilith.cpp
-skeleton/lk3000.cpp
 skeleton/lms46.cpp
 skeleton/mccpm.cpp
 skeleton/mes.cpp
@@ -1215,6 +1216,7 @@ vtech/laser3k.cpp
 vtech/lcmate2.cpp
 vtech/pc2000.cpp
 vtech/pc4.cpp
+vtech/phusion.cpp
 vtech/prestige.cpp
 vtech/socrates.cpp
 vtech/storio.cpp

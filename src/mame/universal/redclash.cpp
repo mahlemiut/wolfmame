@@ -9,15 +9,19 @@ runs on hardware similar to Lady Bug
 driver by inkling
 
 Notes:
-- In the Tehkan set (redclsha) the ship doesn't move during attract mode. Earlier version?
-  Gameplay is different too.
+- In the Tehkan set (redclashta) the ship doesn't move during attract mode.
+  Earlier version? Gameplay is different too.
 
 TODO:
-- Colors might be right, need screen shots to verify
-
-- Some graphical problems in both games, but without screenshots its hard to
-  know what we're aiming for
-
+- Colors are not right. In zerohour P1 score should be white, the top score green,
+  and "TOP" should be magenta. How is this determined? It's as if only the top part
+  of the screen has this exception. Maybe via the unknown PROM? Sprite colors look ok.
+- Some graphical problems in both games
+- redclash supports more background layer effects: white+mixed with other colors,
+  used in canyon parts and during the big ufo explosion
+- According to video reference(could only find 1), redclash player bullets should be
+  4*2px red on the 1st half of the screen and 8*2px yellow on the 2nd half, zerohour
+  bullets are correct though(always 8*2px magenta)
 - Sound (analog, schematics available for Zero Hour)
 
 ***************************************************************************/
@@ -188,30 +192,9 @@ static INPUT_PORTS_START( redclash )
 INPUT_PORTS_END
 
 static INPUT_PORTS_START( zerohour )
-	PORT_START("IN0")
-	PORT_BIT( 0x01, IP_ACTIVE_LOW, IPT_JOYSTICK_LEFT ) PORT_8WAY
-	PORT_BIT( 0x02, IP_ACTIVE_LOW, IPT_JOYSTICK_DOWN ) PORT_8WAY
-	PORT_BIT( 0x04, IP_ACTIVE_LOW, IPT_JOYSTICK_RIGHT ) PORT_8WAY
-	PORT_BIT( 0x08, IP_ACTIVE_LOW, IPT_JOYSTICK_UP ) PORT_8WAY
-	PORT_BIT( 0x10, IP_ACTIVE_LOW, IPT_BUTTON1 )
-	PORT_BIT( 0x20, IP_ACTIVE_LOW, IPT_START1 )
-	PORT_BIT( 0x40, IP_ACTIVE_LOW, IPT_START2 )
-	PORT_BIT( 0x80, IP_ACTIVE_LOW, IPT_UNKNOWN )
+	PORT_INCLUDE( redclash )
 
-	PORT_START("IN1")
-	PORT_BIT( 0x01, IP_ACTIVE_LOW, IPT_JOYSTICK_LEFT ) PORT_8WAY PORT_COCKTAIL
-	PORT_BIT( 0x02, IP_ACTIVE_LOW, IPT_JOYSTICK_DOWN ) PORT_8WAY PORT_COCKTAIL
-	PORT_BIT( 0x04, IP_ACTIVE_LOW, IPT_JOYSTICK_RIGHT ) PORT_8WAY PORT_COCKTAIL
-	PORT_BIT( 0x08, IP_ACTIVE_LOW, IPT_JOYSTICK_UP ) PORT_8WAY PORT_COCKTAIL
-	PORT_BIT( 0x10, IP_ACTIVE_LOW, IPT_BUTTON1 ) PORT_COCKTAIL
-	PORT_BIT( 0x20, IP_ACTIVE_LOW, IPT_UNKNOWN )
-	/* Note that there are TWO VBlank inputs, one is active low, the other active */
-	/* high. There are probably other differences in the hardware, but emulating */
-	/* them this way is enough to get the game running. */
-	PORT_BIT( 0x40, IP_ACTIVE_LOW, IPT_CUSTOM ) PORT_VBLANK("screen")
-	PORT_BIT( 0x80, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_VBLANK("screen")
-
-	PORT_START("DSW1")
+	PORT_MODIFY("DSW1")
 	PORT_DIPUNUSED_DIPLOC( 0x01, 0x01, "SW1:8" )    /* Switches 6-8 are not used */
 	PORT_DIPUNUSED_DIPLOC( 0x02, 0x02, "SW1:7" )
 	PORT_DIPUNUSED_DIPLOC( 0x04, 0x04, "SW1:6" )
@@ -229,7 +212,7 @@ static INPUT_PORTS_START( zerohour )
 	PORT_DIPSETTING(    0x80, "4" )
 	PORT_DIPSETTING(    0x40, "5" )
 
-	PORT_START("DSW2")
+	PORT_MODIFY("DSW2")
 	PORT_DIPNAME( 0x0f, 0x0f, DEF_STR( Coin_A ) ) PORT_DIPLOCATION("SW2:4,3,2,1")
 	PORT_DIPSETTING(    0x06, DEF_STR( 4C_1C ) )
 	PORT_DIPSETTING(    0x08, DEF_STR( 3C_1C ) )
@@ -252,15 +235,6 @@ static INPUT_PORTS_START( zerohour )
 	PORT_DIPSETTING(    0xd0, DEF_STR( 1C_3C ) )
 	PORT_DIPSETTING(    0xc0, DEF_STR( 1C_4C ) )
 	PORT_DIPSETTING(    0xb0, DEF_STR( 1C_5C ) )
-
-	PORT_START("FAKE")
-	/* The coin slots are not memory mapped. Coin Left causes a NMI, */
-	/* Coin Right an IRQ. This fake input port is used by the interrupt */
-	/* handler to be notified of coin insertions. We use IMPULSE to */
-	/* trigger exactly one interrupt, without having to check when the */
-	/* user releases the key. */
-	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_COIN1 ) PORT_IMPULSE(1) PORT_CHANGED_MEMBER(DEVICE_SELF, redclash_state, left_coin_inserted, 0)
-	PORT_BIT( 0x02, IP_ACTIVE_HIGH, IPT_COIN2 ) PORT_IMPULSE(1) PORT_CHANGED_MEMBER(DEVICE_SELF, redclash_state, right_coin_inserted, 0)
 INPUT_PORTS_END
 
 static const gfx_layout charlayout =
@@ -579,9 +553,9 @@ void redclash_state::init_redclash()
 }
 
 
-GAME( 1980, zerohour,  0,        zerohour, zerohour, redclash_state, init_redclash, ROT270, "Universal",                   "Zero Hour (set 1)",      MACHINE_NO_SOUND | MACHINE_WRONG_COLORS | MACHINE_IMPERFECT_GRAPHICS | MACHINE_SUPPORTS_SAVE )
-GAME( 1980, zerohoura, zerohour, zerohour, zerohour, redclash_state, init_redclash, ROT270, "Universal",                   "Zero Hour (set 2)",      MACHINE_NO_SOUND | MACHINE_WRONG_COLORS | MACHINE_IMPERFECT_GRAPHICS | MACHINE_SUPPORTS_SAVE )
-GAME( 1980, zerohouri, zerohour, zerohour, zerohour, redclash_state, init_redclash, ROT270, "bootleg (Inder SA)",          "Zero Hour (Inder)",      MACHINE_NO_SOUND | MACHINE_WRONG_COLORS | MACHINE_IMPERFECT_GRAPHICS | MACHINE_SUPPORTS_SAVE )
+GAME( 1980, zerohour,   0,        zerohour, zerohour, redclash_state, init_redclash, ROT270, "Universal",                   "Zero Hour (set 1)",      MACHINE_NO_SOUND | MACHINE_WRONG_COLORS | MACHINE_IMPERFECT_GRAPHICS | MACHINE_SUPPORTS_SAVE )
+GAME( 1980, zerohoura,  zerohour, zerohour, zerohour, redclash_state, init_redclash, ROT270, "Universal",                   "Zero Hour (set 2)",      MACHINE_NO_SOUND | MACHINE_WRONG_COLORS | MACHINE_IMPERFECT_GRAPHICS | MACHINE_SUPPORTS_SAVE )
+GAME( 1980, zerohouri,  zerohour, zerohour, zerohour, redclash_state, init_redclash, ROT270, "bootleg (Inder SA)",          "Zero Hour (Inder)",      MACHINE_NO_SOUND | MACHINE_WRONG_COLORS | MACHINE_IMPERFECT_GRAPHICS | MACHINE_SUPPORTS_SAVE )
 
 GAME( 1981, redclash,   0,        redclash, redclash, redclash_state, init_redclash, ROT270, "Kaneko",                      "Red Clash",                 MACHINE_NO_SOUND | MACHINE_WRONG_COLORS | MACHINE_IMPERFECT_GRAPHICS | MACHINE_SUPPORTS_SAVE )
 GAME( 1981, redclasht,  redclash, redclash, redclash, redclash_state, init_redclash, ROT270, "Kaneko (Tehkan license)",     "Red Clash (Tehkan, set 1)", MACHINE_NO_SOUND | MACHINE_WRONG_COLORS | MACHINE_IMPERFECT_GRAPHICS | MACHINE_SUPPORTS_SAVE )

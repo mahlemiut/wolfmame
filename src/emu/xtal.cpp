@@ -102,6 +102,7 @@ const double XTAL::known_xtals[] = {
 	  3'579'000, /* 3.579_MHz_XTAL         BeebOPL */
 	  3'579'545, /* 3.579545_MHz_XTAL      NTSC color subcarrier, extremely common, used on 100's of PCBs (Keytronic custom part #48-300-010 is equivalent) */
 	  3'579'575, /* 3.579575_MHz_XTAL      Atari 2600 NTSC */
+	  3'680'000, /* 3.68_MHz_XTAL          Resonator - Baud rate clock for the 6551 in the MTU-130 */
 	  3'686'400, /* 3.6864_MHz_XTAL        Baud rate clock for MC68681 and similar UARTs */
 	  3'840'000, /* 3.84_MHz_XTAL          Fairlight CMI Alphanumeric Keyboard */
 	  3'900'000, /* 3.9_MHz_XTAL           Resonator - Used on some Fidelity boards */
@@ -473,6 +474,7 @@ const double XTAL::known_xtals[] = {
 	 72'000'000, /* 72_MHz_XTAL            Aristocrat MKV */
 	 72'576'000, /* 72.576_MHz_XTAL        Centipede, Millipede, Missile Command, Let's Go Bowling "Multipede" */
 	 73'728'000, /* 73.728_MHz_XTAL        Ms. Pac-Man/Galaga 20th Anniversary */
+	 75'000'000, /* 75_MHz_XTAL            Sony NEWS NWS-5000X */
 	 77'414'400, /* 77.4144_MHz_XTAL       NCD17c */
 	 80'000'000, /* 80_MHz_XTAL            ARM710 */
 	 87'183'360, /* 87.18336_MHz_XTAL      AT&T 630 MTG */

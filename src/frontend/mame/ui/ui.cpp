@@ -41,17 +41,9 @@
 #include "romload.h"
 #include "screen.h"
 #include "uiinput.h"
-#include "ui/ui.h"
-#include "ui/info.h"
-#include "ui/menu.h"
-#include "ui/cheatopt.h"
-#include "ui/mainmenu.h"
-#include "ui/miscmenu.h"
-#include "ui/filemngr.h"
-#include "ui/sliders.h"
-#include "ui/state.h"
-#include "ui/viewgfx.h"
-#include "imagedev/cassette.h"
+
+// FIXME: allow OSD module headers to be included in a less ugly way
+#include "../osd/modules/lib/osdlib.h"
 #include "../osd/modules/lib/osdobj_common.h"
 #include "ioport.h"
 
@@ -1133,6 +1125,7 @@ void mame_ui_manager::decrease_frameskip()
 bool mame_ui_manager::can_paste()
 {
 	// check to see if the clipboard is not empty
+	// FIXME: this is expensive - need a cheaper way to check if clipboard contains suitable content
 	return !osd_get_clipboard_text().empty();
 }
 

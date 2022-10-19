@@ -47,6 +47,8 @@
 #include "../osd/modules/lib/osdobj_common.h"
 #include "ioport.h"
 
+#include "utf8.h"
+
 #include <chrono>
 #include <functional>
 #include <type_traits>

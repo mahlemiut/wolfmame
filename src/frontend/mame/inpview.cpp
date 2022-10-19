@@ -10,6 +10,7 @@
 #include "ui/ui.h"
 #include "render.h"
 #include "inpview.h"
+#include "utf8.h"
 
 static const struct _input_type_definition
 {

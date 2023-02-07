@@ -133,12 +133,12 @@ void ui_menu_record_inp::handle(event const *ev)
 //  populate
 //-------------------------------------------------
 
-void ui_menu_record_inp::populate(float &customtop, float &custombottom)
+void ui_menu_record_inp::populate()
 {
 	// add options items
 	item_append(_("Start recording"), "", 0 , (void*)(uintptr_t)1);
 
-	customtop = mame_machine_manager::instance()->ui().get_line_height() + (3.0f * mame_machine_manager::instance()->ui().box_tb_border());
+//	customtop = mame_machine_manager::instance()->ui().get_line_height() + (3.0f * mame_machine_manager::instance()->ui().box_tb_border());
 }
 
 //-------------------------------------------------
@@ -262,12 +262,12 @@ ui_menu_playback_inp::~ui_menu_playback_inp()
 //  populate
 //-------------------------------------------------
 
-void ui_menu_playback_inp::populate(float &customtop, float &custombottom)
+void ui_menu_playback_inp::populate()
 {
 	// add options items
 	item_append(_("Start playback"), "", 0 , (void*)(uintptr_t)1);
 	item_append(_("Browse..."), "", 0 , (void*)(uintptr_t)2);
-	customtop = mame_machine_manager::instance()->ui().get_line_height() + (3.0f * mame_machine_manager::instance()->ui().box_tb_border());
+	//customtop = mame_machine_manager::instance()->ui().get_line_height() + (3.0f * mame_machine_manager::instance()->ui().box_tb_border());
 }
 
 //-------------------------------------------------

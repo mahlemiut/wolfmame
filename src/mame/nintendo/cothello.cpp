@@ -16,22 +16,23 @@ Hardware notes:
 - 3*1KB M58732S 2708 ROM, 4th socket is empty
 - 256 bytes RAM (2*M58722P 2111A)
 - 0.5KB DRAM (M58755S) for framebuffer
-- M58741P Color TV Interface, 64*64 1bpp video
+- M58741P Color TV Interface, 64*64 pixels (192 scanlines), chip supports 3bpp,
+  but this game only uses 1 bit per pixel
 - 7seg time counter (not software controlled)
 - beeper
 
 TODO:
-- verify video timing
+- verify video timing, maybe 3.57MHz / 2 / (262*114)
 - beeper duration and base frequency is approximated (divisor is correct)
 - CPU speed is wrong, it's likely running at 1.79MHz. But that's way too fast
   compared to videos of the game. 0.9MHz(XTAL/4) is also too fast. It's probably
   due to the M58741P HOLD pin halting the 8080, which is not emulated.
 - Is there a button select somewhere? I really can't find any. Or is current
-  input emulation correct where for example P1 can move P2 cursor? (the only
-  unique P2 button is the Set button).
+  input emulation correct where for example P1 can move P2 cursor?
 - It's not known if the screen is color or B&W + overlay, but since the video
   chip is meant for a color tv, let's assume the green tint is from the screen
   itself. Photos of the home version also show a green tint.
+- Is Universal's "Computer R-3" a modified version of this game?
 
 *******************************************************************************/
 
@@ -116,7 +117,7 @@ u32 cothello_state::screen_update(screen_device &screen, bitmap_rgb32 &bitmap, c
 	{
 		for (int x = cliprect.min_x; x <= cliprect.max_x; x++)
 		{
-			int pixel = m_vram[(y << 8 | x) & 0x3fff] & 1;
+			int pixel = m_vram[((y / 3) << 8 | x) & 0x3fff] & 1;
 			bitmap.pix(y, x) = pixel ? rgb_t(0x00, 0xff, 0x80) : rgb_t::black();
 		}
 	}
@@ -161,8 +162,7 @@ TIMER_CALLBACK_MEMBER(cothello_state::counter_tick)
 
 u8 cothello_state::coin_r()
 {
-	// d0-d2: coin status
-	// d3: ?
+	// d0-d3: coin status
 	// d4-d7: unused
 	return m_counter_timer->enabled() ? 0xfb : 0xff;
 }
@@ -205,7 +205,7 @@ void cothello_state::sound_w(u8 data)
 
 void cothello_state::main_map(address_map &map)
 {
-	map(0x0000, 0x0bff).rom();
+	map(0x0000, 0x0fff).rom();
 	map(0x4000, 0x40ff).ram();
 	map(0x6000, 0x6000).r(FUNC(cothello_state::input_r));
 	map(0x8000, 0x8000).w(FUNC(cothello_state::sound_w));
@@ -278,8 +278,8 @@ void cothello_state::cothello(machine_config &config)
 	// video hardware
 	SCREEN(config, m_screen, SCREEN_TYPE_RASTER);
 	m_screen->set_refresh_hz(60);
-	m_screen->set_size(64, 64);
-	m_screen->set_visarea(0, 64-1, 0, 64-1);
+	m_screen->set_size(64, 192);
+	m_screen->set_visarea(0, 64-1, 0, 192-1);
 	m_screen->set_vblank_time(ATTOSECONDS_IN_USEC(2500));
 	m_screen->set_screen_update(FUNC(cothello_state::screen_update));
 

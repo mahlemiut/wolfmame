@@ -951,7 +951,7 @@ void menu::handle_events(uint32_t flags, event &ev)
 				ev.iptkey = IPT_UI_SELECT;
 				if (is_last_selected() && m_needs_prev_menu_item)
 				{
-					ev.iptkey = IPT_UI_CANCEL;
+					ev.iptkey = IPT_UI_BACK;
 					stack_pop();
 					if (is_special_main_menu())
 						machine().schedule_exit();
@@ -1030,7 +1030,7 @@ void menu::handle_keys(uint32_t flags, int &iptkey)
 	{
 		if (is_last_selected() && m_needs_prev_menu_item)
 		{
-			iptkey = IPT_UI_CANCEL;
+			iptkey = IPT_UI_BACK;
 			stack_pop();
 			if (is_special_main_menu())
 				machine().schedule_exit();
@@ -1039,7 +1039,7 @@ void menu::handle_keys(uint32_t flags, int &iptkey)
 	}
 
 	// UI configure hides the menus
-	if (!(flags & PROCESS_NOKEYS) && exclusive_input_pressed(iptkey, IPT_UI_CONFIGURE, 0) && !m_global_state.stack_has_special_main_menu())
+	if (!(flags & PROCESS_NOKEYS) && exclusive_input_pressed(iptkey, IPT_UI_MENU, 0) && !m_global_state.stack_has_special_main_menu())
 	{
 		if (is_one_shot())
 			stack_pop();
@@ -1052,10 +1052,10 @@ void menu::handle_keys(uint32_t flags, int &iptkey)
 	if (flags & PROCESS_ONLYCHAR)
 		return;
 
-	// hitting cancel also pops the stack
-	if (exclusive_input_pressed(iptkey, IPT_UI_CANCEL, 0))
+	// hitting back also pops the stack
+	if (exclusive_input_pressed(iptkey, IPT_UI_BACK, 0))
 	{
-		if (!custom_ui_cancel())
+		if (!custom_ui_back())
 		{
 			stack_pop();
 			if (is_special_main_menu())

@@ -80,7 +80,7 @@ ui_menu_record_inp::~ui_menu_record_inp()
 //  handle
 //-------------------------------------------------
 
-void ui_menu_record_inp::handle(event const *ev)
+bool ui_menu_record_inp::handle(event const *ev)
 {
 	bool changed = false;
 
@@ -124,9 +124,7 @@ void ui_menu_record_inp::handle(event const *ev)
 		}
 	}
 
-	if (changed)
-		reset(reset_options::REMEMBER_REF);
-
+	return changed;
 }
 
 //-------------------------------------------------
@@ -274,7 +272,7 @@ void ui_menu_playback_inp::populate()
 //  handle
 //-------------------------------------------------
 
-void ui_menu_playback_inp::handle(event const *ev)
+bool ui_menu_playback_inp::handle(event const *ev)
 {
 	bool changed = false;
 
@@ -336,8 +334,7 @@ void ui_menu_playback_inp::handle(event const *ev)
 		}
 	}
 
-	if (changed)
-		reset(reset_options::REMEMBER_REF);
+	return changed;
 }
 
 

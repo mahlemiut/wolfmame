@@ -138,7 +138,7 @@ public:
 	ui_menu_record_inp(mame_ui_manager &mui, render_container &container, const game_driver *driver = nullptr);
 	virtual ~ui_menu_record_inp();
 	virtual void populate() override;
-	virtual void handle(event const *ev) override;
+	virtual bool handle(event const *ev) override;
 	virtual void custom_render(void *selectedref, float top, float bottom, float x, float y, float x2, float y2) override;
 	static constexpr bool audit_passed(media_auditor::summary summary)
 	{
@@ -174,7 +174,7 @@ public:
 	ui_menu_playback_inp(mame_ui_manager &mui, render_container &container, const game_driver *driver = nullptr);
 	virtual ~ui_menu_playback_inp();
 	virtual void populate() override;
-	virtual void handle(event const *ev) override;
+	virtual bool handle(event const *ev) override;
 private:
 	virtual void start_inp() override;
 	menu_file_selector::result browse_result;

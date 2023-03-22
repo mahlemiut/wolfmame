@@ -1,3 +1,6 @@
+// Example system driver filter file - includes systems that are not arcade amusement or gambling machines
+// May be out of sync with source code
+
 access/acvirus.cpp
 acorn/aa310.cpp
 acorn/accomm.cpp
@@ -49,8 +52,10 @@ apple/imacg3.cpp
 apple/iphone2g.cpp
 apple/lisa.cpp
 apple/lwriter.cpp
-apple/mac.cpp
 apple/mac128.cpp
+apple/macii.cpp
+apple/maciici.cpp
+apple/maciifx.cpp
 apple/maciivx.cpp
 apple/maclc.cpp
 apple/maclc3.cpp
@@ -111,6 +116,11 @@ bitcorp/gamate.cpp
 bondwell/bw12.cpp
 bondwell/bw2.cpp
 booth/apexc.cpp
+brother/ax145.cpp
+brother/lw30.cpp
+brother/lw700i.cpp
+brother/lw840.cpp
+burroughs/anzterm.cpp
 camputers/camplynx.cpp
 canon/canon_s80.cpp
 canon/cat.cpp
@@ -797,7 +807,6 @@ skeleton/alphasma3k.cpp
 skeleton/am1000.cpp
 skeleton/ampex.cpp
 skeleton/ampex210.cpp
-skeleton/anzterm.cpp
 skeleton/argox.cpp
 skeleton/attache.cpp
 skeleton/ax20.cpp
@@ -805,7 +814,6 @@ skeleton/basf7100.cpp
 skeleton/bert.cpp
 skeleton/bitgraph.cpp
 skeleton/blit.cpp
-skeleton/blw700i.cpp
 skeleton/bpmmicro.cpp
 skeleton/br8641.cpp
 skeleton/busicom.cpp
@@ -1089,6 +1097,7 @@ ti/tm990189.cpp
 tiger/gamecom.cpp
 tiger/k28.cpp
 tiger/k28m2.cpp
+tiger/pylo.cpp
 tigertel/gizmondo.cpp
 tiki/tiki100.cpp
 tomy/tomy_princ.cpp
@@ -1127,6 +1136,9 @@ trs/trs80dt1.cpp
 trs/trs80m2.cpp
 trs/trs80m3.cpp
 trs/vis.cpp
+tryom/chess.cpp
+tryom/gammonm.cpp
+tryom/omar.cpp
 tvgames/actions_atj2279b.cpp
 tvgames/elan_ep3a19a.cpp
 tvgames/elan_eu3a05.cpp
@@ -1221,6 +1233,7 @@ ussr/unior.cpp
 ussr/ut88.cpp
 ussr/vector06.cpp
 ussr/vta2000.cpp
+vectorgraphic/vector4.cpp
 verifone/tranz330.cpp
 vidbrain/vidbrain.cpp
 videoton/tvc.cpp

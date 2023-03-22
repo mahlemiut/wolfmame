@@ -31,7 +31,9 @@
 #include "corestr.h"
 #include "notifier.h"
 
+#include <condition_variable>
 #include <cstring>
+#include <mutex>
 #include <thread>
 
 
@@ -39,14 +41,10 @@
 //  LUA ENGINE
 //**************************************************************************
 
-extern "C" {
-
-int luaopen_zlib(lua_State *L);
-int luaopen_lfs(lua_State *L);
+int luaopen_zlib(lua_State *const L);
+extern "C" int luaopen_lfs(lua_State *L);
 int luaopen_linenoise(lua_State *L);
 int luaopen_lsqlite3(lua_State *L);
-
-} // extern "C"
 
 
 template <typename T>
@@ -61,6 +59,117 @@ struct lua_engine::devenum
 
 
 namespace {
+
+struct thread_context
+{
+private:
+	std::string m_result;
+	std::mutex m_guard;
+	std::condition_variable m_sync;
+
+public:
+	bool m_busy = false;
+	bool m_yield = false;
+
+	bool start(char const *scr)
+	{
+		std::unique_lock<std::mutex> caller_lock(m_guard);
+		if (m_busy)
+			return false;
+
+		std::string script(scr);
+		std::thread th(
+				[this, script = std::string(scr)] ()
+				{
+					sol::state thstate;
+					thstate.open_libraries();
+					thstate["package"]["preload"]["zlib"] = &luaopen_zlib;
+					thstate["package"]["preload"]["lfs"] = &luaopen_lfs;
+					thstate["package"]["preload"]["linenoise"] = &luaopen_linenoise;
+					sol::load_result res = thstate.load(script);
+					std::unique_lock<std::mutex> result_lock(m_guard, std::defer_lock);
+					if (res.valid())
+					{
+						sol::protected_function func = res.get<sol::protected_function>();
+						thstate.set_function(
+								"yield",
+								[this, &thstate]()
+								{
+									std::unique_lock<std::mutex> yield_lock(m_guard);
+									m_result = thstate["status"];
+									m_yield = true;
+									m_sync.wait(yield_lock);
+									m_yield = false;
+									thstate["status"] = m_result;
+								});
+						auto ret = func();
+						result_lock.lock();
+						if (ret.valid())
+						{
+							auto result = ret.get<std::optional<char const *> >();
+							if (!result)
+								osd_printf_error("[LUA ERROR] in thread: return value must be string\n");
+							else if (!*result)
+								m_result.clear();
+							else
+								m_result = *result;
+						}
+						else
+						{
+							sol::error err = ret;
+							osd_printf_error("[LUA ERROR] in thread: %s\n", err.what());
+						}
+					}
+					else
+					{
+						result_lock.lock();
+						sol::error err = res;
+						osd_printf_error("[LUA ERROR] when loading script for thread: %s\n", err.what());
+					}
+					assert(result_lock);
+					m_busy = false;
+			});
+		m_busy = true;
+		m_yield = false;
+		th.detach(); // FIXME: this is unsafe as the thread function modifies members of the object
+		return true;
+	}
+
+	void resume(char const *val)
+	{
+		std::unique_lock<std::mutex> lock(m_guard);
+		if (m_yield)
+		{
+			if (val)
+				m_result = val;
+			else
+				m_result.clear();
+			m_sync.notify_all();
+		}
+	}
+
+	char const *result()
+	{
+		std::unique_lock<std::mutex> lock(m_guard);
+		if (m_busy && !m_yield)
+			return "";
+		else
+			return m_result.c_str();
+	}
+};
+
+
+struct device_state_entries
+{
+	device_state_entries(device_state_interface const &s) : state(s) { }
+	device_state_interface::entrylist_type const &items() { return state.state_entries(); }
+
+	static device_state_entry const &unwrap(device_state_interface::entrylist_type::const_iterator const &it) { return **it; }
+	static int push_key(lua_State *L, device_state_interface::entrylist_type::const_iterator const &it, std::size_t ix) { return sol::stack::push_reference(L, (*it)->symbol()); }
+
+	device_state_interface const &state;
+};
+
 
 struct image_interface_formats
 {
@@ -88,9 +197,9 @@ struct plugin_options_plugins
 } // anonymous namespace
 
 
-namespace sol
-{
+namespace sol {
 
+template <> struct is_container<device_state_entries> : std::true_type { };
 template <> struct is_container<image_interface_formats> : std::true_type { };
 template <> struct is_container<plugin_options_plugins> : std::true_type { };
 
@@ -199,6 +308,34 @@ public:
 
 
 template <>
+struct usertype_container<device_state_entries> : lua_engine::immutable_sequence_helper<device_state_entries, device_state_interface::entrylist_type const, device_state_interface::entrylist_type::const_iterator>
+{
+private:
+	using entrylist_type = device_state_interface::entrylist_type;
+
+public:
+	static int get(lua_State *L)
+	{
+		device_state_entries &self(get_self(L));
+		char const *const symbol(stack::unqualified_get<char const *>(L));
+		auto const found(std::find_if(
+					self.state.state_entries().begin(),
+					self.state.state_entries().end(),
+					[&symbol] (std::unique_ptr<device_state_entry> const &v) { return !std::strcmp(v->symbol(), symbol); }));
+		if (self.state.state_entries().end() != found)
+			return stack::push_reference(L, std::cref(**found));
+		else
+			return stack::push(L, lua_nil);
+	}
+
+	static int index_get(lua_State *L)
+	{
+		return get(L);
+	}
+};
+
+
+template <>
 struct usertype_container<image_interface_formats> : lua_engine::immutable_sequence_helper<image_interface_formats, device_image_interface::formatlist_type const, device_image_interface::formatlist_type::const_iterator>
 {
 private:
@@ -214,7 +351,7 @@ public:
 					self.image.formatlist().end(),
 					[&name] (std::unique_ptr<image_device_format> const &v) { return v->name() == name; }));
 		if (self.image.formatlist().end() != found)
-			return stack::push_reference(L, **found);
+			return stack::push_reference(L, std::cref(**found));
 		else
 			return stack::push(L, lua_nil);
 	}
@@ -242,7 +379,7 @@ public:
 					self.options.plugins().end(),
 					[&name] (plugin_options::plugin const &p) { return p.m_name == name; }));
 		if (self.options.plugins().end() != found)
-			return stack::push_reference(L, *found);
+			return stack::push_reference(L, std::cref(*found));
 		else
 			return stack::push(L, lua_nil);
 	}
@@ -615,10 +752,11 @@ void lua_engine::initialize()
  * emu.register_before_load_settings(callback) - register callback to be run before settings are loaded
  * emu.show_menu(menu_name) - show menu by name and pause the machine
  *
- * emu.print_verbose(str) - output to stderr at verbose level
- * emu.print_error(str) - output to stderr at error level
- * emu.print_info(str) - output to stderr at info level
- * emu.print_debug(str) - output to stderr at debug level
+ * emu.print_verbose(str) - log message at verbose level
+ * emu.print_error(str) - log message at error level
+ * emu.print_warning(str) - log message at error level
+ * emu.print_info(str) - log message at info level
+ * emu.print_debug(str) - log message at debug level
  *
  * emu.device_enumerator(dev) - get device enumerator starting at arbitrary point in tree
  * emu.screen_enumerator(dev) - get screen device enumerator starting at arbitrary point in tree
@@ -688,6 +826,7 @@ void lua_engine::initialize()
 		};
 	emu["print_verbose"] = [] (const char *str) { osd_printf_verbose("%s\n", str); };
 	emu["print_error"] = [] (const char *str) { osd_printf_error("%s\n", str); };
+	emu["print_warning"] = [] (const char *str) { osd_printf_warning("%s\n", str); };
 	emu["print_info"] = [] (const char *str) { osd_printf_info("%s\n", str); };
 	emu["print_debug"] = [] (const char *str) { osd_printf_debug("%s\n", str); };
 	emu["osd_ticks"] = &osd_ticks;
@@ -885,70 +1024,12 @@ void lua_engine::initialize()
  * thread.yield - check if thread is yielded
  */
 
-	auto thread_type = emu.new_usertype<context>("thread", sol::call_constructor, sol::constructors<sol::types<>>());
-	thread_type.set("start", [](context &ctx, const char *scr) {
-			std::string script(scr);
-			if (ctx.busy)
-				return false;
-			std::thread th([&ctx, script]() {
-					sol::state thstate;
-					thstate.open_libraries();
-					thstate["package"]["preload"]["zlib"] = &luaopen_zlib;
-					thstate["package"]["preload"]["lfs"] = &luaopen_lfs;
-					thstate["package"]["preload"]["linenoise"] = &luaopen_linenoise;
-					sol::load_result res = thstate.load(script);
-					if(res.valid())
-					{
-						sol::protected_function func = res.get<sol::protected_function>();
-						thstate["yield"] = [&ctx, &thstate]() {
-								std::mutex m;
-								std::unique_lock<std::mutex> lock(m);
-								ctx.result = thstate["status"];
-								ctx.yield = true;
-								ctx.sync.wait(lock);
-								ctx.yield = false;
-								thstate["status"] = ctx.result;
-							};
-						auto ret = func();
-						if (ret.valid())
-						{
-							const char *tmp = ret.get<const char *>();
-							if (tmp != nullptr)
-								ctx.result = tmp;
-							else
-								osd_printf_error("[LUA ERROR] in thread: return value must be string\n");
-						}
-						else
-						{
-							sol::error err = ret;
-							osd_printf_error("[LUA ERROR] in thread: %s\n", err.what());
-						}
-					}
-					else
-					{
-						sol::error err = res;
-						osd_printf_error("[LUA ERROR] when loading script for thread: %s\n", err.what());
-					}
-					ctx.busy = false;
-				});
-			ctx.busy = true;
-			ctx.yield = false;
-			th.detach();
-			return true;
-		});
-	thread_type.set("continue", [](context &ctx, const char *val) {
-			if (!ctx.yield)
-				return;
-			ctx.result = val;
-			ctx.sync.notify_all();
-		});
-	thread_type.set("result", sol::property([](context &ctx) -> std::string {
-			if (ctx.busy && !ctx.yield)
-				return "";
-			return ctx.result;
-		}));
-	thread_type.set("busy", sol::readonly(&context::busy));
-	thread_type.set("yield", sol::readonly(&context::yield));
+	auto thread_type = emu.new_usertype<thread_context>("thread", sol::call_constructor, sol::constructors<sol::types<>>());
+	thread_type.set_function("start", &thread_context::start);
+	thread_type.set_function("continue", &thread_context::resume);
+	thread_type["result"] = sol::property(&thread_context::result);
+	thread_type["busy"] = sol::readonly(&thread_context::m_busy);
+	thread_type["yield"] = sol::readonly(&thread_context::m_yield);
 
 
 /*  save_item library
@@ -1366,18 +1447,13 @@ void lua_engine::initialize()
 				}
 				return sp_table;
 			});
-	// FIXME: improve this
 	device_type["state"] = sol::property(
-			[this] (device_t &dev)
+			[] (device_t &dev, sol::this_state s) -> sol::object
 			{
-				sol::table st_table = sol().create_table();
-				const device_state_interface *state;
-				if(!dev.interface(state))
-					return st_table;
-				// XXX: refrain from exporting non-visible entries?
-				for(auto &s : state->state_entries())
-					st_table[s->symbol()] = s.get();
-				return st_table;
+				device_state_interface const *state;
+				if (!dev.interface(state))
+					return sol::lua_nil;
+				return sol::make_object(s, device_state_entries(*state));
 			});
 	// FIXME: turn into a wrapper - it's stupid slow to walk on every property access
 	// also, this mixes up things like RAM areas with stuff saved by the device itself, so there's potential for key conflicts
@@ -1700,6 +1776,38 @@ void lua_engine::initialize()
 	image_type["device"] = sol::property(static_cast<device_t & (device_image_interface::*)()>(&device_image_interface::device));
 
 
+	auto state_entry_type = sol().registry().new_usertype<device_state_entry>("state_entry", sol::no_constructor);
+	state_entry_type["value"] = sol::property(
+			[] (device_state_entry const &entry, sol::this_state s) -> sol::object
+			{
+				if (entry.is_float())
+					return sol::make_object(s, entry.dvalue());
+				else
+					return sol::make_object(s, entry.value());
+			},
+			[] (device_state_entry const &entry, sol::this_state s, sol::object value)
+			{
+				if (!entry.writeable())
+					luaL_error(s, "cannot set value of read-only device state entry");
+				else if (entry.is_float())
+					entry.set_dvalue(value.as<double>());
+				else
+					entry.set_value(value.as<u64>());
+			});
+	state_entry_type["symbol"] = sol::property(&device_state_entry::symbol);
+	state_entry_type["visible"] = sol::property(&device_state_entry::visible);
+	state_entry_type["writeable"] = sol::property(&device_state_entry::writeable);
+	state_entry_type["is_float"] = sol::property(&device_state_entry::is_float);
+	state_entry_type["datamask"] = sol::property(
+			[] (device_state_entry const &entry)
+			{
+				return entry.is_float() ? std::optional<u64>() : std::optional<u64>(entry.datamask());
+			});
+	state_entry_type["datasize"] = sol::property(&device_state_entry::datasize);
+	state_entry_type["max_length"] = sol::property(&device_state_entry::max_length);
+	state_entry_type[sol::meta_function::to_string] = &device_state_entry::to_string;
+
+
 	auto format_type = sol().registry().new_usertype<image_device_format>("image_format", sol::no_constructor);
 	format_type["name"] = sol::property(&image_device_format::name);
 	format_type["description"] = sol::property(&image_device_format::description);
@@ -1836,41 +1944,6 @@ void lua_engine::initialize()
 	ui_type["image_display_enabled"] = sol::property(&mame_ui_manager::image_display_enabled, &mame_ui_manager::set_image_display_enabled);
 
 
-/*  device_state_entry library
- *
- * manager:machine().devices[device_tag].state[state_name]
- *
- * state:name() - get device state name
- * state:is_visible() - is state visible in debugger
- * state:is_divider() - is state a divider
- *
- * state.value - get device state value
- */
-
-	auto dev_state_type = sol().registry().new_usertype<device_state_entry>("dev_state", "new", sol::no_constructor);
-	dev_state_type.set("name", &device_state_entry::symbol);
-	dev_state_type.set("value", sol::property(
-		[this](device_state_entry &entry) -> uint64_t {
-			device_state_interface *state = entry.parent_state();
-			if(state)
-			{
-				machine().save().dispatch_presave();
-				return state->state_int(entry.index());
-			}
-			return 0;
-		},
-		[this](device_state_entry &entry, uint64_t val) {
-			device_state_interface *state = entry.parent_state();
-			if(state)
-			{
-				state->set_state_int(entry.index(), val);
-				machine().save().dispatch_presave();
-			}
-		}));
-	dev_state_type.set("is_visible", &device_state_entry::visible);
-	dev_state_type.set("is_divider", &device_state_entry::divider);
-
-
 /* rom_entry library
  *
  * manager:machine().devices[device_tag].roms[rom]
@@ -1959,11 +2032,16 @@ void lua_engine::resume(int nparam)
 	lua_rawgeti(m_lua_state, LUA_REGISTRYINDEX, nparam);
 	lua_State *L = lua_tothread(m_lua_state, -1);
 	lua_pop(m_lua_state, 1);
-	int stat = lua_resume(L, nullptr, 0);
+	int nresults = 0;
+	int stat = lua_resume(L, nullptr, 0, &nresults);
 	if((stat != LUA_OK) && (stat != LUA_YIELD))
 	{
 		osd_printf_error("[LUA ERROR] in resume: %s\n", lua_tostring(L, -1));
 		lua_pop(L, 1);
+	}
+	else
+	{
+		lua_pop(L, nresults);
 	}
 	luaL_unref(m_lua_state, LUA_REGISTRYINDEX, nparam);
 }

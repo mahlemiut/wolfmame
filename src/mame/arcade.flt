@@ -1,3 +1,6 @@
+// Example system driver filter file - includes only arcade amusement and gambling machines
+// May be out of sync with source code
+
 acorn/aristmk5.cpp
 acorn/ertictac.cpp
 acorn/ssfindo.cpp
@@ -650,6 +653,7 @@ misc/bingor.cpp
 misc/blitz68k.cpp
 misc/blocktax.cpp
 misc/bntyhunt.cpp
+misc/brglitz.cpp
 misc/buster.cpp
 misc/calomega.cpp
 misc/cardline.cpp
@@ -728,6 +732,7 @@ misc/fungames.cpp
 misc/funkball.cpp
 misc/galaxi.cpp
 misc/galgame.cpp
+misc/gameace.cpp
 misc/gambl186.cpp
 misc/gamemasters.cpp
 misc/gammagic.cpp

@@ -4028,7 +4028,7 @@ void toaplan2_state::enmadaio(machine_config &config)
 void toaplan2_state::snowbro2(machine_config &config)
 {
 	/* basic machine hardware */
-	M68000(config, m_maincpu, 16_MHz_XTAL);
+	M68000(config, m_maincpu, 32_MHz_XTAL/2);
 	m_maincpu->set_addrmap(AS_PROGRAM, &toaplan2_state::snowbro2_68k_mem);
 	m_maincpu->reset_cb().set(FUNC(toaplan2_state::toaplan2_reset));
 
@@ -4056,7 +4056,7 @@ void toaplan2_state::snowbro2(machine_config &config)
 
 	YM2151(config, "ymsnd", 27_MHz_XTAL/8).add_route(ALL_OUTPUTS, "mono", 0.5);
 
-	OKIM6295(config, m_oki[0], 27_MHz_XTAL/10, okim6295_device::PIN7_HIGH);
+	OKIM6295(config, m_oki[0], 16_MHz_XTAL/4, okim6295_device::PIN7_LOW);
 	m_oki[0]->add_route(ALL_OUTPUTS, "mono", 0.5);
 }
 
@@ -6108,7 +6108,7 @@ GAME( 1992, fixeightat,  fixeight, fixeight,   fixeight,   truxton2_state, init_
 GAME( 1992, fixeightut,  fixeight, fixeight,   fixeight,   truxton2_state, init_fixeight,   ROT270, "Toaplan (Taito license)", "FixEight (USA, Taito license)",                               MACHINE_SUPPORTS_SAVE )
 GAME( 1992, fixeightjt,  fixeight, fixeight,   fixeight,   truxton2_state, init_fixeight,   ROT270, "Toaplan (Taito license)", "FixEight - Jigoku no Eiyuu Densetsu (Japan, Taito license)",  MACHINE_SUPPORTS_SAVE )
 
-GAME( 1992, fixeightbl,  fixeight, fixeightbl, fixeightbl, truxton2_state, init_fixeightbl, ROT270,"bootleg", "FixEight (Korea, bootleg)", MACHINE_SUPPORTS_SAVE )
+GAME( 1992, fixeightbl,  fixeight, fixeightbl, fixeightbl, truxton2_state, init_fixeightbl, ROT270, "bootleg", "FixEight (Korea, bootleg)", MACHINE_SUPPORTS_SAVE )
 
 GAME( 1992, grindstm,    0,        vfive,      grindstm,   toaplan2_state, init_vfive,      ROT270, "Toaplan", "Grind Stormer",             MACHINE_SUPPORTS_SAVE )
 GAME( 1992, grindstma,   grindstm, vfive,      grindstma,  toaplan2_state, init_vfive,      ROT270, "Toaplan", "Grind Stormer (older set)", MACHINE_SUPPORTS_SAVE )

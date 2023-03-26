@@ -63,72 +63,69 @@ namespace {
 struct thread_context
 {
 private:
+	sol::state m_state;
 	std::string m_result;
 	std::mutex m_guard;
 	std::condition_variable m_sync;
+	bool m_busy = false;
 
 public:
-	bool m_busy = false;
 	bool m_yield = false;
 
-	bool start(char const *scr)
+	thread_context()
+	{
+		m_state.open_libraries();
+		m_state["package"]["preload"]["zlib"] = &luaopen_zlib;
+		m_state["package"]["preload"]["lfs"] = &luaopen_lfs;
+		m_state["package"]["preload"]["linenoise"] = &luaopen_linenoise;
+		m_state.set_function(
+				"yield",
+				[this] ()
+				{
+					std::unique_lock<std::mutex> yield_lock(m_guard);
+					m_result = m_state["status"];
+					m_yield = true;
+					m_sync.wait(yield_lock);
+					m_yield = false;
+				});
+	}
+
+	bool start(sol::this_state s, char const *scr)
 	{
 		std::unique_lock<std::mutex> caller_lock(m_guard);
 		if (m_busy)
 			return false;
 
-		std::string script(scr);
+		sol::load_result res = m_state.load(scr);
+		if (!res.valid())
+		{
+			sol::error err = res;
+			luaL_error(s, err.what());
+			return false; // unreachable - luaL_error throws
+		}
+
 		std::thread th(
-				[this, script = std::string(scr)] ()
+				[this, func = res.get<sol::protected_function>()] ()
 				{
-					sol::state thstate;
-					thstate.open_libraries();
-					thstate["package"]["preload"]["zlib"] = &luaopen_zlib;
-					thstate["package"]["preload"]["lfs"] = &luaopen_lfs;
-					thstate["package"]["preload"]["linenoise"] = &luaopen_linenoise;
-					sol::load_result res = thstate.load(script);
-					std::unique_lock<std::mutex> result_lock(m_guard, std::defer_lock);
-					if (res.valid())
+					auto ret = func();
+					std::unique_lock<std::mutex> result_lock(m_guard);
+					if (ret.valid())
 					{
-						sol::protected_function func = res.get<sol::protected_function>();
-						thstate.set_function(
-								"yield",
-								[this, &thstate]()
-								{
-									std::unique_lock<std::mutex> yield_lock(m_guard);
-									m_result = thstate["status"];
-									m_yield = true;
-									m_sync.wait(yield_lock);
-									m_yield = false;
-									thstate["status"] = m_result;
-								});
-						auto ret = func();
-						result_lock.lock();
-						if (ret.valid())
-						{
-							auto result = ret.get<std::optional<char const *> >();
-							if (!result)
-								osd_printf_error("[LUA ERROR] in thread: return value must be string\n");
-							else if (!*result)
-								m_result.clear();
-							else
-								m_result = *result;
-						}
+						auto result = ret.get<std::optional<char const *> >();
+						if (!result)
+							osd_printf_error("[LUA ERROR] in thread: return value must be string\n");
+						else if (!*result)
+							m_result.clear();
 						else
-						{
-							sol::error err = ret;
-							osd_printf_error("[LUA ERROR] in thread: %s\n", err.what());
-						}
+							m_result = *result;
 					}
 					else
 					{
-						result_lock.lock();
-						sol::error err = res;
-						osd_printf_error("[LUA ERROR] when loading script for thread: %s\n", err.what());
+						sol::error err = ret;
+						osd_printf_error("[LUA ERROR] in thread: %s\n", err.what());
 					}
-					assert(result_lock);
 					m_busy = false;
-			});
+				});
 		m_busy = true;
 		m_yield = false;
 		th.detach(); // FIXME: this is unsafe as the thread function modifies members of the object
@@ -141,9 +138,9 @@ public:
 		if (m_yield)
 		{
 			if (val)
-				m_result = val;
+				m_state["status"] = val;
 			else
-				m_result.clear();
+				m_state["status"] = sol::lua_nil;
 			m_sync.notify_all();
 		}
 	}
@@ -155,6 +152,11 @@ public:
 			return "";
 		else
 			return m_result.c_str();
+	}
+
+	bool busy() const
+	{
+		return m_busy;
 	}
 };
 
@@ -460,11 +462,11 @@ static std::string process_snapshot_filename(running_machine &machine, const cha
 lua_engine::lua_engine()
 {
 	m_machine = nullptr;
-	m_lua_state = luaL_newstate();  /* create state */
+	m_lua_state = luaL_newstate();  // create state
 	m_sol_state = std::make_unique<sol::state_view>(m_lua_state); // create sol view
 
 	luaL_checkversion(m_lua_state);
-	lua_gc(m_lua_state, LUA_GCSTOP, 0);  /* stop collector during initialization */
+	lua_gc(m_lua_state, LUA_GCSTOP, 0);  // stop collector during initialization
 	sol().open_libraries();
 
 	// Get package.preload so we can store builtins in it.
@@ -590,7 +592,7 @@ bool lua_engine::execute_function(const char *id)
 {
 	size_t count = enumerate_functions(
 			id,
-			[] (const sol::protected_function &func)
+			[this] (const sol::protected_function &func)
 			{
 				auto ret = invoke(func);
 				if (!ret.valid())
@@ -644,12 +646,12 @@ void lua_engine::on_machine_resume()
 
 void lua_engine::on_machine_frame()
 {
-	execute_function("LUA_ON_FRAME");
-}
+	std::vector<int> tasks = std::move(m_frame_tasks);
+	m_frame_tasks.clear();
+	for (int ref : tasks)
+		resume(ref);
 
-void lua_engine::on_frame_done()
-{
-	execute_function("LUA_ON_FRAME_DONE");
+	execute_function("LUA_ON_FRAME");
 }
 
 void lua_engine::on_sound_update()
@@ -667,7 +669,7 @@ bool lua_engine::on_missing_mandatory_image(const std::string &instance_name)
 	bool handled = false;
 	enumerate_functions(
 			"LUA_ON_MANDATORY_FILE_MANAGER_OVERRIDE",
-			[&instance_name, &handled] (const sol::protected_function &func)
+			[this, &instance_name, &handled] (const sol::protected_function &func)
 			{
 				auto ret = invoke(func, instance_name);
 
@@ -816,7 +818,7 @@ void lua_engine::initialize()
 		{
 			mame_ui_manager &mui = mame_machine_manager::instance()->ui();
 			render_container &container = machine().render().ui_container();
-			ui::menu_plugin::show_menu(mui, container, (char *)name);
+			ui::menu_plugin::show_menu(mui, container, name);
 		};
 	emu["register_callback"] =
 		[this] (sol::function cb, const std::string &name)
@@ -839,17 +841,46 @@ void lua_engine::initialize()
 				return sol::lua_nil;
 			return sol::make_object(s, driver_list::driver(i));
 		};
-	emu["wait"] = lua_CFunction(
-			[] (lua_State *L)
+	emu["wait"] = sol::yielding(
+			[this] (sol::this_state s, sol::object arg)
 			{
-				lua_engine *engine = mame_machine_manager::instance()->lua();
-				luaL_argcheck(L, lua_isnumber(L, 1), 1, "waiting duration expected");
-				int ret = lua_pushthread(L);
+				attotime duration;
+				if (!arg)
+				{
+					luaL_error(s, "waiting duration expected");
+				}
+				else if (arg.is<attotime>())
+				{
+					duration = arg.as<attotime>();
+				}
+				else
+				{
+					auto seconds = arg.as<std::optional<double> >();
+					if (!seconds)
+						luaL_error(s, "waiting duration must be attotime or number");
+					duration = attotime::from_double(*seconds);
+				}
+				int const ret = lua_pushthread(s);
 				if (ret == 1)
-					return luaL_error(L, "cannot wait from outside coroutine");
-				int ref = luaL_ref(L, LUA_REGISTRYINDEX);
-				engine->machine().scheduler().timer_set(attotime::from_double(lua_tonumber(L, 1)), timer_expired_delegate(FUNC(lua_engine::resume), engine), ref);
-				return lua_yield(L, 0);
+					luaL_error(s, "cannot wait from outside coroutine");
+				int const ref = luaL_ref(s, LUA_REGISTRYINDEX);
+				machine().scheduler().timer_set(duration, timer_expired_delegate(FUNC(lua_engine::resume), this), ref);
+			});
+	emu["wait_next_update"] = sol::yielding(
+			[this] (sol::this_state s)
+			{
+				int const ret = lua_pushthread(s);
+				if (ret == 1)
+					luaL_error(s, "cannot wait from outside coroutine");
+				m_update_tasks.emplace_back(luaL_ref(s, LUA_REGISTRYINDEX));
+			});
+	emu["wait_next_frame"] = sol::yielding(
+			[this] (sol::this_state s)
+			{
+				int const ret = lua_pushthread(s);
+				if (ret == 1)
+					luaL_error(s, "cannot wait from outside coroutine");
+				m_frame_tasks.emplace_back(luaL_ref(s, LUA_REGISTRYINDEX));
 			});
 	emu["lang_translate"] = sol::overload(
 			static_cast<char const *(*)(char const *)>(&lang_translate),
@@ -1019,16 +1050,16 @@ void lua_engine::initialize()
  *                     thread runs until yield() and/or terminates on return.
  * thread:continue(val) - resume thread that has yielded and pass val to it
  *
- * thread.result - get result of a terminated thread as string
- * thread.busy - check if thread is running
- * thread.yield - check if thread is yielded
+ * thread.result - get result of a terminated or yielding thread as string
+ * thread.busy - check if thread is running or yielding
+ * thread.yield - check if thread is yielding
  */
 
 	auto thread_type = emu.new_usertype<thread_context>("thread", sol::call_constructor, sol::constructors<sol::types<>>());
 	thread_type.set_function("start", &thread_context::start);
 	thread_type.set_function("continue", &thread_context::resume);
 	thread_type["result"] = sol::property(&thread_context::result);
-	thread_type["busy"] = sol::readonly(&thread_context::m_busy);
+	thread_type["busy"] = sol::property(&thread_context::busy);
 	thread_type["yield"] = sol::readonly(&thread_context::m_yield);
 
 
@@ -1938,6 +1969,7 @@ void lua_engine::initialize()
 	ui_type["options"] = sol::property([] (mame_ui_manager &m) { return static_cast<core_options *>(&m.options()); });
 	ui_type["line_height"] = sol::property([] (mame_ui_manager &m) { return m.get_line_height(); });
 	ui_type["menu_active"] = sol::property(&mame_ui_manager::is_menu_active);
+	ui_type["ui_active"] = sol::property(&mame_ui_manager::ui_active, &mame_ui_manager::set_ui_active);
 	ui_type["single_step"] = sol::property(&mame_ui_manager::single_step, &mame_ui_manager::set_single_step);
 	ui_type["show_fps"] = sol::property(&mame_ui_manager::show_fps, &mame_ui_manager::set_show_fps);
 	ui_type["show_profiler"] = sol::property(&mame_ui_manager::show_profiler, &mame_ui_manager::set_show_profiler);
@@ -2009,6 +2041,11 @@ void lua_engine::initialize()
 //-------------------------------------------------
 bool lua_engine::frame_hook()
 {
+	std::vector<int> tasks = std::move(m_update_tasks);
+	m_update_tasks.clear();
+	for (int ref : tasks)
+		resume(ref);
+
 	return execute_function("LUA_ON_FRAME_DONE");
 }
 
@@ -2018,6 +2055,9 @@ bool lua_engine::frame_hook()
 
 void lua_engine::close()
 {
+	m_menu.clear();
+	m_update_tasks.clear();
+	m_frame_tasks.clear();
 	m_sol_state.reset();
 	if (m_lua_state)
 	{
@@ -2034,7 +2074,7 @@ void lua_engine::resume(int nparam)
 	lua_pop(m_lua_state, 1);
 	int nresults = 0;
 	int stat = lua_resume(L, nullptr, 0, &nresults);
-	if((stat != LUA_OK) && (stat != LUA_YIELD))
+	if ((stat != LUA_OK) && (stat != LUA_YIELD))
 	{
 		osd_printf_error("[LUA ERROR] in resume: %s\n", lua_tostring(L, -1));
 		lua_pop(L, 1);

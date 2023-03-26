@@ -2,7 +2,7 @@
 // copyright-holders:R. Belmont
 /***************************************************************************
 
-  macpci.cpp: Apple/Bandai Pippin
+  pippin.cpp: Apple/Bandai Pippin
   Preliminary driver by R. Belmont (based on pippin.c skeleton by Angelo Salese)
 
   Apple ASICs identified:
@@ -171,7 +171,7 @@ void macpci_state::pippin(machine_config &config)
 	RAM(config, m_ram);
 	m_ram->set_default_size("32M");
 
-	grandcentral_device &grandcentral(GRAND_CENTRAL(config, "pci:05.0", 0));
+	grandcentral_device &grandcentral(GRAND_CENTRAL(config, "pci:0d.0", 0));
 	grandcentral.set_maincpu_tag("maincpu");
 
 	MACADB(config, m_macadb, 15.6672_MHz_XTAL);

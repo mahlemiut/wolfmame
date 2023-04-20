@@ -36,20 +36,20 @@
 
     TODO:
 
-	- systest1600 failures
-		- CIO timer
-		- RTC (seconds advance too slowly)
-		- DMA
-	- bootpar writes console bauds without high order byte (9600=>128)
+    - systest1600 failures
+        - CIO timer
+        - RTC (seconds advance too slowly)
+        - DMA
+    - bootpar writes console bauds without high order byte (9600=>128)
     - loadsys1 core dump (/etc/mkfs -b 1024 -v 69000 /dev/sa40)
-	- crashes after reset
+    - crashes after reset
     - CIO
         - optimize timers!
     - connect RS-232 printer port
     - Z80 SCC/DART interrupt chain
     - [:2a:chb] - TX FIFO is full, discarding data
-		[:] SCC write 000003
-		[:2a:chb] void z80scc_channel::data_write(uint8_t): Data Register Write: 17 ' '
+        [:] SCC write 000003
+        [:2a:chb] void z80scc_channel::data_write(uint8_t): Data Register Write: 17 ' '
 
 */
 
@@ -364,9 +364,9 @@ void abc1600_state::fw0_w(uint8_t data)
 	// drive select
 	floppy_image_device *floppy = nullptr;
 
-	if (BIT(data, 0)) floppy = m_floppy0->get_device();
-	if (BIT(data, 1)) floppy = m_floppy1->get_device();
-	if (BIT(data, 2)) floppy = m_floppy2->get_device();
+	for (int n = 0; n < 3; n++)
+		if (BIT(data, n))
+			floppy = m_floppy[n]->get_device();
 
 	m_fdc->set_floppy(floppy);
 
@@ -1025,9 +1025,9 @@ void abc1600_state::abc1600(machine_config &config)
 	m_fdc->intrq_wr_callback().set(m_cio, FUNC(z8536_device::pb7_w));
 	m_fdc->drq_wr_callback().set(FUNC(abc1600_state::update_drdy0));
 
-	FLOPPY_CONNECTOR(config, SAB1797_02P_TAG":0", abc1600_floppies, nullptr, abc1600_state::floppy_formats).enable_sound(true);
-	FLOPPY_CONNECTOR(config, SAB1797_02P_TAG":1", abc1600_floppies, nullptr, abc1600_state::floppy_formats).enable_sound(true);
-	FLOPPY_CONNECTOR(config, SAB1797_02P_TAG":2", abc1600_floppies, "525qd", abc1600_state::floppy_formats).enable_sound(true);
+	FLOPPY_CONNECTOR(config, m_floppy[0], abc1600_floppies, nullptr, abc1600_state::floppy_formats).enable_sound(true);
+	FLOPPY_CONNECTOR(config, m_floppy[1], abc1600_floppies, nullptr, abc1600_state::floppy_formats).enable_sound(true);
+	FLOPPY_CONNECTOR(config, m_floppy[2], abc1600_floppies, "525qd", abc1600_state::floppy_formats).enable_sound(true);
 
 	ABCBUS_SLOT(config, m_bus0i, 64_MHz_XTAL / 16, abc1600bus_cards, nullptr);
 	m_bus0i->irq_callback().set(m_cio, FUNC(z8536_device::pa7_w));

@@ -144,6 +144,7 @@ const double XTAL::known_xtals[] = {
 	  7'159'090, /* 7.15909_MHz_XTAL       Blood Bros (2x NTSC subcarrier) */
 	  7'200'000, /* 7.2_MHz_XTAL           Novag Constellation (later models, with /2 divider), Kawai K1 keyscan IC */
 	  7'372'800, /* 7.3728_MHz_XTAL        - */
+	  7'680'000, /* 7.68_MHz_XTAL          Psion Series 3 */
 	  7'864'300, /* 7.8643_MHz_XTAL        Used on InterFlip games as video clock */
 	  7'987'000, /* 7.987_MHz_XTAL         PC9801-86 YM2608 clock */
 	  7'995'500, /* 7.9955_MHz_XTAL        Used on Electronic Devices Italy Galaxy Gunners sound board */
@@ -240,6 +241,7 @@ const double XTAL::known_xtals[] = {
 	 14'742'800, /* 14.7428_MHz_XTAL       ADM 23 */
 	 14'745'000, /* 14.745_MHz_XTAL        Synertek KTM-3 */
 	 14'745'600, /* 14.7456_MHz_XTAL       Namco System 12 & System Super 22/23 for JVS */
+	 14'746'000, /* 14.746_MHz_XTAL        Namco System 10 MGEXIO */
 	 14'784'000, /* 14.784_MHz_XTAL        Zenith Z-29 */
 	 14'916'000, /* 14.916_MHz_XTAL        ADDS Viewpoint 122 */
 	 14'976'000, /* 14.976_MHz_XTAL        CIT-101 80-column display clock */

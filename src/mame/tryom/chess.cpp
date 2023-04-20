@@ -269,7 +269,7 @@ void chess_state::tchess(machine_config &config)
 
 ROM_START( tchess )
 	ROM_REGION( 0x0800, "maincpu", 0 )
-	ROM_LOAD("sl90453", 0x0000, 0x0800, CRC(f7fbe9b0) SHA1(d79ae43acfdf733908bc57b1fcca2563a2fdf48e) )
+	ROM_LOAD("sl90453", 0x0000, 0x0800, CRC(f7fbe9b0) SHA1(d79ae43acfdf733908bc57b1fcca2563a2fdf48e) ) // 3870X-0453
 ROM_END
 
 } // anonymous namespace
@@ -281,4 +281,4 @@ ROM_END
 *******************************************************************************/
 
 //    YEAR  NAME     PARENT  COMPAT  MACHINE  INPUT   CLASS        INIT        COMPANY, FULLNAME, FLAGS
-CONS( 1981, tchess,  0,      0,      tchess,  tchess, chess_state, empty_init, "Tryom", "Electronic Chess (Tryom)", MACHINE_SUPPORTS_SAVE | MACHINE_CLICKABLE_ARTWORK )
+SYST( 1981, tchess,  0,      0,      tchess,  tchess, chess_state, empty_init, "Tryom", "Electronic Chess (Tryom)", MACHINE_SUPPORTS_SAVE | MACHINE_CLICKABLE_ARTWORK )

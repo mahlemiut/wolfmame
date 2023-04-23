@@ -5,11 +5,9 @@ RECFILE="$2"
 shift;shift
 
 mv "$HOME/.mame/cfg/$GAME.cfg"{,~} 2> /dev/null
-mv "$HOME/.mame/nvram/$GAME"{,~} 2> /dev/null
 mv "$HOME/.mame/diff/$GAME.dif"{,~} 2> /dev/null
 
 ./mame "$GAME" -record "$RECFILE.inp" -noplugin hiscore -nvram_directory /dev/null "$@"
 
 mv "$HOME/.mame/cfg/$GAME.cfg"{~,} 2> /dev/null
-mv "$HOME/.mame/nvram/$GAME"{~,} 2> /dev/null
 mv "$HOME/.mame/diff/$GAME.dif"{~,} 2> /dev/null

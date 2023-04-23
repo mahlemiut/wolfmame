@@ -1,6 +1,4 @@
-#!/bin/sh
-# the next line restarts using wish \
-exec wish "$0" "$@"
+#!/usr/bin/env wish
 
 # set up window
 wm title . "Basic MARP GUI"

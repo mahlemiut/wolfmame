@@ -75,6 +75,7 @@ on Joerg Woerner's datamath.org: http://www.datamath.org/IC_List.htm
  *MP0121   TMS1000   1979, Waddingtons Compute-A-Tune
  @MP0154   TMS1000   1979, Fonas 2 Player Baseball
  @MP0158   TMS1000   1979, Entex Soccer (6003)
+ @MP0159   TMS1000   1979, Tomy Volleyball
  @MP0163   TMS1000   1979, A-One LSI Match Number/LJN Electronic Concentration
  @MP0166   TMS1000   1980, A-One Arrange Ball/LJN Computer Impulse/Tandy Zingo (model 60-2123)
  @MP0168   TMS1000   1979, Conic Multisport/Tandy Sports Arena (model 60-2158)
@@ -134,7 +135,7 @@ on Joerg Woerner's datamath.org: http://www.datamath.org/IC_List.htm
  @MP3206   TMS1000   1978, Concept 2000 Mr. Mus-I-Cal (model 560)
  @MP3207   TMS1000   1978, Concept 2000 Lite 'n Learn: Electronic Organ (model 554)
  @MP3208   TMS1000   1978, Milton Bradley Electronic Battleship (1977, model 4750B)
- *MP3209   TMS1000   1978, Kenner Star Wars: Electronic Laser Battle Game
+ @MP3209   TMS1000   1978, Kenner Star Wars: Electronic Laser Battle Game
  @MP3226   TMS1000   1978, Milton Bradley Simon (Rev A)
  *MP3228   TMS1000   1979, Texas Instruments OEM melody chip
  *MP3232   TMS1000   1979, Fonas 2 Player Baseball (no "MP" on chip label)
@@ -157,6 +158,7 @@ on Joerg Woerner's datamath.org: http://www.datamath.org/IC_List.htm
  @MP3415   TMS1100   1978, Coleco Electronic Quarterback
  @MP3435   TMS1100   1979, Coleco Zodiac
  @MP3438A  TMS1100   1979, Kenner Star Wars: Electronic Battle Command Game
+  MP3447   TMS1100   1982, Texas Instruments Les Maths Magiques -> ti/snspellc.cpp
   MP3450A  TMS1100   1979, Microvision cartridge: Block Buster
   MP3454   TMS1100   1979, Microvision cartridge: Star Trek Phaser Strike
   MP3455   TMS1100   1980, Microvision cartridge: Pinball
@@ -167,6 +169,7 @@ on Joerg Woerner's datamath.org: http://www.datamath.org/IC_List.htm
  @MP3476   TMS1100   1979, Milton Bradley Super Simon
   MP3479   TMS1100   1980, Microvision cartridge: Baseball
   MP3481   TMS1100   1979, Microvision cartridge: Connect Four
+ *MP3487   TMS1100   1980, Lakeside Strobe
  @MP3489   TMS1100   1980, Kenner Live Action Football
  @MP3491   TMS1100   1979, Mattel Thoroughbred Horse Race Analyzer
  *MP3493   TMS1100   1980, Milton Bradley OMNI Entertainment System (1/2)
@@ -322,6 +325,7 @@ on Joerg Woerner's datamath.org: http://www.datamath.org/IC_List.htm
 #include "ssimon.lh" // clickable
 #include "ssports4.lh"
 #include "starwbc.lh" // clickable
+#include "starwlb.lh" // clickable
 #include "stopthief.lh" // clickable
 #include "subwars.lh"
 #include "t3in1sa.lh"
@@ -341,6 +345,7 @@ on Joerg Woerner's datamath.org: http://www.datamath.org/IC_List.htm
 #include "timaze.lh"
 #include "tisr16.lh"
 #include "tithermos.lh"
+#include "tmvolleyb.lh" // clickable
 #include "vclock3.lh"
 #include "wizatron.lh"
 #include "xl25.lh" // clickable
@@ -381,13 +386,13 @@ protected:
 	output_finder<> m_out_power; // power state, eg. led
 
 	// misc common
-	u32 m_r = 0U;                        // MCU R-pins data
-	u16 m_o = 0U;                        // MCU O-pins data
-	u32 m_inp_mux = 0U;                  // multiplexed inputs mask
+	u32 m_r = 0U;            // MCU R-pins data
+	u16 m_o = 0U;            // MCU O-pins data
+	u32 m_inp_mux = 0U;      // multiplexed inputs mask
 	bool m_power_on = false;
 
-	u32 m_grid = 0U;                     // VFD/LED current row data
-	u32 m_plate = 0U;                    // VFD/LED current column data
+	u32 m_grid = 0U;         // VFD/LED current row data
+	u32 m_plate = 0U;        // VFD/LED current column data
 
 	u8 read_inputs(int columns);
 	u8 read_rotated_inputs(int columns, u8 rowmask = 0xf);
@@ -422,7 +427,9 @@ void hh_tms1k_state::machine_reset()
 
 
 /*******************************************************************************
-    Helper Functions
+
+  Helper Functions
+
 *******************************************************************************/
 
 // generic input handlers
@@ -433,7 +440,7 @@ u8 hh_tms1k_state::read_inputs(int columns)
 
 	// read selected input rows
 	for (int i = 0; i < columns; i++)
-		if (m_inp_mux >> i & 1)
+		if (BIT(m_inp_mux, i))
 			ret |= m_inputs[i]->read();
 
 	return ret;
@@ -500,7 +507,9 @@ void hh_tms1k_state::set_power(bool state)
 
 
 /*******************************************************************************
-    Minidrivers (subclass, I/O, Inputs, Machine Config, ROM Defs)
+
+  Minidrivers (subclass, I/O, Inputs, Machine Config, ROM Defs)
+
 *******************************************************************************/
 
 /*******************************************************************************
@@ -2146,7 +2155,7 @@ ROM_END
 /*******************************************************************************
 
   Coleco Electronic Quarterback (model 2120)
-  * TMS1100NLL MP3415 (die label same)
+  * TMS1100NLL MP3415 (die label: 1100B, MP3415)
   * 9-digit LED grid, 1-bit sound
 
   known releases:
@@ -2275,7 +2284,7 @@ ROM_END
 /*******************************************************************************
 
   Coleco Head to Head: Electronic Football (model 2140)
-  * TMS1100NLLE (rev. E!) MP3460 (die label same)
+  * TMS1100NLLE (rev. E!) MP3460 (die label: 1100E, MP3460)
   * 2*SN75492N LED display drivers, 9-digit LED grid, 1-bit sound
 
   LED electronic football game. To distinguish between offense and defense,
@@ -2947,7 +2956,7 @@ DEVICE_IMAGE_LOAD_MEMBER(quizwizc_state::cart_load)
 	m_pinout = bitswap<8>(m_pinout,4,3,7,5,2,1,6,0) << 4;
 
 	if (m_pinout == 0)
-		return std::make_pair(image_error::BADSOFTWARE, "Invalid cartridge pinout\n");
+		return std::make_pair(image_error::BADSOFTWARE, "Invalid cartridge pinout");
 
 	return std::make_pair(std::error_condition(), std::string());
 }
@@ -3130,7 +3139,7 @@ void tc4_state::machine_start()
 DEVICE_IMAGE_LOAD_MEMBER(tc4_state::cart_load)
 {
 	if (!image.loaded_through_softlist())
-		return std::make_pair(image_error::UNSUPPORTED, "Can only load through software list\n");
+		return std::make_pair(image_error::UNSUPPORTED, "Can only load through software list");
 
 	// get cartridge pinout R9 to K connections
 	const char *pinout = image.get_feature("pinout");
@@ -3687,7 +3696,7 @@ ROM_END
 
   Conic Electronic Multisport
   * PCB label: CONIC 101-027(1979), or CONIC 101-021 REV A(1980, with DS8871N)
-  * TMS1000 MP0168 (die label same)
+  * TMS1000 MP0168 (die label: 1000B, MP0168)
   * 2 7seg LEDs, 33 other LEDs, 1-bit sound
 
   This handheld includes 3 games: Basketball, Ice Hockey, Soccer.
@@ -3817,7 +3826,7 @@ ROM_END
 /*******************************************************************************
 
   Conic Electronic Football
-  * TMS1000 MP0170 (die label same)
+  * TMS1000 MP0170 (die label: 1000B, MP0170)
   * DS8874N, 3*9 LED array, 7 7seg LEDs, 1-bit sound
 
   This is a clone of Mattel Football. Apparently Mattel tried to keep imports
@@ -4248,8 +4257,9 @@ ROM_END
 /*******************************************************************************
 
   Electroplay Quickfire
-  * TMS1000NLL MP3260 (die label same)
-  * 2 7seg LEDs, 5 lamps, 3 lightsensors, lightgun
+  * TMS1000NLL MP3260 (die label: 1000C, MP3260)
+  * 2 7seg LEDs, 5 lamps, 1-bit sound
+  * 3 lightsensors, lightgun
 
   To play it in MAME, either use the clickable artwork with -mouse, or set
   button 1 to "Z or X or C" and each lightsensor to one of those keys.
@@ -4283,7 +4293,7 @@ void qfire_state::write_r(u32 data)
 	m_display->write_row(2, (data >> 3 & 3) | (data >> 4 & 0x1c));
 
 	// R9: speaker out
-	m_speaker->level_w(data >> 9 & 1);
+	m_speaker->level_w(BIT(data, 9));
 }
 
 void qfire_state::write_o(u16 data)
@@ -7249,6 +7259,120 @@ ROM_END
 
 /*******************************************************************************
 
+  Star Wars: Electronic Laser Battle Game (model 40090)
+  * TMS1000NLL MP3209 (die label: 1000C, MP3209)
+  * 12 LEDs, 1 lamp, 1-bit sound
+
+  known releases:
+  - USA: Star Wars: Electronic Laser Battle Game, published by Kenner
+  - France: La Guerre des Etoiles: Bataille Spatiale Électronique, published by Meccano
+
+*******************************************************************************/
+
+class starwlb_state : public hh_tms1k_state
+{
+public:
+	starwlb_state(const machine_config &mconfig, device_type type, const char *tag) :
+		hh_tms1k_state(mconfig, type, tag)
+	{ }
+
+	void starwlb(machine_config &config);
+
+private:
+	void update_display();
+	void write_r(u32 data);
+	void write_o(u16 data);
+	u8 read_k();
+};
+
+// handlers
+
+void starwlb_state::update_display()
+{
+	m_display->matrix(1, (m_r & 0x7ff) | (m_o << 4 & 0x800) | (m_o << 10 & 0x1000));
+}
+
+void starwlb_state::write_r(u32 data)
+{
+	// R0-R10: leds
+	m_r = data;
+	update_display();
+}
+
+void starwlb_state::write_o(u16 data)
+{
+	// O0,O1: input mux
+	m_inp_mux = data & 3;
+
+	// O3-O6(tied together): speaker out (actually only writes 0x0 or 0xf)
+	m_speaker->level_w(population_count_32(data >> 3 & 0xf));
+
+	// O2: lamp
+	// O7: one more led
+	m_o = data;
+	update_display();
+}
+
+u8 starwlb_state::read_k()
+{
+	// K: multiplexed inputs
+	return read_inputs(2);
+}
+
+// inputs
+
+static INPUT_PORTS_START( starwlb )
+	PORT_START("IN.0") // O0
+	PORT_BIT( 0x03, IP_ACTIVE_HIGH, IPT_UNUSED )
+	PORT_BIT( 0x04, IP_ACTIVE_HIGH, IPT_BUTTON2 ) PORT_NAME("P1 Button B")
+	PORT_BIT( 0x08, IP_ACTIVE_HIGH, IPT_BUTTON1 ) PORT_NAME("P1 Button F")
+
+	PORT_START("IN.1") // O1
+	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_BUTTON2 ) PORT_COCKTAIL PORT_NAME("P2 Button B")
+	PORT_BIT( 0x02, IP_ACTIVE_HIGH, IPT_BUTTON1 ) PORT_COCKTAIL PORT_NAME("P2 Button F")
+	PORT_BIT( 0x0c, IP_ACTIVE_HIGH, IPT_UNUSED )
+INPUT_PORTS_END
+
+// config
+
+void starwlb_state::starwlb(machine_config &config)
+{
+	// basic machine hardware
+	TMS1000(config, m_maincpu, 350000); // approximation - RC osc. R=33K, C=100pF
+	m_maincpu->read_k().set(FUNC(starwlb_state::read_k));
+	m_maincpu->write_r().set(FUNC(starwlb_state::write_r));
+	m_maincpu->write_o().set(FUNC(starwlb_state::write_o));
+
+	// video hardware
+	PWM_DISPLAY(config, m_display).set_size(1, 13);
+	config.set_default_layout(layout_starwlb);
+
+	// sound hardware
+	SPEAKER(config, "mono").front_center();
+	SPEAKER_SOUND(config, m_speaker);
+	static const double speaker_levels[5] = { 0.0, 1.0/4.0, 2.0/4.0, 3.0/4.0, 1.0 };
+	m_speaker->set_levels(5, speaker_levels);
+	m_speaker->add_route(ALL_OUTPUTS, "mono", 0.25);
+}
+
+// roms
+
+ROM_START( starwlb )
+	ROM_REGION( 0x0400, "maincpu", 0 )
+	ROM_LOAD( "mp3209", 0x0000, 0x0400, CRC(99628f9c) SHA1(5db191462521c4ae0b6955b31d5e8c6de65dd6a0) )
+
+	ROM_REGION( 867, "maincpu:mpla", 0 )
+	ROM_LOAD( "tms1000_common1_micro.pla", 0, 867, CRC(4becec19) SHA1(3c8a9be0f00c88c81f378b76886c39b10304f330) )
+	ROM_REGION( 365, "maincpu:opla", 0 )
+	ROM_LOAD( "tms1000_starwlb_output.pla", 0, 365, CRC(80a2d158) SHA1(8c74ca6af5d76425ff451bb5140a8dd2cfde850a) )
+ROM_END
+
+
+
+
+
+/*******************************************************************************
+
   Kenner Star Wars: Electronic Battle Command Game (model 40370)
   * TMS1100 MCU, label MP3438A (die label: 1100B, MP3438A)
   * 4x4 LED grid display + 2 separate LEDs and 2-digit 7segs, 1-bit sound
@@ -9425,7 +9549,7 @@ ROM_END
 /*******************************************************************************
 
   Milton Bradley Electronic Arcade Mania
-  * TMS1100 M34078A-N2LL (die label: 1100G, M34078A)
+  * TMS1100 M34078A-N2LL (die label: 1100G M34078A)
   * 9 LEDs, 3-bit sound
 
   This is a board game. The mini arcade machine is the emulated part here.
@@ -11598,13 +11722,12 @@ ROM_END
   * TMS5110AN2L-1 speech chip, 16KB VSM CM62088N2L
   * CD40114BE (4x16 RAM, battery-backed)
 
-  There's also an older version (BHP_8338A2 PCB, M34137N2, CM62074). It can
-  be identified by the missing (unpopulated) language switch.
+  There's also an older version (BHP_8338A2 PCB, M34137N2, CM62074). It can be
+  identified by the missing (unpopulated) language switch.
 
-  It has a normal mechanical scale hidden from view, with a quadrature
-  encoder. In MAME, it's simulated with a dial control. Turn it left to
-  increase pressure, right to decrease. After around 0.5s of inactivity,
-  it will tell your 'weight'.
+  It has a normal mechanical scale hidden from view, with a quadrature encoder.
+  In MAME, it's simulated with a dial control. Turn it left to increase pressure,
+  right to decrease. After around 0.5s of inactivity, it will tell your 'weight'.
 
 *******************************************************************************/
 
@@ -11726,7 +11849,7 @@ static INPUT_PORTS_START( wtalker )
 	PORT_BIT( 0x04, IP_ACTIVE_HIGH, IPT_KEYPAD ) PORT_CODE(KEYCODE_5) PORT_CODE(KEYCODE_5_PAD) PORT_NAME("5")
 
 	PORT_START("IN.1") // O5
-	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_KEYPAD ) PORT_CODE(KEYCODE_6) PORT_CODE(KEYCODE_6_PAD) PORT_NAME("Guest")
+	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_KEYPAD ) PORT_CODE(KEYCODE_0) PORT_CODE(KEYCODE_0_PAD) PORT_NAME("Guest")
 	PORT_BIT( 0x02, IP_ACTIVE_HIGH, IPT_KEYPAD ) PORT_CODE(KEYCODE_2) PORT_CODE(KEYCODE_2_PAD) PORT_NAME("2")
 	PORT_BIT( 0x04, IP_ACTIVE_HIGH, IPT_KEYPAD ) PORT_CODE(KEYCODE_1) PORT_CODE(KEYCODE_1_PAD) PORT_NAME("1")
 
@@ -14552,7 +14675,7 @@ void playmaker_state::machine_start()
 DEVICE_IMAGE_LOAD_MEMBER(playmaker_state::cart_load)
 {
 	if (!image.loaded_through_softlist())
-		return std::make_pair(image_error::UNSUPPORTED, "Can only load through software list\n");
+		return std::make_pair(image_error::UNSUPPORTED, "Can only load through software list");
 
 	// get cartridge notch
 	const char *notch = image.get_feature("notch");
@@ -15234,7 +15357,149 @@ ROM_END
 
 /*******************************************************************************
 
-  Tomy(tronics) Break Up (manufactured in Japan)
+  Tomy Volleyball
+  * TMS1000 MP0159 TOMY VOLLEY (die label: 1000B, MP0159)
+  * 2 7seg LEDs, 14 other LEDs, 1-bit sound
+
+*******************************************************************************/
+
+class tmvolleyb_state : public hh_tms1k_state
+{
+public:
+	tmvolleyb_state(const machine_config &mconfig, device_type type, const char *tag) :
+		hh_tms1k_state(mconfig, type, tag)
+	{ }
+
+	void tmvolleyb(machine_config &config);
+
+private:
+	void update_display();
+	void write_r(u32 data);
+	void write_o(u16 data);
+	u8 read_k();
+};
+
+// handlers
+
+void tmvolleyb_state::update_display()
+{
+	// O7 also selects left digit
+	m_display->matrix((m_o >> 7 & 1) | (m_r >> 3 & 0xe), m_o);
+}
+
+void tmvolleyb_state::write_r(u32 data)
+{
+	// R0-R3,R7-R9: input mux
+	m_inp_mux = (data & 0xf) | (data >> 3 & 0x70);
+
+	// R4-R6: led select
+	m_r = data;
+	update_display();
+
+	// R10: speaker out
+	m_speaker->level_w(BIT(data, 10));
+}
+
+void tmvolleyb_state::write_o(u16 data)
+{
+	// O0-O7: digit segment/led data
+	m_o = data;
+	update_display();
+}
+
+u8 tmvolleyb_state::read_k()
+{
+	// K: multiplexed inputs
+	return read_inputs(7);
+}
+
+// inputs
+
+static INPUT_PORTS_START( tmvolleyb )
+	PORT_START("IN.0") // R0
+	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_BUTTON1 ) PORT_COCKTAIL
+	PORT_BIT( 0x02, IP_ACTIVE_HIGH, IPT_BUTTON2 ) PORT_COCKTAIL
+	PORT_BIT( 0x04, IP_ACTIVE_HIGH, IPT_BUTTON3 ) PORT_COCKTAIL
+	PORT_BIT( 0x08, IP_ACTIVE_HIGH, IPT_UNUSED )
+
+	PORT_START("IN.1") // R1
+	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_BUTTON6 ) PORT_COCKTAIL
+	PORT_BIT( 0x02, IP_ACTIVE_HIGH, IPT_BUTTON5 ) PORT_COCKTAIL
+	PORT_BIT( 0x04, IP_ACTIVE_HIGH, IPT_BUTTON4 ) PORT_COCKTAIL
+	PORT_BIT( 0x08, IP_ACTIVE_HIGH, IPT_SELECT ) PORT_NAME("Score")
+
+	PORT_START("IN.2") // R2
+	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_BUTTON1 )
+	PORT_BIT( 0x02, IP_ACTIVE_HIGH, IPT_BUTTON2 )
+	PORT_BIT( 0x04, IP_ACTIVE_HIGH, IPT_BUTTON3 )
+	PORT_BIT( 0x08, IP_ACTIVE_HIGH, IPT_START2 ) PORT_NAME("P2 Serve")
+
+	PORT_START("IN.3") // R3
+	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_BUTTON6 )
+	PORT_BIT( 0x02, IP_ACTIVE_HIGH, IPT_BUTTON5 )
+	PORT_BIT( 0x04, IP_ACTIVE_HIGH, IPT_BUTTON4 )
+	PORT_BIT( 0x08, IP_ACTIVE_HIGH, IPT_START1 ) PORT_NAME("P1 Serve")
+
+	PORT_START("IN.4") // R7
+	PORT_BIT( 0x01, 0x01, IPT_CUSTOM ) PORT_CONDITION("IN.7", 0x01, EQUALS, 0x01) // Game 2
+	PORT_BIT( 0x0e, IP_ACTIVE_HIGH, IPT_UNUSED )
+
+	PORT_START("IN.5") // R8
+	PORT_BIT( 0x02, 0x02, IPT_CUSTOM ) PORT_CONDITION("IN.7", 0x01, EQUALS, 0x00) // Game 1
+	PORT_BIT( 0x0d, IP_ACTIVE_HIGH, IPT_UNUSED )
+
+	PORT_START("IN.6") // R9
+	PORT_BIT( 0x07, IP_ACTIVE_HIGH, IPT_UNUSED )
+	PORT_CONFNAME( 0x08, 0x08, DEF_STR( Players ) )
+	PORT_CONFSETTING(    0x08, "1" )
+	PORT_CONFSETTING(    0x00, "2" )
+
+	PORT_START("IN.7") // fake
+	PORT_CONFNAME( 0x01, 0x00, "Game" )
+	PORT_CONFSETTING(    0x00, "1" )
+	PORT_CONFSETTING(    0x01, "2" )
+INPUT_PORTS_END
+
+// config
+
+void tmvolleyb_state::tmvolleyb(machine_config &config)
+{
+	// basic machine hardware
+	TMS1000(config, m_maincpu, 325000); // approximation - RC osc. R=47K, C=47pF
+	m_maincpu->read_k().set(FUNC(tmvolleyb_state::read_k));
+	m_maincpu->write_r().set(FUNC(tmvolleyb_state::write_r));
+	m_maincpu->write_o().set(FUNC(tmvolleyb_state::write_o));
+
+	// video hardware
+	PWM_DISPLAY(config, m_display).set_size(4, 8);
+	m_display->set_segmask(3, 0x7f);
+	config.set_default_layout(layout_tmvolleyb);
+
+	// sound hardware
+	SPEAKER(config, "mono").front_center();
+	SPEAKER_SOUND(config, m_speaker);
+	m_speaker->add_route(ALL_OUTPUTS, "mono", 0.25);
+}
+
+// roms
+
+ROM_START( tmvolleyb )
+	ROM_REGION( 0x0400, "maincpu", 0 )
+	ROM_LOAD( "mp0159_tomy_volley", 0x0000, 0x0400, CRC(0088b0cc) SHA1(90f222d6a3bef7b27709ef2816c15867921a8d4c) )
+
+	ROM_REGION( 867, "maincpu:mpla", 0 )
+	ROM_LOAD( "tms1000_common2_micro.pla", 0, 867, CRC(d33da3cf) SHA1(13c4ebbca227818db75e6db0d45b66ba5e207776) )
+	ROM_REGION( 365, "maincpu:opla", 0 )
+	ROM_LOAD( "tms1000_tmvolleyb_output.pla", 0, 365, CRC(01af7efd) SHA1(d90656a7884b37c7fd49989f8d38dd376b74557b) )
+ROM_END
+
+
+
+
+
+/*******************************************************************************
+
+  Tomy Break Up (manufactured in Japan)
   * PCB label: TOMY B.O.
   * TMS1040 MP2726 TOMY WIPE (die label: 1040B, MP2726A)
   * TMS1025N2LL I/O expander
@@ -15385,8 +15650,8 @@ static INPUT_PORTS_START( tbreakup )
 
 	PORT_START("IN.3") // fake
 	PORT_CONFNAME( 0x01, 0x00, DEF_STR( Difficulty ) ) PORT_CHANGED_MEMBER(DEVICE_SELF, tbreakup_state, skill_switch, 0)
-	PORT_CONFSETTING(    0x00, "Pro 1" )
-	PORT_CONFSETTING(    0x01, "Pro 2" )
+	PORT_CONFSETTING(    0x00, "1" ) // PRO 1
+	PORT_CONFSETTING(    0x01, "2" ) // PRO 2
 INPUT_PORTS_END
 
 // config
@@ -15423,7 +15688,7 @@ void tbreakup_state::tbreakup(machine_config &config)
 
 ROM_START( tbreakup )
 	ROM_REGION( 0x0400, "maincpu", 0 )
-	ROM_LOAD( "mp2726a", 0x0000, 0x0400, CRC(1f7c28e2) SHA1(164cda4eb3f0b1d20955212a197c9aadf8d18a06) )
+	ROM_LOAD( "mp2726_tomy_wipe", 0x0000, 0x0400, CRC(1f7c28e2) SHA1(164cda4eb3f0b1d20955212a197c9aadf8d18a06) )
 
 	ROM_REGION( 867, "maincpu:mpla", 0 )
 	ROM_LOAD( "tms1000_common2_micro.pla", 0, 867, CRC(d33da3cf) SHA1(13c4ebbca227818db75e6db0d45b66ba5e207776) )
@@ -15558,7 +15823,7 @@ void phpball_state::phpball(machine_config &config)
 
 ROM_START( phpball )
 	ROM_REGION( 0x0800, "maincpu", 0 )
-	ROM_LOAD( "mp1180", 0x0000, 0x0800, CRC(2163b92d) SHA1(bc53d1911e88b4e89d951c6f769703105c13389c) )
+	ROM_LOAD( "mp1180_tomy_pinb", 0x0000, 0x0800, CRC(2163b92d) SHA1(bc53d1911e88b4e89d951c6f769703105c13389c) )
 
 	ROM_REGION( 867, "maincpu:mpla", 0 )
 	ROM_LOAD( "tms1100_common2_micro.pla", 0, 867, CRC(7cc90264) SHA1(c6e1cf1ffb178061da9e31858514f7cd94e86990) )
@@ -16345,7 +16610,9 @@ ROM_END
 } // anonymous namespace
 
 /*******************************************************************************
-    Game driver(s)
+
+  Game driver(s)
+
 *******************************************************************************/
 
 //    YEAR  NAME        PARENT     COMPAT  MACHINE    INPUT      CLASS            INIT        COMPANY, FULLNAME, FLAGS
@@ -16410,6 +16677,7 @@ SYST( 1981, fxmcr165,   0,         0,      fxmcr165,  fxmcr165,  fxmcr165_state,
 
 SYST( 1979, elecdet,    0,         0,      elecdet,   elecdet,   elecdet_state,   empty_init, "Ideal Toy Corporation", "Electronic Detective", MACHINE_SUPPORTS_SAVE ) // ***
 
+SYST( 1978, starwlb,    0,         0,      starwlb,   starwlb,   starwlb_state,   empty_init, "Kenner", "Star Wars: Electronic Laser Battle Game", MACHINE_SUPPORTS_SAVE | MACHINE_CLICKABLE_ARTWORK )
 SYST( 1979, starwbc,    0,         0,      starwbc,   starwbc,   starwbc_state,   empty_init, "Kenner", "Star Wars: Electronic Battle Command Game", MACHINE_SUPPORTS_SAVE | MACHINE_CLICKABLE_ARTWORK )
 SYST( 1979, starwbcp,   starwbc,   0,      starwbc,   starwbc,   starwbc_state,   empty_init, "Kenner", "Star Wars: Electronic Battle Command Game (patent)", MACHINE_SUPPORTS_SAVE | MACHINE_CLICKABLE_ARTWORK )
 SYST( 1980, liveafb,    0,         0,      liveafb,   liveafb,   liveafb_state,   empty_init, "Kenner", "Live Action Football", MACHINE_SUPPORTS_SAVE )
@@ -16484,6 +16752,7 @@ SYST( 1989, copycata,   copycat,   0,      copycata,  copycata,  copycata_state,
 SYST( 1981, ditto,      0,         0,      ditto,     ditto,     ditto_state,     empty_init, "Tiger Electronics", "Ditto", MACHINE_SUPPORTS_SAVE | MACHINE_CLICKABLE_ARTWORK )
 SYST( 1982, t7in1ss,    0,         0,      t7in1ss,   t7in1ss,   t7in1ss_state,   empty_init, "Tiger Electronics", "7 in 1 Sports Stadium", MACHINE_SUPPORTS_SAVE | MACHINE_REQUIRES_ARTWORK )
 
+SYST( 1979, tmvolleyb,  0,         0,      tmvolleyb, tmvolleyb, tmvolleyb_state, empty_init, "Tomy", "Volleyball (Tomy)", MACHINE_SUPPORTS_SAVE | MACHINE_CLICKABLE_ARTWORK )
 SYST( 1979, tbreakup,   0,         0,      tbreakup,  tbreakup,  tbreakup_state,  empty_init, "Tomy", "Break Up (Tomy)", MACHINE_SUPPORTS_SAVE )
 SYST( 1980, phpball,    0,         0,      phpball,   phpball,   phpball_state,   empty_init, "Tomy", "Power House Pinball", MACHINE_SUPPORTS_SAVE | MACHINE_REQUIRES_ARTWORK )
 

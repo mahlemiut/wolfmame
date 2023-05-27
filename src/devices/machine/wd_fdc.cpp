@@ -7,7 +7,6 @@
 
 #include "debugger.h"
 
-//#define LOG_GENERAL   (1U << 0) //defined in logmacro.h already
 #define LOG_SETUP   (1U << 1) // Shows register setup
 #define LOG_SHIFT   (1U << 2) // Shows shift register contents
 #define LOG_COMP    (1U << 3) // Shows operations on the CPU side
@@ -2047,7 +2046,7 @@ void wd_fdc_device_base::live_run(attotime limit)
 				//FM Prefix match
 				if(cur_live.shift_reg_low<17>() == 0xabd5) { // 17-bit match
 					cur_live.data_separator_phase = false;
-					cur_live.bit_counter = 5*2;	// prefix is 5 of 8 bits
+					cur_live.bit_counter = 5*2; // prefix is 5 of 8 bits
 					cur_live.data_reg = 0xff;
 					break;
 				} else if(cur_live.bit_counter == 16) {

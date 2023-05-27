@@ -93,9 +93,9 @@ ROM source notes when dumped from another title, but confident it's the same:
 #include "emu.h"
 
 #include "cpu/ucom4/ucom4.h"
-#include "video/pwm.h"
-#include "video/hlcd0515.h"
 #include "sound/spkrdev.h"
+#include "video/hlcd0515.h"
+#include "video/pwm.h"
 
 #include "screen.h"
 #include "speaker.h"
@@ -143,12 +143,12 @@ protected:
 	optional_ioport_array<6> m_inputs; // max 6
 
 	// misc common
-	u8 m_port[9] = { };             // MCU port A-I write data (optional)
-	u8 m_int = 0;                   // MCU INT pin state
-	u16 m_inp_mux = 0;              // multiplexed inputs mask
+	u8 m_port[9] = { }; // MCU port A-I write data (optional)
+	u8 m_int = 0;       // MCU INT pin state
+	u16 m_inp_mux = 0;  // multiplexed inputs mask
 
-	u32 m_grid = 0;                 // VFD current row data
-	u32 m_plate = 0;                // VFD current column data
+	u32 m_grid = 0;     // VFD current row data
+	u32 m_plate = 0;    // VFD current column data
 
 	u8 read_inputs(int columns);
 	void refresh_interrupts(void);
@@ -189,7 +189,9 @@ void hh_ucom4_state::machine_reset()
 
 
 /*******************************************************************************
-    Helper Functions
+
+  Helper Functions
+
 *******************************************************************************/
 
 // generic input handlers
@@ -200,7 +202,7 @@ u8 hh_ucom4_state::read_inputs(int columns)
 
 	// read selected input rows
 	for (int i = 0; i < columns; i++)
-		if (m_inp_mux >> i & 1)
+		if (BIT(m_inp_mux, i))
 			ret |= m_inputs[i]->read();
 
 	return ret;
@@ -234,7 +236,9 @@ INPUT_CHANGED_MEMBER(hh_ucom4_state::single_interrupt_line)
 
 
 /*******************************************************************************
-    Minidrivers (subclass, I/O, Inputs, Machine Config, ROM Defs)
+
+  Minidrivers (subclass, I/O, Inputs, Machine Config, ROM Defs)
+
 *******************************************************************************/
 
 /*******************************************************************************
@@ -2545,7 +2549,7 @@ ROM_END
 
 /*******************************************************************************
 
-  Tomy(tronic) Cosmic Combat (manufactured in Japan)
+  Tomy Cosmic Combat (manufactured in Japan)
   * PCB label: 2E1019-E01
   * NEC uCOM-44 MCU, label D552C 042
   * cyan VFD NEC FIP32AM18Y tube no. 0E, with blue window
@@ -2660,7 +2664,7 @@ ROM_END
 
 /*******************************************************************************
 
-  Tomy(tronic) Tennis (manufactured in Japan)
+  Tomy Tennis (manufactured in Japan)
   * PCB label: TOMY TN-04 TENNIS
   * NEC uCOM-44 MCU, label D552C 048
   * cyan VFD NEC FIP11AM15T tube no. 0F, with overlay
@@ -2834,7 +2838,7 @@ ROM_END
 
 /*******************************************************************************
 
-  Tomy(tronic) Pac-Man (manufactured in Japan)
+  Tomy Pac-Man (manufactured in Japan)
   * PCB label: TN-08 2E108E01
   * NEC uCOM-43 MCU, label D553C 160
   * cyan/red/green VFD NEC FIP8AM18T no. 2-21
@@ -2955,7 +2959,7 @@ ROM_END
 
 /*******************************************************************************
 
-  Tomy(tronic) Scramble (manufactured in Japan)
+  Tomy Scramble (manufactured in Japan)
   * PCB label: TN-10 2E114E01
   * NEC uCOM-43 MCU, label D553C 192
   * cyan/red/green VFD NEC FIP10CM20T no. 2-41
@@ -3071,7 +3075,7 @@ ROM_END
 
 /*******************************************************************************
 
-  Tomy(tronic) Caveman (manufactured in Japan)
+  Tomy Caveman (manufactured in Japan)
   * PCB label: TN-12 2E114E03
   * NEC uCOM-43 MCU, label D553C 209
   * cyan/red/green VFD NEC FIP8AM20T no. 2-42
@@ -3330,7 +3334,9 @@ ROM_END
 } // anonymous namespace
 
 /*******************************************************************************
-    Game driver(s)
+
+  Game driver(s)
+
 *******************************************************************************/
 
 //    YEAR  NAME      PARENT    COMPAT  MACHINE   INPUT     CLASS           INIT        COMPANY, FULLNAME, FLAGS

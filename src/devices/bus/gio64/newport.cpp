@@ -37,14 +37,14 @@
 #include "emu.h"
 #include "newport.h"
 
-#define LOG_UNKNOWN     (1 << 0)
-#define LOG_VC2         (1 << 1)
-#define LOG_CMAP        (1 << 2)
-#define LOG_XMAP        (1 << 4)
-#define LOG_REX3        (1 << 6)
-#define LOG_RAMDAC      (1 << 7)
-#define LOG_COMMANDS    (1 << 8)
-#define LOG_REJECTS     (1 << 9)
+#define LOG_UNKNOWN     (1U << 1)
+#define LOG_VC2         (1U << 2)
+#define LOG_CMAP        (1U << 3)
+#define LOG_XMAP        (1U << 4)
+#define LOG_REX3        (1U << 5)
+#define LOG_RAMDAC      (1U << 6)
+#define LOG_COMMANDS    (1U << 7)
+#define LOG_REJECTS     (1U << 8)
 #define LOG_ALL         (LOG_UNKNOWN | LOG_VC2 | LOG_CMAP | LOG_XMAP | LOG_REX3 | LOG_RAMDAC | LOG_COMMANDS | LOG_REJECTS)
 
 #define VERBOSE         (0)
@@ -2845,7 +2845,7 @@ void newport_base_device::do_fline(uint32_t color)
 		dy = temp_d;
 		break;
 	}
-	case 0:	// Pseudo 7
+	case 0: // Pseudo 7
 	{
 		const int16_t temp_fract = 0x10 - y1_fract;
 		y1_fract = x1_fract;

@@ -57,6 +57,18 @@ end
 
 --------------------------------------------------
 --
+--@src/devices/video/atirage.h,VIDEOS["ATIRAGE"] = true
+--------------------------------------------------
+
+if (VIDEOS["ATIRAGE"]~=null) then
+	files {
+		MAME_DIR .. "src/devices/video/atirage.cpp",
+		MAME_DIR .. "src/devices/video/atirage.h",
+	}
+end
+
+--------------------------------------------------
+--
 --@src/devices/video/bufsprite.h,VIDEOS["BUFSPRITE"] = true
 --------------------------------------------------
 
@@ -1478,5 +1490,17 @@ if (VIDEOS["X1_001"]~=null) then
 	files {
 		MAME_DIR .. "src/devices/video/x1_001.cpp",
 		MAME_DIR .. "src/devices/video/x1_001.h",
+	}
+end
+
+--------------------------------------------------
+--
+--@src/devices/video/zr36110.h,VIDEOS["ZR36110"] = true
+--------------------------------------------------
+
+if (VIDEOS["ZR36110"]~=null) then
+	files {
+		MAME_DIR .. "src/devices/video/zr36110.cpp",
+		MAME_DIR .. "src/devices/video/zr36110.h",
 	}
 end

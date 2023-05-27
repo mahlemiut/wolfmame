@@ -58,7 +58,6 @@ TODO:
 #include "emu.h"
 
 #include "cpu/pic16c5x/pic16c5x.h"
-#include "video/pwm.h"
 #include "machine/clock.h"
 #include "machine/input_merger.h"
 #include "machine/netlist.h"
@@ -66,6 +65,7 @@ TODO:
 #include "sound/dac.h"
 #include "sound/flt_vol.h"
 #include "sound/spkrdev.h"
+#include "video/pwm.h"
 
 #include "speaker.h"
 
@@ -114,12 +114,13 @@ protected:
 	optional_device<speaker_sound_device> m_speaker;
 	optional_ioport_array<6> m_inputs; // max 6
 
-	// misc common
-	u8 m_a = 0;                     // MCU port A write data
-	u8 m_b = 0;                     // " B
-	u8 m_c = 0;                     // " C
-	u8 m_d = 0;                     // " D
-	u16 m_inp_mux = ~0;             // multiplexed inputs mask
+	u16 m_inp_mux = ~0; // multiplexed inputs mask
+
+	// MCU output pin state
+	u8 m_a = 0;         // port A
+	u8 m_b = 0;         // port B
+	u8 m_c = 0;         // port C
+	u8 m_d = 0;         // port D
 
 	u16 read_inputs(int columns, u16 colmask = ~0);
 	u8 read_rotated_inputs(int columns, u8 rowmask = ~0);
@@ -132,11 +133,11 @@ protected:
 void hh_pic16_state::machine_start()
 {
 	// register for savestates
+	save_item(NAME(m_inp_mux));
 	save_item(NAME(m_a));
 	save_item(NAME(m_b));
 	save_item(NAME(m_c));
 	save_item(NAME(m_d));
-	save_item(NAME(m_inp_mux));
 }
 
 void hh_pic16_state::machine_reset()
@@ -147,7 +148,9 @@ void hh_pic16_state::machine_reset()
 
 
 /*******************************************************************************
-    Helper Functions
+
+  Helper Functions
+
 *******************************************************************************/
 
 // generic input handlers
@@ -159,7 +162,7 @@ u16 hh_pic16_state::read_inputs(int columns, u16 colmask)
 
 	// read selected input rows
 	for (int i = 0; i < columns; i++)
-		if (~m_inp_mux >> i & 1)
+		if (!BIT(m_inp_mux, i))
 			ret &= m_inputs[i]->read();
 
 	return ret;
@@ -201,7 +204,9 @@ void hh_pic16_state::set_power(bool state)
 
 
 /*******************************************************************************
-    Minidrivers (subclass, I/O, Inputs, Machine Config, ROM Defs)
+
+  Minidrivers (subclass, I/O, Inputs, Machine Config, ROM Defs)
+
 *******************************************************************************/
 
 /*******************************************************************************
@@ -2188,7 +2193,9 @@ ROM_END
 } // anonymous namespace
 
 /*******************************************************************************
-    Game driver(s)
+
+  Game driver(s)
+
 *******************************************************************************/
 
 //    YEAR  NAME       PARENT   COMPAT  MACHINE    INPUT      CLASS            INIT        COMPANY, FULLNAME, FLAGS

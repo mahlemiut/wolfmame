@@ -93,7 +93,12 @@ tms1k_base_device::tms1k_base_device(const machine_config &mconfig, device_type 
 	m_decode_micro(*this)
 { }
 
-// disasm
+
+
+//-------------------------------------------------
+//  disasm
+//-------------------------------------------------
+
 void tms1k_base_device::state_string_export(const device_state_entry &entry, std::string &str) const
 {
 	switch (entry.index())
@@ -116,6 +121,7 @@ void tms1k_base_device::state_string_export(const device_state_entry &entry, std
 			break;
 	}
 }
+
 
 
 //-------------------------------------------------
@@ -242,14 +248,6 @@ void tms1k_base_device::device_start()
 	set_icountptr(m_icount);
 }
 
-device_memory_interface::space_config_vector tms1k_base_device::memory_space_config() const
-{
-	return space_config_vector {
-		std::make_pair(AS_PROGRAM, &m_program_config),
-		std::make_pair(AS_DATA,    &m_data_config)
-	};
-}
-
 
 
 //-------------------------------------------------
@@ -290,6 +288,14 @@ void tms1k_base_device::device_reset()
 //-------------------------------------------------
 //  common internal memory maps
 //-------------------------------------------------
+
+device_memory_interface::space_config_vector tms1k_base_device::memory_space_config() const
+{
+	return space_config_vector {
+		std::make_pair(AS_PROGRAM, &m_program_config),
+		std::make_pair(AS_DATA,    &m_data_config)
+	};
+}
 
 void tms1k_base_device::rom_10bit(address_map &map)
 {
@@ -598,9 +604,9 @@ void tms1k_base_device::op_tpc()
 //  execute
 //-------------------------------------------------
 
-void tms1k_base_device::execute_one()
+void tms1k_base_device::execute_one(int subcycle)
 {
-	switch (m_subcycle)
+	switch (subcycle)
 	{
 	case 0:
 		// fetch: rom address 1/2
@@ -735,8 +741,6 @@ void tms1k_base_device::execute_one()
 		// execute: br/call 1/2
 		break;
 	}
-
-	m_subcycle = (m_subcycle + 1) % 6;
 }
 
 void tms1k_base_device::execute_run()
@@ -744,6 +748,8 @@ void tms1k_base_device::execute_run()
 	while (m_icount > 0)
 	{
 		m_icount--;
-		execute_one();
+
+		execute_one(m_subcycle);
+		m_subcycle = (m_subcycle + 1) % 6;
 	}
 }

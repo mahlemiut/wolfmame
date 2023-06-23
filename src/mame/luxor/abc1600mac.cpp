@@ -113,7 +113,7 @@ abc1600_mac_device::abc1600_mac_device(const machine_config &mconfig, const char
 	m_segment_ram(*this, "segment_ram", 0x400, ENDIANNESS_LITTLE),
 	m_page_ram(*this, "page_ram", 0x400*2, ENDIANNESS_LITTLE),
 	m_watchdog(*this, "watchdog"),
-	m_read_tren(*this),
+	m_read_tren(*this, 0xff),
 	m_write_tren(*this),
 	m_rstbut(0),
 	m_boote(0),
@@ -131,10 +131,6 @@ abc1600_mac_device::abc1600_mac_device(const machine_config &mconfig, const char
 
 void abc1600_mac_device::device_start()
 {
-	// resolve callbacks
-	m_read_tren.resolve_all_safe(0xff);
-	m_write_tren.resolve_all_safe();
-
 	// state saving
 	save_item(NAME(m_rstbut));
 	save_item(NAME(m_boote));
@@ -237,7 +233,7 @@ uint8_t abc1600_mac_device::read(offs_t offset)
 		}
 	}
 
-	if (!m_magic && (fc == M68K_FC_USER_PROGRAM))
+	if (!m_magic && (fc == 2))
 	{
 		task = 0;
 	}
@@ -245,18 +241,8 @@ uint8_t abc1600_mac_device::read(offs_t offset)
 	bool nonx, wp;
 	offs_t virtual_offset = get_physical_offset(offset, task, nonx, wp);
 
-	if (!machine().side_effects_disabled())
-	{
-		if (nonx)
-		{
-			LOGMASKED(LOG_ERRORS, "%s BUS ERROR R %05x:%06x (NONX %u WP %u TASK %u FC %u MAGIC %u)\n",
-				machine().describe_context(), offset, virtual_offset, nonx, wp, task, fc, m_magic);
-			machine().debug_break();
-			m_cpu->set_buserror_details(offset, 1, m_cpu->get_fc());
-			m_cpu->set_input_line(M68K_LINE_BUSERROR, ASSERT_LINE);
-			m_cpu->set_input_line(M68K_LINE_BUSERROR, CLEAR_LINE);
-		}
-	}
+	if (!machine().side_effects_disabled() && nonx)
+		m_cpu->trigger_bus_error();
 
 	return space().read_byte(virtual_offset);
 }
@@ -289,27 +275,8 @@ void abc1600_mac_device::write(offs_t offset, uint8_t data)
 	bool nonx, wp;
 	offs_t virtual_offset = get_physical_offset(offset, task, nonx, wp);
 
-	if (!machine().side_effects_disabled())
-	{
-		if (nonx)
-		{
-			LOGMASKED(LOG_ERRORS, "%s BUS ERROR W %05x:%06x (NONX %u WP %u TASK %u FC %u MAGIC %u)\n",
-				machine().describe_context(), offset, virtual_offset, nonx, wp, task, fc, m_magic);
-			machine().debug_break();
-			m_cpu->set_buserror_details(offset, 0, m_cpu->get_fc());
-			m_cpu->set_input_line(M68K_LINE_BUSERROR, ASSERT_LINE);
-			m_cpu->set_input_line(M68K_LINE_BUSERROR, CLEAR_LINE);
-		}
-		if (!wp)
-		{
-			LOGMASKED(LOG_ERRORS, "%s BUS ERROR W %05x:%06x (NONX %u WP %u TASK %u FC %u MAGIC %u)\n",
-				machine().describe_context(), offset, virtual_offset, nonx, wp, task, fc, m_magic);
-			machine().debug_break();
-			m_cpu->set_buserror_details(offset, 0, m_cpu->get_fc());
-			m_cpu->set_input_line(M68K_LINE_BUSERROR, ASSERT_LINE);
-			m_cpu->set_input_line(M68K_LINE_BUSERROR, CLEAR_LINE);
-		}
-	}
+	if (!machine().side_effects_disabled() && (nonx || !wp))
+		m_cpu->trigger_bus_error();
 
 	space().write_byte(virtual_offset, data);
 }

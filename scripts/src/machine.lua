@@ -4363,6 +4363,31 @@ end
 
 ---------------------------------------------------
 --
+--@src/devices/machine/pc87306.h,MACHINES["PC87306"] = true
+---------------------------------------------------
+
+if (MACHINES["PC87306"]~=null) then
+	files {
+		MAME_DIR .. "src/devices/machine/pc87306.cpp",
+		MAME_DIR .. "src/devices/machine/pc87306.h",
+	}
+end
+
+---------------------------------------------------
+--
+--@src/devices/machine/w83977tf.h,MACHINES["W83977TF"] = true
+---------------------------------------------------
+
+if (MACHINES["W83977TF"]~=null) then
+	files {
+		MAME_DIR .. "src/devices/machine/w83977tf.cpp",
+		MAME_DIR .. "src/devices/machine/w83977tf.h",
+	}
+end
+
+
+---------------------------------------------------
+--
 --@src/devices/machine/pdc.h,MACHINES["PDC"] = true
 ---------------------------------------------------
 

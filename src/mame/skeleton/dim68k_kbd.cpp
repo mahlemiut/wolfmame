@@ -46,7 +46,6 @@ void dim68k_keyboard_device::device_resolve_objects()
 {
 	m_capslock_led.resolve();
 	m_numlock_led.resolve();
-	m_txd_callback.resolve_safe();
 }
 
 void dim68k_keyboard_device::device_start()
@@ -68,7 +67,7 @@ void dim68k_keyboard_device::p2_w(u8 data)
 	m_numlock_led = !BIT(data, 6);
 }
 
-WRITE_LINE_MEMBER(dim68k_keyboard_device::prog_w)
+void dim68k_keyboard_device::prog_w(int state)
 {
 	if (state)
 	{

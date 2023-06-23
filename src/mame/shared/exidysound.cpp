@@ -656,14 +656,6 @@ venture_sound_device::venture_sound_device(const machine_config &mconfig, device
 {
 }
 
-void venture_sound_device::device_resolve_objects()
-{
-	m_pa_callback.resolve_safe();
-	m_pb_callback.resolve_safe();
-	m_ca2_callback.resolve_safe();
-	m_cb2_callback.resolve_safe();
-}
-
 //-------------------------------------------------
 //  device_start - device-specific startup
 //-------------------------------------------------
@@ -703,13 +695,13 @@ void venture_sound_device::pb_w(uint8_t data)
 }
 
 
-WRITE_LINE_MEMBER(venture_sound_device::ca_w)
+void venture_sound_device::ca_w(int state)
 {
 	m_pia->ca1_w(state);
 }
 
 
-WRITE_LINE_MEMBER(venture_sound_device::cb_w)
+void venture_sound_device::cb_w(int state)
 {
 	m_pia->cb1_w(state);
 }
@@ -727,13 +719,13 @@ void venture_sound_device::pia_pb_w(uint8_t data)
 }
 
 
-WRITE_LINE_MEMBER(venture_sound_device::pia_ca2_w)
+void venture_sound_device::pia_ca2_w(int state)
 {
 	m_ca2_callback(state);
 }
 
 
-WRITE_LINE_MEMBER(venture_sound_device::pia_cb2_w)
+void venture_sound_device::pia_cb2_w(int state)
 {
 	m_cb2_callback(state);
 }
@@ -937,7 +929,7 @@ void victory_sound_device::command_w(uint8_t data)
 }
 
 
-WRITE_LINE_MEMBER(victory_sound_device::irq_clear_w)
+void victory_sound_device::irq_clear_w(int state)
 {
 	if (VICTORY_LOG_SOUND) logerror("%s:!!!! Sound IRQ clear = %02X\n", machine().describe_context(), state);
 
@@ -949,7 +941,7 @@ WRITE_LINE_MEMBER(victory_sound_device::irq_clear_w)
 }
 
 
-WRITE_LINE_MEMBER(victory_sound_device::main_ack_w)
+void victory_sound_device::main_ack_w(int state)
 {
 	if (VICTORY_LOG_SOUND) logerror("%s:!!!! Sound Main ACK W = %02X\n", machine().describe_context(), state);
 

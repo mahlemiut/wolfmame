@@ -162,8 +162,6 @@ void i82586_base_device::device_start()
 {
 	m_space = &space(0);
 
-	m_out_irq.resolve_safe();
-
 	m_cu_timer = timer_alloc(FUNC(i82586_base_device::cu_execute), this);
 
 	save_item(NAME(m_cx));
@@ -213,7 +211,7 @@ device_memory_interface::space_config_vector i82586_base_device::memory_space_co
 	};
 }
 
-WRITE_LINE_MEMBER(i82586_base_device::ca)
+void i82586_base_device::ca(int state)
 {
 	LOG("channel attention %s (%s)\n", state ? "asserted" : "cleared", machine().describe_context());
 
@@ -227,7 +225,7 @@ WRITE_LINE_MEMBER(i82586_base_device::ca)
 	}
 }
 
-WRITE_LINE_MEMBER(i82586_base_device::reset_w)
+void i82586_base_device::reset_w(int state)
 {
 	LOG("reset %s (%s)\n", state ? "asserted" : "cleared", machine().describe_context());
 

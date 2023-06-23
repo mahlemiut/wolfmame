@@ -295,7 +295,7 @@ uint8_t riot6532_device::reg_r(uint8_t offset, bool debugger_access)
 		else
 		{
 			/* call the input callback if it exists */
-			if (!(*port->m_in_cb).isnull())
+			if (!(*port->m_in_cb).isunset())
 			{
 				port->m_in = (*port->m_in_cb)(0);
 
@@ -382,27 +382,27 @@ uint8_t riot6532_device::portb_out_get()
 //  paN_w - write Port A lines individually
 //-------------------------------------------------
 
-WRITE_LINE_MEMBER(riot6532_device::pa0_w) { porta_in_set(state ? 0x01 : 0x00, 0x01); }
-WRITE_LINE_MEMBER(riot6532_device::pa1_w) { porta_in_set(state ? 0x02 : 0x00, 0x02); }
-WRITE_LINE_MEMBER(riot6532_device::pa2_w) { porta_in_set(state ? 0x04 : 0x00, 0x04); }
-WRITE_LINE_MEMBER(riot6532_device::pa3_w) { porta_in_set(state ? 0x08 : 0x00, 0x08); }
-WRITE_LINE_MEMBER(riot6532_device::pa4_w) { porta_in_set(state ? 0x10 : 0x00, 0x10); }
-WRITE_LINE_MEMBER(riot6532_device::pa5_w) { porta_in_set(state ? 0x20 : 0x00, 0x20); }
-WRITE_LINE_MEMBER(riot6532_device::pa6_w) { porta_in_set(state ? 0x40 : 0x00, 0x40); }
-WRITE_LINE_MEMBER(riot6532_device::pa7_w) { porta_in_set(state ? 0x80 : 0x00, 0x80); }
+void riot6532_device::pa0_w(int state) { porta_in_set(state ? 0x01 : 0x00, 0x01); }
+void riot6532_device::pa1_w(int state) { porta_in_set(state ? 0x02 : 0x00, 0x02); }
+void riot6532_device::pa2_w(int state) { porta_in_set(state ? 0x04 : 0x00, 0x04); }
+void riot6532_device::pa3_w(int state) { porta_in_set(state ? 0x08 : 0x00, 0x08); }
+void riot6532_device::pa4_w(int state) { porta_in_set(state ? 0x10 : 0x00, 0x10); }
+void riot6532_device::pa5_w(int state) { porta_in_set(state ? 0x20 : 0x00, 0x20); }
+void riot6532_device::pa6_w(int state) { porta_in_set(state ? 0x40 : 0x00, 0x40); }
+void riot6532_device::pa7_w(int state) { porta_in_set(state ? 0x80 : 0x00, 0x80); }
 
 //-------------------------------------------------
 //  pbN_w - write Port B lines individually
 //-------------------------------------------------
 
-WRITE_LINE_MEMBER(riot6532_device::pb0_w) { portb_in_set(state ? 0x01 : 0x00, 0x01); }
-WRITE_LINE_MEMBER(riot6532_device::pb1_w) { portb_in_set(state ? 0x02 : 0x00, 0x02); }
-WRITE_LINE_MEMBER(riot6532_device::pb2_w) { portb_in_set(state ? 0x04 : 0x00, 0x04); }
-WRITE_LINE_MEMBER(riot6532_device::pb3_w) { portb_in_set(state ? 0x08 : 0x00, 0x08); }
-WRITE_LINE_MEMBER(riot6532_device::pb4_w) { portb_in_set(state ? 0x10 : 0x00, 0x10); }
-WRITE_LINE_MEMBER(riot6532_device::pb5_w) { portb_in_set(state ? 0x20 : 0x00, 0x20); }
-WRITE_LINE_MEMBER(riot6532_device::pb6_w) { portb_in_set(state ? 0x40 : 0x00, 0x40); }
-WRITE_LINE_MEMBER(riot6532_device::pb7_w) { portb_in_set(state ? 0x80 : 0x00, 0x80); }
+void riot6532_device::pb0_w(int state) { portb_in_set(state ? 0x01 : 0x00, 0x01); }
+void riot6532_device::pb1_w(int state) { portb_in_set(state ? 0x02 : 0x00, 0x02); }
+void riot6532_device::pb2_w(int state) { portb_in_set(state ? 0x04 : 0x00, 0x04); }
+void riot6532_device::pb3_w(int state) { portb_in_set(state ? 0x08 : 0x00, 0x08); }
+void riot6532_device::pb4_w(int state) { portb_in_set(state ? 0x10 : 0x00, 0x10); }
+void riot6532_device::pb5_w(int state) { portb_in_set(state ? 0x20 : 0x00, 0x20); }
+void riot6532_device::pb6_w(int state) { portb_in_set(state ? 0x40 : 0x00, 0x40); }
+void riot6532_device::pb7_w(int state) { portb_in_set(state ? 0x80 : 0x00, 0x80); }
 
 
 //**************************************************************************
@@ -413,21 +413,21 @@ WRITE_LINE_MEMBER(riot6532_device::pb7_w) { portb_in_set(state ? 0x80 : 0x00, 0x
 //  riot6532_device - constructor
 //-------------------------------------------------
 
-riot6532_device::riot6532_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock)
-	: device_t(mconfig, RIOT6532, tag, owner, clock),
-		m_in_pa_cb(*this),
-		m_out_pa_cb(*this),
-		m_in_pb_cb(*this),
-		m_out_pb_cb(*this),
-		m_irq_cb(*this),
-		m_irqstate(0),
-		m_irqenable(0),
-		m_irq(CLEAR_LINE),
-		m_pa7dir(0),
-		m_pa7prev(0),
-		m_timershift(0),
-		m_timerstate(0),
-		m_timer(nullptr)
+riot6532_device::riot6532_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock) :
+	device_t(mconfig, RIOT6532, tag, owner, clock),
+	m_in_pa_cb(*this, 0),
+	m_out_pa_cb(*this),
+	m_in_pb_cb(*this, 0),
+	m_out_pb_cb(*this),
+	m_irq_cb(*this),
+	m_irqstate(0),
+	m_irqenable(0),
+	m_irq(CLEAR_LINE),
+	m_pa7dir(0),
+	m_pa7prev(0),
+	m_timershift(0),
+	m_timerstate(0),
+	m_timer(nullptr)
 {
 	memset(m_port, 0x00, sizeof(m_port));
 }
@@ -439,15 +439,10 @@ riot6532_device::riot6532_device(const machine_config &mconfig, const char *tag,
 void riot6532_device::device_start()
 {
 	/* resolve callbacks */
-	m_in_pa_cb.resolve();
 	m_port[0].m_in_cb = &m_in_pa_cb;
-	m_out_pa_cb.resolve_safe();
 	m_port[0].m_out_cb = &m_out_pa_cb;
-	m_in_pb_cb.resolve();
 	m_port[1].m_in_cb = &m_in_pb_cb;
-	m_out_pb_cb.resolve_safe();
 	m_port[1].m_out_cb = &m_out_pb_cb;
-	m_irq_cb.resolve_safe();
 
 	/* allocate timers */
 	m_timer = timer_alloc(FUNC(riot6532_device::timer_end), this);

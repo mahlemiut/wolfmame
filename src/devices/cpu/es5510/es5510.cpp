@@ -37,7 +37,7 @@ static int exec_cc = 0;
 
 #define LOG_EXEC(...) LOGMASKED(LOG_EXECUTION,  __VA_ARGS__)
 
-DEFINE_DEVICE_TYPE(ES5510, es5510_device, "es5510", "ES5510")
+DEFINE_DEVICE_TYPE(ES5510, es5510_device, "es5510", "Ensoniq ES5510")
 
 #define FLAG_N (1 << 7)
 #define FLAG_C (1 << 6)
@@ -779,9 +779,12 @@ void es5510_device::execute_run() {
 		} else {
 			// currently running, execute one instruction.
 
-			char buf[1024];
-			DESCRIBE_INSTR(buf, instr[pc], gpr[pc], nullptr, nullptr, nullptr, nullptr);
-			LOG_EXEC("EXECUTING %02x: %012x %06x  %s\n", pc, instr[pc], gpr[pc]&0xffffff, buf);
+			if (VERBOSE & LOG_EXECUTION)
+			{
+				char buf[1024];
+				DESCRIBE_INSTR(buf, instr[pc], gpr[pc], nullptr, nullptr, nullptr, nullptr);
+				LOG_EXEC("EXECUTING %02x: %012x %06x  %s\n", pc, instr[pc], gpr[pc]&0xffffff, buf);
+			}
 
 			ram_pp = ram_p;
 			ram_p = ram;

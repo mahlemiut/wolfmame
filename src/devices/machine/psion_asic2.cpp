@@ -35,30 +35,10 @@ psion_asic2_device::psion_asic2_device(const machine_config &mconfig, const char
 	, m_buz_cb(*this)
 	, m_buzvol_cb(*this)
 	, m_dr_cb(*this)
-	, m_col_cb(*this)
-	, m_data_r(*this)
+	, m_col_cb(*this, 0xff)
+	, m_data_r(*this, 0x00)
 	, m_data_w(*this)
 {
-}
-
-
-//-------------------------------------------------
-//  device_resolve_objects - resolve objects that
-//  may be needed for other devices to set
-//  initial conditions at start time
-//-------------------------------------------------
-
-void psion_asic2_device::device_resolve_objects()
-{
-	m_int_cb.resolve_safe();
-	m_nmi_cb.resolve_safe();
-	m_cbusy_cb.resolve_safe();
-	m_buz_cb.resolve_safe();
-	m_buzvol_cb.resolve_safe();
-	m_dr_cb.resolve_safe();
-	m_col_cb.resolve_safe(0xff);
-	m_data_r.resolve_all_safe(0x00);
-	m_data_w.resolve_all_safe();
 }
 
 //-------------------------------------------------
@@ -96,7 +76,7 @@ void psion_asic2_device::device_reset()
 }
 
 
-WRITE_LINE_MEMBER(psion_asic2_device::on_clr_w)
+void psion_asic2_device::on_clr_w(int state)
 {
 	if (state)
 		m_a2_status |= 0x01; // A1OnKey
@@ -106,7 +86,7 @@ WRITE_LINE_MEMBER(psion_asic2_device::on_clr_w)
 	update_interrupts();
 }
 
-WRITE_LINE_MEMBER(psion_asic2_device::dnmi_w)
+void psion_asic2_device::dnmi_w(int state)
 {
 	if (state)
 		m_a2_interrupt_status |= 0x01; // DNMI
@@ -116,7 +96,7 @@ WRITE_LINE_MEMBER(psion_asic2_device::dnmi_w)
 	update_interrupts();
 }
 
-WRITE_LINE_MEMBER(psion_asic2_device::frcovl_w)
+void psion_asic2_device::frcovl_w(int state)
 {
 	if (BIT(m_a2_control2, 4))
 	{
@@ -124,7 +104,7 @@ WRITE_LINE_MEMBER(psion_asic2_device::frcovl_w)
 	}
 }
 
-WRITE_LINE_MEMBER(psion_asic2_device::reset_w)
+void psion_asic2_device::reset_w(int state)
 {
 	if (!state)
 		m_a2_status |= 0x04; // A1ResetFlag

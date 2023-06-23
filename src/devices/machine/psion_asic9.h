@@ -47,10 +47,10 @@ public:
 
 	IRQ_CALLBACK_MEMBER(inta_cb);
 
-	DECLARE_WRITE_LINE_MEMBER(eint0_w);
-	DECLARE_WRITE_LINE_MEMBER(eint1_w);
-	DECLARE_WRITE_LINE_MEMBER(eint2_w);
-	DECLARE_WRITE_LINE_MEMBER(medchng_w);
+	void eint0_w(int state);
+	void eint1_w(int state);
+	void eint2_w(int state);
+	void medchng_w(int state);
 
 	uint32_t screen_update(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);
 
@@ -58,7 +58,6 @@ protected:
 	psion_asic9_device(const machine_config &mconfig, device_type type, const char *tag, device_t *owner, uint32_t clock);
 
 	virtual void device_add_mconfig(machine_config &config) override;
-	virtual void device_resolve_objects() override;
 	virtual void device_start() override;
 	virtual void device_reset() override;
 

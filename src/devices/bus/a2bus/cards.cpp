@@ -44,9 +44,9 @@
 #include "a2zipdrive.h"
 #include "booti.h"
 #include "byte8251.h"
-#include "computereyes2.h"
 #include "ccs7710.h"
 #include "cmsscsi.h"
+#include "computereyes2.h"
 #include "excel9.h"
 #include "ezcgi.h"
 #include "grafex.h"
@@ -56,6 +56,7 @@
 #include "mouse.h"
 #include "pc_xporter.h"
 #include "prodosromdrive.h"
+#include "q68.h"
 #include "ramcard128k.h"
 #include "ramcard16k.h"
 #include "romcard.h"
@@ -69,16 +70,15 @@
 #include "transwarp.h"
 #include "uniprint.h"
 #include "uthernet.h"
-#include "q68.h"
 
 
 void apple2_slot0_cards(device_slot_interface &device)
 {
 	device.option_add("lang", A2BUS_RAMCARD16K);      // Apple II RAM Language Card
 	device.option_add("ssram", A2BUS_RAMCARD128K);    // Saturn Systems 128K extended language card
-	device.option_add("romcard", A2BUS_ROMCARDUSER);	// Apple II ROM Card that loads a custom ROM image
-	device.option_add("romcardfp", A2BUS_ROMCARDFP);	// Apple II ROM Card with Autostart Monitor + Applesoft BASIC
-	device.option_add("romcardint", A2BUS_ROMCARDINT);	// Apple II ROM Card with Autostart Monitor + Integer BASIC
+	device.option_add("romcard", A2BUS_ROMCARDUSER);    // Apple II ROM Card that loads a custom ROM image
+	device.option_add("romcardfp", A2BUS_ROMCARDFP);    // Apple II ROM Card with Autostart Monitor + Applesoft BASIC
+	device.option_add("romcardint", A2BUS_ROMCARDINT);  // Apple II ROM Card with Autostart Monitor + Integer BASIC
 }
 
 void apple2_cards(device_slot_interface &device)

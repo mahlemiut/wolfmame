@@ -18,6 +18,7 @@
 
 #include "audit.h"
 #include "cheat.h"
+#include "infoxml.h"
 #include "mame.h"
 #include "mameopts.h"
 
@@ -3142,6 +3143,8 @@ void menu_select_launch::general_info(ui_system_info const *system, game_driver 
 	{
 		str << _("Media Audit\tDisabled\nSamples Audit\tDisabled\n");
 	}
+
+	util::stream_format(str, _("Source File\t%1$s\n"), info_xml_creator::format_sourcefile(driver.type.source()));
 
 	buffer = std::move(str).str();
 }

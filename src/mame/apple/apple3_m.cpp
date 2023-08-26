@@ -1143,7 +1143,7 @@ INPUT_CHANGED_MEMBER(apple3_state::keyb_special_changed)
 		{
 			m_nmi_latch = true;
 			m_maincpu->set_input_line(INPUT_LINE_NMI, ASSERT_LINE);
-		}		
+		}
 	}
 	else
 	{
@@ -1291,6 +1291,41 @@ void apple3_state::ay3600_data_ready_w(int state)
 			m_strobe = 0x80;
 //          printf("new char = %04x (%02x)\n", trans, m_transchar);
 		}
+	}
+}
+
+void apple3_state::ay3600_ako_w(int state)
+{
+	m_anykeydown = (state == ASSERT_LINE) ? true : false;
+
+	if (m_anykeydown)
+	{
+		m_repttimer->adjust(attotime::from_hz(2));
+	}
+	else
+	{
+		m_repttimer->adjust(attotime::never);
+	}
+}
+
+TIMER_DEVICE_CALLBACK_MEMBER(apple3_state::ay3600_repeat)
+{
+	// is the key still down?
+	if (m_anykeydown)
+	{
+		// Closed Apple key
+		if (m_kbspecial->read() & 0x20)
+		{
+			m_repttimer->adjust(attotime::from_hz(30));
+		}
+		else
+		{
+			m_repttimer->adjust(attotime::from_hz(10));
+		}
+
+		m_strobe = 0x80;
+		m_via[1]->write_ca2(ASSERT_LINE);
+		m_via[1]->write_ca2(CLEAR_LINE);
 	}
 }
 

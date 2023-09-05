@@ -26,8 +26,13 @@ atapi_cdrom_device::atapi_cdrom_device(const machine_config &mconfig, device_typ
 {
 }
 
+atapi_fixed_cdrom_device::atapi_fixed_cdrom_device(const machine_config &mconfig, device_type type, const char *tag, device_t *owner, uint32_t clock) :
+	atapi_cdrom_device(mconfig, type, tag, owner, clock)
+{
+}
+
 atapi_fixed_cdrom_device::atapi_fixed_cdrom_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock) :
-	atapi_cdrom_device(mconfig, ATAPI_FIXED_CDROM, tag, owner, clock)
+	atapi_fixed_cdrom_device(mconfig, ATAPI_FIXED_CDROM, tag, owner, clock)
 {
 }
 
@@ -162,6 +167,7 @@ void atapi_cdrom_device::ExecCommand()
 		case T10MMC_CMD_PLAY_AUDIO_TRACK_INDEX:
 		case T10MMC_CMD_PAUSE_RESUME:
 		case T10MMC_CMD_PLAY_AUDIO_12:
+		case T10MMC_CMD_READ_CD:
 		case T10SBC_CMD_READ_12:
 			if(!m_image->exists())
 			{

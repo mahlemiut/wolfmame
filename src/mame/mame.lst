@@ -1422,6 +1422,7 @@ xegs                            // 1987 Atari XE Game System
 @source:atari/atarifb.cpp
 abaseb                          // 034711-034738    1979/06 [6502]
 abaseb2                         // 034711-034738    1979/06 [6502]
+amerug                          // 1980 Shoei
 atarifb                         // 033xxx           1978/10 [6502]
 atarifb1                        // 033xxx           1978/10 [6502]
 atarifb2                        // 035330-035350    ???     [6502]
@@ -15752,6 +15753,7 @@ trojan                          // 4/1986 (c) 1986 (US)
 trojana                         // 4/1986 (c) 1986 (US)
 trojanb                         // bootleg
 trojanj                         // 4/1986 (c) 1986 (Japan)
+trojanjo                        // 4/1986 (c) 1986 (Japan)
 trojanlt                        // location test
 trojanr                         // 4/1986 (c) 1986 + Romstar
 
@@ -16084,6 +16086,7 @@ alleymas                        // (c) 1986 Cinematronics
 basebal2                        // (c) 1987 Cinematronics
 cerberus                        // (c) 1985 Cinematronics
 dangerz                         // (c) 1986 Cinematronics USA
+dangerz0                        // (c) 1986 Cinematronics USA
 dblplay                         // (c) 1987 Tradewest / Leland
 mayhem                          // (c) 1985 Cinematronics
 offroad                         // (c) 1989 Leland
@@ -17402,6 +17405,7 @@ twinsed2                        // (c) 1994 Electronic Devices
 
 @source:efo/cedar_magnet.cpp
 cedmag
+mag_boob
 mag_burn
 mag_day
 mag_drac
@@ -17744,8 +17748,8 @@ felega3
 bridgec
 bridgec3
 bridgeca
+bridgecv
 gincribc
-vbrc
 
 @source:fidelity/cc1.cpp
 cc1                             //
@@ -17808,6 +17812,7 @@ fex68km3                        //
 fex68km3a                       //
 fex68km3b                       //
 fex68km4                        //
+premiere                        //
 
 @source:fidelity/eldorado.cpp
 feldo
@@ -17870,32 +17875,6 @@ vcc                             //
 
 @source:fidelity/vsc.cpp
 vsc                             //
-
-@source:force/fccpu20.cpp
-fccpu20sbc
-fccpu21ssbc
-fccpu21sbc
-fccpu21asbc
-fccpu21yasbc
-fccpu21bsbc
-fccpu21ybsbc
-
-@source:force/fccpu30.cpp
-fccpu30
-fccpu30x
-fccpu30xa
-fccpu30za
-fccpu30zbe
-fccpu30be8
-fccpu30be16
-fccpu30lite4
-fccpu30lite8
-fccpu30senr
-fccpu30senr501
-fccpu33
-
-@source:force/force68k.cpp
-fccpu1                          //
 
 @source:force/miniforce.cpp
 miniforce                       // D26 cabinet test board
@@ -18917,11 +18896,13 @@ kosmicmt                        // Elektronika
 kosmicpt                        // Elektronika
 krybolov                        // Elektronika
 kskatedie                       // Konami
+kst25                           // Konami
 ktmnt                           // Konami
 ktmnt2                          // Konami
 ktmnt3                          // Konami
 ktmntbb                         // Konami
 ktopgun                         // Konami
+ktopgun2                        // Konami
 kvakazad                        // Elektronika
 morataka                        // Elektronika
 nochnyev                        // Elektronika
@@ -19120,6 +19101,7 @@ tisr16                          // Texas Instruments
 tisr16ii                        // Texas Instruments
 tithermos                       // Texas Instruments
 tmvolleyb                       // Tomy
+uboat                           // Bandai
 vclock3                         // Tandy Corporation
 wizatron                        // Texas Instruments
 wtalker                         // Technasonic
@@ -19334,6 +19316,10 @@ polgar101                       // 1990 Mephisto Polgar 10MHz
 mrisc                           // 1992 Mephisto RISC 1MB
 mrisc2                          // 1994 Mephisto RISC II
 
+@source:hegenerglaser/roma2.cpp
+montreal                        // Montreal 68000
+roma2                           // Roma II
+
 @source:hegenerglaser/smondial.cpp
 mega4                           // 1989 Mephisto Mega IV
 mega4a                          // 1989 Mephisto Mega IV
@@ -19341,9 +19327,6 @@ smondial                        // 1986 Mephisto Super Mondial (Ver A)
 smondialab                      // 1986 Mephisto Super Mondial (Ver AB)
 smondialb                       // 1986 Mephisto Super Mondial (Ver B)
 smondial2                       // 1989 Mephisto Super Mondial II
-
-@source:heurikon/hk68v10.cpp
-hk68v10                         //
 
 @source:hitachi/b16.cpp
 b16                             //
@@ -26725,6 +26708,7 @@ trvwzh                          // (c) 1985 Merit
 trvwzha                         // (c) 1985 Merit
 trvwzhb                         // (c) 1985 Merit
 trvwzv                          // (c) 1985 Merit
+unkmerit                        // (c) 1989 Merit
 
 @source:merit/merit3xx.cpp
 ma6710                          // (c) 1989 Merit
@@ -28938,10 +28922,13 @@ dfruit                          //
 gemcrush
 
 @source:misc/dgpix.cpp
+btplay2k                        // (c) 2000 dgPIX Entertainment Inc
 elfin                           // (c) 1999 dgPIX Entertainment Inc
+fmaniac2p                       // (c) 2000 Saero Entertainment
 fmaniac3                        // (c) 2002 Saero Entertainment
 jumpjump                        // (c) 1999 dgPIX Entertainment Inc
 kdynastg                        // (c) 1999 EZ Graphics
+letsdnce                        // (c) 1999 dgPIX Entertainment Inc
 xfiles                          // (c) 1999 dgPIX Entertainment Inc
 xfilesk                         // (c) 1999 dgPIX Entertainment Inc (censored for the Korean market)
 
@@ -29957,6 +29944,15 @@ nfsug                           // Need For Speed: Underground Install (2 Discs)
 @source:misc/gluck2.cpp
 gluck2                          // 1992 Yung Yu / CYE
 
+@source:misc/gms.cpp
+ballch                          // (c) 2002 TVE
+cots                            // (c) 2005 ECM
+magslot                         // (c) 2003 GMS
+rbmk                            // (c) 1998 GMS
+rbspm                           // (c) 1998 GMS
+sc2in1                          // (c) 2001 GMS
+super555                        // (c) 1999 GMS
+
 @source:misc/goldngam.cpp
 moviecrd                        // (c) 1998 Golden Games
 swisspkr                        // (c) 1990 Golden Games
@@ -30479,6 +30475,7 @@ botss                           // (c) 1992 Microprose Games Inc.
 botss11                         // (c) 1992 Microprose Games Inc.
 f15se                           // (c) 1991 Microprose Games Inc.
 f15se21                         // (c) 1991 Microprose Games Inc.
+stankatk                        // (c) 1992 Microprose Games Inc.
 tankbatl                        // (c) 1992 Microprose Games Inc.
 
 @source:misc/microdar.cpp
@@ -31245,15 +31242,6 @@ doodlejmp                       // (c) 2013 ICE / Raw Thrills / Lima Sky
 fnf                             // (c) 2004 Raw Thrills
 guitarheroac                    // (c) 2008 Raw Thrills / Activision / Konami
 
-@source:misc/rbmk.cpp
-ballch                          // (c) 2002 TVE
-cots                            // (c) 2005 ECM
-magslot                         // (c) 2003 GMS
-rbmk                            // (c) 1998 GMS
-rbspm                           // (c) 1998 GMS
-sc2in1                          // (c) 2001 GMS
-super555                        // (c) 1999 GMS
-
 @source:misc/rcorsair.cpp
 rcorsair                        // (c) 1984 Nakasawa
 
@@ -31974,9 +31962,6 @@ multi16                         //
 @source:mitsubishi/trium.cpp
 triumec                         //
 
-@source:mizar/mzr8105.cpp
-mzr8105                         //
-
 @source:morrow/microdec.cpp
 md2                             //
 md3                             //
@@ -32022,9 +32007,6 @@ mekd4                           // 1980 Motorola Evaluation Kit
 
 @source:motorola/mekd5.cpp
 mekd5                           // 1980 Motorola Evaluation Kit
-
-@source:motorola/mvme147.cpp
-mvme147                         // (c) 1989 Motorola
 
 @source:motorola/mvme162.cpp
 mvme162                         // (c) 1993 Motorola
@@ -32797,7 +32779,8 @@ ghlpanic                        // 1999.?? Ghoul Panic (World, OB2/VER.A)
 golgo13                         // 2000.03 Golgo 13 (Japan, GLG1/VER.A)
 gunbarl                         // 1999.?? Gunbarl (Japan, GNB4/VER.A)
 kaiunqz                         // 1999.12 Kaiun Quiz (Japan, KW1/VER.A)
-kartduel                        // 2000.07 Kart Duel (Japan, KTD1/VER.A)
+kartduel                        // 2000.07 Kart Duel (World, KTD2/VER.A)
+kartduelj                       // 2000.07 Kart Duel (Japan, KTD1/VER.A)
 lbgrande                        // 1997.?? Libero Grande (World, LG2/VER.A)
 mdhorse                         // 1998.11 Derby Quiz My Dream Horse (Japan, MDH1/VER.A2)
 mrdrillr                        // 1999.11 Mr Driller (US, DRI3/VER.A2)
@@ -34747,6 +34730,8 @@ akazukin                        // (c) 1984 Sigma
 
 @source:orca/espial.cpp
 espial                          // (c) 1983 Thunderbolt, Orca logo is hidden in title screen
+espialj                         // (c) 1983 Thunderbolt, Orca logo is hidden in title screen
+espialn                         // (c) 1983 Nova Apparate (+ Hamburg) license
 espialu                         // (c) 1983 Thunderbolt, Orca logo is hidden in title screen
 netwars                         // (c) 1983 Orca + Esco Trading Co license
 
@@ -35543,6 +35528,7 @@ streetgr3                       // (c) 1993
 
 @source:pc/pcipc.cpp
 pciagp                          //
+pcimga                          //
 pcinv3                          //
 pcipc                           //
 pcipctx                         //
@@ -40283,6 +40269,7 @@ failgate                        // (c) 1991 Seibu Kaihatsu
 @source:seibu/banprestoms.cpp
 marioun                         //
 tvdenwad                        //
+tvdenwam                        //
 
 @source:seibu/bloodbro.cpp
 bloodbro                        // (c) 1990 Tad
@@ -40817,9 +40804,6 @@ indy_4613                       // IP22: Indy, R4600, 133MHz
 indy_5015                       // IP22: Indy, R5000, 150MHz
 indigo2_4415                    // IP24: Indigo 2, R4400, 150MHz
 
-@source:sgi/ip4.cpp
-pi4d50                          // Professional IRIS 4D/50 (R2000 @ 8MHz)
-
 @source:sgi/ip6.cpp
 pi4d20                          // Personal IRIS 4D/20 (R2000 @ 12.5MHz)
 pi4d25                          // Personal IRIS 4D/25 (R3000 @ 20MHz)
@@ -40844,6 +40828,10 @@ o2                              // (c) 1996 SGI
 
 @source:sgi/octane.cpp
 octane                          // (c) 1997 SGI
+
+@source:sgi/tt.cpp
+pi4d50                          // Professional IRIS 4D/50 (R2000 @ 8MHz)
+pi4d70                          // Professional IRIS 4D/70 (R2000 @ 12.5MHz)
 
 @source:sharp/fontwriter.cpp
 fw600                           // (c) Sharp
@@ -42842,6 +42830,7 @@ rollace                         // (c) 1983 Williams
 rollace2                        // (c) 1983 Williams
 
 @source:taito/sbmjb.cpp
+bubbroul                        // E48 (c) 1997 Taito
 honooinv                        // E41 (c) 1997 Taito
 sbmjb                           // ??? (c) 1998 Taito
 
@@ -43147,7 +43136,8 @@ raimaisjo                       // B36 (c) 1988 Taito Corporation
 tubeit                          // ??? no copyright message
 
 @source:taito/taito_o.cpp
-parentj                         // C42 (c) 199? Taito
+eibise                          // C88 (c) 1990 Taito
+parentj                         // C42 (c) 1989 Taito
 
 @source:taito/taito_x.cpp
 ballbros                        // no copyright notice
@@ -43612,6 +43602,7 @@ ssozumo                         // TA-0008 (c) 1984
 
 @source:technos/tagteam.cpp
 bigprowr                        // TA-0007 (c) 1983
+bigprowra                       // TA-0007 (c) 1983
 tagteam                         // TA-0007 (c) 1983 + Data East license
 
 @source:technos/vball.cpp
@@ -45371,6 +45362,7 @@ svolley                         // (c) 1989 V-System Co. (Japan)
 svolleybl                       // bootleg
 svolleyk                        // (c) 1989 V-System Co. (Korea)
 svolleyu                        // (c) 1989 V-System Co. + Data East license (US)
+svolleyua                       // (c) 1989 V-System Co. (Japan)
 
 @source:vsystem/suprslam.cpp
 suprslam                        // (c) 1995 Banpresto

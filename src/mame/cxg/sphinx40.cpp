@@ -3,7 +3,7 @@
 // thanks-to:Berger
 /*******************************************************************************
 
-CXG Sphinx 40 / 50
+CXG "Adversary" Sphinx 40 / 50
 
 This is a modular chesscomputer, similar to Mephisto's 3-drawers one.
 Chesscomputer on the right, LCD in the middle, and future expansion on the left.
@@ -324,4 +324,4 @@ ROM_END
 *******************************************************************************/
 
 //    YEAR  NAME      PARENT  COMPAT  MACHINE   INPUT     CLASS           INIT        COMPANY, FULLNAME, FLAGS
-SYST( 1987, sphinx40, 0,      0,      sphinx40, sphinx40, sphinx40_state, empty_init, "CXG Systems / Newcrest Technology", "Sphinx 40", MACHINE_SUPPORTS_SAVE | MACHINE_CLICKABLE_ARTWORK )
+SYST( 1987, sphinx40, 0,      0,      sphinx40, sphinx40, sphinx40_state, empty_init, "CXG Systems / Newcrest Technology / Intelligent Software", "Sphinx 40", MACHINE_SUPPORTS_SAVE | MACHINE_CLICKABLE_ARTWORK )

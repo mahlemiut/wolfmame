@@ -54,14 +54,21 @@ Notes:
 Keep pressed 9 and press reset to enter service mode.
 
 TODO:
-- correct decode for 1st layer in sc2in1 and magslot
-- tilemap priorities for cots and ballch
+- correct decode for 1st layer in sc2in1 and magslot (magslot also uses more videoram for tilemap 1)
+- cots and magslot seem to toggle between two tilemap 1 modes with 0 or 1 writes to 0x300000 (other dumped games always write 1)
+  1 only uses 0x940c00-0x940fff RAM, while 0 uses the whole 0x940000-0x940fff. 0 seems to be reels related.
+- fix 1st tilemap transparency enable
 - correct EEPROM hookup for all games
-- oki banking
 - hookup MCU and YM2151 sound for the mahjong games
 - hookup PIC16F84 for rbspm once a CPU core is available
 - emulate protection devices correctly instead of patching
 - hookup lamps and do layouts
+- keyboard inputs for mahjong games
+
+Video references:
+rbspm: https://www.youtube.com/watch?v=pPk-6N1wXoE
+sc2in1: https://www.youtube.com/watch?v=RNwW1IhKHXw
+super555: https://www.youtube.com/watch?v=CCUKdbQ5O-U
 */
 
 #include "emu.h"
@@ -78,6 +85,16 @@ TODO:
 #include "tilemap.h"
 
 
+// configurable logging
+#define LOG_TILEATTR (1U << 1)
+
+//#define VERBOSE (LOG_GENERAL | LOG_TILEATTR)
+
+#include "logmacro.h"
+
+#define LOGTILEATTR(...) LOGMASKED(LOG_TILEATTR, __VA_ARGS__)
+
+
 namespace {
 
 class gms_2layers_state : public driver_device
@@ -86,11 +103,13 @@ public:
 	gms_2layers_state(const machine_config &mconfig, device_type type, const char *tag)
 		: driver_device(mconfig, type, tag)
 		, m_vidram(*this, "vidram%u", 1U)
+		, m_scrolly(*this, "scrolly")
 		, m_maincpu(*this, "maincpu")
 		, m_mcu(*this, "mcu")
 		, m_eeprom(*this, "eeprom")
 		, m_gfxdecode(*this, "gfxdecode")
 		, m_palette(*this, "palette")
+		, m_oki(*this, "oki")
 		, m_ymsnd(*this, "ymsnd")
 		, m_dsw(*this, "DSW%u", 1U)
 	{
@@ -100,6 +119,7 @@ public:
 	void rbspm(machine_config &config);
 
 	void super555(machine_config &config);
+	void train(machine_config &config);
 
 	void init_ballch();
 	void init_cots();
@@ -110,12 +130,14 @@ protected:
 	virtual void video_start() override;
 
 	optional_shared_ptr_array<uint16_t, 3> m_vidram;
+	optional_shared_ptr<uint16_t> m_scrolly;
 
 	required_device<cpu_device> m_maincpu;
 	optional_device<at89c4051_device> m_mcu;
 	required_device<eeprom_serial_93cxx_device> m_eeprom;
 	required_device<gfxdecode_device> m_gfxdecode;
 	required_device<palette_device> m_palette;
+	required_device<okim6295_device> m_oki;
 	optional_device<ym2151_device> m_ymsnd;
 	optional_ioport_array<4> m_dsw;
 
@@ -124,7 +146,7 @@ protected:
 
 	void super555_mem(address_map &map);
 
-	template <uint8_t Which> void vram_w(offs_t offset, u16 data, u16 mem_mask);
+	template <uint8_t Which> void vram_w(offs_t offset, uint16_t data, uint16_t mem_mask);
 
 private:
 	uint8_t m_mux_data = 0;
@@ -132,7 +154,7 @@ private:
 	//uint16_t m_prot_data = 0;
 
 	void mcu_io(address_map &map);
-	void mcu_mem(address_map &map);
+	void oki_map(address_map &map);
 	void rbmk_mem(address_map &map);
 	void rbspm_mem(address_map &map);
 
@@ -145,6 +167,7 @@ private:
 	void mcu_io_mux_w(uint8_t data);
 	void eeprom_w(offs_t offset, uint16_t data, uint16_t mem_mask = ~0);
 
+	DECLARE_VIDEO_START(train) { video_start(); m_tilemap[0]->set_transparent_pen(0); } // TODO: this shouldn't be needed
 	TILE_GET_INFO_MEMBER(get_tile0_info);
 	TILE_GET_INFO_MEMBER(get_tile1_info);
 	uint32_t screen_update(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);
@@ -185,7 +208,6 @@ uint16_t gms_2layers_state::input_matrix_r()
 	if (m_input_matrix & 0x1000) res &= m_dsw[0]->read();
 	if (m_input_matrix & 0x2000) res &= m_dsw[1].read_safe(0xffff);
 	if (m_input_matrix & 0x4000) res &= m_dsw[2].read_safe(0xffff);
-	if (m_input_matrix & 0x8000) res &= m_dsw[3].read_safe(0xffff);
 
 	return res;
 }
@@ -193,10 +215,26 @@ uint16_t gms_2layers_state::input_matrix_r()
 void gms_2layers_state::tilebank_w(uint16_t data)
 {
 	m_tilebank = data;
+
+	// fedcba98 76543210
+	// xxxx              // unknown (never seen set, possibly a 4th tilemap not used by the dumped games?)
+	//     x             // 3rd tilemap enable (probably)
+	//      xx           // bank 3rd tilemap
+	//        x          // unknown (never seen set)
+	//          x        // unknown (never seen set)
+	//           x       // unknown (set during most screens in the mahjong games and in sc2in1' title screen)
+	//            x      // priority between 1st and 2nd tilemaps
+	//             x     // bank 1st tilemap
+	//              x    // 1st tilemap enable (probably)
+	//               xx  // bank 2nd tilemap
+	//                 x // 2nd tilemap enable (probably)
+
+	if (m_tilebank & 0xf1c0)
+		LOGTILEATTR("unknown tilemap attribute: %04x\n", m_tilebank & 0xf1c0);
 }
 
 template <uint8_t Which>
-void gms_2layers_state::vram_w(offs_t offset, u16 data, u16 mem_mask)
+void gms_2layers_state::vram_w(offs_t offset, uint16_t data, uint16_t mem_mask)
 {
 	COMBINE_DATA(&m_vidram[Which][offset]);
 	m_tilemap[Which]->mark_tile_dirty(offset);
@@ -205,6 +243,8 @@ void gms_2layers_state::vram_w(offs_t offset, u16 data, u16 mem_mask)
 void gms_2layers_state::input_matrix_w(uint16_t data)
 {
 	m_input_matrix = data;
+
+	m_oki->set_rom_bank(BIT(data, 15));
 }
 
 void gms_2layers_state::eeprom_w(offs_t offset, uint16_t data, uint16_t mem_mask)
@@ -229,15 +269,16 @@ void gms_2layers_state::rbmk_mem(address_map &map)
 	map(0x940000, 0x940bff).ram();
 	map(0x940c00, 0x940fff).ram().w(FUNC(gms_2layers_state::vram_w<0>)).share(m_vidram[0]);
 	map(0x980300, 0x983fff).ram(); // 0x2048  words ???, byte access
+	map(0x980380, 0x9803ff).ram().share(m_scrolly);
 	map(0x9c0000, 0x9c0fff).ram().w(FUNC(gms_2layers_state::vram_w<1>)).share(m_vidram[1]);
 	map(0xb00000, 0xb00001).w(FUNC(gms_2layers_state::eeprom_w));
 	map(0xc00000, 0xc00001).rw(FUNC(gms_2layers_state::input_matrix_r), FUNC(gms_2layers_state::input_matrix_w));
 	map(0xc08000, 0xc08001).portr("IN1").w(FUNC(gms_2layers_state::tilebank_w));
 	map(0xc10000, 0xc10001).portr("IN2");
 	map(0xc18080, 0xc18081).r(FUNC(gms_2layers_state::unk_r));  // TODO: from MCU?
-	map(0xc20000, 0xc20000).r("oki", FUNC(okim6295_device::read));
+	map(0xc20000, 0xc20000).r(m_oki, FUNC(okim6295_device::read));
 	//map(0xc20080, 0xc20081) // TODO: to MCU?
-	map(0xc28000, 0xc28000).w("oki", FUNC(okim6295_device::write));
+	map(0xc28000, 0xc28000).w(m_oki, FUNC(okim6295_device::write));
 }
 
 void gms_2layers_state::rbspm_mem(address_map &map)
@@ -248,14 +289,15 @@ void gms_2layers_state::rbspm_mem(address_map &map)
 	map(0x308000, 0x308001).portr("IN1").w(FUNC(gms_2layers_state::tilebank_w)); // ok
 	map(0x310000, 0x310001).portr("IN2");
 	map(0x318080, 0x318081).r(FUNC(gms_2layers_state::unk_r));
-	map(0x320000, 0x320000).r("oki", FUNC(okim6295_device::read));
-	map(0x328000, 0x328000).w("oki", FUNC(okim6295_device::write));
+	map(0x320000, 0x320000).r(m_oki, FUNC(okim6295_device::read));
+	map(0x328000, 0x328000).w(m_oki, FUNC(okim6295_device::write));
 	map(0x340002, 0x340003).nopw();
 	map(0x500000, 0x50ffff).ram();
 	map(0x900000, 0x900fff).ram().w(m_palette, FUNC(palette_device::write16)).share("palette"); // if removed fails gfx test?
 	map(0x940000, 0x940bff).ram();
 	map(0x940c00, 0x940fff).ram().w(FUNC(gms_2layers_state::vram_w<0>)).share(m_vidram[0]); // if removed fails palette test?
 	map(0x980300, 0x983fff).ram(); // 0x2048  words ???, byte access, u25 and u26 according to test mode
+	map(0x980380, 0x9803ff).ram().share(m_scrolly);
 	map(0x9c0000, 0x9c0fff).ram().w(FUNC(gms_2layers_state::vram_w<1>)).share(m_vidram[1]);
 }
 
@@ -267,14 +309,15 @@ void gms_2layers_state::super555_mem(address_map &map)
 	map(0x608000, 0x608001).portr("IN1").w(FUNC(gms_2layers_state::tilebank_w)); // ok
 	map(0x610000, 0x610001).portr("IN2");
 	map(0x618080, 0x618081).nopr();//.lr16(NAME([this] () -> uint16_t { return m_prot_data; })); // reads something here from below, if these are hooked up booting stops with '0x09 U64 ERROR', like it's failing some checksum test
-	map(0x620000, 0x620000).r("oki", FUNC(okim6295_device::read)); // TODO: Oki controlled through a GAL at 18C, should be banked, too
+	map(0x620000, 0x620000).r(m_oki, FUNC(okim6295_device::read)); // TODO: Oki controlled through a GAL at 18C, should be banked, too
 	// map(0x620080, 0x620081).lw16(NAME([this] (uint16_t data) { m_prot_data = data; })); // writes something here that expects to read above
-	map(0x628000, 0x628000).w("oki", FUNC(okim6295_device::write));
+	map(0x628000, 0x628000).w(m_oki, FUNC(okim6295_device::write));
 	map(0x638000, 0x638001).nopw(); // lamps / outputs?
 	map(0x900000, 0x900fff).ram().w(m_palette, FUNC(palette_device::write16)).share("palette");
 	map(0x940000, 0x940bff).ram();
 	map(0x940c00, 0x940fff).ram().w(FUNC(gms_2layers_state::vram_w<0>)).share(m_vidram[0]);
 	map(0x980000, 0x983fff).ram();
+	map(0x980380, 0x9803ff).ram().share(m_scrolly);
 	map(0x9c0000, 0x9c0fff).ram().w(FUNC(gms_2layers_state::vram_w<1>)).share(m_vidram[1]);
 	//map(0xf00000, 0xf00001).w(FUNC(gms_2layers_state::eeprom_w)); // wrong?
 }
@@ -284,11 +327,6 @@ void gms_3layers_state::magslot_mem(address_map &map)
 	super555_mem(map);
 
 	map(0x9e0000, 0x9e0fff).ram().w(FUNC(gms_3layers_state::vram_w<2>)).share(m_vidram[2]);
-}
-
-void gms_2layers_state::mcu_mem(address_map &map)
-{
-//  map(0x0000, 0x0fff).rom();
 }
 
 uint8_t gms_2layers_state::mcu_io_r(offs_t offset)
@@ -538,15 +576,15 @@ static INPUT_PORTS_START( magslot )
 	PORT_BIT( 0x0002, IP_ACTIVE_LOW, IPT_SERVICE1 )
 	PORT_BIT( 0x0004, IP_ACTIVE_LOW, IPT_COIN1 )
 	PORT_BIT( 0x0008, IP_ACTIVE_LOW, IPT_START1 )
-	PORT_BIT( 0x0010, IP_ACTIVE_LOW, IPT_UNKNOWN ) // but recognized for password entering
+	PORT_BIT( 0x0010, IP_ACTIVE_LOW, IPT_BUTTON6 ) PORT_NAME("Bet Max") // seems to be used to bet the allowed maximum
 	PORT_BIT( 0x0020, IP_ACTIVE_LOW, IPT_GAMBLE_BET )
-	PORT_BIT( 0x0040, IP_ACTIVE_LOW, IPT_UNKNOWN ) // but recognized for password entering
+	PORT_BIT( 0x0040, IP_ACTIVE_LOW, IPT_BUTTON7 ) PORT_NAME("Show Info")
 	PORT_BIT( 0x0080, IP_ACTIVE_LOW, IPT_UNKNOWN ) // but recognized for password entering
-	PORT_BIT( 0x0100, IP_ACTIVE_LOW, IPT_UNKNOWN ) // but recognized for password entering
+	PORT_BIT( 0x0100, IP_ACTIVE_LOW, IPT_BUTTON5 ) PORT_NAME("9 Lines")
 	PORT_BIT( 0x0200, IP_ACTIVE_LOW, IPT_BUTTON2 ) PORT_NAME("3 Lines")
 	PORT_BIT( 0x0400, IP_ACTIVE_LOW, IPT_BUTTON3 ) PORT_NAME("5 Lines")
-	PORT_BIT( 0x0800, IP_ACTIVE_LOW, IPT_UNKNOWN ) // but recognized for password entering
-	PORT_BIT( 0x1000, IP_ACTIVE_LOW, IPT_UNKNOWN ) // but recognized for password entering
+	PORT_BIT( 0x0800, IP_ACTIVE_LOW, IPT_BUTTON1 ) PORT_NAME("1 Line")
+	PORT_BIT( 0x1000, IP_ACTIVE_LOW, IPT_BUTTON4 ) PORT_NAME("7 Lines")
 	PORT_BIT( 0x2000, IP_ACTIVE_LOW, IPT_UNKNOWN ) // but recognized for password entering
 	PORT_BIT( 0x4000, IP_ACTIVE_LOW, IPT_UNKNOWN ) // but recognized for password entering
 	PORT_BIT( 0x8000, IP_ACTIVE_LOW, IPT_UNKNOWN ) // but recognized for password entering
@@ -571,10 +609,10 @@ static INPUT_PORTS_START( magslot )
 
 	// 3 8-dip banks on PCB
 	PORT_START("DSW1") // Game setup is password protected, needs reverse engineering of the password
-	PORT_DIPNAME( 0x0001, 0x0001, "DSW1" )
-	PORT_DIPSETTING(      0x0001, DEF_STR( Off ) )
-	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
-	PORT_DIPNAME( 0x0002, 0x0002, DEF_STR( Unknown ) )
+	PORT_DIPNAME(         0x0001, 0x0000, "Game Password" )
+	PORT_DIPSETTING(      0x0000, DEF_STR( Normal ) )
+	PORT_DIPSETTING(      0x0001, "Power On" )
+	PORT_DIPNAME( 0x0002, 0x0000, DEF_STR( Demo_Sounds ) )
 	PORT_DIPSETTING(      0x0002, DEF_STR( Off ) )
 	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
 	PORT_DIPNAME( 0x0004, 0x0004, DEF_STR( Unknown ) )
@@ -594,31 +632,6 @@ static INPUT_PORTS_START( magslot )
 	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
 	PORT_DIPNAME( 0x0080, 0x0080, DEF_STR( Unknown ) )
 	PORT_DIPSETTING(      0x0080, DEF_STR( Off ) )
-	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
-
-	PORT_DIPNAME( 0x0100, 0x0100, DEF_STR( Unknown ) )
-	PORT_DIPSETTING(      0x0100, DEF_STR( Off ) )
-	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
-	PORT_DIPNAME( 0x0200, 0x0200, DEF_STR( Unknown ) )
-	PORT_DIPSETTING(      0x0200, DEF_STR( Off ) )
-	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
-	PORT_DIPNAME( 0x0400, 0x0400, DEF_STR( Unknown ) )
-	PORT_DIPSETTING(      0x0400, DEF_STR( Off ) )
-	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
-	PORT_DIPNAME( 0x0800, 0x0800, DEF_STR( Unknown ) )
-	PORT_DIPSETTING(      0x0800, DEF_STR( Off ) )
-	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
-	PORT_DIPNAME( 0x1000, 0x1000, DEF_STR( Unknown ) )
-	PORT_DIPSETTING(      0x1000, DEF_STR( Off ) )
-	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
-	PORT_DIPNAME( 0x2000, 0x2000, DEF_STR( Unknown ) )
-	PORT_DIPSETTING(      0x2000, DEF_STR( Off ) )
-	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
-	PORT_DIPNAME( 0x4000, 0x4000, DEF_STR( Unknown ) )
-	PORT_DIPSETTING(      0x4000, DEF_STR( Off ) )
-	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
-	PORT_DIPNAME( 0x8000, 0x8000, DEF_STR( Unknown ) )
-	PORT_DIPSETTING(      0x8000, DEF_STR( Off ) )
 	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
 
 	PORT_START("DSW2")
@@ -646,30 +659,6 @@ static INPUT_PORTS_START( magslot )
 	PORT_DIPNAME( 0x0080, 0x0080, DEF_STR( Unknown ) )
 	PORT_DIPSETTING(      0x0080, DEF_STR( Off ) )
 	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
-	PORT_DIPNAME( 0x0100, 0x0100, DEF_STR( Unknown ) )
-	PORT_DIPSETTING(      0x0100, DEF_STR( Off ) )
-	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
-	PORT_DIPNAME( 0x0200, 0x0200, DEF_STR( Unknown ) )
-	PORT_DIPSETTING(      0x0200, DEF_STR( Off ) )
-	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
-	PORT_DIPNAME( 0x0400, 0x0400, DEF_STR( Unknown ) )
-	PORT_DIPSETTING(      0x0400, DEF_STR( Off ) )
-	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
-	PORT_DIPNAME( 0x0800, 0x0800, DEF_STR( Unknown ) )
-	PORT_DIPSETTING(      0x0800, DEF_STR( Off ) )
-	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
-	PORT_DIPNAME( 0x1000, 0x1000, DEF_STR( Unknown ) )
-	PORT_DIPSETTING(      0x1000, DEF_STR( Off ) )
-	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
-	PORT_DIPNAME( 0x2000, 0x2000, DEF_STR( Unknown ) )
-	PORT_DIPSETTING(      0x2000, DEF_STR( Off ) )
-	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
-	PORT_DIPNAME( 0x4000, 0x4000, DEF_STR( Unknown ) )
-	PORT_DIPSETTING(      0x4000, DEF_STR( Off ) )
-	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
-	PORT_DIPNAME( 0x8000, 0x8000, DEF_STR( Unknown ) )
-	PORT_DIPSETTING(      0x8000, DEF_STR( Off ) )
-	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
 
 	PORT_START("DSW3")
 	PORT_DIPNAME( 0x0001, 0x0001, "DSW3" )
@@ -695,30 +684,6 @@ static INPUT_PORTS_START( magslot )
 	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
 	PORT_DIPNAME( 0x0080, 0x0080, DEF_STR( Unknown ) )
 	PORT_DIPSETTING(      0x0080, DEF_STR( Off ) )
-	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
-	PORT_DIPNAME( 0x0100, 0x0100, DEF_STR( Unknown ) )
-	PORT_DIPSETTING(      0x0100, DEF_STR( Off ) )
-	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
-	PORT_DIPNAME( 0x0200, 0x0200, DEF_STR( Unknown ) )
-	PORT_DIPSETTING(      0x0200, DEF_STR( Off ) )
-	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
-	PORT_DIPNAME( 0x0400, 0x0400, DEF_STR( Unknown ) )
-	PORT_DIPSETTING(      0x0400, DEF_STR( Off ) )
-	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
-	PORT_DIPNAME( 0x0800, 0x0800, DEF_STR( Unknown ) )
-	PORT_DIPSETTING(      0x0800, DEF_STR( Off ) )
-	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
-	PORT_DIPNAME( 0x1000, 0x1000, DEF_STR( Unknown ) )
-	PORT_DIPSETTING(      0x1000, DEF_STR( Off ) )
-	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
-	PORT_DIPNAME( 0x2000, 0x2000, DEF_STR( Unknown ) )
-	PORT_DIPSETTING(      0x2000, DEF_STR( Off ) )
-	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
-	PORT_DIPNAME( 0x4000, 0x4000, DEF_STR( Unknown ) )
-	PORT_DIPSETTING(      0x4000, DEF_STR( Off ) )
-	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
-	PORT_DIPNAME( 0x8000, 0x8000, DEF_STR( Unknown ) )
-	PORT_DIPSETTING(      0x8000, DEF_STR( Off ) )
 	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
 INPUT_PORTS_END
 
@@ -787,6 +752,14 @@ static INPUT_PORTS_START( super555 )
 	PORT_DIPNAME( 0x0080, 0x0000, "Five Bars" ) PORT_DIPLOCATION("SW1:8")
 	PORT_DIPSETTING(      0x0080, DEF_STR( Off ) )
 	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPUNKNOWN_DIPLOC( 0x0100, 0x0000, "SW4:1" )
+	PORT_DIPUNKNOWN_DIPLOC( 0x0200, 0x0000, "SW4:2" )
+	PORT_DIPUNKNOWN_DIPLOC( 0x0400, 0x0000, "SW4:3" )
+	PORT_DIPUNKNOWN_DIPLOC( 0x0800, 0x0000, "SW4:4" )
+	PORT_DIPUNKNOWN_DIPLOC( 0x1000, 0x0000, "SW4:5" )
+	PORT_DIPUNKNOWN_DIPLOC( 0x2000, 0x0000, "SW4:6" )
+	PORT_DIPUNKNOWN_DIPLOC( 0x4000, 0x0000, "SW4:7" )
+	PORT_DIPUNKNOWN_DIPLOC( 0x8000, 0x0000, "SW4:8" )
 
 	PORT_START("DSW2")
 	PORT_DIPNAME( 0x0007, 0x0000, "Coin Rate" ) PORT_DIPLOCATION("SW2:1,2,3")
@@ -836,16 +809,6 @@ static INPUT_PORTS_START( super555 )
 	PORT_DIPNAME( 0x0080, 0x0000, DEF_STR( Unknown ) ) PORT_DIPLOCATION("SW3:8") // not shown in test mode
 	PORT_DIPSETTING(      0x0080, DEF_STR( Off ) )
 	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
-
-	PORT_START("DSW4")
-	PORT_DIPUNKNOWN_DIPLOC( 0x01, 0x00, "SW4:1" )
-	PORT_DIPUNKNOWN_DIPLOC( 0x02, 0x00, "SW4:2" )
-	PORT_DIPUNKNOWN_DIPLOC( 0x04, 0x00, "SW4:3" )
-	PORT_DIPUNKNOWN_DIPLOC( 0x08, 0x00, "SW4:4" )
-	PORT_DIPUNKNOWN_DIPLOC( 0x10, 0x00, "SW4:5" )
-	PORT_DIPUNKNOWN_DIPLOC( 0x20, 0x00, "SW4:6" )
-	PORT_DIPUNKNOWN_DIPLOC( 0x40, 0x00, "SW4:7" )
-	PORT_DIPUNKNOWN_DIPLOC( 0x80, 0x00, "SW4:8" )
 INPUT_PORTS_END
 
 static INPUT_PORTS_START( sc2in1 )
@@ -1154,16 +1117,15 @@ static const gfx_layout rbmk32_layout =
 	32*32
 };
 
-static const gfx_layout magslot16_layout = // TODO: not correct
+static const gfx_layout magslot32_layout = // TODO: probably not 100% correct
 {
-	16,16,
+	8,32,
 	RGN_FRAC(1,1),
 	8,
-	{8, 9,10, 11, 0, 1, 2, 3  },
-	{ 0, 4, 16, 20, 32, 36, 48, 52,
-	64+0,64+4,64+16,64+20,64+32,64+36,64+48,64+52},
-	{ 0*64, 1*64, 2*64, 3*64, 4*64, 5*64, 6*64, 7*64,
-	512+0*16,512+1*64,512+2*64,512+3*64,512+4*64,512+5*64,512+6*64,512+7*64},
+	{ 8, 9, 10, 11, 0, 1, 2, 3 },
+	{ 4, 0, 20, 16, 36, 32, 52, 48,
+	64+4, 64+0, 64+20, 64+16, 64+36, 64+32, 64+52, 64+48},
+	{ STEP32(0,8*8) },
 	32*64
 };
 
@@ -1174,9 +1136,9 @@ static GFXDECODE_START( gfx_rbmk )
 GFXDECODE_END
 
 static GFXDECODE_START( gfx_magslot )
-	GFXDECODE_ENTRY( "gfx1", 0, magslot16_layout,         0x000, 16  )
+	GFXDECODE_ENTRY( "gfx1", 0, magslot32_layout,         0x000, 16  )
 	GFXDECODE_ENTRY( "gfx2", 0, gfx_8x8x4_packed_lsb,     0x100, 16  )
-	GFXDECODE_ENTRY( "gfx3", 0, gfx_8x8x4_packed_lsb,     0x100, 16  ) // wrong colors
+	GFXDECODE_ENTRY( "gfx3", 0, gfx_8x8x4_packed_lsb,     0x400, 16  )
 GFXDECODE_END
 
 void gms_2layers_state::video_start()
@@ -1184,6 +1146,7 @@ void gms_2layers_state::video_start()
 	m_tilemap[0] = &machine().tilemap().create(*m_gfxdecode, tilemap_get_info_delegate(*this, FUNC(gms_2layers_state::get_tile0_info)), TILEMAP_SCAN_ROWS, 8, 32, 64, 8);
 	m_tilemap[1] = &machine().tilemap().create(*m_gfxdecode, tilemap_get_info_delegate(*this, FUNC(gms_2layers_state::get_tile1_info)), TILEMAP_SCAN_ROWS, 8, 8, 64, 32);
 
+	//m_tilemap[0]->set_transparent_pen(0);
 	m_tilemap[1]->set_transparent_pen(0);
 
 	save_item(NAME(m_tilebank));
@@ -1218,20 +1181,41 @@ TILE_GET_INFO_MEMBER(gms_3layers_state::get_tile2_info)
 	tileinfo.set(2, (tile & 0x0fff) + ((m_tilebank >> 9) & 3) * 0x1000, tile >> 12, 0);
 }
 
-// TODO:  ballch's and cots' title screens highlight a priority bug: the title and copyright are drawn behind the background
+
 uint32_t gms_2layers_state::screen_update(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect)
 {
-	m_tilemap[0]->draw(screen, bitmap, cliprect);
-	m_tilemap[1]->draw(screen, bitmap, cliprect);
+
+	for (int i = 0; i < 64; i++)
+		m_tilemap[0]->set_scrolly(i, m_scrolly[i]);
+
+	if (BIT(m_tilebank, 3) && BIT(m_tilebank, 5))
+		m_tilemap[0]->draw(screen, bitmap, cliprect);
+
+	if (BIT(m_tilebank, 0))
+		m_tilemap[1]->draw(screen, bitmap, cliprect);
+
+	if (BIT(m_tilebank, 3) && !BIT(m_tilebank, 5))
+		m_tilemap[0]->draw(screen, bitmap, cliprect);
 
 	return 0;
 }
 
 uint32_t gms_3layers_state::screen_update(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect)
 {
-	m_tilemap[0]->draw(screen, bitmap, cliprect);
-	m_tilemap[1]->draw(screen, bitmap, cliprect);
-	m_tilemap[2]->draw(screen, bitmap, cliprect);
+	for (int i = 0; i < 64; i++)
+		m_tilemap[0]->set_scrolly(i, m_scrolly[i]);
+
+	if (BIT(m_tilebank, 3) && BIT(m_tilebank, 5))
+		m_tilemap[0]->draw(screen, bitmap, cliprect);
+
+	if (BIT(m_tilebank, 0))
+		m_tilemap[1]->draw(screen, bitmap, cliprect);
+
+	if (BIT(m_tilebank, 3) && !BIT(m_tilebank, 5))
+		m_tilemap[0]->draw(screen, bitmap, cliprect);
+
+	if (BIT(m_tilebank, 11))
+		m_tilemap[2]->draw(screen, bitmap, cliprect);
 
 	return 0;
 }
@@ -1244,7 +1228,6 @@ void gms_2layers_state::rbmk(machine_config &config)
 	m_maincpu->set_vblank_int("screen", FUNC(gms_2layers_state::irq1_line_hold));
 
 	AT89C4051(config, m_mcu, 22_MHz_XTAL / 4); // frequency isn't right
-	m_mcu->set_addrmap(AS_PROGRAM, &gms_2layers_state::mcu_mem);
 	m_mcu->set_addrmap(AS_IO, &gms_2layers_state::mcu_io);
 	m_mcu->port_out_cb<3>().set(FUNC(gms_2layers_state::mcu_io_mux_w));
 
@@ -1265,9 +1248,9 @@ void gms_2layers_state::rbmk(machine_config &config)
 	SPEAKER(config, "lspeaker").front_left();
 	SPEAKER(config, "rspeaker").front_right();
 
-	okim6295_device &oki(OKIM6295(config, "oki", 22_MHz_XTAL / 20, okim6295_device::PIN7_HIGH)); // pin 7 not verified
-	oki.add_route(ALL_OUTPUTS, "lspeaker", 0.47);
-	oki.add_route(ALL_OUTPUTS, "rspeaker", 0.47);
+	OKIM6295(config, m_oki, 22_MHz_XTAL / 20, okim6295_device::PIN7_HIGH); // pin 7 not verified, but seems to match recordings
+	m_oki->add_route(ALL_OUTPUTS, "lspeaker", 0.47);
+	m_oki->add_route(ALL_OUTPUTS, "rspeaker", 0.47);
 
 	YM2151(config, m_ymsnd, 22_MHz_XTAL / 8);
 	m_ymsnd->add_route(0, "lspeaker", 0.60);
@@ -1291,6 +1274,13 @@ void gms_2layers_state::super555(machine_config &config)
 	config.device_remove("ymsnd");
 }
 
+void gms_2layers_state::train(machine_config &config)
+{
+	super555(config);
+
+	MCFG_VIDEO_START_OVERRIDE(gms_2layers_state, train)
+}
+
 void gms_3layers_state::magslot(machine_config &config)
 {
 	super555(config);
@@ -1304,7 +1294,7 @@ void gms_3layers_state::magslot(machine_config &config)
 
 // 实战麻将王 (Shízhàn Májiàng Wáng)
 ROM_START( rbmk )
-	ROM_REGION( 0x80000, "maincpu", 0 ) // 68000 Code
+	ROM_REGION( 0x80000, "maincpu", 0 ) // 68000 code
 	ROM_LOAD( "p1.u64", 0x00000, 0x80000, CRC(83b3c505) SHA1(b943d7312dacdf46d4a55f9dc3cf92e291c40ce7) )
 
 	ROM_REGION( 0x1000, "mcu", 0 ) // protected MCU?
@@ -1333,8 +1323,8 @@ http://youtu.be/pPk-6N1wXoE
 http://youtu.be/VGbrR7GfDck
 */
 
-ROM_START( rbspm )
-	ROM_REGION( 0x80000, "maincpu", 0 ) // 68000 Code
+ROM_START( rbspm ) // PCB NO.6899-B
+	ROM_REGION( 0x80000, "maincpu", 0 ) // 68000 code
 	ROM_LOAD( "mj-dfmj-p1.bin", 0x00000, 0x80000, CRC(8f81f154) SHA1(50a9a373dec96b0265907f053d068d636bdabd61) )
 
 	ROM_REGION( 0x1000, "mcu", 0 ) // protected MCU
@@ -1361,8 +1351,8 @@ ROM_START( rbspm )
 ROM_END
 
 
-ROM_START( super555 )
-	ROM_REGION( 0x80000, "maincpu", 0 ) /* 68000 Code */
+ROM_START( super555 ) // GMS branded chips: A66, A68, M06
+	ROM_REGION( 0x80000, "maincpu", 0 ) // 68000 code
 	ROM_LOAD( "super555-v1.5e-0d9b.u64", 0x00000, 0x80000, CRC(9a9c16cc) SHA1(95609dbd45feb591190a2b62dee8846cdcec3462) )
 
 	ROM_REGION( 0x080000, "oki", 0 )
@@ -1379,8 +1369,10 @@ ROM_START( super555 )
 ROM_END
 
 
-ROM_START( sc2in1 ) // Basically same PCB as magslot, but with only 1 dip bank. Most labels have been covered with other labels with 'TETRIS' hand-written
-	ROM_REGION( 0x80000, "maincpu", 0 ) /* 68000 Code */
+// Basically same PCB as magslot, but with only 1 dip bank. Most labels have been covered with other labels with 'TETRIS' hand-written
+// GMS-branded chips: A66, A89, A201, A202. Not populated: M88
+ROM_START( sc2in1 )
+	ROM_REGION( 0x80000, "maincpu", 0 ) // 68000 code
 	ROM_LOAD( "u64", 0x00000, 0x80000, CRC(c0ad5df0) SHA1(a51f30e76493ea9fb5313c0064dac9a2a4f70cc3) )
 
 	ROM_REGION( 0x080000, "oki", 0 )
@@ -1401,8 +1393,9 @@ ROM_END
 
 
 // the PCB is slightly different from the others, both layout-wise and component-wise, but it's mostly compatible. It seems to use one more GFX layer and not to have the 89C51.
+// GMS-branded chips: A66, A89, A201, A202. Not populated: M88
 ROM_START( magslot ) // All labels have SLOT canceled with a black pen. No sum matches the one on label.
-	ROM_REGION( 0x80000, "maincpu", 0 ) /* 68000 Code */
+	ROM_REGION( 0x80000, "maincpu", 0 ) // 68000 code
 	ROM_LOAD( "magic 1.0c _ _ _ _.u64", 0x00000, 0x80000, CRC(84544dd7) SHA1(cf10ad3373c2f35f5fa7986be0865f760a454c28) ) // no sum on label, 1xxxxxxxxxxxxxxxxxx = 0x00
 
 	ROM_REGION( 0x080000, "oki", 0 )
@@ -1432,7 +1425,7 @@ Major components:
   CPU: MC68HC00F16
 Sound: OKI 6295
   OSC: 22.00MHz
-EEPOM: ISSI 93C46
+EEPROM: ISSI 93C46
   DSW: 3 x 8-position switches
   BAT: 3.6v Varta battery
 
@@ -1471,7 +1464,7 @@ Major components:
   CPU: MC68HC00F16
 Sound: OKI 6295
   OSC: 22.00MHz
-EEPOM: ISSI 93C46
+EEPROM: ISSI 93C46
   DSW: 3 x 8-position switches
   BAT: 3.6v Varta battery
 
@@ -1543,7 +1536,6 @@ void gms_3layers_state::init_sc2in1()
 	rom[0x4681a / 2] = 0x4e71;
 	rom[0x46842 / 2] = 0x4e71;
 	rom[0x46844 / 2] = 0x4e71;
-	//45f46 = 4e71 4e71 45f60 = 6000 45f70 = 4e71 4e71 45f9e = 6000 46818 = 4e71 4e71 46842 = 4e71 4e71
 }
 
 void gms_2layers_state::init_super555()
@@ -1589,5 +1581,5 @@ GAME( 2001, sc2in1,   0, magslot,  sc2in1,   gms_3layers_state, init_sc2in1,   R
 GAME( 2003, magslot,  0, magslot,  magslot,  gms_3layers_state, empty_init,    ROT0,  "GMS", "Magic Slot (normal 1.0C)",                  MACHINE_IMPERFECT_GRAPHICS | MACHINE_IMPERFECT_SOUND | MACHINE_NOT_WORKING ) // needs implementing of 3rd GFX layer, correct GFX decode for 1st layer, inputs
 
 // train games
-GAME( 2002, ballch,   0, super555, ballch,   gms_2layers_state, init_ballch,   ROT0,  "TVE", "Ball Challenge (20020607 1.0 OVERSEA)",     MACHINE_IMPERFECT_GRAPHICS | MACHINE_UNEMULATED_PROTECTION | MACHINE_IMPERFECT_SOUND | MACHINE_IMPERFECT_SOUND | MACHINE_NOT_WORKING ) // stops during boot, patched for now
-GAME( 2005, cots,     0, super555, cots,     gms_2layers_state, init_cots,     ROT0,  "ECM", "Creatures of the Sea (20050328 USA 6.3)",   MACHINE_IMPERFECT_GRAPHICS | MACHINE_UNEMULATED_PROTECTION | MACHINE_IMPERFECT_SOUND | MACHINE_NOT_WORKING ) // stops during boot, patched for now
+GAME( 2002, ballch,   0, train,    ballch,   gms_2layers_state, init_ballch,   ROT0,  "TVE", "Ball Challenge (20020607 1.0 OVERSEA)",     MACHINE_UNEMULATED_PROTECTION | MACHINE_IMPERFECT_SOUND | MACHINE_NOT_WORKING ) // stops during boot, patched for now
+GAME( 2005, cots,     0, train,    cots,     gms_2layers_state, init_cots,     ROT0,  "ECM", "Creatures of the Sea (20050328 USA 6.3)",   MACHINE_UNEMULATED_PROTECTION | MACHINE_IMPERFECT_SOUND | MACHINE_NOT_WORKING ) // stops during boot, patched for now

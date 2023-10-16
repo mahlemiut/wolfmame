@@ -22,6 +22,8 @@
 
 #include "bus/nscsi/cd.h"
 #include "bus/nscsi/devices.h"
+#include "bus/nubus/cards.h"
+#include "bus/nubus/nubus.h"
 #include "bus/rs232/rs232.h"
 #include "cpu/m68000/m68020.h"
 #include "cpu/m68000/m68030.h"
@@ -358,6 +360,13 @@ void maclc_state::maclc_base(machine_config &config)
 	m_v8->hdsel_callback().set(FUNC(maclc_state::hdsel_w));
 	m_v8->hmmu_enable_callback().set(FUNC(maclc_state::set_hmmu));
 
+	nubus_device &nubus(NUBUS(config, "pds", 0));
+	nubus.set_space(m_maincpu, AS_PROGRAM);
+	nubus.set_address_mask(0x80ffffff);
+	// V8 supports interrupts for slots $C, $D, and $E, but the LC, LC II, and Color Classic
+	// only hook the slot $E IRQ up to the PDS slot.
+	nubus.out_irqe_callback().set(m_v8, FUNC(v8_device::slot_irq_w<0x20>));
+
 	MACADB(config, m_macadb, C15M);
 
 	EGRET(config, m_egret, XTAL(32'768));
@@ -386,6 +395,8 @@ void maclc_state::maclc(machine_config &config)
 {
 	maclc_base(config);
 
+	NUBUS_SLOT(config, "lcpds", "pds", mac_pdslc_orig_cards, nullptr);
+
 	m_ram->set_default_size("2M");
 	m_ram->set_extra_options("4M,6M,10M");
 	m_v8->set_baseram_is_4M(false);
@@ -394,6 +405,8 @@ void maclc_state::maclc(machine_config &config)
 void maclc_state::maclc2(machine_config &config)
 {
 	maclc_base(config);
+
+	NUBUS_SLOT(config, "lcpds", "pds", mac_pdslc_cards, nullptr);
 
 	M68030(config.replace(), m_maincpu, C15M);
 	m_maincpu->set_addrmap(AS_PROGRAM, &maclc_state::maclc_map);
@@ -435,6 +448,8 @@ void maclc_state::maccclas(machine_config &config)
 	m_v8->pb5_callback().set(m_cuda, FUNC(cuda_device::set_tip));
 	m_v8->cb2_callback().set(m_cuda, FUNC(cuda_device::set_via_data));
 
+	NUBUS_SLOT(config, "lcpds", "pds", mac_pdslc_cards, nullptr);
+
 	m_ram->set_default_size("4M");
 	m_ram->set_extra_options("6M,8M,10M");
 	m_v8->set_baseram_is_4M(true);
@@ -458,6 +473,9 @@ void maclc_state::macclas2(machine_config &config)
 	m_v8->pb4_callback().set(m_egret, FUNC(egret_device::set_via_full));
 	m_v8->pb5_callback().set(m_egret, FUNC(egret_device::set_sys_session));
 	m_v8->cb2_callback().set(m_egret, FUNC(egret_device::set_via_data));
+
+	// Classic II doesn't have an LC PDS slot (and its ROM has the Slot Manager disabled)
+	config.device_remove("pds");
 
 	m_ram->set_default_size("4M");
 	m_ram->set_extra_options("6M,8M,10M");
@@ -494,7 +512,7 @@ ROM_END
 
 } // anonymous namespace
 
-COMP(1990, maclc,  0, 0, maclc,  maclc, maclc_state, empty_init, "Apple Computer", "Macintosh LC", MACHINE_SUPPORTS_SAVE|MACHINE_IMPERFECT_SOUND)
-COMP(1991, maclc2, 0, 0, maclc2, maclc, maclc_state, empty_init, "Apple Computer", "Macintosh LC II", MACHINE_SUPPORTS_SAVE|MACHINE_IMPERFECT_SOUND)
-COMP(1991, macclas2, 0, 0, macclas2, maclc, maclc_state, empty_init, "Apple Computer", "Macintosh Classic II", MACHINE_SUPPORTS_SAVE|MACHINE_IMPERFECT_SOUND )
-COMP(1993, maccclas, 0, 0, maccclas, maclc, maclc_state, empty_init, "Apple Computer", "Macintosh Color Classic", MACHINE_SUPPORTS_SAVE|MACHINE_IMPERFECT_SOUND)
+COMP(1990, maclc,  0, 0, maclc,  maclc, maclc_state, empty_init, "Apple Computer", "Macintosh LC", MACHINE_SUPPORTS_SAVE)
+COMP(1991, maclc2, 0, 0, maclc2, maclc, maclc_state, empty_init, "Apple Computer", "Macintosh LC II", MACHINE_SUPPORTS_SAVE)
+COMP(1991, macclas2, 0, 0, macclas2, maclc, maclc_state, empty_init, "Apple Computer", "Macintosh Classic II", MACHINE_SUPPORTS_SAVE)
+COMP(1993, maccclas, 0, 0, maccclas, maclc, maclc_state, empty_init, "Apple Computer", "Macintosh Color Classic", MACHINE_SUPPORTS_SAVE)

@@ -13,7 +13,6 @@
 
 
 #include "exp.h"
-#include "formats/tibdd001_dsk.h"
 #include "imagedev/floppy.h"
 #include "machine/upd765.h"
 
@@ -26,7 +25,7 @@
 // ======================> c64_tib_dd_001_device
 
 class c64_tib_dd_001_device : public device_t,
-						      public device_c64_expansion_card_interface
+							  public device_c64_expansion_card_interface
 {
 public:
 	// construction/destruction

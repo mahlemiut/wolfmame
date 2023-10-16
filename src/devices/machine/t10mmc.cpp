@@ -760,6 +760,16 @@ void t10mmc::ExecCommand()
 		break;
 	}
 
+	case T10SBC_CMD_SEEK_10:
+		m_lba = get_u32be(&command[2]);
+
+		m_device->logerror("T10SBC: SEEK EXTENDED to LBA %x\n", m_lba);
+
+		m_phase = SCSI_PHASE_STATUS;
+		m_status_code = SCSI_STATUS_CODE_GOOD;
+		m_transfer_length = 0;
+		break;
+
 	default:
 		t10spc::ExecCommand();
 	}
@@ -960,12 +970,7 @@ void t10mmc::ReadData( uint8_t *data, int dataLength )
 						buffer_offset = 0;
 						data_len = 2352;
 					}
-					else if (track_type == cdrom_file::CD_TRACK_MODE1)
-					{
-						buffer_offset = 0;
-						data_len = 2048;
-					}
-					else if (track_type == cdrom_file::CD_TRACK_MODE1_RAW)
+					else if (track_type == cdrom_file::CD_TRACK_MODE1 || track_type == cdrom_file::CD_TRACK_MODE1_RAW)
 					{
 						buffer_offset = 16;
 						data_len = 2048;

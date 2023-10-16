@@ -23,7 +23,7 @@
   OKI M6295GS
   4-DIP switches bank
 
-  
+
 ***************************************************************************************************
 
   Some videos about the machine...
@@ -39,14 +39,14 @@
 
   We have two characters...
 
-  Doraneko (ドラネコ) (means Stray Cat) 
+  Doraneko (ドラネコ) (means Stray Cat)
   Koneko (コネコ) (means Kitten)
 
   The game is basically similar to other gator/alligator games, where you must hit 4 mechanical
   cat arms that make attempts to steal the food through a fence.
 
   There is a rank system based on the number of hits you can get in the game. After time out,
-  if you have at least 50 hits, you can get extended time. 
+  if you have at least 50 hits, you can get extended time.
 
    Hits   Level      Japanese              Translation           Extended Game
   ------+-------+------------------+---------------------------+---------------
@@ -61,12 +61,12 @@
 
   The game has a DIP switch that trigger the Test Mode. This Mode start to handle the stepper motors
   of all arms, and test a sequence of lamps while triggers all the game sounds.
-  
+
   Test mode: Press START 1 to test the stepper motors / arms.
 
 
   Some cat's speeches:
-  
+
   "Umasouda nyaa" ----> "Looks delicious nyaa" (at start of a game)
   "Gochisousama" -----> "Thank you for the food" (at end of the game)
 
@@ -78,7 +78,7 @@
 ***************************************************************************************************
 
   Error codes:
-  
+
   E1 = Arm 1 sensor error.
   E2 = Arm 2 sensor error.
   E3 = Arm 3 sensor error.
@@ -163,50 +163,50 @@
    (partial)
 
                    .------v------.
-           --(PA3)-|01         40|-(PA4)-- 
-           --(PA2)-|02  IC10   39|-(PA5)-- 
-           --(PA1)-|03         38|-(PA6)-- 
-           --(PA0)-|04  PPI#0  37|-(PA7)-- 
-           --(/RD)-|05         36|-(/WR)-- 
-           --(/CS)-|06         35|-(RES)-- 
-           --(GND)-|07         34|-(D0)-- 
-           ---(A1)-|08         33|-(D1)-- 
-           ---(A0)-|09   NEC   32|-(D2)-- 
-           --(PC7)-|10         31|-(D3)-- 
-           --(PC6)-|11 D71055C 30|-(D4)-- 
-           --(PC5)-|12         29|-(D5)-- 
-           --(PC4)-|13         28|-(D6)-- 
-           --(PC0)-|14         27|-(D7)-- 
-           --(PC1)-|15         26|-(Vcc)-- 
-           --(PC2)-|16         25|-(PB7)-- 
-           --(PC3)-|17         24|-(PB6)-- 
-           --(PB0)-|18         23|-(PB5)-- 
-           --(PB1)-|19         22|-(PB4)-- 
-           --(PB2)-|20         21|-(PB3)-- 
+           --(PA3)-|01         40|-(PA4)--
+           --(PA2)-|02  IC10   39|-(PA5)--
+           --(PA1)-|03         38|-(PA6)--
+           --(PA0)-|04  PPI#0  37|-(PA7)--
+           --(/RD)-|05         36|-(/WR)--
+           --(/CS)-|06         35|-(RES)--
+           --(GND)-|07         34|-(D0)--
+           ---(A1)-|08         33|-(D1)--
+           ---(A0)-|09   NEC   32|-(D2)--
+           --(PC7)-|10         31|-(D3)--
+           --(PC6)-|11 D71055C 30|-(D4)--
+           --(PC5)-|12         29|-(D5)--
+           --(PC4)-|13         28|-(D6)--
+           --(PC0)-|14         27|-(D7)--
+           --(PC1)-|15         26|-(Vcc)--
+           --(PC2)-|16         25|-(PB7)--
+           --(PC3)-|17         24|-(PB6)--
+           --(PB0)-|18         23|-(PB5)--
+           --(PB1)-|19         22|-(PB4)--
+           --(PB2)-|20         21|-(PB3)--
                    '-------------'
 
 
                    .------v------.
-     DSW#4 --(PA3)-|01         40|-(PA4)-- 
-     DSW#3 --(PA2)-|02   IC5   39|-(PA5)-- 
-     DSW#2 --(PA1)-|03         38|-(PA6)-- 
-     DSW#1 --(PA0)-|04  PPI#1  37|-(PA7)-- 
-           --(/RD)-|05         36|-(/WR)-- 
-           --(/CS)-|06         35|-(RES)-- 
-           --(GND)-|07         34|-(D0)-- 
-           ---(A1)-|08         33|-(D1)-- 
-           ---(A0)-|09   NEC   32|-(D2)-- 
-           --(PC7)-|10         31|-(D3)-- 
-           --(PC6)-|11 D71055C 30|-(D4)-- 
-           --(PC5)-|12         29|-(D5)-- 
-           --(PC4)-|13         28|-(D6)-- 
-           --(PC0)-|14         27|-(D7)-- 
-           --(PC1)-|15         26|-(Vcc)-- 
-           --(PC2)-|16         25|-(PB7)-- 
-           --(PC3)-|17         24|-(PB6)-- 
-           --(PB0)-|18         23|-(PB5)-- 
-           --(PB1)-|19         22|-(PB4)-- 
-           --(PB2)-|20         21|-(PB3)-- 
+     DSW#4 --(PA3)-|01         40|-(PA4)--
+     DSW#3 --(PA2)-|02   IC5   39|-(PA5)--
+     DSW#2 --(PA1)-|03         38|-(PA6)--
+     DSW#1 --(PA0)-|04  PPI#1  37|-(PA7)--
+           --(/RD)-|05         36|-(/WR)--
+           --(/CS)-|06         35|-(RES)--
+           --(GND)-|07         34|-(D0)--
+           ---(A1)-|08         33|-(D1)--
+           ---(A0)-|09   NEC   32|-(D2)--
+           --(PC7)-|10         31|-(D3)--
+           --(PC6)-|11 D71055C 30|-(D4)--
+           --(PC5)-|12         29|-(D5)--
+           --(PC4)-|13         28|-(D6)--
+           --(PC0)-|14         27|-(D7)--
+           --(PC1)-|15         26|-(Vcc)--
+           --(PC2)-|16         25|-(PB7)--
+           --(PC3)-|17         24|-(PB6)--
+           --(PB0)-|18         23|-(PB5)--
+           --(PB1)-|19         22|-(PB4)--
+           --(PB2)-|20         21|-(PB3)--
                    '-------------'
 
 
@@ -228,7 +228,7 @@
      |               | |                 |
      '-+-+-+-+-+-+-+-' '-+-+-+-+-+-+-+-+-'
           74HC04            74HC4040
-         
+
 
 ***************************************************************************************************
 
@@ -247,6 +247,7 @@
 #include "cpu/z80/z80.h"
 #include "machine/i8255.h"
 #include "sound/okim6295.h"
+#include "video/pwm.h"
 
 #include "speaker.h"
 
@@ -258,17 +259,18 @@ namespace {
 class katosmedz80_state : public driver_device
 {
 public:
-	katosmedz80_state(const machine_config &mconfig, device_type type, const char *tag)
-		: driver_device(mconfig, type, tag),
+	katosmedz80_state(const machine_config &mconfig, device_type type, const char *tag) :
+		driver_device(mconfig, type, tag),
 		m_maincpu(*this, "maincpu"),
-		m_digits(*this, "digit%u", 0U),
+		m_ppi(*this, "ppi%u", 0),
+		m_digits_pwm(*this, "digits_pwm"),
 		m_ledsp2(*this, "p2led%u", 0U),
 		m_ledsp3(*this, "p3led%u", 0U),
 		m_ledsp5(*this, "p5led%u", 0U),
 		m_ledsp6(*this, "p6led%u", 0U),
 		m_ledsp8(*this, "p8led%u", 0U),
 		m_pos(*this, "mpos%u", 0U)
-	{}
+	{ }
 
 	DECLARE_CUSTOM_INPUT_MEMBER(arm_sensors_r);
 	void dnbanban(machine_config &config) ATTR_COLD;
@@ -279,14 +281,14 @@ protected:
 
 private:
 	required_device<cpu_device> m_maincpu;
-	output_finder<4> m_digits;
+	required_device_array<i8255_device, 2> m_ppi;
+	required_device<pwm_display_device> m_digits_pwm;
 	output_finder<8> m_ledsp2;
 	output_finder<8> m_ledsp3;
 	output_finder<8> m_ledsp5;
 	output_finder<8> m_ledsp6;
 	output_finder<8> m_ledsp8;
 	output_finder<4> m_pos;
-
 
 	void program_map(address_map &map);
 	void io_map(address_map &map);
@@ -298,8 +300,9 @@ private:
 	void ppi1_b_w(uint8_t data);
 	void ppi1_c_w(uint8_t data);
 
-	u16 m_var[4];
-	u8 dn, m_sensors, m_pre[4];
+	u16 m_var[4] = { };
+	u8 m_pre[4] = { };
+	u8 m_sensors = 0xff;
 };
 
 
@@ -309,13 +312,18 @@ private:
 
 void katosmedz80_state::machine_start()
 {
-	m_digits.resolve();
+	// resolve handlers
 	m_ledsp2.resolve();
 	m_ledsp3.resolve();
 	m_ledsp5.resolve();
 	m_ledsp6.resolve();
 	m_ledsp8.resolve();
 	m_pos.resolve();
+
+	// register for savestates
+	save_item(NAME(m_var));
+	save_item(NAME(m_pre));
+	save_item(NAME(m_sensors));
 }
 
 void katosmedz80_state::machine_reset()
@@ -345,8 +353,8 @@ void katosmedz80_state::program_map(address_map &map)
 void katosmedz80_state::io_map(address_map &map)
 {
 	map.global_mask(0xff);
-	map(0x00, 0x03).rw("ppi0", FUNC(i8255_device::read), FUNC(i8255_device::write));
-	map(0x04, 0x07).rw("ppi1", FUNC(i8255_device::read), FUNC(i8255_device::write));
+	map(0x00, 0x03).rw(m_ppi[0], FUNC(i8255_device::read), FUNC(i8255_device::write));
+	map(0x04, 0x07).rw(m_ppi[1], FUNC(i8255_device::read), FUNC(i8255_device::write));
 	map(0x08, 0x08).w(FUNC(katosmedz80_state::port8_w));
 	map(0x0c, 0x0c).rw("oki", FUNC(okim6295_device::read), FUNC(okim6295_device::write));
 }
@@ -386,10 +394,10 @@ void katosmedz80_state::ppi0_b_w(uint8_t data)
 		m[i] = (data >> (i * 2)) & 0x03;
 
 		if (m[i] == ((m_pre[i] + 1) % 4))
-			m_var[i]++;  					// arm goes forward
+			m_var[i]++;                     // arm goes forward
 
 		if (m[i] == ((m_pre[i] - 1) & 3))
-			m_var[i]--;  					// arm goes back
+			m_var[i]--;                     // arm goes back
 
 		if (m[i] == m_pre[i])
 			logerror("Motor_%i Stopped\n", i + 1);  // delete after debug
@@ -400,7 +408,7 @@ void katosmedz80_state::ppi0_b_w(uint8_t data)
 				m_sensors &= 0xff - m_bit;  // sensor on
 
 			if (m_var[i] < 0x07)
-				m_sensors |= m_bit;			// sensor off
+				m_sensors |= m_bit;         // sensor off
 
 			logerror("Motor_%i: %02X   -  m_sensors:%02X\n", i + 1, m_var[i], m_sensors);
 			m_pre[i] = m[i];
@@ -422,7 +430,7 @@ void katosmedz80_state::ppi0_c_w(uint8_t data)
     ---- ---x    Lamp 1: Doraneko (ドラネコ) Start / Game
     ---- --x-    Lamp 2: Koneko (コネコ) Start / Game
     ---- -x--    * On Game: Blinks | Off Game and Test Mode: Turns ON when unknown key "I" is active
-    ---- x---    * High when hits give points. It could be the "Eyes" effect actuator. Related to RAM 4047-4048  
+    ---- x---    * High when hits give points. It could be the "Eyes" effect actuator. Related to RAM 4047-4048
     ---x ----    Low: Arm 1 Action. Low when food Lamp 1 is On
     --x- ----    Low: Arm 2 Action. Low when food Lamp 2 is On
     -x-- ----    Low: Arm 3 Action. Low when food Lamp 3 is On
@@ -450,7 +458,7 @@ void katosmedz80_state::ppi1_b_w(uint8_t data)
 */
 
 	// show layout (game score - max score)
-	m_digits[dn] = data & 0x7f;
+	m_digits_pwm->write_mx(data & 0x7f);
 
 	// show layout (debug)
 	for(u8 i = 0; i < 8; i++)
@@ -473,9 +481,7 @@ void katosmedz80_state::ppi1_c_w(uint8_t data)
 */
 
 	// Digit Selector for multiplexed 7Seg display
-	for(u8 i = 0; i < 4; i++) 
-		if(((data >> i) & 1) == 1)
-			dn = i;
+	m_digits_pwm->write_my(data & 0xf);
 
 	// show layout (debug)
 	for(u8 i = 0; i < 8; i++)
@@ -522,7 +528,7 @@ static INPUT_PORTS_START( dnbanban )
     x--- ----    Arm 4 Hit microswitch
 
 */
-	PORT_BIT( 0x55, IP_ACTIVE_HIGH, IPT_CUSTOM )PORT_CUSTOM_MEMBER(katosmedz80_state, arm_sensors_r) 
+	PORT_BIT( 0x55, IP_ACTIVE_HIGH, IPT_CUSTOM )PORT_CUSTOM_MEMBER(katosmedz80_state, arm_sensors_r)
 	PORT_BIT( 0x02, IP_ACTIVE_LOW, IPT_POKER_HOLD1) PORT_NAME("Hit Arm 1")
 	PORT_BIT( 0x08, IP_ACTIVE_LOW, IPT_POKER_HOLD2) PORT_NAME("Hit Arm 2")
 	PORT_BIT( 0x20, IP_ACTIVE_LOW, IPT_POKER_HOLD3) PORT_NAME("Hit Arm 3")
@@ -546,14 +552,14 @@ static INPUT_PORTS_START( dnbanban )
 	PORT_DIPSETTING(    0x08, DEF_STR( Off ) )
 	PORT_DIPSETTING(    0x00, DEF_STR( On ) )
 
-	PORT_BIT( 0x10, IP_ACTIVE_LOW, IPT_COIN1)    PORT_NAME("Coin In")           // COIN IN (related error E5)
-	PORT_BIT( 0x20, IP_ACTIVE_LOW, IPT_SERVICE ) PORT_NAME("Service Coin")      // Service COIN (related error E6)
+	PORT_BIT( 0x10, IP_ACTIVE_LOW, IPT_COIN1)     PORT_NAME("Coin In")          // COIN IN (related error E5)
+	PORT_BIT( 0x20, IP_ACTIVE_LOW, IPT_SERVICE1 ) PORT_NAME("Service Coin")     // Service COIN (related error E6)
 	PORT_BIT( 0x40, IP_ACTIVE_HIGH, IPT_GAMBLE_DOOR ) PORT_NAME("Door Switch")  // DOOR (related error E7)
 	PORT_BIT( 0x80, IP_ACTIVE_LOW, IPT_OTHER ) PORT_CODE(KEYCODE_I) PORT_NAME("IN1-8")  // to figure out...
 
 	PORT_START("IN2")
-	PORT_BIT( 0x01, IP_ACTIVE_LOW, IPT_START1 )	 // Doraneko (ドラネコ) Start
-	PORT_BIT( 0x02, IP_ACTIVE_LOW, IPT_START2 )	 // Koneko (コネコ) Start
+	PORT_BIT( 0x01, IP_ACTIVE_LOW, IPT_START1 )  // Doraneko (ドラネコ) Start
+	PORT_BIT( 0x02, IP_ACTIVE_LOW, IPT_START2 )  // Koneko (コネコ) Start
 	PORT_BIT( 0xfc, IP_ACTIVE_LOW, IPT_UNUSED )  // not accessed in game code
 
 INPUT_PORTS_END
@@ -566,24 +572,26 @@ INPUT_PORTS_END
 void katosmedz80_state::dnbanban(machine_config &config)
 {
 	// basic machine hardware
-	Z80(config, m_maincpu, 12_MHz_XTAL / 2);  // guess
+	Z80(config, m_maincpu, 12_MHz_XTAL / 2);
 	m_maincpu->set_addrmap(AS_PROGRAM, &katosmedz80_state::program_map);
 	m_maincpu->set_addrmap(AS_IO, &katosmedz80_state::io_map);
-	m_maincpu->set_periodic_int(FUNC(katosmedz80_state::irq0_line_hold), attotime::from_hz(60 * 25));  // to verify
+	m_maincpu->set_periodic_int(FUNC(katosmedz80_state::irq0_line_hold), attotime::from_hz(12_MHz_XTAL / 0x2000));  // to verify
 
-	i8255_device &ppi0(I8255(config, "ppi0"));  // D71055C IC10
+	I8255(config, m_ppi[0]);  // D71055C IC10
 	// (00-03) Mode 0 - Ports A set as input, Ports B, high C & low C as output.
-	ppi0.in_pa_callback().set_ioport("IN0");
-	ppi0.out_pb_callback().set(FUNC(katosmedz80_state::ppi0_b_w));
-	ppi0.out_pc_callback().set(FUNC(katosmedz80_state::ppi0_c_w));
+	m_ppi[0]->in_pa_callback().set_ioport("IN0");
+	m_ppi[0]->out_pb_callback().set(FUNC(katosmedz80_state::ppi0_b_w));
+	m_ppi[0]->out_pc_callback().set(FUNC(katosmedz80_state::ppi0_c_w));
 
-	i8255_device &ppi1(I8255(config, "ppi1"));  // D71055C IC5
+	I8255(config, m_ppi[1]);  // D71055C IC5
 	// (04-07) Mode 0 - Ports A set as input, Ports B, high C & low C as output.
-	ppi1.in_pa_callback().set_ioport("IN1");
-	ppi1.out_pb_callback().set(FUNC(katosmedz80_state::ppi1_b_w));
-	ppi1.out_pc_callback().set(FUNC(katosmedz80_state::ppi1_c_w));
+	m_ppi[1]->in_pa_callback().set_ioport("IN1");
+	m_ppi[1]->out_pb_callback().set(FUNC(katosmedz80_state::ppi1_b_w));
+	m_ppi[1]->out_pc_callback().set(FUNC(katosmedz80_state::ppi1_c_w));
 
 	// video
+	PWM_DISPLAY(config, m_digits_pwm).set_size(4, 7);
+	m_digits_pwm->set_segmask(0xf, 0x7f);
 	config.set_default_layout(layout_dnbanban);
 
 	// sound hardware
@@ -597,16 +605,14 @@ void katosmedz80_state::dnbanban(machine_config &config)
 *********************************************/
 
 ROM_START( dnbanban )
-    ROM_REGION( 0x8000, "maincpu", 0 )
-    ROM_LOAD( "g25_a.ic17", 0x0000, 0x8000, CRC(ef441127) SHA1(69fea4992abb2c4905d3831b6f18e464088f0ec7) )  // MBM27C256A, 1xxxxxxxxxxxxxx = 0xFF
+	ROM_REGION( 0x8000, "maincpu", 0 )
+	ROM_LOAD( "g25_a.ic17", 0x0000, 0x8000, CRC(ef441127) SHA1(69fea4992abb2c4905d3831b6f18e464088f0ec7) )  // MBM27C256A, 1xxxxxxxxxxxxxx = 0xFF
 
-    ROM_REGION( 0x40000, "oki", ROMREGION_ERASE00 )
-    ROM_LOAD( "g25_v.ic7", 0x00000, 0x20000, CRC(87c7d45d) SHA1(3f035d5e62fe62111cee978ed1708e902c98526a) )  // MBM27C1000
+	ROM_REGION( 0x40000, "oki", ROMREGION_ERASE00 )
+	ROM_LOAD( "g25_v.ic7", 0x00000, 0x20000, CRC(87c7d45d) SHA1(3f035d5e62fe62111cee978ed1708e902c98526a) )  // MBM27C1000
 ROM_END
 
-}
-
-// anonymous namespace
+} // anonymous namespace
 
 
 /*********************************************
@@ -614,4 +620,4 @@ ROM_END
 *********************************************/
 
 //    YEAR  NAME      PARENT   MACHINE   INPUT     STATE              INIT        ROT    COMPANY            FULLNAME           FLAGS
-GAME( 1993, dnbanban, 0,       dnbanban, dnbanban, katosmedz80_state, empty_init, ROT0, "Kato Seisakusho", "Dora Neco BanBan", MACHINE_MECHANICAL )
+GAME( 1993, dnbanban, 0,       dnbanban, dnbanban, katosmedz80_state, empty_init, ROT0, "Kato Seisakusho", "Dora Neco BanBan", MACHINE_MECHANICAL | MACHINE_SUPPORTS_SAVE )

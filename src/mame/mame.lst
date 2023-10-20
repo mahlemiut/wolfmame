@@ -19572,6 +19572,9 @@ husky                           // DVW Husky
 @source:ibm/ibm3153.cpp
 ibm3153                         //
 
+@source:ibm/ibm5550.cpp
+ibm5550                         //
+
 @source:ibm/ibm6580.cpp
 ibm6580                         //
 
@@ -21048,6 +21051,7 @@ bmaster                         // (c) 1991 Irem (World)
 crossbld                        // (c) 1991 Irem (Japan)
 dsoccr94j                       // (c) 1994 Irem (Japan)
 geostorm                        // (c) 1994 Irem (Japan)
+geostorma                       // (c) 1994 Irem (Japan)
 gunforc2                        // (c) 1994 Irem (World)
 gunforce                        // (c) 1991 Irem (World)
 gunforcej                       // (c) 1991 Irem (Japan)
@@ -31878,6 +31882,7 @@ newxpanga                       // (c) 1999 F2 System
 poosho                          // (c) 1999 F2 System
 puzlbang                        // (c) 1999 Omega System
 puzlbanga                       // (c) 1999 Omega System
+solitaire                       // (c) 1999 F2 System
 suplup                          // (c) 1999 Omega System
 toyland                         // (c) 2001 Semicom
 vamphalf                        // (c) 1999 DanBi & F2 System (Europe version 1.1.0908)
@@ -35505,7 +35510,6 @@ eppc                            // 1985 Ericsson Portable PC
 hyo88t                          // Hyosung Topstar 88T
 hyu16t                          // Hyundai Super 16 T
 hyu16te                         // Hyundai Super 16 TE
-ibm5550                         //
 iskr3104                        //
 ittxtra                         // 1984 ITT XTRA
 juko8                           // JUKO NEST motherboards with 8088/V20 CPU
@@ -35614,7 +35618,8 @@ i8580071                        // IBM PS/2 8580-071 (Model 80)
 i8580111                        // IBM PS/2 8580-111 (Model 80)
 
 @source:pc/quakeat.cpp
-quake                           // (c) 19?? Lazer-Tron / iD Software
+ga6la7                          //
+quake                           // (c) 1998 Lazer-Tron / iD Software
 
 @source:pc/queen.cpp
 queen                           //
@@ -42269,6 +42274,7 @@ dinofmlya                       // (c) 1995 Subsino (Tangasoft license or hack?)
 mtrainnv                        // (c) 1996 Subsino
 newhunter                       // (c) 1992 Karam
 newhunterb                      // bootleg
+newhunterc                      // bootleg
 sharkpy                         // (c) 1996 Subsino
 sharkpya                        // (c) 1996 Subsino
 sharkpye                        // (c) 1996 Subsino (Alpha license)

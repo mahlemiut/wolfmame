@@ -14985,6 +14985,7 @@ jupace                          // Jupiter Ace
 alien                           // (c) 2005 Capcom
 dkbanana                        // (c) 2007 Capcom
 dkbanans                        // (c) 2007 Capcom
+dkjfever                        // (c) 2005 Capcom
 dokodemo                        // (c) 2006 Capcom
 mariojjl                        // (c) 2005 Capcom
 masmario                        // (c) 2004 Capcom
@@ -15883,6 +15884,10 @@ ctk551                          //
 ctk601                          //
 gz70sp                          //
 
+@source:casio/cz1.cpp
+cz1                             // 1986 Casio
+mz1                             // 1986 Casio (unreleased)
+
 @source:casio/cz101.cpp
 cz101                           // 1984 Casio
 
@@ -16399,6 +16404,9 @@ sgalaxyb
 @source:cxg/scptchess.cpp
 scptchess
 scptchessa
+
+@source:cxg/senterprise.cpp
+senterp
 
 @source:cxg/sphinx40.cpp
 sphinx40

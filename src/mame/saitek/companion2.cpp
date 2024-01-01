@@ -12,7 +12,7 @@ NOTE: It triggers an NMI when the power switch is changed from ON to MEMORY.
 If this is not done, NVRAM won't save properly.
 
 TODO:
-- if/when MAME supports an exit callback, hook up power-off NMI to that
+- if/when MAME supports an exit callback, hook up power-off switch to that
 - verify Concord II MCU speed, the only videos online (for hearing sound pitch)
   are from the Tandy 1650 ones
 
@@ -22,7 +22,7 @@ Hardware notes:
 
 Chess Companion II:
 - PCB label: YO1B-01 REV.B
-- Hitachi HD6301V1 (0609V171) @ ~4MHz (LC oscillator)
+- Hitachi HD6301V1P (0609V171) @ ~4MHz (LC oscillator)
 - chessboard buttons, 16+5 leds, piezo
 
 Explorer Chess:
@@ -47,7 +47,7 @@ is either VCC or GND to distinguish between the two.
 - SciSys Concord II
 - SciSys Electronic Chess Mark 8
 - Tandy 1650 Portable Sensory Chess (Tandy brand Explorer Chess)
-- Tandy 1650 Fast Response Time: Computerized Chess (Tandy brand Concord II)
+- Tandy 1650 (Fast Response Time) Computerized Chess (Tandy brand Concord II)
 
 The Tandy clones run at a lower clock frequency, 3MHz and 6MHz respectively.
 
@@ -57,16 +57,16 @@ CXG Enterprise "S" / Star Chess is on very similar hardware, so it's emulated
 in this driver too.
 
 Hardware notes:
-- Hitachi HD6301V1 (HD6301V1C42P), 7.15909MHz XTAL
+- Hitachi HD6301V1P (HD6301V1C42P), 7.15909MHz XTAL
 - port 2 I/O is changed a bit, rest is same as compan2
 
 HD6301V1C42P MCU is used in:
-- CXG Enterprise "S" (black/brown/blue)
-- CXG Star Chess (black/gray)
-- CXG Computachess III
-- CXG Super Computachess
-- CXG Crown
-- CXG Sphinx Galaxy 2 (suspected)
+- CXG Enterprise "S" (model 208, black/brown/blue)
+- CXG Star Chess (model 209, black/gray)
+- CXG Computachess III (model 008)
+- CXG Super Computachess (model 009)
+- CXG Crown (model 228)
+- CXG Sphinx Galaxy 2 (model 628, suspected)
 - Fidelity Genesis (Fidelity brand Computachess III)
 - Mephisto Merlin 4K (H+G brand Computachess III)
 - Multitech Enterprise (Multitech brand Super Computachess)
@@ -106,12 +106,11 @@ public:
 	void compan2(machine_config &config);
 
 	DECLARE_INPUT_CHANGED_MEMBER(power_off);
-	DECLARE_INPUT_CHANGED_MEMBER(change_cpu_freq) { set_cpu_freq(); }
+	DECLARE_INPUT_CHANGED_MEMBER(change_cpu_freq);
 
 protected:
 	virtual void machine_start() override;
 	virtual void machine_reset() override;
-	DECLARE_MACHINE_RESET(compan2) { machine_reset(); set_cpu_freq(); }
 
 private:
 	// devices/pointers
@@ -119,6 +118,11 @@ private:
 	required_device<sensorboard_device> m_board;
 	required_device<pwm_display_device> m_display;
 	required_ioport_array<3> m_inputs;
+
+	emu_timer *m_standbytimer;
+	emu_timer *m_nmitimer;
+	bool m_power = false;
+	u8 m_inp_mux = 0;
 
 	// I/O handlers
 	u8 input1_r();
@@ -128,13 +132,7 @@ private:
 	u8 power_r();
 	void led_w(u8 data);
 
-	void set_cpu_freq();
 	TIMER_CALLBACK_MEMBER(set_pin);
-
-	emu_timer *m_standbytimer;
-	emu_timer *m_nmitimer;
-	bool m_power = false;
-	u8 m_inp_mux = 0;
 };
 
 void compan2_state::machine_start()
@@ -147,10 +145,10 @@ void compan2_state::machine_start()
 	save_item(NAME(m_inp_mux));
 }
 
-void compan2_state::set_cpu_freq()
+INPUT_CHANGED_MEMBER(compan2_state::change_cpu_freq)
 {
 	// Concord II MCU speed is around twice higher
-	m_maincpu->set_unscaled_clock((ioport("FAKE")->read() & 1) ? 7'200'000 : 4'000'000);
+	m_maincpu->set_unscaled_clock((newval & 1) ? 7'200'000 : 4'000'000);
 }
 
 
@@ -179,7 +177,7 @@ INPUT_CHANGED_MEMBER(compan2_state::power_off)
 		m_power = false;
 
 		// when power switch is set to MEMORY, it triggers an NMI after a short delay
-		attotime delay = attotime::from_msec(100);
+		attotime delay = attotime::from_msec(50);
 		m_nmitimer->adjust(delay, INPUT_LINE_NMI);
 
 		// afterwards, MCU STBY pin is asserted after a short delay
@@ -226,7 +224,7 @@ u8 compan2_state::input2_r()
 void compan2_state::mux_w(u8 data)
 {
 	// P30-P37: input mux, led data
-	m_inp_mux = data ^ 0xff;
+	m_inp_mux = ~data;
 	m_display->write_mx(m_inp_mux);
 }
 
@@ -278,14 +276,14 @@ static INPUT_PORTS_START( enterp )
 	PORT_BIT(0x04, IP_ACTIVE_HIGH, IPT_KEYPAD) PORT_CODE(KEYCODE_M) PORT_NAME("Multi Move")
 	PORT_BIT(0x08, IP_ACTIVE_HIGH, IPT_KEYPAD) PORT_CODE(KEYCODE_2) PORT_CODE(KEYCODE_2_PAD) PORT_NAME("Queen")
 	PORT_BIT(0x10, IP_ACTIVE_HIGH, IPT_KEYPAD) PORT_CODE(KEYCODE_L) PORT_NAME("Level")
-	PORT_BIT(0x20, IP_ACTIVE_HIGH, IPT_KEYPAD) PORT_CODE(KEYCODE_S) PORT_NAME("Sound/Color")
+	PORT_BIT(0x20, IP_ACTIVE_HIGH, IPT_KEYPAD) PORT_CODE(KEYCODE_S) PORT_CODE(KEYCODE_C) PORT_NAME("Sound/Color")
 	PORT_BIT(0x40, IP_ACTIVE_HIGH, IPT_KEYPAD) PORT_CODE(KEYCODE_T) PORT_NAME("Take Back")
 	PORT_BIT(0x80, IP_ACTIVE_HIGH, IPT_KEYPAD) PORT_CODE(KEYCODE_N) PORT_NAME("New Game")
 
 	PORT_START("IN.2")
 	PORT_BIT(0x01, IP_ACTIVE_HIGH, IPT_UNUSED)
 
-	PORT_START("POWER")
+	PORT_START("POWER") // needs to be triggered for nvram to work
 	PORT_BIT(0x01, IP_ACTIVE_HIGH, IPT_OTHER) PORT_CODE(KEYCODE_F1) PORT_CHANGED_MEMBER(DEVICE_SELF, compan2_state, power_off, 0) PORT_NAME("Power Off")
 INPUT_PORTS_END
 
@@ -304,7 +302,7 @@ static INPUT_PORTS_START( expchess )
 	PORT_BIT(0x02, IP_ACTIVE_HIGH, IPT_KEYPAD) PORT_CODE(KEYCODE_4) PORT_CODE(KEYCODE_4_PAD) PORT_NAME("Bishop")
 	PORT_BIT(0x04, IP_ACTIVE_HIGH, IPT_KEYPAD) PORT_CODE(KEYCODE_T) PORT_NAME("Take Back")
 	PORT_BIT(0x08, IP_ACTIVE_HIGH, IPT_KEYPAD) PORT_CODE(KEYCODE_L) PORT_NAME("Level / Sound")
-	PORT_BIT(0x10, IP_ACTIVE_HIGH, IPT_KEYPAD) PORT_CODE(KEYCODE_O) PORT_NAME("Play / PVP")
+	PORT_BIT(0x10, IP_ACTIVE_HIGH, IPT_KEYPAD) PORT_CODE(KEYCODE_Y) PORT_NAME("Play / PVP")
 	PORT_BIT(0x20, IP_ACTIVE_HIGH, IPT_KEYPAD) PORT_CODE(KEYCODE_5) PORT_CODE(KEYCODE_5_PAD) PORT_NAME("Knight")
 	PORT_BIT(0x40, IP_ACTIVE_HIGH, IPT_KEYPAD) PORT_CODE(KEYCODE_6) PORT_CODE(KEYCODE_6_PAD) PORT_NAME("Pawn")
 	PORT_BIT(0x80, IP_ACTIVE_HIGH, IPT_KEYPAD) PORT_CODE(KEYCODE_2) PORT_CODE(KEYCODE_2_PAD) PORT_NAME("Queen")
@@ -322,13 +320,13 @@ static INPUT_PORTS_START( compan2 )
 
 	PORT_MODIFY("IN.1")
 	PORT_BIT(0x02, IP_ACTIVE_HIGH, IPT_KEYPAD) PORT_CODE(KEYCODE_L) PORT_NAME("Level")
-	PORT_BIT(0x10, IP_ACTIVE_HIGH, IPT_KEYPAD) PORT_CODE(KEYCODE_O) PORT_NAME("Play")
+	PORT_BIT(0x10, IP_ACTIVE_HIGH, IPT_KEYPAD) PORT_CODE(KEYCODE_Y) PORT_NAME("Play")
 	PORT_BIT(0x20, IP_ACTIVE_HIGH, IPT_KEYPAD) PORT_CODE(KEYCODE_E) PORT_NAME("Enter Position")
 
 	PORT_MODIFY("IN.2")
 	PORT_BIT(0x01, IP_ACTIVE_LOW, IPT_CUSTOM) // button config
 
-	PORT_START("FAKE")
+	PORT_START("CPU")
 	PORT_CONFNAME( 0x01, 0x00, "CPU Frequency" ) PORT_CHANGED_MEMBER(DEVICE_SELF, compan2_state, change_cpu_freq, 0) // factory set
 	PORT_CONFSETTING(    0x00, "4MHz (original)" )
 	PORT_CONFSETTING(    0x01, "7.2MHz (Concord II)" )
@@ -383,9 +381,6 @@ void compan2_state::expchess(machine_config &config)
 void compan2_state::compan2(machine_config &config)
 {
 	expchess(config);
-
-	// basic machine hardware
-	MCFG_MACHINE_RESET_OVERRIDE(compan2_state, compan2)
 	config.set_default_layout(layout_saitek_companion2);
 }
 

@@ -204,6 +204,7 @@ public:
 	void init_cmtetrisd();
 	void init_ll3();
 	void init_cmfb55();
+	void init_hamhouse();
 
 	uint32_t screen_update_amcoe1a(screen_device &screen, bitmap_rgb32 &bitmap, const rectangle &cliprect);
 
@@ -414,6 +415,8 @@ public:
 	void unkch(machine_config &config);
 	void bonusch(machine_config &config);
 	void feverch(machine_config &config);
+	void rolling(machine_config &config);
+
 	void bonusch_map(address_map &map);
 	void feverch_map(address_map &map);
 	void megaline_map(address_map &map);

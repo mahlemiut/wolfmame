@@ -52,8 +52,17 @@
 #include "machine/ram.h"
 #include "machine/timer.h"
 
-namespace {
 
+// Single Step
+#define LOG_SS    (1U << 1)
+
+// #define VERBOSE ( LOG_SS )
+#include "logmacro.h"
+
+#define LOGSS(...)    LOGMASKED(LOG_SS,    __VA_ARGS__)
+
+
+namespace {
 
 class h89_state : public driver_device
 {
@@ -81,7 +90,7 @@ public:
 
 private:
 
-	required_device<cpu_device> m_maincpu;
+	required_device<z80_device> m_maincpu;
 	required_memory_region m_maincpu_region;
 	memory_view m_mem_view;
 	required_device<ram_device> m_ram;
@@ -94,13 +103,20 @@ private:
 	required_device<ins8250_device> m_serial2;
 	required_device<ins8250_device> m_serial3;
 	required_ioport m_config;
+	memory_access<16, 0, 0, ENDIANNESS_LITTLE>::specific m_program;
 
 	// General Purpose Port (GPP)
 	uint8_t m_gpp;
 
 	bool m_rom_enabled;
 	bool m_timer_intr_enabled;
+	bool m_single_step_enabled;
 	bool m_floppy_ram_wp;
+
+	// single step flags
+	bool m_555a_latch;
+	bool m_555b_latch;
+	bool m_556b_latch;
 
 	uint32_t m_cpu_speed_multiplier;
 
@@ -122,13 +138,17 @@ private:
 	virtual void machine_start() override;
 	virtual void machine_reset() override;
 	TIMER_DEVICE_CALLBACK_MEMBER(h89_irq_timer);
-	void h89_io(address_map &map);
+
 	void h89_mem(address_map &map);
+	void map_fetch(address_map &map);
+	uint8_t m1_r(offs_t offset);
+	void h89_io(address_map &map);
 
 	uint8_t raise_NMI_r();
 	void raise_NMI_w(uint8_t data);
 	void console_intr(uint8_t data);
 	void reset_line(int data);
+	void reset_single_step_state();
 };
 
 /*
@@ -186,6 +206,42 @@ void h89_state::h89_mem(address_map &map)
 	// Floppy ROM
 	m_mem_view[0](0x1800, 0x1fff).rom().region("maincpu", 0x1800).unmapw();
 	m_mem_view[1](0x1800, 0x1fff).rom().region("maincpu", 0x1800).unmapw();
+}
+
+void h89_state::map_fetch(address_map &map)
+{
+	map(0x0000, 0xffff).r(FUNC(h89_state::m1_r));
+}
+
+uint8_t h89_state::m1_r(offs_t offset)
+{
+	uint8_t data = m_program.read_byte(offset);
+
+	if (!machine().side_effects_disabled() && m_single_step_enabled && !m_556b_latch)
+	{
+		LOGSS("single step m1_r - data: 0x%02x, 555a: %d, 555b: %d, 556b: %d\n", data, m_555a_latch, m_555b_latch, m_556b_latch);
+
+		if (!m_555a_latch)
+		{
+			// Wait for EI instruction
+			if (data == 0xfb)
+			{
+				m_555a_latch = true;
+			}
+		}
+		else if (!m_555b_latch)
+		{
+			m_555b_latch = true;
+		}
+		else if (!m_556b_latch)
+		{
+			m_556b_latch = true;
+
+			m_intr_socket->set_irq_level(2, 1);
+		}
+	}
+
+	return data;
 }
 
 /*                                 PORT
@@ -333,7 +389,7 @@ static INPUT_PORTS_START( h89 )
 	PORT_DIPSETTING( 0x00, DEF_STR( Normal ) )
 	PORT_DIPSETTING( 0x80, "Auto" )
 
-	// MMS 84-B
+	// MMS 444-84B (and possibly 444-84A)
 	PORT_DIPNAME( 0x03, 0x00, "Disk I/O #2" )  PORT_DIPLOCATION("SW501:1,2") PORT_CONDITION("CONFIG", 0x3c, EQUALS, 0x10)
 	PORT_DIPSETTING( 0x00, "H-88-1" )
 	PORT_DIPSETTING( 0x01, "H/Z-47 (Not yet implemented)" )
@@ -375,16 +431,48 @@ static INPUT_PORTS_START( h89 )
 	PORT_DIPSETTING( 0x0d, "Reserved" )
 	PORT_DIPSETTING( 0x0e, "Reserved" )
 	PORT_DIPSETTING( 0x0f, "Magnolia 128K pseudo disk, banks 0-1" )
-	PORT_DIPNAME( 0x10, 0x00, "Map ROM into RAM" )  PORT_DIPLOCATION("SW501:5") PORT_CONDITION("CONFIG", 0x3c, EQUALS, 0x14)
-	PORT_DIPSETTING( 0x00, "Map to RAM" )
-	PORT_DIPSETTING( 0x10, "ROM" )
+	PORT_DIPNAME( 0x10, 0x00, "Map ROM into RAM on boot" )  PORT_DIPLOCATION("SW501:5") PORT_CONDITION("CONFIG", 0x3c, EQUALS, 0x14)
+	PORT_DIPSETTING( 0x00, DEF_STR( Yes ) )
+	PORT_DIPSETTING( 0x10, DEF_STR( No ) )
 	PORT_DIPNAME( 0x20, 0x20, "Perform memory test at start" )  PORT_DIPLOCATION("SW501:6") PORT_CONDITION("CONFIG", 0x3c, EQUALS, 0x14)
 	PORT_DIPSETTING( 0x20, DEF_STR( No ) )
 	PORT_DIPSETTING( 0x00, DEF_STR( Yes ) )
-	PORT_DIPNAME( 0x40, 0x00, "LLL controller" )  PORT_DIPLOCATION("SW501:7") PORT_CONDITION("CONFIG", 0x3c, EQUALS, 0x14)
-	PORT_DIPSETTING( 0x00, "No LLL controller" )
-	PORT_DIPSETTING( 0x40, "LLL controller" )
+	PORT_DIPNAME( 0x40, 0x00, "Have a LLL controller installed" )  PORT_DIPLOCATION("SW501:7") PORT_CONDITION("CONFIG", 0x3c, EQUALS, 0x14)
+	PORT_DIPSETTING( 0x00, DEF_STR( No ) )
+	PORT_DIPSETTING( 0x40, DEF_STR( Yes ) )
 	PORT_DIPNAME( 0x80, 0x00, "Boot mode" )  PORT_DIPLOCATION("SW501:8") PORT_CONDITION("CONFIG", 0x3c, EQUALS, 0x14)
+	PORT_DIPSETTING( 0x00, DEF_STR( Normal ) )
+	PORT_DIPSETTING( 0x80, "Auto" )
+
+	// Ultimeth MTRHEX-4k
+	// (values based on testing and comparison with the Kres KMR-100 ROM which was also written by Ultimeth)
+	PORT_DIPNAME( 0x0f, 0x00, "Default Boot Device" )  PORT_DIPLOCATION("SW501:1,2,3,4") PORT_CONDITION("CONFIG", 0x3c, EQUALS, 0x18)
+	PORT_DIPSETTING( 0x00, "H-17 hard-sectored 5\" floppy" )
+	PORT_DIPSETTING( 0x01, "H-37 soft-sectored 5\" floppy" )
+	PORT_DIPSETTING( 0x02, "? Corvus hard disk/Magnolia interface" )
+	PORT_DIPSETTING( 0x03, "? CDR 5\"/8\" double density floppy" )
+	PORT_DIPSETTING( 0x04, "? H-47 8\" floppy at port 0x78/0170" )
+	PORT_DIPSETTING( 0x05, "? H-47 8\" floppy at port 0x7c/0174" )
+	PORT_DIPSETTING( 0x06, "? Reserved" )
+	PORT_DIPSETTING( 0x07, "? Reserved" )
+	PORT_DIPSETTING( 0x08, "? Reserved" )
+	PORT_DIPSETTING( 0x09, "? SASI controller or Z-67 at port 0x78/0170" )
+	PORT_DIPSETTING( 0x0a, "? SASI controller or Z-67 at port 0x7c/0174" )
+	PORT_DIPSETTING( 0x0b, "? Livingston 8\" single density floppy" )
+	PORT_DIPSETTING( 0x0c, "? Magnolia 5\"/8\" double density floppy" )
+	PORT_DIPSETTING( 0x0d, "? Reserved" )
+	PORT_DIPSETTING( 0x0e, "? Reserved" )
+	PORT_DIPSETTING( 0x0f, "? Magnolia 128K pseudo disk" )
+	PORT_DIPNAME( 0x10, 0x00, "? Map ROM into RAM on boot" )  PORT_DIPLOCATION("SW501:5") PORT_CONDITION("CONFIG", 0x3c, EQUALS, 0x18)
+	PORT_DIPSETTING( 0x00, "? Yes" )
+	PORT_DIPSETTING( 0x10, "? No" )
+	PORT_DIPNAME( 0x20, 0x20, "Perform memory test at start" )  PORT_DIPLOCATION("SW501:6") PORT_CONDITION("CONFIG", 0x3c, EQUALS, 0x18)
+	PORT_DIPSETTING( 0x20, DEF_STR( No ) )
+	PORT_DIPSETTING( 0x00, DEF_STR( Yes ) )
+	PORT_DIPNAME( 0x40, 0x00, "? Have a LLL controller installed" )  PORT_DIPLOCATION("SW501:7") PORT_CONDITION("CONFIG", 0x3c, EQUALS, 0x18)
+	PORT_DIPSETTING( 0x00, "? No" )
+	PORT_DIPSETTING( 0x40, "? Yes" )
+	PORT_DIPNAME( 0x80, 0x00, "Boot mode" )  PORT_DIPLOCATION("SW501:8") PORT_CONDITION("CONFIG", 0x3c, EQUALS, 0x18)
 	PORT_DIPSETTING( 0x00, DEF_STR( Normal ) )
 	PORT_DIPSETTING( 0x80, "Auto" )
 
@@ -399,8 +487,9 @@ static INPUT_PORTS_START( h89 )
 	PORT_CONFSETTING(0x04, "Heath MTR-90")
 	PORT_CONFSETTING(0x08, "Heath MTR-88")
 	PORT_CONFSETTING(0x0c, "Heath MTR-89")
-	PORT_CONFSETTING(0x10, "MMS 84B")
+	PORT_CONFSETTING(0x10, "MMS 444-84B/444-84A")
 	PORT_CONFSETTING(0x14, "Kres KMR-100")
+	PORT_CONFSETTING(0x18, "Ultimeth MTRHEX-4k")
 
 INPUT_PORTS_END
 
@@ -410,8 +499,14 @@ void h89_state::machine_start()
 	save_item(NAME(m_gpp));
 	save_item(NAME(m_rom_enabled));
 	save_item(NAME(m_timer_intr_enabled));
+	save_item(NAME(m_single_step_enabled));
 	save_item(NAME(m_floppy_ram_wp));
 	save_item(NAME(m_cpu_speed_multiplier));
+	save_item(NAME(m_555a_latch));
+	save_item(NAME(m_555b_latch));
+	save_item(NAME(m_556b_latch));
+
+	m_maincpu->space(AS_PROGRAM).specific(m_program);
 
 	// update RAM mappings based on RAM size
 	uint8_t *m_ram_ptr = m_ram->pointer();
@@ -444,13 +539,6 @@ void h89_state::machine_start()
 		// remap the top 8k down to addr 0
 		m_mem_view[2].install_ram(0x0000, 0x1fff, m_ram_ptr + ram_size - 0x2000);
 	}
-
-	m_rom_enabled = true;
-	m_timer_intr_enabled = true;
-	m_floppy_ram_wp = false;
-
-	update_gpp(0);
-	update_mem_view();
 }
 
 
@@ -458,7 +546,9 @@ void h89_state::machine_reset()
 {
 	m_rom_enabled = true;
 	m_timer_intr_enabled = true;
+	m_single_step_enabled = false;
 	m_floppy_ram_wp = false;
+	reset_single_step_state();
 
 	ioport_value const cfg(m_config->read());
 
@@ -526,6 +616,15 @@ void h89_state::update_mem_view()
 	m_mem_view.select(m_rom_enabled ? (m_floppy_ram_wp ? 0 : 1) : 2);
 }
 
+void h89_state::reset_single_step_state()
+{
+	LOGSS("reset_single_step_state\n");
+	m_555a_latch = false;
+	m_555b_latch = false;
+	m_556b_latch = false;
+	m_intr_socket->set_irq_level(2, 0);
+}
+
 // General Purpose Port
 //
 // Bit     OUTPUT
@@ -546,6 +645,17 @@ void h89_state::update_gpp(uint8_t gpp)
 	m_gpp = gpp;
 
 	m_timer_intr_enabled = bool(BIT(m_gpp, GPP_ENABLE_TIMER_INTERRUPT_BIT));
+
+	if (BIT(changed_gpp, GPP_SINGLE_STEP_BIT))
+	{
+		LOGSS("single step enable: %d\n", BIT(m_gpp, GPP_SINGLE_STEP_BIT));
+		m_single_step_enabled = bool(BIT(m_gpp, GPP_SINGLE_STEP_BIT));
+
+		if (!m_single_step_enabled)
+		{
+			reset_single_step_state();
+		}
+	}
 
 	if (BIT(changed_gpp, GPP_DISABLE_ROM_BIT))
 	{
@@ -590,8 +700,9 @@ void h89_state::h89(machine_config & config)
 {
 	// basic machine hardware
 	Z80(config, m_maincpu, H89_CLOCK);
-	m_maincpu->set_addrmap(AS_PROGRAM, &h89_state::h89_mem);
-	m_maincpu->set_addrmap(AS_IO, &h89_state::h89_io);
+	m_maincpu->set_m1_map(&h89_state::map_fetch);
+	m_maincpu->set_memory_map(&h89_state::h89_mem);
+	m_maincpu->set_io_map(&h89_state::h89_io);
 	m_maincpu->set_irq_acknowledge_callback("intr_socket", FUNC(heath_intr_socket::irq_callback));
 
 	HEATH_INTR_SOCKET(config, m_intr_socket, intr_ctrl_options, "h37", true);
@@ -644,10 +755,10 @@ ROM_START( h89 )
 	ROM_SYSTEM_BIOS(2, "mtr89", "MTR-89 (444-62)")
 	ROMX_LOAD("2716_444-62_mtr89.u518", 0x0000, 0x0800, CRC(8f507972) SHA1(ac6c6c1344ee4e09fb60d53c85c9b761217fe9dc), ROM_BIOS(2))
 
-	ROM_SYSTEM_BIOS(3, "mms84b", "MMS 84B")
+	ROM_SYSTEM_BIOS(3, "mms84b", "MMS 444-84B")
 	ROMX_LOAD("2732_444_84b_mms.u518", 0x0000, 0x1000, CRC(7e75d6f4) SHA1(baf34e036388d1a191197e31f8a93209f04fc58b), ROM_BIOS(3))
 
-	ROM_SYSTEM_BIOS(4, "kmr-100_v3.a.02", "Kres KMR-100")
+	ROM_SYSTEM_BIOS(4, "kmr-100", "Kres KMR-100 V3.a.02")
 	ROMX_LOAD("2732_kmr100_v3_a_02.u518", 0x0000, 0x1000, CRC(fd491592) SHA1(3d5803f95c38b237b07cd230353cd9ddc9858c13), ROM_BIOS(4))
 
 	ROM_SYSTEM_BIOS(5, "mtrhex_4k", "Ultimeth ROM")
@@ -656,7 +767,7 @@ ROM_START( h89 )
 	ROM_SYSTEM_BIOS(6, "mtr90-84", "Heath's MTR-90 (444-84 - Superseded by 444-142)")
 	ROMX_LOAD("2732_444-84_mtr90.u518", 0x0000, 0x1000, CRC(f10fca03) SHA1(c4a978153af0f2dfcc9ba05be4c1033d33fee30b), ROM_BIOS(6))
 
-	ROM_SYSTEM_BIOS(7, "mms84a", "MMS 84A (Superseded by MMS 84B)")
+	ROM_SYSTEM_BIOS(7, "mms84a", "MMS 444-84A (Superseded by MMS 444-84B)")
 	ROMX_LOAD("2732_444_84a_mms.u518", 0x0000, 0x1000, CRC(0e541a7e) SHA1(b1deb620fc89c1068e2e663e14be69d1f337a4b9), ROM_BIOS(7))
 ROM_END
 

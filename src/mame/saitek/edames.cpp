@@ -18,6 +18,7 @@ piece from the board, but it doesn't matter.
 Two versions were sold, each should have the same MCU and ROM: a tabletop model
 (Electronic Dames, 8MHz or 12MHz), and a portable model (Compact Dames Computer,
 8MHz). As with SciSys/Saitek chess computers, they were also licensed to Tandy.
+The program engine is DIOS by Eric van Riet Paap.
 
 According to the second hand market, the tabletop French version is much more
 common than the English one. The manual and a LED label incorrectly call crowned
@@ -26,7 +27,7 @@ men queens instead of kings, perhaps due to a translation from French (dame).
 Hardware notes (Compact Dames Computer):
 - PCB label: DH1-PE-009 REV.1
 - Hitachi HD6301Y0P MCU, 8MHz or 12MHz (LC osc, no XTAL)
-- 20+8 LEDs, buttons sensor board, piezo
+- 20+8 LEDs, 5*10 buttons sensor board, piezo
 
 *******************************************************************************/
 
@@ -202,7 +203,7 @@ void edames_state::p7_w(u8 data)
 	update_display();
 
 	// P74: speaker out
-	m_dac->write(BIT(data, 4));
+	m_dac->write(BIT(~data, 4));
 }
 
 

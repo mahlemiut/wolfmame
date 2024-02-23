@@ -602,7 +602,7 @@ void pcipc_state::pcipc(machine_config &config)
 	serport1.ri_handler().set("board4:fdc37c93x", FUNC(fdc37c93x_device::nri2_w));
 	serport1.cts_handler().set("board4:fdc37c93x", FUNC(fdc37c93x_device::ncts2_w));
 
-	//	SW1000XG(config, "pci:11.0");
+	//  SW1000XG(config, "pci:11.0");
 }
 
 void pcipc_state::pcipctx(machine_config &config)
@@ -683,6 +683,7 @@ ROM_START(pcipc)
 	ROMX_LOAD("m55-04s.rom", 0x20000, 0x20000, CRC(34a7422e) SHA1(68753fe373c97844beff83ea75c634c77cfedb8f), ROM_BIOS(1))
 	ROM_SYSTEM_BIOS(2, "crisis", "Version 07/01/98, for flash recovery")
 	ROMX_LOAD("crisis.rom", 0x00000, 0x40000, CRC(38a1458a) SHA1(8881ac336392cca79a772b4168f63efc31f953dd), ROM_BIOS(2) )
+	// FIXME: this is incompatible, it's a Gigabyte GA-586HX with W83877F Super I/O
 	ROM_SYSTEM_BIOS(3, "5hx29", "5hx29")
 	ROMX_LOAD("5hx29.bin",   0x20000, 0x20000, CRC(07719a55) SHA1(b63993fd5186cdb4f28c117428a507cd069e1f68), ROM_BIOS(3) )
 //  ROM_REGION(0x8000,"ibm_vga", 0)

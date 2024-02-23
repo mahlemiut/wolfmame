@@ -51,9 +51,9 @@ public:
 		m_inputs(*this, "IN.0")
 	{ }
 
-	DECLARE_INPUT_CHANGED_MEMBER(power_off);
-
 	void accord(machine_config &config);
+
+	DECLARE_INPUT_CHANGED_MEMBER(power_off);
 
 protected:
 	virtual void machine_start() override;
@@ -110,7 +110,7 @@ INPUT_CHANGED_MEMBER(accord_state::power_off)
 	{
 		// NMI when power goes off, followed by STBY after a short delay
 		m_maincpu->set_input_line(INPUT_LINE_NMI, ASSERT_LINE);
-		m_standbytimer->adjust(attotime::from_msec(50), M6801_STBY_LINE);
+		m_standbytimer->adjust(attotime::from_msec(10));
 	}
 }
 

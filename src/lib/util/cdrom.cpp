@@ -34,7 +34,6 @@
 /** @brief  The verbose. */
 #define VERBOSE (0)
 #define EXTRA_VERBOSE (0)
-#if VERBOSE
 
 /**
  * @def LOG(x) do
@@ -44,31 +43,7 @@
  * @param   x   The void to process.
  */
 
-#define LOG(x) do { if (VERBOSE) logerror x; } while (0)
-
-/**
- * @fn  void CLIB_DECL logerror(const char *text, ...) ATTR_PRINTF(1,2);
- *
- * @brief   Logerrors the given text.
- *
- * @param   text    The text.
- *
- * @return  A CLIB_DECL.
- */
-
-void CLIB_DECL logerror(const char *text, ...) ATTR_PRINTF(1,2);
-#else
-
-/**
- * @def LOG(x);
- *
- * @brief   A macro that defines log.
- *
- * @param   x   The void to process.
- */
-
-#define LOG(x)
-#endif
+#define LOG(x) do { if (VERBOSE) { osd_printf_info x; } } while (0)
 
 
 
@@ -678,11 +653,6 @@ void cdrom_file::get_info_from_type_string(const char *typestring, uint32_t *trk
 		*datasize = 2324;
 	}
 	else if (!strcmp(typestring, "MODE2_FORM_MIX"))
-	{
-		*trktype = CD_TRACK_MODE2_FORM_MIX;
-		*datasize = 2336;
-	}
-	else if (!strcmp(typestring, "MODE2/2336"))
 	{
 		*trktype = CD_TRACK_MODE2_FORM_MIX;
 		*datasize = 2336;

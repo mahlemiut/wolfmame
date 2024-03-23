@@ -512,6 +512,8 @@ if (BUSES["ATA"]~=null) then
 		MAME_DIR .. "src/devices/bus/ata/hdd.h",
 		MAME_DIR .. "src/devices/bus/ata/px320a.cpp",
 		MAME_DIR .. "src/devices/bus/ata/px320a.h",
+		MAME_DIR .. "src/devices/bus/ata/xm3301.cpp",
+		MAME_DIR .. "src/devices/bus/ata/xm3301.h",
 		MAME_DIR .. "src/devices/bus/ata/zip100.cpp",
 		MAME_DIR .. "src/devices/bus/ata/zip100.h",
 	}
@@ -2073,6 +2075,8 @@ if (BUSES["MC10"]~=null) then
 		MAME_DIR .. "src/devices/bus/mc10/mc10_cart.h",
 		MAME_DIR .. "src/devices/bus/mc10/mcx128.cpp",
 		MAME_DIR .. "src/devices/bus/mc10/mcx128.h",
+		MAME_DIR .. "src/devices/bus/mc10/multiports_ext.cpp",
+		MAME_DIR .. "src/devices/bus/mc10/multiports_ext.h",
 		MAME_DIR .. "src/devices/bus/mc10/pak.cpp",
 		MAME_DIR .. "src/devices/bus/mc10/pak.h",
 		MAME_DIR .. "src/devices/bus/mc10/ram.cpp",
@@ -2570,6 +2574,8 @@ if (BUSES["VCS_CTRL"]~=null) then
 	files {
 		MAME_DIR .. "src/devices/bus/vcs_ctrl/ctrl.cpp",
 		MAME_DIR .. "src/devices/bus/vcs_ctrl/ctrl.h",
+		MAME_DIR .. "src/devices/bus/vcs_ctrl/cx85.cpp",
+		MAME_DIR .. "src/devices/bus/vcs_ctrl/cx85.h",
 		MAME_DIR .. "src/devices/bus/vcs_ctrl/joystick.cpp",
 		MAME_DIR .. "src/devices/bus/vcs_ctrl/joystick.h",
 		MAME_DIR .. "src/devices/bus/vcs_ctrl/joybooster.cpp",
@@ -2986,6 +2992,8 @@ if (BUSES["A2BUS"]~=null) then
 		MAME_DIR .. "src/devices/bus/a2bus/romcard.h",
 		MAME_DIR .. "src/devices/bus/a2bus/sider.cpp",
 		MAME_DIR .. "src/devices/bus/a2bus/sider.h",
+		MAME_DIR .. "src/devices/bus/a2bus/snesmax.cpp",
+		MAME_DIR .. "src/devices/bus/a2bus/snesmax.h",
 		MAME_DIR .. "src/devices/bus/a2bus/softcard3.cpp",
 		MAME_DIR .. "src/devices/bus/a2bus/softcard3.h",
 		MAME_DIR .. "src/devices/bus/a2bus/ssbapple.cpp",
@@ -5488,6 +5496,10 @@ if (BUSES["PCI"]~=null) then
 		MAME_DIR .. "src/devices/bus/pci/aha2940au.h",
 		MAME_DIR .. "src/devices/bus/pci/audiowerk2.cpp",
 		MAME_DIR .. "src/devices/bus/pci/audiowerk2.h",
+		MAME_DIR .. "src/devices/bus/pci/clgd5446.cpp",
+		MAME_DIR .. "src/devices/bus/pci/clgd5446.h",
+		MAME_DIR .. "src/devices/bus/pci/clgd546x_laguna.cpp",
+		MAME_DIR .. "src/devices/bus/pci/clgd546x_laguna.h",
 		MAME_DIR .. "src/devices/bus/pci/ds2416.cpp",
 		MAME_DIR .. "src/devices/bus/pci/ds2416.h",
 		MAME_DIR .. "src/devices/bus/pci/ess_maestro.cpp",
@@ -5500,6 +5512,8 @@ if (BUSES["PCI"]~=null) then
 		MAME_DIR .. "src/devices/bus/pci/oti_spitfire.h",
 		MAME_DIR .. "src/devices/bus/pci/opti82c861.cpp",
 		MAME_DIR .. "src/devices/bus/pci/opti82c861.h",
+		MAME_DIR .. "src/devices/bus/pci/pdc20262.cpp",
+		MAME_DIR .. "src/devices/bus/pci/pdc20262.h",
 		MAME_DIR .. "src/devices/bus/pci/promotion.cpp",
 		MAME_DIR .. "src/devices/bus/pci/promotion.h",
 		MAME_DIR .. "src/devices/bus/pci/riva128.cpp",
@@ -5510,12 +5524,16 @@ if (BUSES["PCI"]~=null) then
 		MAME_DIR .. "src/devices/bus/pci/rtl8029as_pci.h",
 		MAME_DIR .. "src/devices/bus/pci/rtl8139_pci.cpp",
 		MAME_DIR .. "src/devices/bus/pci/rtl8139_pci.h",
+		MAME_DIR .. "src/devices/bus/pci/sis6326.cpp",
+		MAME_DIR .. "src/devices/bus/pci/sis6326.h",
 		MAME_DIR .. "src/devices/bus/pci/sonicvibes.cpp",
 		MAME_DIR .. "src/devices/bus/pci/sonicvibes.h",
 		MAME_DIR .. "src/devices/bus/pci/sw1000xg.cpp",
 		MAME_DIR .. "src/devices/bus/pci/sw1000xg.h",
 		MAME_DIR .. "src/devices/bus/pci/virge_pci.cpp",
 		MAME_DIR .. "src/devices/bus/pci/virge_pci.h",
+		MAME_DIR .. "src/devices/bus/pci/vision.cpp",
+		MAME_DIR .. "src/devices/bus/pci/vision.h",
 		MAME_DIR .. "src/devices/bus/pci/vt6306.cpp",
 		MAME_DIR .. "src/devices/bus/pci/vt6306.h",
 		MAME_DIR .. "src/devices/bus/pci/wd9710_pci.cpp",
@@ -5530,14 +5548,16 @@ end
 
 ---------------------------------------------------
 --
---@src/devices/bus/plg100/plg100.h,BUSES["PLG100"] = true
+--@src/devices/bus/plg1x0/plg1x0.h,BUSES["PLG1X0"] = true
 ---------------------------------------------------
 
-if (BUSES["PLG100"]~=null) then
+if (BUSES["PLG1X0"]~=null) then
 	files {
-		MAME_DIR .. "src/devices/bus/plg100/plg100.cpp",
-		MAME_DIR .. "src/devices/bus/plg100/plg100.h",
-		MAME_DIR .. "src/devices/bus/plg100/vl.cpp",
-		MAME_DIR .. "src/devices/bus/plg100/vl.h",
+		MAME_DIR .. "src/devices/bus/plg1x0/plg1x0.cpp",
+		MAME_DIR .. "src/devices/bus/plg1x0/plg1x0.h",
+		MAME_DIR .. "src/devices/bus/plg1x0/plg100-vl.cpp",
+		MAME_DIR .. "src/devices/bus/plg1x0/plg100-vl.h",
+		MAME_DIR .. "src/devices/bus/plg1x0/plg150-ap.cpp",
+		MAME_DIR .. "src/devices/bus/plg1x0/plg150-ap.h",
 	}
 end

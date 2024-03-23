@@ -131,7 +131,7 @@ private:
 	optional_device<sensorboard_device> m_board;
 	required_device<mephisto_display1_device> m_display;
 	optional_device<pwm_display_device> m_led_pwm;
-	required_device<dac_bit_interface> m_dac;
+	required_device<dac_1bit_device> m_dac;
 	required_device<timer_device> m_speaker_off;
 	optional_ioport_array<4+2> m_inputs;
 
@@ -409,7 +409,7 @@ static INPUT_PORTS_START( mephisto3 )
 	PORT_BIT(0x01, IP_ACTIVE_HIGH, IPT_KEYPAD) PORT_CODE(KEYCODE_I) PORT_NAME("INFO")
 
 	PORT_MODIFY("IN.2")
-	PORT_BIT(0x01, IP_ACTIVE_HIGH, IPT_KEYPAD) PORT_CODE(KEYCODE_O) PORT_NAME("POS")
+	PORT_BIT(0x01, IP_ACTIVE_HIGH, IPT_KEYPAD) PORT_CODE(KEYCODE_P) PORT_NAME("POS")
 	PORT_BIT(0x04, IP_ACTIVE_HIGH, IPT_KEYPAD) PORT_CODE(KEYCODE_9) PORT_CODE(KEYCODE_9_PAD) PORT_CODE(KEYCODE_LEFT) PORT_NAME("Left / Black / 9")
 
 	PORT_MODIFY("IN.3")

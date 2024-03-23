@@ -63,7 +63,7 @@ private:
 	required_device<hc259_device> m_outlatch;
 	required_device<mephisto_board_device> m_board;
 	required_device<mephisto_display1_device> m_display;
-	required_device<dac_byte_interface> m_dac;
+	required_device<dac_2bit_ones_complement_device> m_dac;
 	required_ioport_array<4> m_inputs;
 	optional_ioport m_reset;
 
@@ -130,7 +130,7 @@ void roma2_state::main_map(address_map &map)
 static INPUT_PORTS_START( montreal )
 	PORT_START("IN.0")
 	PORT_BIT(0x01, IP_ACTIVE_HIGH, IPT_KEYPAD) PORT_NAME("INFO") PORT_CODE(KEYCODE_I)
-	PORT_BIT(0x02, IP_ACTIVE_HIGH, IPT_KEYPAD) PORT_NAME("POS") PORT_CODE(KEYCODE_O)
+	PORT_BIT(0x02, IP_ACTIVE_HIGH, IPT_KEYPAD) PORT_NAME("POS") PORT_CODE(KEYCODE_P)
 	PORT_BIT(0x04, IP_ACTIVE_HIGH, IPT_KEYPAD) PORT_NAME("LEV") PORT_CODE(KEYCODE_L)
 	PORT_BIT(0x08, IP_ACTIVE_HIGH, IPT_KEYPAD) PORT_NAME("MEM") PORT_CODE(KEYCODE_M)
 
@@ -186,7 +186,7 @@ void roma2_state::roma2(machine_config &config)
 	HC259(config, m_outlatch);
 	// Q0-Q3: input mux; Q4: strobe; Q6-Q7: DAC
 	m_outlatch->q_out_cb<4>().set(m_display, FUNC(mephisto_display1_device::strobe_w));
-	m_outlatch->parallel_out_cb().set(m_dac, FUNC(dac_byte_interface::write)).rshift(6).mask(3);
+	m_outlatch->parallel_out_cb().set(m_dac, FUNC(dac_2bit_ones_complement_device::write)).rshift(6).mask(3);
 
 	MEPHISTO_SENSORS_BOARD(config, m_board);
 	m_board->set_delay(attotime::from_msec(200));

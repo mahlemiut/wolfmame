@@ -12,12 +12,13 @@ TODO:
 - if/when MAME supports an exit callback, hook up power-off switch to that
 - unmapped reads from 0x3c/0x3d (primo/supremo) or 0x33/0x34 (nsnova)
 - supremo unmapped writes to 0x2000/0x6000, always 0?
-- is "Aquamarine / Super Nova" the same rom as nsnova and just a redesign?
 - is the 1st version of supremo(black plastic) the same ROM?
+- is "Aquamarine / Super Nova" the same ROM as nsnova and just a redesign?
 
 BTANB:
 - primo has the same bug as nvip, where if the user presses Go right after
-  entering a move, the CPU opponent will answer by playing a move with white
+  entering a move during the opening, the CPU opponent will answer by playing
+  a move with white
 
 ================================================================================
 
@@ -28,7 +29,7 @@ Hardware notes:
 - PCB label: 100059/100060
 - Hitachi HD6301Y0P (mode 2) @ 8MHz
 - 2KB RAM(M5M5118P)
-- LCD with 4 digits and custom segments, no LCD chip
+- LCD with 4 7segs and custom segments, no LCD chip
 - buzzer, 16 LEDs, 8*8 chessboard buttons
 
 The LCD is the same as the one in VIP / Super VIP.
@@ -54,9 +55,9 @@ Novag Super Nova (model 904)
 ----------------------------
 
 Hardware notes:
-- Hitachi HD63A03YP @ 16MHz
+- Hitachi HD63A03YP (or HD6301Y0P in mode 1) @ 16MHz
 - 32KB ROM(TC57256AD-12), 8KB RAM(CXK58648P-10L)
-- LCD with 4 digits and custom segments, no LCD chip
+- LCD with 4 7segs and custom segments, no LCD chip
 - RJ-12 port for Novag Super System (like the one in nsvip/sexpertc)
 - buzzer, 16 LEDs, 8*8 chessboard buttons
 
@@ -119,7 +120,7 @@ private:
 	required_device<sensorboard_device> m_board;
 	required_device<pwm_display_device> m_lcd_pwm;
 	required_device<pwm_display_device> m_led_pwm;
-	required_device<dac_bit_interface> m_dac;
+	required_device<dac_1bit_device> m_dac;
 	optional_device<rs232_port_device> m_rs232;
 	required_ioport_array<2> m_inputs;
 	output_finder<4, 10> m_out_lcd;
@@ -177,7 +178,7 @@ void primo_state::standby(int state)
 
 INPUT_CHANGED_MEMBER(primo_state::snova_power_off)
 {
-	// NMI at power-off, which will trigger standby mode
+	// nsnova NMI at power-off, which will trigger standby mode
 	if (newval && !m_maincpu->standby())
 		m_maincpu->pulse_input_line(INPUT_LINE_NMI, attotime::zero);
 }
@@ -270,12 +271,12 @@ void primo_state::p6_w(u8 data)
 
 void primo_state::primo_map(address_map &map)
 {
-	map(0x4000, 0x47ff).ram().share("nvram");
+	map(0x4000, 0x47ff).mirror(0x3800).ram().share("nvram");
 }
 
 void primo_state::supremo_map(address_map &map)
 {
-	primo_map(map);
+	map(0x4000, 0x47ff).mirror(0x1800).ram().share("nvram");
 	map(0x8000, 0xffff).rom();
 }
 
@@ -348,7 +349,7 @@ static INPUT_PORTS_START( snova )
 	PORT_BIT(0x40, IP_ACTIVE_HIGH, IPT_KEYPAD) PORT_CODE(KEYCODE_W) PORT_NAME("Random / Auto Clock")
 	PORT_BIT(0x80, IP_ACTIVE_HIGH, IPT_KEYPAD) PORT_CODE(KEYCODE_Q) PORT_CODE(KEYCODE_N) PORT_NAME("New Game")
 
-	PORT_START("POWER")
+	PORT_START("POWER") // needs to be triggered for nvram to work
 	PORT_BIT(0x01, IP_ACTIVE_HIGH, IPT_OTHER) PORT_CODE(KEYCODE_F1) PORT_CHANGED_MEMBER(DEVICE_SELF, primo_state, snova_power_off, 0) PORT_NAME("Power Off")
 INPUT_PORTS_END
 
@@ -384,7 +385,7 @@ void primo_state::primo(machine_config &config)
 
 	screen_device &screen(SCREEN(config, "screen", SCREEN_TYPE_SVG));
 	screen.set_refresh_hz(60);
-	screen.set_size(1920/4, 606/4);
+	screen.set_size(1920/5, 606/5);
 	screen.set_visarea_full();
 
 	PWM_DISPLAY(config, m_led_pwm).set_size(2, 8);
@@ -451,9 +452,17 @@ ROM_START( supremo )
 ROM_END
 
 
-ROM_START( nsnova ) // ID = N1.05
+ROM_START( nsnova ) // ID = N1.05, serial 326xx/340xx
 	ROM_REGION( 0x10000, "maincpu", 0 )
 	ROM_LOAD("n_530.u5", 0x8000, 0x8000, CRC(727a0ada) SHA1(129c1edc5c1d2e12ce97ebef81c6d5555464a11d) )
+
+	ROM_REGION( 36256, "screen", 0 )
+	ROM_LOAD("nvip.svg", 0, 36256, CRC(3373e0d5) SHA1(25bfbf0405017388c30f4529106baccb4723bc6b) )
+ROM_END
+
+ROM_START( nsnovaa ) // ID = N1.05, serial 310xx
+	ROM_REGION( 0x10000, "maincpu", 0 )
+	ROM_LOAD("n_319.u5", 0x8000, 0x8000, CRC(7ad4cbde) SHA1(cc92a162d4a63466f2333708a8e07269646188ea) ) // 1 byte different, does not look like bitrot
 
 	ROM_REGION( 36256, "screen", 0 )
 	ROM_LOAD("nvip.svg", 0, 36256, CRC(3373e0d5) SHA1(25bfbf0405017388c30f4529106baccb4723bc6b) )
@@ -468,8 +477,9 @@ ROM_END
 *******************************************************************************/
 
 //    YEAR  NAME     PARENT  COMPAT  MACHINE  INPUT    CLASS        INIT        COMPANY, FULLNAME, FLAGS
-SYST( 1987, nprimo,  0,      0,      primo,   primo,   primo_state, empty_init, "Novag", "Primo (Novag)", MACHINE_SUPPORTS_SAVE | MACHINE_CLICKABLE_ARTWORK )
+SYST( 1987, nprimo,  0,      0,      primo,   primo,   primo_state, empty_init, "Novag Industries", "Primo (Novag)", MACHINE_SUPPORTS_SAVE | MACHINE_CLICKABLE_ARTWORK )
 
-SYST( 1988, supremo, 0,      0,      supremo, supremo, primo_state, empty_init, "Novag", "Supremo", MACHINE_SUPPORTS_SAVE | MACHINE_CLICKABLE_ARTWORK )
+SYST( 1988, supremo, 0,      0,      supremo, supremo, primo_state, empty_init, "Novag Industries", "Supremo", MACHINE_SUPPORTS_SAVE | MACHINE_CLICKABLE_ARTWORK )
 
-SYST( 1990, nsnova,  0,      0,      snova,   snova,   primo_state, empty_init, "Novag", "Super Nova (Novag, v1.05)", MACHINE_SUPPORTS_SAVE | MACHINE_CLICKABLE_ARTWORK )
+SYST( 1990, nsnova,  0,      0,      snova,   snova,   primo_state, empty_init, "Novag Industries", "Super Nova (Novag, v1.05 set 1)", MACHINE_SUPPORTS_SAVE | MACHINE_CLICKABLE_ARTWORK )
+SYST( 1990, nsnovaa, nsnova, 0,      snova,   snova,   primo_state, empty_init, "Novag Industries", "Super Nova (Novag, v1.05 set 2)", MACHINE_SUPPORTS_SAVE | MACHINE_CLICKABLE_ARTWORK )

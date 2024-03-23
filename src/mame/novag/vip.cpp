@@ -18,8 +18,9 @@ TODO:
 - unmapped reads from 0x3* range, same as snova driver
 
 BTANB:
-- on nvip, if you press GO right after entering a move, it will reply by moving
-  one of your pieces, taken from the board layout before your move
+- on nvip, if you press GO right after entering a move (during the opening book),
+  it will reply by moving one of your pieces, taken from the board layout before
+  your move
 - just for fun, I'll mention that on many (not all) batches of Super VIP, the
   white text label under the Knight button says "Into" instead of "Info"
 
@@ -32,7 +33,7 @@ Hardware notes:
 - PCB label: 100078
 - Hitachi HD6301Y0F (mode 2) @ 8MHz
 - 2KB RAM (NEC D449G-15)
-- LCD with 4 digits and custom segments, no LCD chip
+- LCD with 4 7segs and custom segments, no LCD chip
 - 24 buttons, piezo
 
 The LCD is the same as the one in Primo / Supremo / Super Nova.
@@ -234,8 +235,8 @@ void vip_state::svip_map(address_map &map)
 static INPUT_PORTS_START( vip )
 	PORT_START("IN.0")
 	PORT_BIT(0x01, IP_ACTIVE_HIGH, IPT_KEYPAD) PORT_CODE(KEYCODE_SLASH) PORT_NAME("GO")
-	PORT_BIT(0x02, IP_ACTIVE_HIGH, IPT_KEYPAD) PORT_CODE(KEYCODE_OPENBRACE) PORT_NAME("Restore")
-	PORT_BIT(0x04, IP_ACTIVE_HIGH, IPT_KEYPAD) PORT_CODE(KEYCODE_CLOSEBRACE) PORT_NAME("Hint")
+	PORT_BIT(0x02, IP_ACTIVE_HIGH, IPT_KEYPAD) PORT_CODE(KEYCODE_P) PORT_NAME("Restore")
+	PORT_BIT(0x04, IP_ACTIVE_HIGH, IPT_KEYPAD) PORT_CODE(KEYCODE_OPENBRACE) PORT_NAME("Hint")
 	PORT_BIT(0x08, IP_ACTIVE_HIGH, IPT_KEYPAD) PORT_CODE(KEYCODE_BACKSPACE) PORT_CODE(KEYCODE_DEL) PORT_NAME("C/CB")
 	PORT_BIT(0x10, IP_ACTIVE_HIGH, IPT_KEYPAD) PORT_CODE(KEYCODE_EQUALS) PORT_NAME("Color")
 	PORT_BIT(0x20, IP_ACTIVE_HIGH, IPT_KEYPAD) PORT_CODE(KEYCODE_MINUS) PORT_NAME("Verify/Setup")
@@ -276,8 +277,8 @@ static INPUT_PORTS_START( svip )
 	PORT_INCLUDE( vip )
 
 	PORT_MODIFY("IN.0")
-	PORT_BIT(0x02, IP_ACTIVE_HIGH, IPT_KEYPAD) PORT_CODE(KEYCODE_OPENBRACE) PORT_NAME("Restore / Replay")
-	PORT_BIT(0x04, IP_ACTIVE_HIGH, IPT_KEYPAD) PORT_CODE(KEYCODE_CLOSEBRACE) PORT_NAME("Hint / Human")
+	PORT_BIT(0x02, IP_ACTIVE_HIGH, IPT_KEYPAD) PORT_CODE(KEYCODE_P) PORT_NAME("Restore / Replay")
+	PORT_BIT(0x04, IP_ACTIVE_HIGH, IPT_KEYPAD) PORT_CODE(KEYCODE_OPENBRACE) PORT_NAME("Hint / Human")
 	PORT_BIT(0x10, IP_ACTIVE_HIGH, IPT_KEYPAD) PORT_CODE(KEYCODE_EQUALS) PORT_NAME("Color / Video")
 	PORT_BIT(0x40, IP_ACTIVE_HIGH, IPT_KEYPAD) PORT_CODE(KEYCODE_COLON) PORT_NAME("Random / Autoclock")
 
@@ -419,9 +420,9 @@ ROM_END
 *******************************************************************************/
 
 //    YEAR  NAME    PARENT  COMPAT  MACHINE  INPUT  CLASS      INIT        COMPANY, FULLNAME, FLAGS
-SYST( 1987, nvip,   0,      0,      vip,     vip,   vip_state, empty_init, "Novag", "VIP (Novag)", MACHINE_SUPPORTS_SAVE | MACHINE_CLICKABLE_ARTWORK )
+SYST( 1987, nvip,   0,      0,      vip,     vip,   vip_state, empty_init, "Novag Industries", "VIP (Novag)", MACHINE_SUPPORTS_SAVE | MACHINE_CLICKABLE_ARTWORK )
 
-SYST( 1989, nsvip,  0,      0,      svip,    svip,  vip_state, empty_init, "Novag", "Super VIP (v3.7)", MACHINE_SUPPORTS_SAVE | MACHINE_CLICKABLE_ARTWORK )
-SYST( 1989, nsvipa, nsvip,  0,      svip,    svip,  vip_state, empty_init, "Novag", "Super VIP (v3.6)", MACHINE_SUPPORTS_SAVE | MACHINE_CLICKABLE_ARTWORK )
-SYST( 1989, nsvipb, nsvip,  0,      svip,    svip,  vip_state, empty_init, "Novag", "Super VIP (v1.03)", MACHINE_SUPPORTS_SAVE | MACHINE_CLICKABLE_ARTWORK )
-SYST( 1989, nsvipc, nsvip,  0,      svip,    svip,  vip_state, empty_init, "Novag", "Super VIP (v1.01)", MACHINE_SUPPORTS_SAVE | MACHINE_CLICKABLE_ARTWORK )
+SYST( 1989, nsvip,  0,      0,      svip,    svip,  vip_state, empty_init, "Novag Industries", "Super VIP (v3.7)", MACHINE_SUPPORTS_SAVE | MACHINE_CLICKABLE_ARTWORK )
+SYST( 1989, nsvipa, nsvip,  0,      svip,    svip,  vip_state, empty_init, "Novag Industries", "Super VIP (v3.6)", MACHINE_SUPPORTS_SAVE | MACHINE_CLICKABLE_ARTWORK )
+SYST( 1989, nsvipb, nsvip,  0,      svip,    svip,  vip_state, empty_init, "Novag Industries", "Super VIP (v1.03)", MACHINE_SUPPORTS_SAVE | MACHINE_CLICKABLE_ARTWORK )
+SYST( 1989, nsvipc, nsvip,  0,      svip,    svip,  vip_state, empty_init, "Novag Industries", "Super VIP (v1.01)", MACHINE_SUPPORTS_SAVE | MACHINE_CLICKABLE_ARTWORK )

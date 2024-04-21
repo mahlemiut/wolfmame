@@ -143,7 +143,7 @@ void ui_menu_record_inp::populate()
 //  perform our special rendering
 //-------------------------------------------------
 
-void ui_menu_record_inp::custom_render(void *selectedref, float top, float bottom, float origx1, float origy1, float origx2, float origy2)
+void ui_menu_record_inp::custom_render(uint32_t flags, void *selectedref, float top, float bottom, float origx1, float origy1, float origx2, float origy2)
 {
 	mame_ui_manager &mui = mame_machine_manager::instance()->ui();
 	float height = mame_machine_manager::instance()->ui().get_line_height();
@@ -276,16 +276,6 @@ bool ui_menu_playback_inp::handle(event const *ev)
 {
 	bool changed = false;
 
-	if(browse_done)
-	{
-		if(browse_result == menu_file_selector::result::FILE)
-		{
-			int pos = inp_file.find_last_of("/\\");
-			strcpy(m_filename_entry,inp_file.substr(pos+1).c_str());
-		}
-		browse_done = false;
-	}
-
 	if (ev != nullptr)
 	{
 		switch (ev->iptkey)
@@ -326,7 +316,16 @@ bool ui_menu_playback_inp::handle(event const *ev)
 				if(ev->iptkey == IPT_UI_SELECT)
 				{
 					// browse for INP file
-					menu::stack_push<menu_file_selector>(ui(), container(), nullptr, inp_dir, inp_file, false, false, false, browse_result);
+					menu::stack_push<menu_file_selector>(ui(), container(), nullptr, inp_dir, inp_file, false, false, false,
+						[this](menu_file_selector::result result, std::string &&directory, std::string &&inp_file)
+						{
+							if(result == menu_file_selector::result::FILE)
+							{
+								int pos = inp_file.find_last_of("/\\");
+								strcpy(m_filename_entry,inp_file.substr(pos+1).c_str());
+							}
+							browse_done = false;
+						});
 					browse_done = true;
 				}
 				break;

@@ -139,7 +139,7 @@ public:
 	virtual ~ui_menu_record_inp();
 	virtual void populate() override;
 	virtual bool handle(event const *ev) override;
-	virtual void custom_render(void *selectedref, float top, float bottom, float x, float y, float x2, float y2) override;
+	virtual void custom_render(uint32_t flags, void *selectedref, float top, float bottom, float x, float y, float x2, float y2) override;
 	static constexpr bool audit_passed(media_auditor::summary summary)
 	{
 		return (media_auditor::CORRECT == summary) || (media_auditor::BEST_AVAILABLE == summary) || (media_auditor::NONE_NEEDED == summary);
@@ -177,7 +177,6 @@ public:
 	virtual bool handle(event const *ev) override;
 private:
 	virtual void start_inp() override;
-	menu_file_selector::result browse_result;
 	std::string inp_file;
 	std::string inp_dir;
 	bool browse_done;

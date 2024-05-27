@@ -2,32 +2,32 @@
 // copyright-holders:Curt Coder
 /*
 
-	Models:
+    Models:
 
-	M13A: Floppy drive 5.25", 320 KB + memory 128 KB
-	M13B: Floppy drive 5.25", 320 KB + memory 256 KB
-	M13C: Floppy drive 5.25", 320 KB + memory 512 KB
-	M13D: Floppy drive 5.25", 320 KB + memory 768 KB
-	M14A: 2 floppy drives 5.25", 320 KB + memory 128 KB
-	M14B: 2 floppy drives 5.25", 320 KB + memory 256 KB
-	M14C: 2 floppy drives 5.25", 320 KB + memory 512 KB
-	M14D: 2 floppy drives 5.25", 320 KB + memory 768 KB
-	M15A: Floppy drive 5.25", 640 KB + memory 128 KB
-	M15B: Floppy drive 5.25", 640 KB + memory 256 KB
-	M15C: Floppy drive 5.25", 640 KB + memory 512 KB
-	M15D: Floppy drive 5.25", 640 KB + memory 768 KB
-	M16A: 2 floppy drives 5.25", 640 KB + memory 128 KB
-	M16B: 2 floppy drives 5.25", 640 KB + memory 256 KB
-	M16C: 2 floppy drives 5.25", 640 KB + memory 512 KB
-	M16D: 2 floppy drives 5.25", 640 KB + memory 768 KB
-	M25B: Floppy drive 5.25", 640 KB + hard disk 5.25" Winchester, 5 MB + memory 256 KB
-	M25C: Floppy drive 5.25", 640 KB + hard disk 5.25" Winchester, 5 MB + memory 512 KB
-	M25D: Floppy drive 5.25", 640 KB + hard disk 5.25" Winchester, 5 MB + memory 768 KB
-	M35B: Floppy drive 5.25", 640 KB + hard disk 5.25" Winchester, 15 MB + memory 256 KB
-	M35C: Floppy drive 5.25", 640 KB + hard disk 5.25" Winchester, 15 MB + memory 512 KB
-	M35D: Floppy drive 5.25", 640 KB + hard disk 5.25" Winchester, 15 MB + memory 768 KB
+    M13A: Floppy drive 5.25", 320 KB + memory 128 KB
+    M13B: Floppy drive 5.25", 320 KB + memory 256 KB
+    M13C: Floppy drive 5.25", 320 KB + memory 512 KB
+    M13D: Floppy drive 5.25", 320 KB + memory 768 KB
+    M14A: 2 floppy drives 5.25", 320 KB + memory 128 KB
+    M14B: 2 floppy drives 5.25", 320 KB + memory 256 KB
+    M14C: 2 floppy drives 5.25", 320 KB + memory 512 KB
+    M14D: 2 floppy drives 5.25", 320 KB + memory 768 KB
+    M15A: Floppy drive 5.25", 640 KB + memory 128 KB
+    M15B: Floppy drive 5.25", 640 KB + memory 256 KB
+    M15C: Floppy drive 5.25", 640 KB + memory 512 KB
+    M15D: Floppy drive 5.25", 640 KB + memory 768 KB
+    M16A: 2 floppy drives 5.25", 640 KB + memory 128 KB
+    M16B: 2 floppy drives 5.25", 640 KB + memory 256 KB
+    M16C: 2 floppy drives 5.25", 640 KB + memory 512 KB
+    M16D: 2 floppy drives 5.25", 640 KB + memory 768 KB
+    M25B: Floppy drive 5.25", 640 KB + hard disk 5.25" Winchester, 5 MB + memory 256 KB
+    M25C: Floppy drive 5.25", 640 KB + hard disk 5.25" Winchester, 5 MB + memory 512 KB
+    M25D: Floppy drive 5.25", 640 KB + hard disk 5.25" Winchester, 5 MB + memory 768 KB
+    M35B: Floppy drive 5.25", 640 KB + hard disk 5.25" Winchester, 15 MB + memory 256 KB
+    M35C: Floppy drive 5.25", 640 KB + hard disk 5.25" Winchester, 15 MB + memory 512 KB
+    M35D: Floppy drive 5.25", 640 KB + hard disk 5.25" Winchester, 15 MB + memory 768 KB
 
-	./chdman createhd -chs 306,2,32 -ss 256 -o st406.chd
+    ./chdman createhd -chs 306,2,32 -ss 256 -o st406.chd
 
 */
 
@@ -155,7 +155,7 @@ void mm2_state::mm2(machine_config &config)
 	PIC8259(config, m_pic);
 
 	PIT8253(config, m_pit);
-	
+
 	I8274(config, m_mpsc, 16_MHz_XTAL/4);
 
 	X2212(config, m_novram);
@@ -196,17 +196,29 @@ void mm2_state::mm2(machine_config &config)
 
 ROM_START( mm2m35d )
 	ROM_REGION16_LE( 0x10000, I80186_TAG, 0 )
-	ROMX_LOAD( "9488a.ic38", 0x0000, 0x4000, CRC(ae831b67) SHA1(d922f02dfac783d0c86ca9a09bc2ad345ee1e71a), ROM_SKIP(1) )
-	ROMX_LOAD( "9490a.ic52", 0x0001, 0x4000, CRC(3ca470d1) SHA1(4cc300544e4a81939c2eb87e22c3ea367a7ec62c), ROM_SKIP(1) )
-	ROMX_LOAD( "9489a.ic41", 0x8000, 0x4000, CRC(a0f19bf5) SHA1(6af91b2f798ddfa9430546e23f00bbeb5ead5a29), ROM_SKIP(1) )
-	ROMX_LOAD( "9491a.ic58", 0x8001, 0x4000, CRC(cf7f3e6d) SHA1(5bf24661f5535d40d1b6ef7f2599f424f6eb2a11), ROM_SKIP(1) )
+	ROM_DEFAULT_BIOS("c")
+	ROM_SYSTEM_BIOS(0, "a", "A")
+	ROMX_LOAD( "9488a.ic38", 0x0000, 0x4000, CRC(ae831b67) SHA1(d922f02dfac783d0c86ca9a09bc2ad345ee1e71a), ROM_SKIP(1) | ROM_BIOS(0) )
+	ROMX_LOAD( "9490a.ic52", 0x0001, 0x4000, CRC(3ca470d1) SHA1(4cc300544e4a81939c2eb87e22c3ea367a7ec62c), ROM_SKIP(1) | ROM_BIOS(0) )
+	ROMX_LOAD( "9489a.ic41", 0x8000, 0x4000, CRC(a0f19bf5) SHA1(6af91b2f798ddfa9430546e23f00bbeb5ead5a29), ROM_SKIP(1) | ROM_BIOS(0) )
+	ROMX_LOAD( "9491a.ic58", 0x8001, 0x4000, CRC(cf7f3e6d) SHA1(5bf24661f5535d40d1b6ef7f2599f424f6eb2a11), ROM_SKIP(1) | ROM_BIOS(0) )
+	ROM_SYSTEM_BIOS(1, "c", "C")
+	ROMX_LOAD( "9488c.ic38", 0x0000, 0x4000, CRC(cbd151f0) SHA1(16470d4c2cee7a515640894d7ff1b3662516082a), ROM_SKIP(1) | ROM_BIOS(1) )
+	ROMX_LOAD( "9490c.ic52", 0x0001, 0x4000, CRC(bfde706e) SHA1(8a154aa00d480684b00aa7c30be6d6a78dd9ddaa), ROM_SKIP(1) | ROM_BIOS(1) )
+	ROMX_LOAD( "9489c.ic41", 0x8000, 0x4000, CRC(b5086aac) SHA1(f8d7a936baa701dcc30949fe1241be2ab9b80201), ROM_SKIP(1) | ROM_BIOS(1) )
+	ROMX_LOAD( "9491c.ic58", 0x8001, 0x4000, CRC(32047735) SHA1(408f03bc2d89257488e4b3336500681bb168cdec), ROM_SKIP(1) | ROM_BIOS(1) )
 
 	ROM_REGION16_LE( 0x4000, "chargen", 0 )
 	ROMX_LOAD( "9067e.ic40", 0x0001, 0x2000, CRC(fa719d92) SHA1(af6cc03a8171b9c95e8548c5e0268816344d7367), ROM_SKIP(1) )
 
-	ROM_REGION( 0x2000, "crtc186", 0 )
-	ROM_LOAD( "9026a.ic26", 0x0000, 0x2000, NO_DUMP )
-	ROM_LOAD( "729025b.ic8", 0x0000, 0x200, NO_DUMP )
+	ROM_REGION( 0x2000, "attr", 0 )
+	ROM_LOAD( "9026a.ic26", 0x0000, 0x2000, CRC(fe1da600) SHA1(3a5512b08d8f7bb5a0ff3f50bcf33de649a0489d) )
+
+	ROM_REGION( 0x100, "timing", 0 )
+	ROM_LOAD( "739025b.ic8", 0x000, 0x100, CRC(c538b10a) SHA1(9810732a52ee6b8313d27462b27acc7e4d5badeb) )
+
+	ROM_REGION( 0x400, "keyboard", 0 )
+	ROM_LOAD( "keyboard", 0x000, 0x400, NO_DUMP )
 ROM_END
 
 COMP( 1983, mm2m35d,  0,     0,      mm2,   mm2,   mm2_state, empty_init, "Nokia Data", "MikroMikko 2 M35D", MACHINE_IS_SKELETON )

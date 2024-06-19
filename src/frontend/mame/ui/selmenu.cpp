@@ -2620,7 +2620,7 @@ std::tuple<int, bool, bool> menu_select_launch::handle_middle_down(bool changed,
 		{
 			// left panel
 			assert(show_left_panel());
-			if ((get_focus() == focused_menu::MAIN) && (selected_index() <= m_available_items))
+			if ((get_focus() == focused_menu::MAIN) && (selected_index() < m_available_items))
 				m_prev_selected = get_selection_ref();
 			set_focus(focused_menu::LEFT);
 			return std::make_tuple(IPT_INVALID, true, true);
@@ -2629,7 +2629,7 @@ std::tuple<int, bool, bool> menu_select_launch::handle_middle_down(bool changed,
 		{
 			// right panel
 			assert(show_right_panel());
-			if ((get_focus() == focused_menu::MAIN) && (selected_index() <= m_available_items))
+			if ((get_focus() == focused_menu::MAIN) && (selected_index() < m_available_items))
 				m_prev_selected = get_selection_ref();
 			set_focus((y < m_right_tabs_bottom) ? focused_menu::RIGHTTOP : focused_menu::RIGHTBOTTOM);
 			return std::make_tuple(IPT_INVALID, true, true);
@@ -3179,7 +3179,7 @@ bool menu_select_launch::main_force_visible_selection()
 			return true;
 		}
 	}
-	else
+	else if (m_prev_selected)
 	{
 		int selection(0);
 		while ((m_available_items > selection) && (item(selection).ref() != m_prev_selected))
@@ -3388,8 +3388,6 @@ void menu_select_launch::draw(u32 flags)
 		// work out colours
 		rgb_t fgcolor = ui().colors().text_color();
 		rgb_t bgcolor = ui().colors().text_bg_color();
-		bool const hovered(is_selectable(pitem) && pointer_in_rect(m_primary_items_hbounds.first, linetop, m_primary_items_hbounds.second, linebottom));
-		bool const pointerline((pointer_action::MAIN_TRACK_LINE == m_pointer_action) && ((m_primary_lines + linenum) == m_clicked_line));
 		if (is_selected(itemnum) && (get_focus() == focused_menu::MAIN))
 		{
 			// if we're selected, draw with a different background
@@ -3401,19 +3399,24 @@ void menu_select_launch::draw(u32 flags)
 					bgcolor, rgb_t(43, 43, 43),
 					hilight_main_texture(), PRIMFLAG_BLENDMODE(BLENDMODE_ALPHA) | PRIMFLAG_TEXWRAP(1));
 		}
-		else if (pointerline && hovered)
+		else if (is_selectable(pitem))
 		{
-			// draw selected highlight for tracked item
-			fgcolor = ui().colors().selected_color();
-			bgcolor = ui().colors().selected_bg_color();
-			highlight(m_primary_items_hbounds.first, linetop, m_primary_items_hbounds.second, linebottom, bgcolor);
-		}
-		else if (pointerline || (!m_ui_error && !(flags & PROCESS_NOINPUT) && hovered && pointer_idle()))
-		{
-			// draw hover highlight when hovered over or dragged off
-			fgcolor = ui().colors().mouseover_color();
-			bgcolor = ui().colors().mouseover_bg_color();
-			highlight(m_primary_items_hbounds.first, linetop, m_primary_items_hbounds.second, linebottom, bgcolor);
+			bool const hovered(pointer_in_rect(m_primary_items_hbounds.first, linetop, m_primary_items_hbounds.second, linebottom));
+			bool const pointerline((pointer_action::MAIN_TRACK_LINE == m_pointer_action) && ((m_primary_lines + linenum) == m_clicked_line));
+			if (pointerline && hovered)
+			{
+				// draw selected highlight for tracked item
+				fgcolor = ui().colors().selected_color();
+				bgcolor = ui().colors().selected_bg_color();
+				highlight(m_primary_items_hbounds.first, linetop, m_primary_items_hbounds.second, linebottom, bgcolor);
+			}
+			else if (pointerline || (!m_ui_error && !(flags & PROCESS_NOINPUT) && hovered && pointer_idle()))
+			{
+				// draw hover highlight when hovered over or dragged off
+				fgcolor = ui().colors().mouseover_color();
+				bgcolor = ui().colors().mouseover_bg_color();
+				highlight(m_primary_items_hbounds.first, linetop, m_primary_items_hbounds.second, linebottom, bgcolor);
+			}
 		}
 
 		if (pitem.type() == menu_item_type::SEPARATOR)

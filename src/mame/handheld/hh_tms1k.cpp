@@ -14,7 +14,7 @@ part of a series is (or will be) in its own driver, see:
 - ti/snspellc.cpp: TI Speak & Spell Compact / Touch & Tell
 - ti/spellb.cpp: TI Spelling B series gen. 1
 - tiger/bingobear.cpp: Hasbro/Tiger Bingo Bear / Monkgomery Monkey
-- tiger/k28m2.cpp: Tiger K-2-8: Talking Learning Computer (model 7-232)
+- tiger/k28.cpp: Tiger K-2-8: Talking Learning Computer (model 7-232)
 
 About the approximated MCU frequency everywhere: The RC osc. is not that
 stable on most of these handhelds. When comparing multiple video recordings
@@ -82,6 +82,7 @@ on Joerg Woerner's datamath.org: http://www.datamath.org/IC_List.htm
  *MP0169   TMS1000   1979, Conic Electronic Baseball
  @MP0170   TMS1000   1979, Conic Football
  *MP0171   TMS1000   1979, Tomy Soccer
+ *MP0186   TMS1000   1979, Hornby Railways Zero 1: R944 Master Control Unit
  *MP0220   TMS1000   1980, Tomy Teacher
  @MP0230   TMS1000   1980, Entex Blast It (6015)
  @MP0271   TMS1000   1982, Tandy (Radio Shack) Monkey See
@@ -143,6 +144,7 @@ on Joerg Woerner's datamath.org: http://www.datamath.org/IC_List.htm
  *MP3228   TMS1000   1979, Texas Instruments OEM melody chip
  *MP3232   TMS1000   1979, Fonas 2 Player Baseball (no "MP" on chip label)
  @MP3260   TMS1000   1979, Electroplay Quickfire
+ *MP3261   TMS1000   1979, Hornby Railways Zero 1: R947 Locomotive Module
  @MP3300   TMS1000   1979, Milton Bradley Simon (Rev F)
  @MP3301A  TMS1000   1979, Milton Bradley Big Trak
  *MP3310   TMS1000   1979, Texas Instruments OEM melody chip
@@ -201,7 +203,7 @@ on Joerg Woerner's datamath.org: http://www.datamath.org/IC_List.htm
  @MP7304   TMS1400   1982, Tiger 7 in 1 Sports Stadium (model 7-555)
  @MP7313   TMS1400   1980, Parker Brothers Bank Shot
  @MP7314   TMS1400   1980, Parker Brothers Split Second
-  MP7324   TMS1400   1985, Tiger K-2-8/Coleco Talking Teacher -> tiger/k28m2.cpp
+  MP7324   TMS1400   1985, Tiger K-2-8/Coleco Talking Teacher -> tiger/k28.cpp
  @MP7332   TMS1400   1981, Milton Bradley Dark Tower
  @MP7334   TMS1400   1981, Coleco Total Control 4
  @MP7351   TMS1400   1982, Parker Brothers Master Merlin

@@ -14,8 +14,8 @@
 
 /*
 
-TSOP32 Maskrom:
-The pinout matches nearly the 29LV040 (TSOP32) flashrom. It has no WE# and Pin 07 and 09 are swapped.
+TSOP32 mask ROM:
+The pinout nearly matches the 29LV040 (TSOP32) Flash ROM. It has no WE# and pin0 7 and 9 are swapped.
 
        --------
 A11 --|01    32|-- OE#
@@ -37,7 +37,7 @@ A04 --|16    17|-- A03
        --------
 
 */
- 
+
 namespace {
 
 class challenge_gear_state : public driver_device
@@ -134,4 +134,4 @@ ROM_END
 
 } // Anonymous namespace
 
-CONS( 199?, chalgear, 0,      0,      challenge_gear, challenge_gear, challenge_gear_state, empty_init, "Benesse Corporation", "Challenge Gear (Japan)", MACHINE_IS_SKELETON )
+CONS( 2002, chalgear, 0,      0,      challenge_gear, challenge_gear, challenge_gear_state, empty_init, "Benesse Corporation", "Challenge Gear (Japan)", MACHINE_IS_SKELETON )

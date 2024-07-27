@@ -200,6 +200,7 @@ private:
 	uint8_t m_force_pattern = 0;
 	uint8_t m_fd_buffer_flag = 0;
 	uint8_t m_border_col = 0;
+	uint8_t m_render_disable = 0;
 
 	uint8_t * m_gfxram = nullptr;
 	void pv1000_postload();
@@ -262,8 +263,9 @@ void pv1000_state::io_w(offs_t offset, uint8_t data)
 //  case 0x06 VRAM + PCG location, always fixed at 0xb8xx
 	case 0x07:
 		/* ---- -xxx unknown, border color? */
-		m_pcg_bank = (data & 0x20) >> 5;
+		m_pcg_bank = (data & 0xe0) >> 5;
 		m_force_pattern = ((data & 0x10) >> 4); /* Dig Dug relies on this */
+		m_render_disable = ((data & 0x08) >> 3);
 		m_border_col = data & 7;
 		break;
 	}
@@ -353,23 +355,26 @@ DEVICE_IMAGE_LOAD_MEMBER(pv1000_state::cart_load)
 
 uint32_t pv1000_state::screen_update_pv1000(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect)
 {
-	bitmap.fill(m_border_col); // TODO: might be either black or colored by this register
+	bitmap.fill(m_border_col); // border is on top and bottom
+
+	if (m_render_disable)
+		return 0;
 
 	for (int y = 0; y < 24; y++)
 	{
-		for (int x = 2; x < 30; x++) // left-right most columns are definitely masked by the border color
+		for (int x = 2; x < 30; x++) // left-right most columns never even drawn, black instead
 		{
 			uint16_t tile = m_p_videoram[y * 32 + x];
 
 			if (tile < 0xe0 || m_force_pattern)
 			{
 				tile += (m_pcg_bank << 8);
-				m_gfxdecode->gfx(0)->opaque(bitmap,cliprect, tile, 0, 0, 0, x*8, y*8);
+				m_gfxdecode->gfx(0)->opaque(bitmap,cliprect, tile, 0, 0, 0, x*8-16, y*8+26);
 			}
 			else
 			{
 				tile -= 0xe0;
-				m_gfxdecode->gfx(1)->opaque(bitmap,cliprect, tile, 0, 0, 0, x*8, y*8);
+				m_gfxdecode->gfx(1)->opaque(bitmap,cliprect, tile, 0, 0, 0, x*8-16, y*8+26);
 			}
 		}
 	}
@@ -380,7 +385,7 @@ uint32_t pv1000_state::screen_update_pv1000(screen_device &screen, bitmap_ind16 
 
 
 /* Interrupt is triggering 16 times during vblank. */
-/* we have chosen to trigger on scanlines 195, 199, 203, 207, 211, 215, 219, 223, 227, 231, 235, 239, 243, 247, 251, 255 */
+/* They are spaced every 4 scanlines, with equal padding before and after */
 TIMER_CALLBACK_MEMBER(pv1000_state::d65010_irq_on_cb)
 {
 	int vpos = m_screen->vpos();
@@ -394,11 +399,11 @@ TIMER_CALLBACK_MEMBER(pv1000_state::d65010_irq_on_cb)
 	m_irq_off_timer->adjust(m_screen->time_until_pos(vpos, 380/2));
 
 	/* Schedule next IRQ trigger */
-	if (vpos >= 255)
+	if (vpos >= 281)
 	{
-		next_vpos = 195;
+		next_vpos = 221;
 	}
-	m_irq_on_timer->adjust(m_screen->time_until_pos(next_vpos, 0));
+	m_irq_on_timer->adjust(m_screen->time_until_pos(next_vpos, 224));
 }
 
 
@@ -438,6 +443,7 @@ void pv1000_state::machine_start()
 	save_item(NAME(m_force_pattern));
 	save_item(NAME(m_fd_buffer_flag));
 	save_item(NAME(m_border_col));
+	save_item(NAME(m_render_disable));
 
 	machine().save().register_postload(save_prepost_delegate(FUNC(pv1000_state::pv1000_postload), this));
 }
@@ -457,7 +463,7 @@ static const gfx_layout pv1000_3bpp_gfx =
 	8, 8,           /* 8x8 characters */
 	RGN_FRAC(1,1),
 	3,
-	{ 0, 8*8, 16*8 },
+	{ 16*8, 8*8, 0 },
 	{ 0, 1, 2, 3, 4, 5, 6, 7 },
 	{ 0*8, 1*8, 2*8, 3*8, 4*8, 5*8, 6*8, 7*8 },
 	8*8*4
@@ -478,11 +484,18 @@ void pv1000_state::pv1000(machine_config &config)
 
 	/* D65010G031 - Video & sound chip */
 	SCREEN(config, m_screen, SCREEN_TYPE_RASTER);
-	m_screen->set_raw(17897725/3, 380, 0, 256, 262, 0, 192);
+	m_screen->set_raw(17897725/4, 288, 0, 224, 262, 0, 244);
+	// Pixel aspect is 48/35.
+	// Display aspect is MAME's 4:3 default.
+
+	// Note that this value is overridden by the user's pv1000.cfg, if present.
+	// 206px x 48/35(PAR) / 4/3(DAR) = 212sl
+	m_screen->set_default_position(216/206.0,0, //216 px in storage aspect; cropped to 206 px
+	                               244/212.0,0); //244 sl in storage aspect; cropped to 212 sl
 	m_screen->set_screen_update(FUNC(pv1000_state::screen_update_pv1000));
 	m_screen->set_palette(m_palette);
 
-	PALETTE(config, m_palette, palette_device::BGR_3BIT);
+	PALETTE(config, m_palette, palette_device::RGB_3BIT);
 
 	GFXDECODE(config, m_gfxdecode, m_palette, gfx_pv1000);
 
@@ -500,7 +513,7 @@ void pv1000_state::pv1000(machine_config &config)
 
 
 ROM_START( pv1000 )
-	ROM_REGION( 0x4000, "gfxrom", ROMREGION_ERASE00 )
+	ROM_REGION( 0x8000, "gfxrom", ROMREGION_ERASE00 )
 	ROM_REGION( 0x400, "gfxram", ROMREGION_ERASE00 )
 ROM_END
 

@@ -776,15 +776,22 @@ void nmk16_state::tdragonb2_map(address_map &map)
 {
 	map(0x000000, 0x03ffff).rom();
 	map(0x0b0000, 0x0bffff).ram().share("mainram");
+	map(0x08e294, 0x08e925).portr("IN1");
 	map(0x0c0000, 0x0c0001).portr("IN0");
-	map(0x0c0002, 0x0c0003).portr("IN1");
-	map(0x0c0008, 0x0c0009).portr("DSW1"); // .w TODO oki banking?
+	map(0x0c0002, 0x0c0003).nopr(); // leftover from the original?
+	map(0x0c0008, 0x0c0009).portr("DSW1");
+	map(0x0c0009, 0x0c0009).lw8(NAME([this] (uint8_t data) { m_okibank[0]->set_entry(data & 0x03); }));
 	map(0x0c000a, 0x0c000b).portr("DSW2");
-	//map(0x0c000e, 0x0c000f).r; TODO: what's this?
-	map(0x0c0015, 0x0c0015).w(FUNC(nmk16_state::flipscreen_w)); // Maybe
+	map(0x0c000e, 0x0c000f).nopr(); // ??
+	map(0x0c0015, 0x0c0015).w(FUNC(nmk16_state::flipscreen_w));
+	map(0x0c0018, 0x0c0019).nopr(); // ??
 	map(0x0c0019, 0x0c0019).w(FUNC(nmk16_state::tilebank_w)); // Tile Bank
 	map(0x0c001f, 0x0c001f).w("oki", FUNC(okim6295_device::write));
-	map(0x0c4000, 0x0c4007).ram().w(FUNC(nmk16_state::scroll_w<0>)).umask16(0x00ff);
+	map(0x0c4000, 0x0c4001).lw16(NAME([this] (uint16_t data) { m_bg_tilemap[0]->set_scrollx(0, data); } ));
+	map(0x0c4002, 0x0c4003).nopw(); // duplicate value of the above
+	map(0x0c4004, 0x0c4005).lw16(NAME([this] (uint16_t data) { m_bg_tilemap[0]->set_scrolly(0, data); } ));
+	map(0x0c4006, 0x0c4007).nopw(); // duplicate value of the above
+	map(0x0c4018, 0x0c4019).nopr(); // ??
 	map(0x0c8000, 0x0c87ff).ram().w(m_palette, FUNC(palette_device::write16)).share("palette");
 	map(0x0cc000, 0x0cffff).ram().w(FUNC(nmk16_state::bgvideoram_w<0>)).share("bgvideoram0");
 	map(0x0d0000, 0x0d07ff).ram().w(FUNC(nmk16_state::txvideoram_w)).share("txvideoram");
@@ -1105,6 +1112,12 @@ void nmk16_state::powerinsa_oki_map(address_map &map)
 {
 	map(0x00000, 0x2ffff).rom().region("oki1", 0);
 	map(0x30000, 0x3ffff).bankr(m_okibank[0]);
+}
+
+void nmk16_state::tdragonb2_oki_map(address_map &map)
+{
+	map(0x00000, 0x1ffff).rom().region("oki", 0);
+	map(0x20000, 0x3ffff).bankr(m_okibank[0]);
 }
 
 static INPUT_PORTS_START( vandyke )
@@ -2285,6 +2298,38 @@ static INPUT_PORTS_START( tdragonb )
 
 	PORT_START("COIN")  // referenced by Seibu sound board
 	PORT_BIT( 0xff, IP_ACTIVE_LOW, IPT_UNKNOWN )
+INPUT_PORTS_END
+
+static INPUT_PORTS_START( tdragonb2 )
+	PORT_INCLUDE(tdragon)
+
+	PORT_MODIFY("IN0")
+	PORT_BIT( 0x01, IP_ACTIVE_LOW, IPT_COIN1 )
+	PORT_BIT( 0x02, IP_ACTIVE_LOW, IPT_COIN2 )
+	PORT_BIT( 0x04, IP_ACTIVE_LOW, IPT_SERVICE1 )
+	PORT_BIT( 0x08, IP_ACTIVE_LOW, IPT_UNKNOWN )
+	PORT_BIT( 0x10, IP_ACTIVE_LOW, IPT_UNKNOWN )
+	PORT_BIT( 0x20, IP_ACTIVE_LOW, IPT_UNKNOWN )
+	PORT_BIT( 0x40, IP_ACTIVE_LOW, IPT_UNKNOWN )
+	PORT_BIT( 0x80, IP_ACTIVE_LOW, IPT_UNKNOWN )
+
+	PORT_MODIFY("IN1")
+	PORT_BIT( 0x0001, IP_ACTIVE_LOW, IPT_JOYSTICK_RIGHT ) PORT_8WAY PORT_PLAYER(1)
+	PORT_BIT( 0x0002, IP_ACTIVE_LOW, IPT_JOYSTICK_LEFT ) PORT_8WAY PORT_PLAYER(1)
+	PORT_BIT( 0x0004, IP_ACTIVE_LOW, IPT_JOYSTICK_DOWN ) PORT_8WAY PORT_PLAYER(1)
+	PORT_BIT( 0x0008, IP_ACTIVE_LOW, IPT_JOYSTICK_UP ) PORT_8WAY PORT_PLAYER(1) PORT_NAME("P1 Up / P1 Start")
+	PORT_BIT( 0x0010, IP_ACTIVE_LOW, IPT_BUTTON1 ) PORT_PLAYER(1) PORT_NAME("P1 Button 1 / P2 Start")
+	PORT_BIT( 0x0020, IP_ACTIVE_LOW, IPT_BUTTON2 ) PORT_PLAYER(1)
+	PORT_BIT( 0x0040, IP_ACTIVE_LOW, IPT_UNKNOWN )
+	PORT_BIT( 0x0080, IP_ACTIVE_LOW, IPT_UNKNOWN )
+	PORT_BIT( 0x0100, IP_ACTIVE_LOW, IPT_JOYSTICK_RIGHT ) PORT_8WAY PORT_PLAYER(2)
+	PORT_BIT( 0x0200, IP_ACTIVE_LOW, IPT_JOYSTICK_LEFT ) PORT_8WAY PORT_PLAYER(2)
+	PORT_BIT( 0x0400, IP_ACTIVE_LOW, IPT_JOYSTICK_DOWN ) PORT_8WAY PORT_PLAYER(2)
+	PORT_BIT( 0x0800, IP_ACTIVE_LOW, IPT_JOYSTICK_UP ) PORT_8WAY PORT_PLAYER(2)
+	PORT_BIT( 0x1000, IP_ACTIVE_LOW, IPT_BUTTON1 ) PORT_PLAYER(2)
+	PORT_BIT( 0x2000, IP_ACTIVE_LOW, IPT_BUTTON2 ) PORT_PLAYER(2)
+	PORT_BIT( 0x4000, IP_ACTIVE_LOW, IPT_UNKNOWN )
+	PORT_BIT( 0x8000, IP_ACTIVE_LOW, IPT_UNKNOWN )
 INPUT_PORTS_END
 
 static INPUT_PORTS_START( ssmissin )
@@ -3994,22 +4039,22 @@ void nmk16_state::machine_reset()
   This hardware relies on two counters and the contents of two PROMs for the timing signals generation.
   The counters are implemented inside NMK902 custom chip (except tharrier) for all "low-res" games and are used to
   address the entries on each PROM in a sequential way. On "mid-res" and "hi-res" games, one of the counters is
-  implemented outside the custom chip, due to they decided to boost up the horizontal resolution, and the initial 
+  implemented outside the custom chip, due to they decided to boost up the horizontal resolution, and the initial
   configuration is hardwired inside the chip.
 
   - "Horizontal" signals, such as HBlank, HSync... are generated using one of the counters and a 256x4bit PROM, and
     each step on the counter takes 2 pixel clock cycles:
     - For "low-res" games the counter starts on 0x40 and goes to 0xFF having 192 steps. As each step is 2 px, the total
-	  H-size is 384px wide. PROM entries from 0x00 to 0x39 address are never used.
+      H-size is 384px wide. PROM entries from 0x00 to 0x39 address are never used.
     - For "mid-res" games the counter starts on 0x20 and goes to 0xFF having 224 steps. As each step is 2 px, the total
-	  H-size is 448px wide. PROM entries from 0x00 to 0x19 address are never used.
+      H-size is 448px wide. PROM entries from 0x00 to 0x19 address are never used.
     - For  "hi-res" games the counter starts on 0x00 and goes to 0xFF having 256 steps. As each step is 2 px, the total
-	  H-size is 512px wide. All PROM entries are used.
+      H-size is 512px wide. All PROM entries are used.
 
   - "Vertical" signals, such as VBlank, Interrupt requests... are generated using the other counter and a 256x8bit PROM,
     and each step on the counter takes 2 scanlines.
     - In this case, for all games the counter starts on 0x75 and goes to 0xFF having 139 steps. As each step is 2 lines,
-	  the total V-size is 278 lines high. PROM entries from 0x00 address to 0x74 are never used.
+      the total V-size is 278 lines high. PROM entries from 0x00 address to 0x74 are never used.
 
   Going into more detail:
 
@@ -4022,7 +4067,7 @@ void nmk16_state::machine_reset()
     1       --x-     HSYNC (active low)
     2       -x--     HBLANK (active low)
     3       x---     unused on almost all games (only used in gunnail and raphero, purpose unknown)
-	
+
   Considering that and looking at the contents of the PROMs, the horizontal timings are below:
 
   - For "low-res" (6MHz pixel clock):
@@ -4034,8 +4079,8 @@ void nmk16_state::machine_reset()
                            |
                    'start of line'  (pixel 0)
   Each line: ( 6MHz / 384 pixels per line ) = 15625Hz = 64 usec
-  
-  
+
+
   - For "mid-res" (7MHz pixel clock):
                            0........59..........................................................................380...400...416....447
   /LINE-END (2 px):        ----------------------------------------------------------------------------------------------------------X
@@ -4054,7 +4099,7 @@ void nmk16_state::machine_reset()
   HBLANK (28 + 100 px):    XXXXXX-------------------------------------------384-wide-------------------------XXXXXXXXXXXXXXXXXXXXXXXXX  // HBlank ends 28 pixels after 'start of line'
                            ^
                            |
-                   'start of line'  (pixel 0)	
+                   'start of line'  (pixel 0)
   Each line: ( 8MHz / 512 pixels per line ) = 15625Hz = 64 usec
 
 
@@ -4149,16 +4194,16 @@ void nmk16_state::set_screen_hires(machine_config &config)
 
   - IRQ1:
     - At 68 and 196 scanlines on most games
-	- 'tharrier' only at 146 scanline
-	- 'vandyke', 'bioship' and 'blkheart' only at 102 scanline (also 'ddealer' outside this driver).
-	  'vandyke' permanently inhibits it by software.
-	- 'powerins' only at 16 scanline (looks like it's always inhibited by software)
+    - 'tharrier' only at 146 scanline
+    - 'vandyke', 'bioship' and 'blkheart' only at 102 scanline (also 'ddealer' outside this driver).
+      'vandyke' permanently inhibits it by software.
+    - 'powerins' only at 16 scanline (looks like it's always inhibited by software)
 
   - IRQ2:
     - At 16 scanline on most games (VBIN = end of VBLANK = start of active video)
-	- 'tdragon', 'macross2', 'tdragon2' and 'raphero' lack it
-	- 'tharrier' at 54 scanline
-	- 'powerins' at 128 scanline (looks like it's always inhibited by software)
+    - 'tdragon', 'macross2', 'tdragon2' and 'raphero' lack it
+    - 'tharrier' at 54 scanline
+    - 'powerins' at 128 scanline (looks like it's always inhibited by software)
 
   - IRQ3:
     - Only triggered by 'powerins' at 90 and 166 scanlines (looks like it's always inhibited by software)
@@ -4168,10 +4213,10 @@ void nmk16_state::set_screen_hires(machine_config &config)
 */
 TIMER_DEVICE_CALLBACK_MEMBER(nmk16_state::nmk16_scanline)
 {
-//	constexpr int SPRDMA_INDEX = 0;  // not used in emulation TODO: check if it could be used to trigger the sprite DMA instead of setting it 4 lines after VBOUT
-//	constexpr int VSYNC_INDEX  = 1;  // not used in emulation
-//	constexpr int VBLANK_INDEX = 2;  // not used in emulation
-//	constexpr int NOT_USED     = 3;  // not used in emulation
+//  constexpr int SPRDMA_INDEX = 0;  // not used in emulation TODO: check if it could be used to trigger the sprite DMA instead of setting it 4 lines after VBOUT
+//  constexpr int VSYNC_INDEX  = 1;  // not used in emulation
+//  constexpr int VBLANK_INDEX = 2;  // not used in emulation
+//  constexpr int NOT_USED     = 3;  // not used in emulation
 	constexpr int IPL0_INDEX   = 4;
 	constexpr int IPL1_INDEX   = 5;
 	constexpr int IPL2_INDEX   = 6;
@@ -4252,7 +4297,7 @@ LV4         LV2 LV1        LV1
  - VBlank   =  54 lines * 64 usec =  3456 usec
  - Active   = 224 lines * 64 usec = 14336 usec
  - IRQ1 gap = 128 lines * 64 usec =  8192 usec
- 
+
  The following code is used for bootleg, Afega, Comad and NMK games that PROMs are still undumped, on which the
  interrupt triggering cannot be relied on the PROMs contents.
  */
@@ -4684,7 +4729,7 @@ void nmk16_state::tdragonb3(machine_config &config)
 void nmk16_state::tdragonb2(machine_config &config)
 {
 	// basic machine hardware
-	M68000(config, m_maincpu, 10000000);
+	M68000(config, m_maincpu, 10'000'000);
 	m_maincpu->set_addrmap(AS_PROGRAM, &nmk16_state::tdragonb2_map);
 	set_hacky_interrupt_timing(config);
 
@@ -4700,7 +4745,9 @@ void nmk16_state::tdragonb2(machine_config &config)
 	// sound hardware
 	SPEAKER(config, "mono").front_center();
 
-	OKIM6295(config, "oki", 1320000, okim6295_device::PIN7_LOW).add_route(ALL_OUTPUTS, "mono", 0.40);
+	okim6295_device &oki(OKIM6295(config, "oki", 1'320'000, okim6295_device::PIN7_LOW));
+	oki.set_addrmap(0, &nmk16_state::tdragonb2_oki_map);
+	oki.add_route(ALL_OUTPUTS, "mono", 0.40);
 }
 
 void nmk16_state::tdragon(machine_config &config)
@@ -5882,6 +5929,11 @@ void nmk16_state::init_tharrier()
 void nmk16_state::init_tdragonb()
 {
 	decode_tdragonb();
+}
+
+void nmk16_state::init_tdragonb2()
+{
+	m_okibank[0]->configure_entries(0, 4, memregion("oki")->base(), 0x20000);
 }
 
 void nmk16_state::init_ssmissin()
@@ -10356,10 +10408,10 @@ GAME( 1990, mustangb3,  mustang,  mustangb3,    mustang,      nmk16_state, empty
 GAME( 1989, tharrierb,  tharrier, tharrier,     tharrier,     nmk16_state, init_tharrier,        ROT270, "bootleg (Lettering)",           "Task Force Harrier (Lettering bootleg)", 0 )
 
 // bootleg with no audio CPU and only 1 Oki
-GAME( 1991, tdragonb2,  tdragon,  tdragonb2,    tdragon,      nmk16_state, empty_init,           ROT270, "bootleg",                       "Thunder Dragon (bootleg with reduced sound system)", MACHINE_NOT_WORKING ) // GFX and input problems. IRQs related?
+GAME( 1991, tdragonb2,  tdragon,  tdragonb2,    tdragonb2,    nmk16_state, init_tdragonb2,       ROT270, "bootleg",                       "Thunder Dragon (bootleg with reduced sound system)", MACHINE_IMPERFECT_SOUND | MACHINE_NOT_WORKING ) // runs too quickly, Oki sounds terrible (IRQ problems? works better commenting out IRQ1_SCANLINE_2)
 
 // bootleg with cloned airbustr sound hardware
-GAME( 1992, gunnailb,   gunnail,  gunnailb,     gunnail,      nmk16_state, init_gunnailb,        ROT270, "bootleg",                      "GunNail (bootleg)", MACHINE_IMPERFECT_SOUND ) // crappy sound, unknown how much of it is incomplete emulation and how much bootleg quality
+GAME( 1992, gunnailb,   gunnail,  gunnailb,     gunnail,      nmk16_state, init_gunnailb,        ROT270, "bootleg",                       "GunNail (bootleg)", MACHINE_IMPERFECT_SOUND ) // crappy sound, unknown how much of it is incomplete emulation and how much bootleg quality
 
 // these are from Comad, based on the Thunder Dragon code?
 GAME( 1992, ssmissin,   0,        ssmissin,     ssmissin,     nmk16_state, init_ssmissin,        ROT270, "Comad",                         "S.S. Mission", 0 )

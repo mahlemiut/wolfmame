@@ -22,6 +22,7 @@
 // | Knob                                 | * | * | * | * |
 // | Beeper                               | * | * | * | * |
 // | ID PROM                              | * | * | * | * |
+// | Option ROMs                          | * | * | * | * |
 // | B/W 80x25 text video w/ attributes   | * |   | * |   |
 // | B/W 50x25 text video w/ attributes   |   | * |   |   |
 // | B/W 400x300 graphic video            | * | * |   |   |
@@ -37,7 +38,6 @@
 //
 // What's not in for all the models:
 // - Expansion cards
-// - Option ROMs
 //
 // Main references:
 // - Olivier De Smet's standalone emulator:
@@ -47,6 +47,7 @@
 
 #include "emu.h"
 
+#include "hp98x6_optrom.h"
 #include "hp98x6_upi.h"
 
 #include "bus/ieee488/ieee488.h"
@@ -63,6 +64,7 @@
 
 #include "emupal.h"
 #include "screen.h"
+#include "softlist_dev.h"
 
 // Debugging
 #define LOG_FDC_MASK    (LOG_GENERAL << 1)
@@ -137,11 +139,19 @@ protected:
 		, m_upi(*this, "upi")
 		, m_hpib(*this, "hpib")
 		, m_chargen(*this, "chargen")
+		, m_rom_drawers(*this, "drawer%u", 0U)
 	{
 	}
 
 	virtual void machine_start() override;
 	virtual void machine_reset() override;
+
+	void hp98x6_base(machine_config &mconfig, unsigned dot_clock, int char_width);
+	virtual void cpu_mem_map(address_map &map);
+	void diag_led_w(uint8_t data);
+	virtual void cpu_reset_w(int state);
+	void hpib_irq_w(int state);
+	void upi_irq7_w(int state);
 
 	required_device<m68000_device> m_cpu;
 	required_device<ram_device> m_ram;
@@ -154,12 +164,7 @@ protected:
 	// Character generator
 	required_region_ptr<uint8_t> m_chargen;
 
-	void hp98x6_base(machine_config &mconfig, unsigned dot_clock, int char_width);
-	virtual void cpu_mem_map(address_map &map);
-	void diag_led_w(uint8_t data);
-	virtual void cpu_reset_w(int state);
-	void hpib_irq_w(int state);
-	void upi_irq7_w(int state);
+	required_device_array<hp98x6_optrom_device, 2> m_rom_drawers;
 
 	bool m_hsync_en;
 	bool m_graphic_en;
@@ -176,7 +181,13 @@ void hp98x6_base_state::machine_start()
 	save_item(NAME(m_hpib_dma_en));
 	save_item(NAME(m_upi_irq7));
 
-	m_cpu->space(AS_PROGRAM).install_ram(0x1000000 - m_ram->size(), 0xffffff, m_ram->pointer());
+	auto space = &m_cpu->space(AS_PROGRAM);
+
+	space->install_ram(0x1000000 - m_ram->size(), 0xffffff, m_ram->pointer());
+
+	for (auto& finder : m_rom_drawers) {
+		finder->install_handlers(space);
+	}
 }
 
 void hp98x6_base_state::machine_reset()
@@ -228,6 +239,13 @@ void hp98x6_base_state::hp98x6_base(machine_config &config, unsigned dot_clock, 
 	ieee.ren_callback().set(m_hpib , FUNC(tms9914_device::ren_w));
 	IEEE488_SLOT(config, "ieee_dev", 0, hp_ieee488_devices, nullptr);
 	IEEE488_SLOT(config, "ieee_rem", 0, remote488_devices, nullptr);
+
+	// Optional ROM slots
+	for (auto& finder : m_rom_drawers) {
+		HP98X6_OPTROM(config, finder);
+	}
+
+	SOFTWARE_LIST(config, "optrom_list").set_original("hp98x6_rom");
 }
 
 void hp98x6_base_state::cpu_mem_map(address_map &map)
@@ -843,17 +861,6 @@ protected:
 	virtual void machine_reset() override;
 	virtual void device_post_load() override;
 
-	required_device<fd1793_device> m_fdc;
-	required_device<floppy_connector> m_drive0;
-	optional_device<floppy_connector> m_drive1;
-	required_device_array<ttl74123_device, 2> m_ss;
-	required_device<timer_device> m_fdc_timer;
-	required_ioport m_sw1;
-	required_ioport m_sys_ctrl_sw;
-
-	// ID PROM
-	required_region_ptr<uint8_t> m_idprom;
-
 	TIMER_DEVICE_CALLBACK_MEMBER(fdc_ram_io);
 
 	void hp9826_36(machine_config &mconfig, unsigned dot_clock, int char_width);
@@ -875,6 +882,17 @@ protected:
 	uint8_t hpib_r(offs_t offset);
 	void hpib_w(offs_t offset, uint8_t data);
 	uint16_t id_prom_r(offs_t offset);
+
+	required_device<fd1793_device> m_fdc;
+	required_device<floppy_connector> m_drive0;
+	optional_device<floppy_connector> m_drive1;
+	required_device_array<ttl74123_device, 2> m_ss;
+	required_device<timer_device> m_fdc_timer;
+	required_ioport m_sw1;
+	required_ioport m_sys_ctrl_sw;
+
+	// ID PROM
+	required_region_ptr<uint8_t> m_idprom;
 
 	uint8_t m_floppy_ctrl;
 	uint8_t m_floppy_buffer[256];
@@ -919,6 +937,8 @@ void hp9826_36_state::machine_reset()
 
 void hp9826_36_state::device_post_load()
 {
+	hp98x6_base_state::device_post_load();
+
 	m_curr_floppy = nullptr;
 	// Bring m_curr_floppy in synch
 	floppy_update_sel();
@@ -1437,8 +1457,6 @@ private:
 	static inline constexpr unsigned TEXT_VRAM_SIZE = 2048;
 	static inline constexpr unsigned GRAPHIC_VRAM_SIZE = 16384;
 
-	required_ioport m_frame_rate_sw;
-
 	virtual void cpu_mem_map(address_map &map) override;
 	uint16_t text_r(offs_t offset, uint16_t mem_mask);
 	void text_w(offs_t offset, uint16_t data, uint16_t mem_mask);
@@ -1446,6 +1464,8 @@ private:
 	void graphic_w(offs_t offset, uint16_t data, uint16_t mem_mask);
 
 	MC6845_UPDATE_ROW(crtc_update_row);
+
+	required_ioport m_frame_rate_sw;
 
 	uint16_t m_text_vram[TEXT_VRAM_SIZE];
 	uint16_t m_graphic_vram[GRAPHIC_VRAM_SIZE];
@@ -1789,9 +1809,6 @@ private:
 	static inline constexpr unsigned TEXT_VRAM_SIZE = 2048;
 	static inline constexpr unsigned GRAPHIC_VRAM_SIZE = 131072;
 
-	required_ioport m_frame_rate_sw;
-	memory_share_creator<uint8_t> m_clut;
-
 	virtual void cpu_mem_map(address_map &map) override;
 	uint16_t text_r(offs_t offset, uint16_t mem_mask);
 	void text_w(offs_t offset, uint16_t data, uint16_t mem_mask);
@@ -1799,6 +1816,9 @@ private:
 	void graphic_w(offs_t offset, uint16_t data, uint16_t mem_mask);
 
 	MC6845_UPDATE_ROW(crtc_update_row);
+
+	required_ioport m_frame_rate_sw;
+	memory_share_creator<uint8_t> m_clut;
 
 	uint16_t m_text_vram[TEXT_VRAM_SIZE];
 	uint16_t m_graphic_vram[GRAPHIC_VRAM_SIZE];

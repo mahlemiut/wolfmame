@@ -5,7 +5,7 @@
 
 Fidelity Sensory Chess Challenger 6 (model SC6)
 Fidelity Mini Sensory Chess Challenger (model MSC, 1982 version)
-Fidelity The Classic (model 6079)
+Fidelity The Classic (model CC8/6079)
 Fidelity Gambit Voice (model 6085)
 
 The chess engine is by Ron Nelson. These are all on similar hardware. Several
@@ -22,7 +22,7 @@ Known MCU ROM serials:
 100-1020B01 ROM contents is confirmed to be identical to 100-1020B02.
 
 TODO:
-- is The Classic model CC8 a different ROM? and what about model 6079D?
+- is The Classic model 6079D a different ROM?
 
 ================================================================================
 
@@ -132,7 +132,6 @@ public:
 	{ }
 
 	// machine configs
-	template <typename T> void cpu_config(T &maincpu);
 	void shared(machine_config &config);
 	void sc6(machine_config &config);
 	void msc(machine_config &config);
@@ -198,11 +197,12 @@ void sc6_state::mux_w(u8 data)
 	// P24-P27: 7442 A-D (or 74145)
 	// 7442 0-8: input mux, led data
 	m_inp_mux = data >> 4 & 0xf;
-	m_display->write_mx(1 << m_inp_mux);
+	u16 sel = 1 << m_inp_mux;
+	m_display->write_mx(sel);
 
 	// 7442 9: speaker out
 	if (m_dac != nullptr)
-		m_dac->write(BIT(1 << m_inp_mux, 9));
+		m_dac->write(BIT(sel, 9));
 }
 
 void sc6_state::select_w(u8 data)
@@ -319,20 +319,16 @@ INPUT_PORTS_END
     Machine Configs
 *******************************************************************************/
 
-template <typename T>
-void sc6_state::cpu_config(T &maincpu)
-{
-	maincpu.p1_in_cb().set(FUNC(sc6_state::input_r)).mask(0x3f);
-	maincpu.p1_in_cb().append_constant(0xc0).mask(0xc0);
-	maincpu.p1_out_cb().set(FUNC(sc6_state::select_w));
-	maincpu.p2_out_cb().set(FUNC(sc6_state::mux_w));
-	maincpu.t0_in_cb().set(FUNC(sc6_state::input_r)).bit(6);
-	maincpu.t1_in_cb().set(FUNC(sc6_state::input_r)).bit(7);
-}
-
 void sc6_state::shared(machine_config &config)
 {
 	// basic machine hardware
+	m_maincpu->p1_in_cb().set(FUNC(sc6_state::input_r)).mask(0x3f);
+	m_maincpu->p1_in_cb().append_constant(0xc0).mask(0xc0);
+	m_maincpu->p1_out_cb().set(FUNC(sc6_state::select_w));
+	m_maincpu->p2_out_cb().set(FUNC(sc6_state::mux_w));
+	m_maincpu->t0_in_cb().set(FUNC(sc6_state::input_r)).bit(6);
+	m_maincpu->t1_in_cb().set(FUNC(sc6_state::input_r)).bit(7);
+
 	SENSORBOARD(config, m_board).set_type(sensorboard_device::BUTTONS);
 	m_board->init_cb().set(m_board, FUNC(sensorboard_device::preset_chess));
 	m_board->set_delay(attotime::from_msec(150));
@@ -349,8 +345,6 @@ void sc6_state::sc6(machine_config &config)
 {
 	I8040(config, m_maincpu, 11_MHz_XTAL);
 	m_maincpu->set_addrmap(AS_PROGRAM, &sc6_state::sc6_map);
-	cpu_config<i8040_device>(downcast<i8040_device &>(*m_maincpu));
-
 	shared(config);
 
 	// video hardware
@@ -366,8 +360,6 @@ void sc6_state::msc(machine_config &config)
 {
 	I8049(config, m_maincpu, 11_MHz_XTAL);
 	m_maincpu->set_addrmap(AS_PROGRAM, &sc6_state::msc_map);
-	cpu_config<i8049_device>(downcast<i8049_device &>(*m_maincpu));
-
 	shared(config);
 
 	config.set_default_layout(layout_fidel_msc_v2);
@@ -380,8 +372,6 @@ void sc6_state::msc(machine_config &config)
 void sc6_state::classic(machine_config &config)
 {
 	I8050(config, m_maincpu, 6_MHz_XTAL);
-	cpu_config<i8050_device>(downcast<i8050_device &>(*m_maincpu));
-
 	shared(config);
 
 	config.set_default_layout(layout_fidel_classic);
@@ -425,6 +415,11 @@ ROM_START( classic )
 	ROM_LOAD("tmp80c50ap-6-9311_100-1020b02.ic1", 0x0000, 0x1000, CRC(ba41b5ba) SHA1(1a5c5b2e990a07b9ff51eecfa952a4b890107797) )
 ROM_END
 
+ROM_START( classica )
+	ROM_REGION( 0x1000, "maincpu", 0 )
+	ROM_LOAD("tmp80c50ap-6_9517.ic1", 0x0000, 0x1000, CRC(dfd30755) SHA1(92075c7df9205b9647801487b9bbddcf230dfc91) )
+ROM_END
+
 ROM_START( gambitv )
 	ROM_REGION( 0x1000, "maincpu", 0 )
 	ROM_LOAD("tmp80c50ap-6-9337_100-1020c01.ic1", 0x0000, 0x1000, CRC(dafee386) SHA1(d67914fb2abd73c0068b7e61fc23d211c52d65d9) )
@@ -452,10 +447,11 @@ ROM_END
     Drivers
 *******************************************************************************/
 
-//    YEAR  NAME     PARENT  COMPAT  MACHINE  INPUT    CLASS      INIT        COMPANY, FULLNAME, FLAGS
-SYST( 1982, fscc6,   0,      0,      sc6,     sc6,     sc6_state, empty_init, "Fidelity Electronics", "Sensory Chess Challenger \"6\"", MACHINE_SUPPORTS_SAVE )
-SYST( 1982, miniscc, 0,      0,      msc,     msc,     sc6_state, empty_init, "Fidelity Electronics", "Mini Sensory Chess Challenger (MCS-48 version)", MACHINE_SUPPORTS_SAVE ) // aka "Mini Sensory II"
+//    YEAR  NAME      PARENT   COMPAT  MACHINE  INPUT    CLASS      INIT        COMPANY, FULLNAME, FLAGS
+SYST( 1982, fscc6,    0,       0,      sc6,     sc6,     sc6_state, empty_init, "Fidelity Electronics", "Sensory Chess Challenger \"6\"", MACHINE_SUPPORTS_SAVE )
+SYST( 1982, miniscc,  0,       0,      msc,     msc,     sc6_state, empty_init, "Fidelity Electronics", "Mini Sensory Chess Challenger (MCS-48 version)", MACHINE_SUPPORTS_SAVE ) // aka "Mini Sensory II"
 
-SYST( 1986, classic, 0,      0,      classic, sc6,     sc6_state, empty_init, "Fidelity International", "The Classic (model 6079)", MACHINE_SUPPORTS_SAVE )
+SYST( 1986, classic,  0,       0,      classic, sc6,     sc6_state, empty_init, "Fidelity International", "The Classic (model 6079)", MACHINE_SUPPORTS_SAVE )
+SYST( 1985, classica, classic, 0,      classic, sc6,     sc6_state, empty_init, "Fidelity International", "The Classic (model CC8)", MACHINE_SUPPORTS_SAVE )
 
-SYST( 1987, gambitv, 0,      0,      gambitv, gambitv, sc6_state, empty_init, "Fidelity International", "Gambit Voice", MACHINE_SUPPORTS_SAVE )
+SYST( 1987, gambitv,  0,       0,      gambitv, gambitv, sc6_state, empty_init, "Fidelity International", "Gambit Voice", MACHINE_SUPPORTS_SAVE )

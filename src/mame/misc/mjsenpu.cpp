@@ -75,9 +75,9 @@ public:
 	void init_mjsenpu();
 
 protected:
-	virtual void machine_start() override;
-	virtual void machine_reset() override;
-	virtual void video_start() override;
+	virtual void machine_start() override ATTR_COLD;
+	virtual void machine_reset() override ATTR_COLD;
+	virtual void video_start() override ATTR_COLD;
 
 private:
 	/* devices */
@@ -112,8 +112,8 @@ private:
 	uint32_t screen_update_mjsenpu(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);
 
 	required_device<palette_device> m_palette;
-	void mjsenpu_32bit_map(address_map &map);
-	void mjsenpu_io(address_map &map);
+	void mjsenpu_32bit_map(address_map &map) ATTR_COLD;
+	void mjsenpu_io(address_map &map) ATTR_COLD;
 };
 
 
@@ -314,7 +314,7 @@ static INPUT_PORTS_START( mjsenpu )
 	PORT_START("IN1")
 	PORT_BIT(                 0x00000001, IP_ACTIVE_LOW, IPT_COIN1 )
 	PORT_BIT(                 0x00000002, IP_ACTIVE_LOW, IPT_GAMBLE_PAYOUT )
-	PORT_BIT( 0x04, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_READ_LINE_DEVICE_MEMBER("hopper", ticket_dispenser_device, line_r) // might be coin out
+	PORT_BIT( 0x04, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_READ_LINE_DEVICE_MEMBER("hopper", FUNC(ticket_dispenser_device::line_r)) // might be coin out
 	PORT_BIT(                 0x00000008, IP_ACTIVE_LOW, IPT_GAMBLE_BOOK )
 	PORT_SERVICE_NO_TOGGLE(   0x00000010, IP_ACTIVE_LOW )
 	PORT_BIT(                 0x00000020, IP_ACTIVE_LOW, IPT_MEMORY_RESET ) // clears stats in bookkeeping

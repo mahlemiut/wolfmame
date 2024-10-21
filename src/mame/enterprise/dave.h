@@ -6,8 +6,8 @@
 
 **********************************************************************/
 
-#ifndef MAME_SOUND_DAVE_H
-#define MAME_SOUND_DAVE_H
+#ifndef MAME_ENTERPRISE_DAVE_H
+#define MAME_ENTERPRISE_DAVE_H
 
 #pragma once
 
@@ -24,28 +24,30 @@ class dave_device : public device_t,
 {
 public:
 	dave_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock);
+	virtual ~dave_device();
 
 	auto irq_wr() { return m_write_irq.bind(); }
 	auto lh_wr() { return m_write_lh.bind(); }
 	auto rh_wr() { return m_write_rh.bind(); }
 
-	virtual void z80_program_map(address_map &map);
-	virtual void z80_io_map(address_map &map);
+	virtual void z80_program_map(address_map &map) ATTR_COLD;
+	virtual void z80_io_map(address_map &map) ATTR_COLD;
 
 	void int1_w(int state);
 	void int2_w(int state);
 
-	void io_map(address_map &map);
-	void program_map(address_map &map);
-protected:
-	// device-level overrides
-	virtual void device_start() override;
-	virtual void device_reset() override;
+	void io_map(address_map &map) ATTR_COLD;
+	void program_map(address_map &map) ATTR_COLD;
 
-	// device_memory_interface overrides
+protected:
+	// device_t implentation
+	virtual void device_start() override ATTR_COLD;
+	virtual void device_reset() override ATTR_COLD;
+
+	// device_memory_interface implentation
 	virtual space_config_vector memory_space_config() const override;
 
-	// sound stream update overrides
+	// sound stream update implentation
 	virtual void sound_stream_update(sound_stream &stream, std::vector<read_stream_view> const &inputs, std::vector<write_stream_view> &outputs) override;
 
 	TIMER_CALLBACK_MEMBER(update_1hz_timer);
@@ -106,14 +108,11 @@ private:
 	/* these are the current channel volumes in MAME form */
 	int m_mame_volumes[8];
 
-	/* update step */
-	//int m_update_step;
-
 	sound_stream *m_sound_stream_var;
 };
 
 
-// device type definition
+// device type declaration
 DECLARE_DEVICE_TYPE(DAVE, dave_device)
 
-#endif // MAME_SOUND_DAVE_H
+#endif // MAME_ENTERPRISE_DAVE_H

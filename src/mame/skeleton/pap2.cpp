@@ -1,3 +1,6 @@
+// license:BSD-3-Clause
+// copyright-holders:Joseph Khilfeh
+
 /*
 
 Linksys PAP2 two-port analog telephone adapter
@@ -59,12 +62,12 @@ public:
 	void pap2(machine_config &config) ATTR_COLD;
 
 protected:
-	virtual void machine_reset() override;
+	virtual void machine_reset() override ATTR_COLD;
 
 private:
-	required_device<cpu_device> m_maincpu;
+	required_device<mipsx_cpu_device> m_maincpu;
 
-	void mem(address_map &map);
+	void mem(address_map &map) ATTR_COLD;
 };
 
 
@@ -82,7 +85,7 @@ void pap2_state::mem(address_map &map)
 
 void pap2_state::pap2(machine_config &config)
 {
-	MIPSX(config, m_maincpu, 27'000'000);
+	MIPSX(config, m_maincpu, 27_MHz_XTAL * 3); // guessing 3x from ES3880 datasheet
 	m_maincpu->set_addrmap(AS_PROGRAM, &pap2_state::mem);
 }
 
@@ -91,9 +94,10 @@ INPUT_PORTS_END
 
 ROM_START(pap2)
 	ROM_REGION32_BE(0x100000, "maincpu", 0 )
-	ROM_LOAD("linksys-pap2-2.0.12-ls_rom dump of pap2 flash chip.rom", 0x000000, 0x100000, BAD_DUMP CRC(4d0f1e5d) SHA1(73b163b00a3709a14f7419283c8515dd91009598) )
+	ROM_LOAD("linksys-pap2-2.0.12-ls.u51", 0x000000, 0x100000, BAD_DUMP CRC(4d0f1e5d) SHA1(73b163b00a3709a14f7419283c8515dd91009598) )
+	// Original ROM label is unknown, if it had one. S/N FH900DC35989, MAC 00:12:17:FB:70:DC
 ROM_END
 
-}
+} // anonymous namespace
 
 SYST( 200?, pap2, 0, 0, pap2, pap2, pap2_state, empty_init, "Linksys (Cisco)", "PAP2", MACHINE_IS_SKELETON )

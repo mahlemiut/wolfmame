@@ -109,7 +109,7 @@ static INPUT_PORTS_START( mex68kecb )
 	PORT_DIPSETTING(0x01,  "110")
 
 	PORT_START("ABORT")
-	PORT_BIT(0x01, IP_ACTIVE_LOW, IPT_BUTTON1) PORT_NAME("Abort button") PORT_CODE(KEYCODE_F1) PORT_CHANGED_MEMBER(DEVICE_SELF, mex68kecb_state, abort_button, 0)
+	PORT_BIT(0x01, IP_ACTIVE_LOW, IPT_BUTTON1) PORT_NAME("Abort button") PORT_CODE(KEYCODE_F1) PORT_CHANGED_MEMBER(DEVICE_SELF, FUNC(mex68kecb_state::abort_button), 0)
 INPUT_PORTS_END
 
 
@@ -232,5 +232,5 @@ ROM_END
 
 
 // Driver
-//    YEAR  NAME       PARENT  COMPAT  MACHINE    INPUT      CLASS            INIT        COMPANY     FULLNAME            FLAGS
-COMP( 1981, mex68kecb, 0,      0,      mex68kecb, mex68kecb, mex68kecb_state, empty_init, "Motorola", "Motorola 68K ECB", MACHINE_NO_SOUND_HW | MACHINE_SUPPORTS_SAVE )
+//    YEAR  NAME       PARENT  COMPAT  MACHINE    INPUT      CLASS            INIT        COMPANY     FULLNAME                            FLAGS
+COMP( 1981, mex68kecb, 0,      0,      mex68kecb, mex68kecb, mex68kecb_state, empty_init, "Motorola", "68000 Educational Computer Board", MACHINE_NO_SOUND_HW | MACHINE_SUPPORTS_SAVE )

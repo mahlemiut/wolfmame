@@ -44,11 +44,11 @@
 
 #include "video/upd7220.h"
 
+#include "bus/cbus/amd98.h"
 #include "bus/cbus/pc9801_26.h"
 #include "bus/cbus/pc9801_55.h"
 #include "bus/cbus/pc9801_86.h"
 #include "bus/cbus/pc9801_118.h"
-#include "bus/cbus/pc9801_amd98.h"
 #include "bus/cbus/mpu_pc98.h"
 #include "bus/cbus/pc9801_cbus.h"
 #include "pc9801_kbd.h"
@@ -310,6 +310,8 @@ protected:
 	u8 m_vram_bank = 0;
 	u8 m_vram_disp = 0;
 
+	virtual void border_color_w(offs_t offset, u8 data);
+
 private:
 	UPD7220_DRAW_TEXT_LINE_MEMBER( hgdc_draw_text );
 
@@ -402,6 +404,8 @@ protected:
 
 	void pc9801rs_video_ff_w(offs_t offset, uint8_t data);
 	void pc9801rs_a0_w(offs_t offset, uint8_t data);
+
+	virtual void border_color_w(offs_t offset, u8 data) override;
 
 	uint8_t ide_ctrl_r();
 	void ide_ctrl_w(uint8_t data);

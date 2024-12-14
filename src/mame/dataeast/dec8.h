@@ -92,7 +92,7 @@ protected:
 	/* misc */
 	bool     m_coin_state = false;
 
-	emu_timer *m_m6502_timer = nullptr;
+	emu_timer *m_6502_timer = nullptr;
 };
 
 // with I8751 MCU
@@ -147,6 +147,7 @@ public:
 	}
 
 	void srdarwin(machine_config &config);
+	void init_srdarwinb();
 
 protected:
 	virtual void video_start() override ATTR_COLD;

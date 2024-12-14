@@ -370,7 +370,7 @@ Notes:
 #include "dec0.h"
 
 #include "cpu/m68000/m68000.h"
-#include "cpu/m6502/m6502.h"
+#include "cpu/m6502/r65c02.h"
 #include "cpu/z80/z80.h"
 #include "cpu/m6805/m68705.h"
 #include "machine/input_merger.h"
@@ -965,7 +965,7 @@ static INPUT_PORTS_START( dec0 )
 	PORT_BIT( 0x0010, IP_ACTIVE_LOW, IPT_COIN1 )
 	PORT_BIT( 0x0020, IP_ACTIVE_LOW, IPT_COIN2 )
 	PORT_BIT( 0x0040, IP_ACTIVE_LOW, IPT_SERVICE1 )
-	PORT_BIT( 0x0080, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_VBLANK("screen")
+	PORT_BIT( 0x0080, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_READ_LINE_DEVICE_MEMBER("screen", FUNC(screen_device::vblank))
 INPUT_PORTS_END
 
 static INPUT_PORTS_START( dec1 )
@@ -991,7 +991,7 @@ static INPUT_PORTS_START( dec1 )
 	PORT_BIT( 0x0001, IP_ACTIVE_LOW, IPT_COIN1 )
 	PORT_BIT( 0x0002, IP_ACTIVE_LOW, IPT_COIN2 )
 	PORT_BIT( 0x0004, IP_ACTIVE_LOW, IPT_SERVICE1 )
-	PORT_BIT( 0x0008, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_VBLANK("screen")
+	PORT_BIT( 0x0008, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_READ_LINE_DEVICE_MEMBER("screen", FUNC(screen_device::vblank))
 	PORT_BIT( 0x0010, IP_ACTIVE_LOW, IPT_UNKNOWN )
 	PORT_BIT( 0x0020, IP_ACTIVE_LOW, IPT_UNKNOWN )
 	PORT_BIT( 0x0040, IP_ACTIVE_LOW, IPT_UNKNOWN )
@@ -1448,7 +1448,7 @@ static INPUT_PORTS_START( ffantasybl )
 	PORT_DIPSETTING(      0x0000, DEF_STR( None ) ) // 0 Dot less
 
 	PORT_START("VBLANK")
-	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_VBLANK("screen")
+	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_READ_LINE_DEVICE_MEMBER("screen", FUNC(screen_device::vblank))
 
 	PORT_MODIFY("SYSTEM")
 	PORT_BIT( 0x80, IP_ACTIVE_HIGH, IPT_UNKNOWN ) // Game does not want vblank here
@@ -1624,7 +1624,7 @@ static INPUT_PORTS_START( bouldash )
 //  PORT_BIT( 0x8000, IP_ACTIVE_LOW, IPT_START2 )
 
 	PORT_MODIFY("SYSTEM")
-	PORT_BIT( 0x0008, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_VBLANK("screen")        /* extremely slow palette fades with ACTIVE_HIGH */
+	PORT_BIT( 0x0008, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_READ_LINE_DEVICE_MEMBER("screen", FUNC(screen_device::vblank))        /* extremely slow palette fades with ACTIVE_HIGH */
 
 	PORT_START("DSW")
 	/* Different Coinage. Just a few combinations from manual, the rest was figured out */
@@ -1826,7 +1826,7 @@ void dec0_state::dec0(machine_config &config)
 	m_maincpu->set_addrmap(AS_PROGRAM, &dec0_state::dec0_map);
 	m_maincpu->set_vblank_int("screen", FUNC(dec0_state::irq6_line_assert)); /* VBL */
 
-	M6502(config, m_audiocpu, XTAL(12'000'000) / 8);
+	R65C02(config, m_audiocpu, XTAL(12'000'000) / 8);
 	m_audiocpu->set_addrmap(AS_PROGRAM, &dec0_state::dec0_s_map);
 
 	input_merger_device &audio_irq(INPUT_MERGER_ANY_HIGH(config, "audio_irq"));
@@ -2289,7 +2289,7 @@ void dec0_state::midresb(machine_config &config)
 	midres(config);
 	m_maincpu->set_addrmap(AS_PROGRAM, &dec0_state::midresb_map);
 
-	M6502(config.replace(), m_audiocpu, 1500000);
+	R65C02(config.replace(), m_audiocpu, 1500000);
 	m_audiocpu->set_addrmap(AS_PROGRAM, &dec0_state::dec0_s_map);
 
 	M68705R3(config, m_mcu, XTAL(3'579'545));

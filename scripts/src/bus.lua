@@ -3304,6 +3304,8 @@ if (BUSES["CENTRONICS"]~=null) then
 		MAME_DIR .. "src/devices/bus/centronics/epson_lx800.h",
 		MAME_DIR .. "src/devices/bus/centronics/epson_lx810l.cpp",
 		MAME_DIR .. "src/devices/bus/centronics/epson_lx810l.h",
+		MAME_DIR .. "src/devices/bus/centronics/epson_rx80.cpp",
+		MAME_DIR .. "src/devices/bus/centronics/epson_rx80.h",
 		MAME_DIR .. "src/devices/bus/centronics/nec_p72.cpp",
 		MAME_DIR .. "src/devices/bus/centronics/nec_p72.h",
 		MAME_DIR .. "src/devices/bus/centronics/nlq401.cpp",
@@ -4790,6 +4792,8 @@ if (BUSES["QBUS"]~=null) then
 		MAME_DIR .. "src/devices/bus/qbus/qg640.h",
 		MAME_DIR .. "src/devices/bus/qbus/qtx.cpp",
 		MAME_DIR .. "src/devices/bus/qbus/qtx.h",
+		MAME_DIR .. "src/devices/bus/qbus/tdl12.cpp",
+		MAME_DIR .. "src/devices/bus/qbus/tdl12.h",
 		MAME_DIR .. "src/devices/bus/qbus/uknc_kmd.cpp",
 		MAME_DIR .. "src/devices/bus/qbus/uknc_kmd.h",
 	}

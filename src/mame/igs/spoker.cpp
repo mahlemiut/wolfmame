@@ -33,7 +33,6 @@
     Some type of link feature?
   - Other games in jinhulu2_state have machine translated DIP definitions which
     could use improving and hopper isn't implemented yet.
-  - Find out password for jinhuang and correct inputs / DIPs.
 
 ***************************************************************************/
 
@@ -185,7 +184,7 @@ public:
 	void init_jinhulu2120gi() ATTR_COLD;
 	void init_jinhulu2101is() ATTR_COLD;
 	void init_jinhulu2100gi() ATTR_COLD;
-	void init_sleyuan() ATTR_COLD;
+	void init_sleyuan2() ATTR_COLD;
 
 protected:
 	virtual void machine_start() override ATTR_COLD;
@@ -260,10 +259,11 @@ TILE_GET_INFO_MEMBER(spoker_state::get_fg_tile_info)
 	tileinfo.set(0, code, (4 * (code >> 14) + 3), 0);
 }
 
-TILE_GET_INFO_MEMBER(jinhulu2_state::get_fg_tile_info) // TODO: wrong color bits
+TILE_GET_INFO_MEMBER(jinhulu2_state::get_fg_tile_info)
 {
-	int const code = m_fg_tile_ram[tile_index] | (m_fg_color_ram[tile_index] << 8);
-	tileinfo.set(0, code, 2 * (code >> 13), 0);
+	int const code = m_fg_tile_ram[tile_index] | ((m_fg_color_ram[tile_index] & 0x1f) << 8);
+	int const col = ((m_fg_color_ram[tile_index] & 0xe0) >> 5) << 1;
+	tileinfo.set(0, code, col, 0);
 }
 
 void spoker_state::fg_tile_w(offs_t offset, uint8_t data)
@@ -630,7 +630,7 @@ void jinhulu2_state::portmap(address_map &map)
 	map(0x7800, 0x7fff).ram().w(FUNC(jinhulu2_state::fg_color_w)).share(m_fg_color_ram);
 }
 
-void jinhulu2_state::jinhuang_portmap(address_map &map) // doesn't seem to use the IGS003
+void jinhulu2_state::jinhuang_portmap(address_map &map)
 {
 	portmap(map);
 
@@ -2150,9 +2150,8 @@ ROM_START( jinhulu2101is ) // this sports an IGS033 instead of the IGS001/002 co
 	ROM_REGION( 0x10000, "maincpu", 0 )
 	ROM_LOAD( "rom.u15", 0x00000, 0x10000, CRC(5fccf97f) SHA1(71f4c58baf1461b4c1a24d718ad372cb5dcdf970) )
 
-	ROM_REGION( 0x40000, "tiles", 0 )
-	ROM_LOAD( "t3101.u9", 0x00000, 0x40000, BAD_DUMP CRC(b933ec01) SHA1(72b541579551114f7c8649c2e9a839ef4128fc14) ) // not dumped yet, using the one for jinhulu2 for now
-	ROM_IGNORE(                    0x40000 )
+	ROM_REGION( 0x200000, "tiles", 0 )
+	ROM_LOAD( "t3101.u9", 0x000000, 0x200000, CRC(9057ebf9) SHA1(afd2cebdac572689c01a5bfe5e16a26d2366f922) )
 
 	ROM_REGION( 0x40000, "oki", 0 )
 	ROM_LOAD( "rom.u16", 0x00000, 0x20000, CRC(1aeb078c) SHA1(9b8a256f51e66733c4ec30b451ca0711ed02318e) ) // same as jinhulu2
@@ -2169,13 +2168,12 @@ ROM_START( jinhulu2100gi )
 	ROM_LOAD( "rom.u12", 0x00000, 0x20000, CRC(1aeb078c) SHA1(9b8a256f51e66733c4ec30b451ca0711ed02318e) )
 ROM_END
 
-ROM_START( cjdh6 ) // this, too, sports an IGS033 instead of the IGS001/002 combo
+ROM_START( huahuas2a ) // this, too, sports an IGS033 instead of the IGS001/002 combo
 	ROM_REGION( 0x10000, "maincpu", 0 )
 	ROM_LOAD( "rom.u15", 0x00000, 0x10000, CRC(318489c3) SHA1(c00f5f16308da5a813045c319bec8e275155642d) )
 
-	ROM_REGION( 0x40000, "tiles", 0 )
-	ROM_LOAD( "t3101.u9", 0x00000, 0x40000, BAD_DUMP CRC(b933ec01) SHA1(72b541579551114f7c8649c2e9a839ef4128fc14) ) // not dumped yet, using the one for jinhulu2 for now
-	ROM_IGNORE(                    0x40000 )
+	ROM_REGION( 0x200000, "tiles", 0 )
+	ROM_LOAD( "t3101.u9", 0x000000, 0x200000, CRC(9057ebf9) SHA1(afd2cebdac572689c01a5bfe5e16a26d2366f922 ) )
 
 	ROM_REGION( 0x40000, "oki", 0 )
 	ROM_LOAD( "rom.u16", 0x00000, 0x20000, CRC(1aeb078c) SHA1(9b8a256f51e66733c4ec30b451ca0711ed02318e) ) // same as jinhulu2
@@ -2239,6 +2237,9 @@ ROM_START( zuanshiw )
 	ROM_LOAD( "rom.u12", 0x00000, 0x20000, CRC(1aeb078c) SHA1(9b8a256f51e66733c4ec30b451ca0711ed02318e) )
 ROM_END
 
+// IGS PCB NO-0202-4. Has seemingly unused IGS 003e chip and P8255A-5 instead of the 2149C
+// password is HOLD3, HOLD3, HOLD2, HOLD2, HOLD1, HOLD1, HOLD5, HOLD5
+// possibly hacked? It shows TH on cards' backs
 ROM_START( jinhuang )
 	ROM_REGION( 0x10000, "maincpu", 0 )
 	ROM_LOAD( "rom.u40", 0x00000, 0x10000, CRC(a453d1c8) SHA1(2acc96c3d0ad6d09fffc9be40ef0790beebcbac9) )
@@ -2250,7 +2251,7 @@ ROM_START( jinhuang )
 	ROM_LOAD( "rom.u12", 0x00000, 0x20000, CRC(27caf888) SHA1(be57ce7f6b32a51656f8f16b894f58278544201a) ) // 1ST AND 2ND HALF IDENTICAL
 ROM_END
 
-ROM_START( sleyuan )
+ROM_START( sleyuan2 )
 	ROM_REGION( 0x10000, "maincpu", 0 )
 	ROM_LOAD( "rom.u40", 0x00000, 0x10000, CRC(869a2ff7) SHA1(beb110eecf6c8c2f5d5272e0669391f73766d463) )
 
@@ -2382,7 +2383,7 @@ void jinhulu2_state::init_dafuwng3()
 		if ((a & 0x0060) == 0x0060) rom[a] ^= 0x40;
 }
 
-void jinhulu2_state::init_sleyuan()
+void jinhulu2_state::init_sleyuan2()
 {
 	init_jinhulu2();
 
@@ -2499,33 +2500,33 @@ void spoker_state::init_3super8()
                               Game Drivers
 ***************************************************************************/
 
-//    YEAR   NAME           PARENT    MACHINE   INPUT     STATE           INIT                ROT    COMPANY      FULLNAME                      FLAGS
-GAME( 1996,  spk306us,      0,        spokeru,  spoker,   spokeru_state,  init_spokeru,       ROT0,  "IGS",       "Super Poker (v306US)",       MACHINE_SUPPORTS_SAVE )
-GAME( 1996,  spk205us,      spk306us, spokeru,  spoker,   spokeru_state,  init_spokeru,       ROT0,  "IGS",       "Super Poker (v205US)",       MACHINE_SUPPORTS_SAVE )
-GAME( 1996,  spk203us,      spk306us, spokeru,  spk203us, spokeru_state,  init_spokeru,       ROT0,  "IGS",       "Super Poker (v203US)",       MACHINE_SUPPORTS_SAVE ) // LS1. 8 203US in test mode
-GAME( 1996,  spk201ua,      spk306us, spokeru,  spk201ua, spokeru_state,  init_spokeru,       ROT0,  "IGS",       "Super Poker (v201UA)",       MACHINE_SUPPORTS_SAVE ) // still shows 200UA in test mode
-GAME( 1996,  spk200ua,      spk306us, spokeru,  spk200ua, spokeru_state,  init_spokeru,       ROT0,  "IGS",       "Super Poker (v200UA)",       MACHINE_SUPPORTS_SAVE )
-GAME( 1996,  spk200,        spk306us, spoker,   spk100,   spoker_state,   init_spk100,        ROT0,  "IGS",       "Super Poker (v200)",         MACHINE_SUPPORTS_SAVE )
-GAME( 1996,  spk130,        spk306us, spoker,   spk130,   spoker_state,   init_spk100,        ROT0,  "IGS",       "Super Poker (v130)",         MACHINE_SUPPORTS_SAVE )
-GAME( 1996,  spk120in,      spk306us, spoker,   spoker,   spoker_state,   init_spk120in,      ROT0,  "IGS",       "Super Poker (v120IN)",       MACHINE_SUPPORTS_SAVE )
-GAME( 1996,  spk116it,      spk306us, spoker,   spoker,   spoker_state,   init_spk116it,      ROT0,  "IGS",       "Super Poker (v116IT)",       MACHINE_SUPPORTS_SAVE )
-GAME( 1996,  spk116itmx,    spk306us, spoker,   spoker,   spoker_state,   init_spk114it,      ROT0,  "IGS",       "Super Poker (v116IT-MX)",    MACHINE_SUPPORTS_SAVE )
-GAME( 1996,  spk115it,      spk306us, spoker,   spoker,   spoker_state,   init_spk116it,      ROT0,  "IGS",       "Super Poker (v115IT)",       MACHINE_SUPPORTS_SAVE )
-GAME( 1996,  spk114it,      spk306us, spoker,   spk114it, spoker_state,   init_spk114it,      ROT0,  "IGS",       "Super Poker (v114IT)",       MACHINE_SUPPORTS_SAVE )
-GAME( 1996,  spk102ua,      spk306us, spokeru,  spk102ua, spokeru_state,  init_spokeru,       ROT0,  "IGS",       "Super Poker (v102UA)",       MACHINE_SUPPORTS_SAVE )
-GAME( 1996,  spk102u,       spk306us, spoker,   spk102ua, spoker_state,   init_spk100,        ROT0,  "IGS",       "Super Poker (v102U)",        MACHINE_SUPPORTS_SAVE )
-GAME( 1996,  spk100,        spk306us, spoker,   spk100,   spoker_state,   init_spk100,        ROT0,  "IGS",       "Super Poker (v100)",         MACHINE_SUPPORTS_SAVE )
-GAME( 1993?, 3super8,       0,        _3super8, 3super8,  spoker_state,   init_3super8,       ROT0,  "<unknown>", "3 Super 8 (Italy)",          MACHINE_NOT_WORKING | MACHINE_IMPERFECT_GRAPHICS | MACHINE_IMPERFECT_SOUND | MACHINE_SUPPORTS_SAVE ) // ROMs are badly dumped
-GAME( 1997,  jbell,         0,        jb,       jb,       jb_state,       init_spokeru,       ROT0,  "IGS",       "Jingle Bell (v200US)",       MACHINE_SUPPORTS_SAVE )
-GAME( 1995,  jinhulu2,      0,        jinhulu2, jinhulu2, jinhulu2_state, init_jinhulu2,      ROT0,  "IGS",       "Jin Hu Lu II (v412GS)",      MACHINE_NOT_WORKING | MACHINE_SUPPORTS_SAVE ) // tries to link to something?
-GAME( 1995,  jinhulu2120gi, jinhulu2, jinhulu2, jinhulu2, jinhulu2_state, init_jinhulu2120gi, ROT0,  "IGS",       "Jin Hu Lu II (v120GI)",      MACHINE_NOT_WORKING | MACHINE_SUPPORTS_SAVE ) // hopper
-GAME( 1996,  jinhulu2101is, jinhulu2, jinhulu2, jinhulu2, jinhulu2_state, init_jinhulu2101is, ROT0,  "IGS",       "Jin Hu Lu II (v101IS)",      MACHINE_NOT_WORKING | MACHINE_SUPPORTS_SAVE ) // tries to link to something?
-GAME( 1995,  jinhulu2100gi, jinhulu2, jinhulu2, jinhulu2, jinhulu2_state, init_jinhulu2100gi, ROT0,  "IGS",       "Jin Hu Lu II (v100GI)",      MACHINE_NOT_WORKING | MACHINE_SUPPORTS_SAVE ) // hopper, ROM patch
-GAME( 2001,  cjdh6,         0,        jinhulu2, jinhulu2, jinhulu2_state, init_jinhulu2120gi, ROT0,  "IGS",       "Chaoji Daheng 6th (v100FI)", MACHINE_NOT_WORKING | MACHINE_SUPPORTS_SAVE ) // no GFX ROM dump, hopper
-GAME( 1995,  huahuas2,      0,        jinhulu2, huahuas2, jinhulu2_state, init_huahuas2,      ROT0,  "IGS",       "Huahua Shijie II (v100FI)",  MACHINE_NOT_WORKING | MACHINE_SUPPORTS_SAVE ) // hopper
-GAME( 1995,  huluw2,        0,        jinhulu2, huluw2,   jinhulu2_state, init_huluw2,        ROT0,  "IGS",       "Hu Lu Wang II (v100KI)",     MACHINE_NOT_WORKING | MACHINE_SUPPORTS_SAVE ) // hopper
-GAME( 1995,  hsheng2,       0,        jinhulu2, jinhulu2, jinhulu2_state, init_hsheng2,       ROT0,  "IGS",       "Hua Sheng II (v120DI)",      MACHINE_NOT_WORKING | MACHINE_SUPPORTS_SAVE ) // hopper
-GAME( 1995,  dafuwng3,      0,        jinhulu2, jinhulu2, jinhulu2_state, init_dafuwng3,      ROT0,  "IGS",       "Da Fu Wang III (V130LI)",    MACHINE_NOT_WORKING | MACHINE_SUPPORTS_SAVE ) // hopper
-GAME( 1996,  zuanshiw,      0,        jinhulu2, zuanshiw, jinhulu2_state, init_jinhulu2120gi, ROT0,  "IGS",       "Zuanshi Wutai (V110II)",     MACHINE_NOT_WORKING | MACHINE_SUPPORTS_SAVE ) // hopper
-GAME( 2002,  jinhuang,      0,        jinhuang, jinhuang, jinhulu2_state, init_jinhuang,      ROT0,  "IGS",       "Jin Huang Guan",             MACHINE_NOT_WORKING | MACHINE_SUPPORTS_SAVE ) // different memory map
-GAME( 1998,  sleyuan,       0,        jinhulu2, jinhulu2, jinhulu2_state, init_sleyuan,       ROT0,  "IGS",       "Shuiguo Leyuan (V150UI)",    MACHINE_NOT_WORKING | MACHINE_SUPPORTS_SAVE ) // hopper
+//    YEAR   NAME           PARENT    MACHINE   INPUT     STATE           INIT                ROT    COMPANY      FULLNAME                            FLAGS
+GAME( 1996,  spk306us,      0,        spokeru,  spoker,   spokeru_state,  init_spokeru,       ROT0,  "IGS",       "Super Poker (v306US)",             MACHINE_SUPPORTS_SAVE )
+GAME( 1996,  spk205us,      spk306us, spokeru,  spoker,   spokeru_state,  init_spokeru,       ROT0,  "IGS",       "Super Poker (v205US)",             MACHINE_SUPPORTS_SAVE )
+GAME( 1996,  spk203us,      spk306us, spokeru,  spk203us, spokeru_state,  init_spokeru,       ROT0,  "IGS",       "Super Poker (v203US)",             MACHINE_SUPPORTS_SAVE ) // LS1. 8 203US in test mode
+GAME( 1996,  spk201ua,      spk306us, spokeru,  spk201ua, spokeru_state,  init_spokeru,       ROT0,  "IGS",       "Super Poker (v201UA)",             MACHINE_SUPPORTS_SAVE ) // still shows 200UA in test mode
+GAME( 1996,  spk200ua,      spk306us, spokeru,  spk200ua, spokeru_state,  init_spokeru,       ROT0,  "IGS",       "Super Poker (v200UA)",             MACHINE_SUPPORTS_SAVE )
+GAME( 1996,  spk200,        spk306us, spoker,   spk100,   spoker_state,   init_spk100,        ROT0,  "IGS",       "Super Poker (v200)",               MACHINE_SUPPORTS_SAVE )
+GAME( 1996,  spk130,        spk306us, spoker,   spk130,   spoker_state,   init_spk100,        ROT0,  "IGS",       "Super Poker (v130)",               MACHINE_SUPPORTS_SAVE )
+GAME( 1996,  spk120in,      spk306us, spoker,   spoker,   spoker_state,   init_spk120in,      ROT0,  "IGS",       "Super Poker (v120IN)",             MACHINE_SUPPORTS_SAVE )
+GAME( 1996,  spk116it,      spk306us, spoker,   spoker,   spoker_state,   init_spk116it,      ROT0,  "IGS",       "Super Poker (v116IT)",             MACHINE_SUPPORTS_SAVE )
+GAME( 1996,  spk116itmx,    spk306us, spoker,   spoker,   spoker_state,   init_spk114it,      ROT0,  "IGS",       "Super Poker (v116IT-MX)",          MACHINE_SUPPORTS_SAVE )
+GAME( 1996,  spk115it,      spk306us, spoker,   spoker,   spoker_state,   init_spk116it,      ROT0,  "IGS",       "Super Poker (v115IT)",             MACHINE_SUPPORTS_SAVE )
+GAME( 1996,  spk114it,      spk306us, spoker,   spk114it, spoker_state,   init_spk114it,      ROT0,  "IGS",       "Super Poker (v114IT)",             MACHINE_SUPPORTS_SAVE )
+GAME( 1996,  spk102ua,      spk306us, spokeru,  spk102ua, spokeru_state,  init_spokeru,       ROT0,  "IGS",       "Super Poker (v102UA)",             MACHINE_SUPPORTS_SAVE )
+GAME( 1996,  spk102u,       spk306us, spoker,   spk102ua, spoker_state,   init_spk100,        ROT0,  "IGS",       "Super Poker (v102U)",              MACHINE_SUPPORTS_SAVE )
+GAME( 1996,  spk100,        spk306us, spoker,   spk100,   spoker_state,   init_spk100,        ROT0,  "IGS",       "Super Poker (v100)",               MACHINE_SUPPORTS_SAVE )
+GAME( 1993?, 3super8,       0,        _3super8, 3super8,  spoker_state,   init_3super8,       ROT0,  "<unknown>", "3 Super 8 (Italy)",                MACHINE_NOT_WORKING | MACHINE_IMPERFECT_GRAPHICS | MACHINE_IMPERFECT_SOUND | MACHINE_SUPPORTS_SAVE ) // ROMs are badly dumped
+GAME( 1997,  jbell,         0,        jb,       jb,       jb_state,       init_spokeru,       ROT0,  "IGS",       "Jingle Bell (v200US)",             MACHINE_SUPPORTS_SAVE )
+GAME( 1995,  jinhulu2,      0,        jinhulu2, jinhulu2, jinhulu2_state, init_jinhulu2,      ROT0,  "IGS",       "Jin Hu Lu II (v412GS)",            MACHINE_NOT_WORKING | MACHINE_SUPPORTS_SAVE ) // tries to link to something?
+GAME( 1995,  jinhulu2120gi, jinhulu2, jinhulu2, jinhulu2, jinhulu2_state, init_jinhulu2120gi, ROT0,  "IGS",       "Jin Hu Lu II (v120GI)",            MACHINE_NOT_WORKING | MACHINE_SUPPORTS_SAVE ) // hopper
+GAME( 1996,  jinhulu2101is, jinhulu2, jinhulu2, jinhulu2, jinhulu2_state, init_jinhulu2101is, ROT0,  "IGS",       "Jin Hu Lu II (v101IS)",            MACHINE_NOT_WORKING | MACHINE_SUPPORTS_SAVE ) // tries to link to something?
+GAME( 1995,  jinhulu2100gi, jinhulu2, jinhulu2, jinhulu2, jinhulu2_state, init_jinhulu2100gi, ROT0,  "IGS",       "Jin Hu Lu II (v100GI)",            MACHINE_NOT_WORKING | MACHINE_SUPPORTS_SAVE ) // hopper, ROM patch
+GAME( 1995,  huahuas2,      0,        jinhulu2, huahuas2, jinhulu2_state, init_huahuas2,      ROT0,  "IGS",       "Huahua Shijie II (v100FI, set 1)", MACHINE_NOT_WORKING | MACHINE_SUPPORTS_SAVE ) // hopper
+GAME( 1995,  huahuas2a,     huahuas2, jinhulu2, huahuas2, jinhulu2_state, init_jinhulu2120gi, ROT0,  "IGS",       "Huahua Shijie II (v100FI, set 2)", MACHINE_NOT_WORKING | MACHINE_SUPPORTS_SAVE ) // no GFX ROM dump, hopper
+GAME( 1995,  huluw2,        0,        jinhulu2, huluw2,   jinhulu2_state, init_huluw2,        ROT0,  "IGS",       "Hu Lu Wang II (v100KI)",           MACHINE_NOT_WORKING | MACHINE_SUPPORTS_SAVE ) // hopper
+GAME( 1995,  hsheng2,       0,        jinhulu2, jinhulu2, jinhulu2_state, init_hsheng2,       ROT0,  "IGS",       "Hua Shen II (v120DI)",             MACHINE_NOT_WORKING | MACHINE_SUPPORTS_SAVE ) // hopper
+GAME( 1995,  dafuwng3,      0,        jinhulu2, jinhulu2, jinhulu2_state, init_dafuwng3,      ROT0,  "IGS",       "Da Fu Weng III (V130LI)",          MACHINE_NOT_WORKING | MACHINE_SUPPORTS_SAVE ) // hopper
+GAME( 1996,  zuanshiw,      0,        jinhulu2, zuanshiw, jinhulu2_state, init_jinhulu2120gi, ROT0,  "IGS",       "Zuanshi Wutai (V110II)",           MACHINE_NOT_WORKING | MACHINE_SUPPORTS_SAVE ) // hopper
+GAME( 2002,  jinhuang,      0,        jinhuang, jinhuang, jinhulu2_state, init_jinhuang,      ROT0,  "IGS",       "Jin Huang Guan",                   MACHINE_NOT_WORKING | MACHINE_SUPPORTS_SAVE ) // different memory map
+GAME( 1998,  sleyuan2,      0,        jinhulu2, jinhulu2, jinhulu2_state, init_sleyuan2,      ROT0,  "IGS",       "Shuiguo Leyuan II (V150UI)",       MACHINE_NOT_WORKING | MACHINE_SUPPORTS_SAVE ) // hopper

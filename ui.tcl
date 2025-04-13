@@ -17,6 +17,7 @@ button .record -text "Record INP"
 button .play -text "Play INP"
 scrollbar .scroll -orient v -command ".gamelist yview"
 button .browse -text "Browse..."
+button .run -text "Run Machine"
 
 # event procedures
 proc click_browse {} {
@@ -97,6 +98,27 @@ proc click_playback {} {
     tk_messageBox -title "Console output" -message $output
 }
 
+proc click_run {} {
+    global cmdfilename
+    global gamelistshortnames
+    set sel [.gamelist curselection]
+    if { $sel == "" } {
+        tk_messageBox -message "Please select a game from the list"
+        return
+    }
+    set index [lindex $sel 0]
+    set command $cmdfilename
+    append command " "
+    append command [lindex $gamelistshortnames $index]
+    append command " "
+    append command [.param get]
+    tk_messageBox -message $command
+    set runcmd [open $command r]
+    set output [read $runcmd]
+    close $runcmd
+    tk_messageBox -title "Console output" -message $output
+}
+
 # figure out if we're using a 32-bit or 64-bit version of MAME
 set cmdfilename "|./mame"
 
@@ -141,12 +163,16 @@ set machines [$doc selectNodes {//machine[@runnable='yes']}]
 # Populate the listbox
 foreach machine $machines {
     set name [$machine getAttribute name]
-    set description [$machine selectNodes description]
+    set description [$machine selectNodes "description"]
     set description_text [$description asText]
     lappend gamelistshortnames $name
     lappend gamelistitems $description_text
     .gamelist insert end "$name - $description_text"
 }
+
+# Update the title bar with the count of machines
+set machine_count [llength $gamelistshortnames]
+wm title . "Basic MARP GUI - $machine_count Machines"
 
 # GUI management
 grid columnconfigure . {0 1 2 3 4} -weight 1
@@ -162,9 +188,11 @@ grid .inppath -row 3 -column 0 -columnspan 6 -sticky ew
 grid .txt2 -row 4 -column 0 -columnspan 6
 grid .param -row 5 -column 0 -columnspan 6 -sticky ew
 grid .record -row 6 -column 1
-grid .play -row 6 -column 3
+grid .play -row 6 -column 2
+grid .run -row 6 -column 3
 
 # event bindings
 #bind .browse <ButtonPress-1> { click_browse }
 bind .record <ButtonPress-1> { click_record }
 bind .play <ButtonPress-1> { click_playback }
+bind .run <ButtonPress-1> { click_run }

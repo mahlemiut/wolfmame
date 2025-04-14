@@ -8,7 +8,7 @@ wm geometry . 600x600
 frame .border -relief groove -borderwidth 5 -padx 5 -pady 5
 frame .listframe -relief groove -borderwidth 5 -padx 5 -pady 5
 label .txt1 -text "Select game:"
-listbox .gamelist -yscrollcommand ".scroll set" -height 800 -font courier
+listbox .gamelist -yscrollcommand ".scroll set" -height 20 -font {Helvetica 12}
 label .txt2 -text "Additional parameters:"
 entry .param
 label .txt3 -text "INP filename:"
@@ -18,6 +18,11 @@ button .play -text "Play INP"
 scrollbar .scroll -orient v -command ".gamelist yview"
 button .browse -text "Browse..."
 button .run -text "Run Machine"
+
+# Add a search entry and button
+label .search_label -text "Search:"
+entry .search_entry
+button .search_button -text "Search" -command click_search
 
 # event procedures
 proc click_browse {} {
@@ -34,6 +39,7 @@ proc click_record {} {
     global cmdfilename
     global gamelistshortnames
     global nullfile
+    global filtered_indices
     set sel [.gamelist curselection]
     if { $sel == "" } {
         tk_messageBox -message "Please select a game from the list"
@@ -48,9 +54,10 @@ proc click_record {} {
         return
     }
     set index [lindex $sel 0]
+    set filtered [lindex $filtered_indices $index]
     set command $cmdfilename
     append command " "
-    append command [lindex $gamelistshortnames $index]
+    append command [lindex $gamelistshortnames $filtered]
     append command " -record "
     append command [.inppath get]
     append command " -nvram_directory "
@@ -68,6 +75,7 @@ proc click_playback {} {
     global cmdfilename
     global gamelistshortnames
     global nullfile
+    global filtered_indices
     set sel [.gamelist curselection]
     if { $sel == "" } {
         tk_messageBox -message "Please select a game from the list"
@@ -82,9 +90,10 @@ proc click_playback {} {
         return
     }
     set index [lindex $sel 0]
+    set filtered [lindex $filtered_indices $index]
     set command $cmdfilename
     append command " "
-    append command [lindex $gamelistshortnames $index]
+    append command [lindex $gamelistshortnames $filtered]
     append command " -playback "
     append command [.inppath get]
     append command " -nvram_directory "
@@ -101,15 +110,17 @@ proc click_playback {} {
 proc click_run {} {
     global cmdfilename
     global gamelistshortnames
+    global filtered_indices
     set sel [.gamelist curselection]
     if { $sel == "" } {
         tk_messageBox -message "Please select a game from the list"
         return
     }
     set index [lindex $sel 0]
+    set filtered [lindex $filtered_indices $index]
     set command $cmdfilename
     append command " "
-    append command [lindex $gamelistshortnames $index]
+    append command [lindex $gamelistshortnames $filtered]
     append command " "
     append command [.param get]
     tk_messageBox -message $command
@@ -117,6 +128,24 @@ proc click_run {} {
     set output [read $runcmd]
     close $runcmd
     tk_messageBox -title "Console output" -message $output
+}
+
+# Procedure to handle the search
+proc click_search {} {
+    global gamelistitems gamelistshortnames filtered_indices
+    set search_term [.search_entry get]
+    .gamelist delete 0 end ;# Clear the listbox
+    set filtered_indices [list] ;# Reset the filtered indices
+
+    # Filter and repopulate the listbox
+    for {set index 0} {$index < [llength $gamelistitems]} {incr index} {
+        set name [lindex $gamelistshortnames $index]
+        set description [lindex $gamelistitems $index]
+        if {[string match -nocase *$search_term* $name]} {
+            .gamelist insert end "$name - $description"
+            lappend filtered_indices $index ;# Store the original index
+        }
+    }
 }
 
 # figure out if we're using a 32-bit or 64-bit version of MAME
@@ -141,9 +170,10 @@ switch -glob -- [lindex $tcl_platform(os) 0] {
         set nullfile "/dev/null"  ;# everything else (except maybe old Macs)
     }
 }
-
 # populate listbox
 set gamelistitems [list]
+set gamelistshortnames [list]
+set filtered_indices [list] ;# To track filtered indices
 set gamelistshortnames [list]
 
 # Parse MAME's -listxml output
@@ -161,12 +191,14 @@ set doc [dom parse $xml_data]
 set machines [$doc selectNodes {//machine[@runnable='yes']}]
 
 # Populate the listbox
+set filtered_indices [list] ;# Initialize the filtered indices list
 foreach machine $machines {
     set name [$machine getAttribute name]
     set description [$machine selectNodes "description"]
     set description_text [$description asText]
     lappend gamelistshortnames $name
     lappend gamelistitems $description_text
+    lappend filtered_indices [expr {[llength $gamelistshortnames] - 1}] ;# Correct the index
     .gamelist insert end "$name - $description_text"
 }
 
@@ -177,19 +209,21 @@ wm title . "Basic MARP GUI - $machine_count Machines"
 # GUI management
 grid columnconfigure . {0 1 2 3 4} -weight 1
 grid columnconfigure . 5 -weight 0
-grid rowconfigure . {0 2 3 4 5 6} -weight 0
-grid rowconfigure . 1 -weight 3
-grid .txt1 -row 0 -column 0 -columnspan 6
-grid .gamelist -row 1 -column 0 -columnspan 5 -sticky ew
-grid .scroll -row 1 -column 5 -sticky nse
-grid .txt3 -row 2 -column 0 -columnspan 6
-grid .inppath -row 3 -column 0 -columnspan 6 -sticky ew
-#grid .browse -row 3 -column 4 -columnspan 2 -sticky nsew
-grid .txt2 -row 4 -column 0 -columnspan 6
-grid .param -row 5 -column 0 -columnspan 6 -sticky ew
-grid .record -row 6 -column 1
-grid .play -row 6 -column 2
-grid .run -row 6 -column 3
+grid rowconfigure . {0 3 4 5 6 7 8} -weight 0
+grid rowconfigure . 2 -weight 1
+grid .search_label -row 0 -column 0
+grid .search_entry -row 0 -column 1 -columnspan 2 -sticky ew
+grid .search_button -row 0 -column 3
+grid .txt1 -row 1 -column 0 -columnspan 6
+grid .gamelist -row 2 -column 0 -columnspan 5 -sticky nsew
+grid .scroll -row 2 -column 5 -sticky ns
+grid .txt3 -row 3 -column 0 -columnspan 6 -sticky ew
+grid .inppath -row 4 -column 0 -columnspan 6 -sticky ew
+grid .txt2 -row 5 -column 0 -columnspan 6 -sticky ew
+grid .param -row 6 -column 0 -columnspan 6 -sticky ew
+grid .record -row 7 -column 1 -sticky ew
+grid .play -row 7 -column 2 -sticky ew
+grid .run -row 7 -column 3 -sticky ew
 
 # event bindings
 #bind .browse <ButtonPress-1> { click_browse }

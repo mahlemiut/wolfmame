@@ -20,7 +20,7 @@ button .browse -text "Browse..."
 button .run -text "Run Machine"
 
 # Add a search entry and button
-label .search_label -text "Search:"
+label .search_label -text "Filter:"
 entry .search_entry
 button .search_button -text "Search" -command click_search
 
@@ -209,7 +209,6 @@ wm title . "Basic MARP GUI - $machine_count Machines"
 # GUI management
 grid columnconfigure . {0 1 2 3 4} -weight 1
 grid columnconfigure . 5 -weight 0
-grid rowconfigure . {0 3 4 5 6 7 8} -weight 0
 grid rowconfigure . 2 -weight 1
 grid .search_label -row 0 -column 0
 grid .search_entry -row 0 -column 1 -columnspan 2 -sticky ew

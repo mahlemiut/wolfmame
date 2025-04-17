@@ -16,7 +16,7 @@ entry .inppath
 button .record -text "Record INP"
 button .play -text "Play INP"
 scrollbar .scroll -orient v -command ".gamelist yview"
-button .browse -text "Browse..."
+button .browse -text "Browse..." -command click_browse
 button .run -text "Run Machine"
 
 # Add a search entry and button
@@ -24,15 +24,26 @@ label .search_label -text "Filter:"
 entry .search_entry
 button .search_button -text "Search" -command click_search
 
-# event procedures
+# Procedure to handle the Browse button
 proc click_browse {} {
+    # Determine the default directory
+    set default_dir "./inp"
+    if {![file isdirectory $default_dir]} {
+        set default_dir "."
+    }
+
+    # Open the file dialog
     set ftypes {
         {{MAME input logs} {*.inp}}
         {{All files} {*}}
     }
-    set filename [tk_getOpenFile -filetypes $ftypes]
-    .inppath delete 0 end ;# clear entry box
-    .inppath insert 0 $filename
+    set filename [tk_getOpenFile -filetypes $ftypes -initialdir $default_dir]
+    set filename [file tail $filename]
+    # If a file is selected, update the INP file textbox
+    if {$filename ne ""} {
+        .inppath delete 0 end ;# Clear the entry box
+        .inppath insert 0 $filename
+    }
 }
 
 proc click_record {} {
@@ -217,7 +228,8 @@ grid .txt1 -row 1 -column 0 -columnspan 6
 grid .gamelist -row 2 -column 0 -columnspan 5 -sticky nsew
 grid .scroll -row 2 -column 5 -sticky ns
 grid .txt3 -row 3 -column 0 -columnspan 6 -sticky ew
-grid .inppath -row 4 -column 0 -columnspan 6 -sticky ew
+grid .inppath -row 4 -column 0 -columnspan 4 -sticky ew
+grid .browse -row 4 -column 4 -sticky ew
 grid .txt2 -row 5 -column 0 -columnspan 6 -sticky ew
 grid .param -row 6 -column 0 -columnspan 6 -sticky ew
 grid .record -row 7 -column 1 -sticky ew
@@ -225,7 +237,6 @@ grid .play -row 7 -column 2 -sticky ew
 grid .run -row 7 -column 3 -sticky ew
 
 # event bindings
-#bind .browse <ButtonPress-1> { click_browse }
 bind .record <ButtonPress-1> { click_record }
 bind .play <ButtonPress-1> { click_playback }
 bind .run <ButtonPress-1> { click_run }

@@ -16189,6 +16189,9 @@ casloopy
 cfx9850
 cfx9850gb
 
+@source:casio/cps2000.cpp
+cps2000
+
 @source:casio/ct8000.cpp
 ct8000
 ctfk1
@@ -20577,6 +20580,7 @@ cjddzp
 cjddzps
 cjddzs
 cjddzsa
+cjdh6th
 cjtljp
 extradrw
 fruitpar
@@ -20632,6 +20636,7 @@ haunthig101us
 tripfev
 tripfev105us
 tripfev107us
+tripfev108us
 wldfruit
 
 @source:igs/igs_m036.cpp
@@ -27665,6 +27670,7 @@ megat5t
 megat5tg
 megat6
 megat7e
+megata
 meritjp
 mtjpoker
 pbss330
@@ -28302,6 +28308,7 @@ crusnexoaa
 crusnexob
 crusnexoc
 crusnexod
+crusnexoe
 invasnab
 invasnab3
 invasnab4
@@ -29175,6 +29182,7 @@ dojokkot
 fishbatl
 hhunter
 itazurac
+katori
 mmhammer
 rodeokng
 shpchamp
@@ -29791,6 +29799,9 @@ btlfront
 cjmx
 crzclass
 ddz
+
+@source:misc/deecoseal.cpp
+deecoseal
 
 @source:misc/dfruit.cpp
 dfruit
@@ -31904,6 +31915,7 @@ cdrawpkr
 cgip23b
 cgip30b
 cgip30cs
+cgip30e
 cgidjp
 ddellf96
 ddellf97
@@ -31923,8 +31935,15 @@ drhla
 fastdrwp
 gtipoker
 gtipokra
+gtipokrb
+hilokimb
 kimbldhl
 kimblz80
+krampcb2
+krampcb3
+krampcb4
+krampcb5
+krampcb6
 mainline
 ndxron10
 newhilop
@@ -31937,6 +31956,7 @@ norautjo
 norautjp
 norautn1a
 norautp
+norautpb
 norautpl
 norautpn
 norautpt
@@ -31947,11 +31967,15 @@ norautua
 norautub
 pkii_dm
 pma
+pokplus
+pokplusa
+pokplusb
 smshilo
 ssjkrpkr
 sureshoto
 tpoker2
-unkljfpk
+tpoker2a
+tpoker2b
 winbnk88
 
 @source:misc/notechan.cpp
@@ -34127,6 +34151,7 @@ pc9801fs
 pc9801rs
 pc9801rx
 pc9801us
+pc9801uv2
 pc9801ux
 pc9801vm
 pc9801vx
@@ -34144,15 +34169,12 @@ pc9821ap2
 pc9821as
 pc9821ce2
 pc9821cx3
-pc9821ne
 pc9821nr15
 pc9821nr166
 pc9821nw150
 pc9821ra20
 pc9821ra266
 pc9821ra333
-pc9821v13
-pc9821v20
 pc9821xa16
 pc9821xs
 
@@ -36834,6 +36856,7 @@ condorva
 falcon
 falconz
 fenix
+fenixexpl
 fenixn
 griffon
 griffono
@@ -38987,6 +39010,7 @@ roboti
 scram_tp
 socrking
 socrkinga
+socrkingb
 socrkingg
 socrkingi
 spookyi
@@ -42367,11 +42391,14 @@ gocowboy
 gunkids
 haekaka
 itazuram
+kingyosu
+kotekita
 lufykzku
 mnrockman
 pepsiman
 pyenaget
 sammymdl
+shatekds
 sushimar
 tbeastw2
 tdoboon
@@ -42562,6 +42589,7 @@ cmcwa
 cscaoysd
 dbzbgck
 gyakyu
+kghmytda
 satoyama
 unkbpmed
 youkai
@@ -44294,6 +44322,7 @@ dariusu
 @source:taito/dinoking.cpp
 dkbattle
 dkkids
+hkuranai
 
 @source:taito/exzisus.cpp
 exzisus

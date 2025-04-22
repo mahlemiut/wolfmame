@@ -66,7 +66,6 @@ protected:
 
 	// device_memory_interface implementation
 	virtual space_config_vector memory_space_config() const override;
-	virtual u32 translate_memory_address(u16 address) { return address; }
 
 	// device_state_interface implementation
 	virtual void state_import(const device_state_entry &entry) override;
@@ -78,6 +77,7 @@ protected:
 
 	void illegal_1();
 	void illegal_2();
+	u8 flags_szyxc(u16 value);
 
 	void halt();
 	void leave_halt();
@@ -89,7 +89,7 @@ protected:
 	void rra();
 	void add_a(u8 value);
 	void adc_a(u8 value);
-	void sub(u8 value);
+	void sub_a(u8 value);
 	void sbc_a(u8 value);
 	void neg();
 	void daa();
@@ -188,9 +188,6 @@ protected:
 	static u8 SZP[0x100];      // zero, sign and parity flags
 	static u8 SZHV_inc[0x100]; // zero, sign, half carry and overflow flags INC r8
 	static u8 SZHV_dec[0x100]; // zero, sign, half carry and overflow flags DEC r8
-
-	static u8 SZHVC_add[2 * 0x100 * 0x100];
-	static u8 SZHVC_sub[2 * 0x100 * 0x100];
 };
 
 DECLARE_DEVICE_TYPE(Z80, z80_device)

@@ -1246,7 +1246,7 @@ void pc9801us_state::pc9801us_io(address_map &map)
 		NAME([this] (offs_t offset) { return m_sdip->read((offset >> 8) + 4); }),
 		NAME([this] (offs_t offset, u8 data) { m_sdip->write((offset >> 8) + 4, data); })
 	);
-//	map(0x8f1f, 0x8f1f).w(m_sdip, FUNC(pc98_sdip_device::bank_w));
+//  map(0x8f1f, 0x8f1f).w(m_sdip, FUNC(pc98_sdip_device::bank_w));
 }
 
 void pc9801bx_state::pc9801bx2_map(address_map &map)
@@ -2231,6 +2231,18 @@ void pc9801_atapi_devices(device_slot_interface &device)
 	device.option_add("pc98_cd", PC98_CD);
 }
 
+void pc9801_state::config_video(machine_config &config)
+{
+	m_hgdc[0]->set_addrmap(0, &pc9801_state::upd7220_1_map);
+	m_hgdc[0]->set_draw_text(FUNC(pc9801_state::hgdc_draw_text));
+	m_hgdc[0]->vsync_wr_callback().set(m_hgdc[1], FUNC(upd7220_device::ext_sync_w));
+	m_hgdc[0]->vsync_wr_callback().append(FUNC(pc9801_state::vrtc_irq));
+
+	m_hgdc[1]->set_addrmap(0, &pc9801_state::upd7220_2_map);
+	m_hgdc[1]->set_display_pixels(FUNC(pc9801_state::hgdc_display_pixels));
+}
+
+
 void pc9801_state::config_keyboard(machine_config &config)
 {
 	I8251(config, m_sio_kbd, 0);
@@ -2432,14 +2444,8 @@ void pc9801_state::pc9801_common(machine_config &config)
 	m_screen->set_screen_update(FUNC(pc9801_state::screen_update));
 
 	UPD7220(config, m_hgdc[0], 21.0526_MHz_XTAL / 8, "screen");
-	m_hgdc[0]->set_addrmap(0, &pc9801_state::upd7220_1_map);
-	m_hgdc[0]->set_draw_text(FUNC(pc9801_state::hgdc_draw_text));
-	m_hgdc[0]->vsync_wr_callback().set(m_hgdc[1], FUNC(upd7220_device::ext_sync_w));
-	m_hgdc[0]->vsync_wr_callback().append(FUNC(pc9801_state::vrtc_irq));
-
 	UPD7220(config, m_hgdc[1], 21.0526_MHz_XTAL / 8, "screen");
-	m_hgdc[1]->set_addrmap(0, &pc9801_state::upd7220_2_map);
-	m_hgdc[1]->set_display_pixels(FUNC(pc9801_state::hgdc_display_pixels));
+	config_video(config);
 
 	SPEAKER(config, "mono").front_center();
 
@@ -2634,8 +2640,8 @@ void pc9801us_state::pc9801fs(machine_config &config)
 
 	pit_clock_config(config, xtal / 4);
 
-//	PC98_119_KBD(config.replace(), m_keyb, 0);
-//	m_keyb->rxd_callback().set("sio_kbd", FUNC(i8251_device::write_rxd));
+//  PC98_119_KBD(config.replace(), m_keyb, 0);
+//  m_keyb->rxd_callback().set("sio_kbd", FUNC(i8251_device::write_rxd));
 
 	PC98_SDIP(config, "sdip", 0);
 }

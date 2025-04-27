@@ -803,6 +803,12 @@ void pc9821_state::pc9821(machine_config &config)
 
 	PALETTE(config.replace(), m_palette, FUNC(pc9821_state::pc9801_palette), 16 + 16 + 256);
 
+	// win95 expects to be A revision, otherwise it will overlay startup text prompts over desktop GFX
+	// NOTE: possibly this bump happened around PC-9801BX series
+	UPD7220A(config.replace(), m_hgdc[0], 21.0526_MHz_XTAL / 8, "screen");
+	UPD7220A(config.replace(), m_hgdc[1], 21.0526_MHz_XTAL / 8, "screen");
+	config_video(config);
+
 	PC98_119_KBD(config.replace(), m_keyb, 0);
 	m_keyb->rxd_callback().set("sio_kbd", FUNC(i8251_device::write_rxd));
 
@@ -1126,9 +1132,9 @@ cfr. https://github.com/angelosa/mame_scratch/blob/main/src/redwood1.cpp
 */
 
 //ROM_START( pc9821ne )
-//	ROM_LOAD( "itf.rom",     0x10000, 0x08000, BAD_DUMP CRC(dd4c7bb8) SHA1(cf3aa193df2722899066246bccbed03f2e79a74a) )
-//	ROM_LOAD( "bios_ne.rom", 0x18000, 0x18000, BAD_DUMP CRC(2ae070c4) SHA1(d7963942042bfd84ed5fc9b7ba8f1c327c094172) )
-//	ROM_LOAD( "font_ne.rom", 0x00000, 0x46800, BAD_DUMP CRC(fb213757) SHA1(61525826d62fb6e99377b23812faefa291d78c2e) )
+//  ROM_LOAD( "itf.rom",     0x10000, 0x08000, BAD_DUMP CRC(dd4c7bb8) SHA1(cf3aa193df2722899066246bccbed03f2e79a74a) )
+//  ROM_LOAD( "bios_ne.rom", 0x18000, 0x18000, BAD_DUMP CRC(2ae070c4) SHA1(d7963942042bfd84ed5fc9b7ba8f1c327c094172) )
+//  ROM_LOAD( "font_ne.rom", 0x00000, 0x46800, BAD_DUMP CRC(fb213757) SHA1(61525826d62fb6e99377b23812faefa291d78c2e) )
 
 /*
 98MULTi Ce2 - 80486SX 25
@@ -1334,16 +1340,16 @@ Both bad dumps, requires separate PCI-based driver anyway.
 
 //ROM_START( pc9821v13 )
 //  "ROM SUM ERROR"
-//	ROM_LOAD( "itf.rom",      0x10000, 0x08000, BAD_DUMP CRC(dd4c7bb8) SHA1(cf3aa193df2722899066246bccbed03f2e79a74a) )
-//	ROM_LOAD( "bios_v13.rom", 0x18000, 0x18000, BAD_DUMP CRC(0a682b93) SHA1(76a7360502fa0296ea93b4c537174610a834d367) )
+//  ROM_LOAD( "itf.rom",      0x10000, 0x08000, BAD_DUMP CRC(dd4c7bb8) SHA1(cf3aa193df2722899066246bccbed03f2e79a74a) )
+//  ROM_LOAD( "bios_v13.rom", 0x18000, 0x18000, BAD_DUMP CRC(0a682b93) SHA1(76a7360502fa0296ea93b4c537174610a834d367) )
 
 //ROM_START( pc9821v20 )
-//	ROM_REGION16_LE( 0x30000, "ipl", ROMREGION_ERASEFF )
-// 	"ROM SUM ERROR"
-//	ROM_LOAD( "itf.rom",      0x10000, 0x08000, BAD_DUMP CRC(dd4c7bb8) SHA1(cf3aa193df2722899066246bccbed03f2e79a74a) )
+//  ROM_REGION16_LE( 0x30000, "ipl", ROMREGION_ERASEFF )
+//  "ROM SUM ERROR"
+//  ROM_LOAD( "itf.rom",      0x10000, 0x08000, BAD_DUMP CRC(dd4c7bb8) SHA1(cf3aa193df2722899066246bccbed03f2e79a74a) )
 //  Not an ITF ROM
 //  ROM_LOAD( "itf_v20.rom",  0x10000, 0x08000, CRC(10e52302) SHA1(f95b8648e3f5a23e507a9fbda8ab2e317d8e5151) )
-//	ROM_LOAD( "bios_v20.rom", 0x18000, 0x18000, BAD_DUMP CRC(d5d1f13b) SHA1(bf44b5f4e138e036f1b848d6616fbd41b5549764) )
+//  ROM_LOAD( "bios_v20.rom", 0x18000, 0x18000, BAD_DUMP CRC(d5d1f13b) SHA1(bf44b5f4e138e036f1b848d6616fbd41b5549764) )
 
 
 /*

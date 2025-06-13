@@ -138,7 +138,6 @@ Notes:
 
 ***************************************************************************/
 
-
 #include "emu.h"
 
 #include "konamipt.h"
@@ -166,8 +165,8 @@ public:
 		driver_device(mconfig, type, tag),
 		m_cram(*this, "cram%u", 0U),
 		m_vram(*this, "vram%u", 0U),
+		m_spriteram(*this, "spriteram%u", 1U),
 		m_mainbank(*this, "mainbank"),
-		m_buffered_spriteram(*this, "spriteram%u", 1U),
 		m_audiocpu(*this, "audiocpu"),
 		m_k007121(*this, "k007121_%u", 1U),
 		m_maincpu(*this, "maincpu"),
@@ -186,33 +185,36 @@ private:
 	// memory pointers
 	required_shared_ptr_array<uint8_t, 3> m_cram;
 	required_shared_ptr_array<uint8_t, 3> m_vram;
+	required_shared_ptr_array<uint8_t, 2> m_spriteram;
 	required_memory_bank m_mainbank;
 
 	// video-related
 	tilemap_t *m_tilemap[3]{};
-	rectangle m_clip[3]{};
 
 	// devices
-	required_device_array<buffered_spriteram8_device, 2> m_buffered_spriteram;
 	required_device<cpu_device> m_audiocpu;
 	required_device_array<k007121_device, 2> m_k007121;
 	required_device<cpu_device> m_maincpu;
 	required_device<screen_device> m_screen;
 	required_device<palette_device> m_palette;
 
+	void palette(palette_device &palette) const;
+	template <uint8_t Which> TILE_GET_INFO_MEMBER(get_tile_info);
+	TILE_GET_INFO_MEMBER(get_tx_tile_info);
+
+	template <uint8_t Which> void vram_w(offs_t offset, uint8_t data);
+	template <uint8_t Which> void cram_w(offs_t offset, uint8_t data);
+	template <uint8_t Which> void flipscreen_w(int state);
+	template <uint8_t Which> void dirtytiles();
+
+	template <uint8_t Which> void draw_sprites(bitmap_ind16 &bitmap, const rectangle &cliprect, bitmap_ind8 &priority_bitmap);
+	uint32_t screen_update(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);
+
+	INTERRUPT_GEN_MEMBER(interrupt);
 	void bankswitch_w(uint8_t data);
 	void sh_irqtrigger_w(uint8_t data);
 	void sirq_clear_w(uint8_t data);
 	void coin_counter_w(uint8_t data);
-	template <uint8_t Which> void vram_w(offs_t offset, uint8_t data);
-	template <uint8_t Which> void cram_w(offs_t offset, uint8_t data);
-	template <uint8_t Which> void K007121_ctrl_w(offs_t offset, uint8_t data);
-	template <uint8_t Which> TILE_GET_INFO_MEMBER(get_tile_info);
-	TILE_GET_INFO_MEMBER(get_tx_tile_info);
-	void palette(palette_device &palette) const;
-	uint32_t screen_update(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);
-	INTERRUPT_GEN_MEMBER(interrupt);
-	template <uint8_t Which> void draw_sprites(bitmap_ind16 &bitmap, const rectangle &cliprect, bitmap_ind8 &priority_bitmap);
 
 	void main_map(address_map &map) ATTR_COLD;
 	void sound_map(address_map &map) ATTR_COLD;
@@ -322,18 +324,12 @@ TILE_GET_INFO_MEMBER(contra_state::get_tx_tile_info)
 
 void contra_state::video_start()
 {
+	m_k007121[0]->set_spriteram(m_spriteram[0]);
+	m_k007121[1]->set_spriteram(m_spriteram[1]);
+
 	m_tilemap[0] = &machine().tilemap().create(*m_k007121[0], tilemap_get_info_delegate(*this, FUNC(contra_state::get_tile_info<0>)), TILEMAP_SCAN_ROWS, 8, 8, 32, 32);
 	m_tilemap[1] = &machine().tilemap().create(*m_k007121[1], tilemap_get_info_delegate(*this, FUNC(contra_state::get_tile_info<1>)), TILEMAP_SCAN_ROWS, 8, 8, 32, 32);
 	m_tilemap[2] = &machine().tilemap().create(*m_k007121[0], tilemap_get_info_delegate(*this, FUNC(contra_state::get_tx_tile_info)), TILEMAP_SCAN_ROWS, 8, 8, 32, 32);
-
-	m_clip[1] = m_screen->visible_area();
-	m_clip[1].min_x += 40;
-
-	m_clip[0] = m_clip[1];
-
-	m_clip[2] = m_screen->visible_area();
-	m_clip[2].max_x = 39;
-	m_clip[2].min_x = 0;
 
 	m_tilemap[0]->set_transparent_pen(0);
 }
@@ -360,28 +356,17 @@ void contra_state::cram_w(offs_t offset, uint8_t data)
 }
 
 template <uint8_t Which>
-void contra_state::K007121_ctrl_w(offs_t offset, uint8_t data)
+void contra_state::flipscreen_w(int state)
 {
-	uint8_t prev = m_k007121[Which]->ctrlram_r(offset);
+	m_tilemap[Which]->set_flip(state ? (TILEMAP_FLIPY | TILEMAP_FLIPX) : 0);
+}
 
-	if (offset == 3)
-	{
-		if ((data & 0x8) == 0)
-			m_buffered_spriteram[Which]->copy(0x800, 0x800);
-		else
-			m_buffered_spriteram[Which]->copy(0x000, 0x800);
-	}
-
-	if (offset == 6)
-	{
-		if (prev != data)
-			m_tilemap[Which]->mark_all_dirty();
-	}
-
-	if (offset == 7)
-		m_tilemap[Which]->set_flip((data & 0x08) ? (TILEMAP_FLIPY | TILEMAP_FLIPX) : 0);
-
-	m_k007121[Which]->ctrl_w(offset, data);
+template <uint8_t Which>
+void contra_state::dirtytiles()
+{
+	m_tilemap[Which]->mark_all_dirty();
+	if (Which == 0)
+		m_tilemap[2]->mark_all_dirty();
 }
 
 
@@ -395,34 +380,49 @@ template <uint8_t Which>
 void contra_state::draw_sprites(bitmap_ind16 &bitmap, const rectangle &cliprect, bitmap_ind8 &priority_bitmap)
 {
 	int base_color = (m_k007121[Which]->ctrlram_r(6) & 0x30) * 2;
+	int global_x_offset = m_k007121[Which]->flipscreen() ? 16 : 40;
 
-	m_k007121[Which]->sprites_draw(bitmap, cliprect, m_buffered_spriteram[Which]->buffer(), base_color, 40, 0, priority_bitmap, (uint32_t)-1);
+	m_k007121[Which]->sprites_draw(bitmap, cliprect, base_color, global_x_offset, 0, priority_bitmap, (uint32_t)-1);
 }
 
 uint32_t contra_state::screen_update(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect)
 {
+	// compute clipping
+	rectangle clip[2];
+	clip[0] = clip[1] = screen.visible_area();
+
+	if (m_k007121[0]->flipscreen())
+	{
+		clip[0].max_x -= 40;
+		clip[1].min_x = clip[1].max_x - 39;
+	}
+	else
+	{
+		clip[0].min_x += 40;
+		clip[1].max_x = 39;
+	}
+
+	clip[0] &= cliprect;
+	clip[1] &= cliprect;
+
+	// set scroll registers
 	uint8_t ctrl_1_0 = m_k007121[0]->ctrlram_r(0);
 	uint8_t ctrl_1_2 = m_k007121[0]->ctrlram_r(2);
 	uint8_t ctrl_2_0 = m_k007121[1]->ctrlram_r(0);
 	uint8_t ctrl_2_2 = m_k007121[1]->ctrlram_r(2);
-	rectangle bg_finalclip = m_clip[1];
-	rectangle fg_finalclip = m_clip[0];
-	rectangle tx_finalclip = m_clip[2];
-
-	bg_finalclip &= cliprect;
-	fg_finalclip &= cliprect;
-	tx_finalclip &= cliprect;
 
 	m_tilemap[0]->set_scrollx(0, ctrl_1_0 - 40);
 	m_tilemap[0]->set_scrolly(0, ctrl_1_2);
 	m_tilemap[1]->set_scrollx(0, ctrl_2_0 - 40);
 	m_tilemap[1]->set_scrolly(0, ctrl_2_2);
 
-	m_tilemap[1]->draw(screen, bitmap, bg_finalclip, 0 ,0);
-	m_tilemap[0]->draw(screen, bitmap, fg_finalclip, 0 ,0);
+	// draw the graphics
+	m_tilemap[1]->draw(screen, bitmap, clip[0], 0 ,0);
+	m_tilemap[0]->draw(screen, bitmap, clip[0], 0 ,0);
 	draw_sprites<0>(bitmap, cliprect, screen.priority());
 	draw_sprites<1>(bitmap, cliprect, screen.priority());
-	m_tilemap[2]->draw(screen, bitmap, tx_finalclip, 0 ,0);
+	m_tilemap[2]->draw(screen, bitmap, clip[1], 0 ,0);
+
 	return 0;
 }
 
@@ -456,7 +456,7 @@ void contra_state::coin_counter_w(uint8_t data)
 
 void contra_state::main_map(address_map &map)
 {
-	map(0x0000, 0x0007).w(FUNC(contra_state::K007121_ctrl_w<0>));
+	map(0x0000, 0x0007).w(m_k007121[0], FUNC(k007121_device::ctrl_w));
 	map(0x0008, 0x000f).rw("k007452", FUNC(k007452_device::read), FUNC(k007452_device::write));
 	map(0x0010, 0x0010).portr("SYSTEM");
 	map(0x0011, 0x0011).portr("P1");
@@ -469,8 +469,8 @@ void contra_state::main_map(address_map &map)
 	map(0x0018, 0x0018).w(FUNC(contra_state::coin_counter_w));
 	map(0x001a, 0x001a).w(FUNC(contra_state::sh_irqtrigger_w));
 	map(0x001c, 0x001c).w("soundlatch", FUNC(generic_latch_8_device::write));
-	map(0x001e, 0x001e).nopw();    // ?
-	map(0x0060, 0x0067).w(FUNC(contra_state::K007121_ctrl_w<1>));
+	map(0x001e, 0x001e).nopw(); // ?
+	map(0x0060, 0x0067).w(m_k007121[1], FUNC(k007121_device::ctrl_w));
 
 	map(0x0c00, 0x0cff).ram().w(m_palette, FUNC(palette_device::write_indirect)).share("palette");
 
@@ -480,11 +480,11 @@ void contra_state::main_map(address_map &map)
 	map(0x2400, 0x27ff).ram().w(FUNC(contra_state::vram_w<0>)).share(m_vram[0]);
 	map(0x2800, 0x2bff).ram().w(FUNC(contra_state::cram_w<2>)).share(m_cram[2]);
 	map(0x2c00, 0x2fff).ram().w(FUNC(contra_state::vram_w<2>)).share(m_vram[2]);
-	map(0x3000, 0x3fff).ram().share("spriteram1");
+	map(0x3000, 0x3fff).ram().share(m_spriteram[0]);
 	map(0x4000, 0x43ff).ram().w(FUNC(contra_state::cram_w<1>)).share(m_cram[1]);
 	map(0x4400, 0x47ff).ram().w(FUNC(contra_state::vram_w<1>)).share(m_vram[1]);
 	map(0x4800, 0x4fff).ram();
-	map(0x5000, 0x5fff).ram().share("spriteram2");
+	map(0x5000, 0x5fff).ram().share(m_spriteram[1]);
 
 	map(0x6000, 0x7fff).bankr(m_mainbank);
 	map(0x7000, 0x7000).w(FUNC(contra_state::bankswitch_w));
@@ -514,43 +514,43 @@ static INPUT_PORTS_START( contra )
 	KONAMI8_B12_UNK(2)
 
 	PORT_START("DSW1")
-	KONAMI_COINAGE_LOC(DEF_STR( Free_Play ), "No Coin B", SW1)
+	KONAMI_COINAGE_LOC(DEF_STR(Free_Play), "No Coin B", SW1)
 	// "No Coin B" = coins produce sound, but no effect on coin counter
 
 	PORT_START("DSW2")
-	PORT_DIPNAME( 0x03, 0x02, DEF_STR( Lives ) ) PORT_DIPLOCATION("SW2:1,2")
+	PORT_DIPNAME( 0x03, 0x02, DEF_STR(Lives) )         PORT_DIPLOCATION("SW2:1,2")
 	PORT_DIPSETTING(    0x03, "2" )
 	PORT_DIPSETTING(    0x02, "3" )
 	PORT_DIPSETTING(    0x01, "5" )
 	PORT_DIPSETTING(    0x00, "7" )
-	PORT_DIPNAME( 0x04, 0x00, DEF_STR( Unused ) ) PORT_DIPLOCATION("SW2:3")
-	PORT_DIPSETTING(    0x04, DEF_STR( Off ) )
-	PORT_DIPSETTING(    0x00, DEF_STR( On ) )
-	PORT_DIPNAME( 0x18, 0x18, DEF_STR( Bonus_Life ) ) PORT_DIPLOCATION("SW2:4,5")
+	PORT_DIPNAME( 0x04, 0x00, DEF_STR(Unused) )        PORT_DIPLOCATION("SW2:3")
+	PORT_DIPSETTING(    0x04, DEF_STR(Off) )
+	PORT_DIPSETTING(    0x00, DEF_STR(On) )
+	PORT_DIPNAME( 0x18, 0x18, DEF_STR(Bonus_Life) )    PORT_DIPLOCATION("SW2:4,5")
 	PORT_DIPSETTING(    0x18, "30000 70000" )
 	PORT_DIPSETTING(    0x10, "40000 80000" )
 	PORT_DIPSETTING(    0x08, "40000" )
 	PORT_DIPSETTING(    0x00, "50000" )
-	PORT_DIPNAME( 0x60, 0x60, DEF_STR( Difficulty ) ) PORT_DIPLOCATION("SW2:6,7")
-	PORT_DIPSETTING(    0x60, DEF_STR( Easy ) )
-	PORT_DIPSETTING(    0x40, DEF_STR( Normal ) )
-	PORT_DIPSETTING(    0x20, DEF_STR( Hard ) )
-	PORT_DIPSETTING(    0x00, DEF_STR( Hardest ) )
-	PORT_DIPNAME( 0x80, 0x00, DEF_STR( Demo_Sounds ) ) PORT_DIPLOCATION("SW2:8")
-	PORT_DIPSETTING(    0x80, DEF_STR( Off ) )
-	PORT_DIPSETTING(    0x00, DEF_STR( On ) )
+	PORT_DIPNAME( 0x60, 0x40, DEF_STR(Difficulty) )    PORT_DIPLOCATION("SW2:6,7")
+	PORT_DIPSETTING(    0x60, DEF_STR(Easy) )
+	PORT_DIPSETTING(    0x40, DEF_STR(Normal) )
+	PORT_DIPSETTING(    0x20, DEF_STR(Hard) )
+	PORT_DIPSETTING(    0x00, DEF_STR(Hardest) )
+	PORT_DIPNAME( 0x80, 0x00, DEF_STR(Demo_Sounds) )   PORT_DIPLOCATION("SW2:8")
+	PORT_DIPSETTING(    0x80, DEF_STR(Off) )
+	PORT_DIPSETTING(    0x00, DEF_STR(On) )
 
 	PORT_START("DSW3")
-	PORT_DIPNAME( 0x01, 0x01, DEF_STR( Flip_Screen ) ) PORT_DIPLOCATION("SW3:1")
-	PORT_DIPSETTING(    0x01, DEF_STR( Off ) )
-	PORT_DIPSETTING(    0x00, DEF_STR( On ) )
-	PORT_DIPNAME( 0x02, 0x02, DEF_STR( Unused ) ) PORT_DIPLOCATION("SW3:2")
-	PORT_DIPSETTING(    0x02, DEF_STR( Off ) )
-	PORT_DIPSETTING(    0x00, DEF_STR( On ) )
+	PORT_DIPNAME( 0x01, 0x01, DEF_STR(Flip_Screen) )   PORT_DIPLOCATION("SW3:1")
+	PORT_DIPSETTING(    0x01, DEF_STR(Off) )
+	PORT_DIPSETTING(    0x00, DEF_STR(On) )
+	PORT_DIPNAME( 0x02, 0x02, DEF_STR(Unused) )        PORT_DIPLOCATION("SW3:2")
+	PORT_DIPSETTING(    0x02, DEF_STR(Off) )
+	PORT_DIPSETTING(    0x00, DEF_STR(On) )
 	PORT_SERVICE_DIPLOC( 0x04, IP_ACTIVE_LOW, "SW3:3" )
-	PORT_DIPNAME( 0x08, 0x08, "Sound" ) PORT_DIPLOCATION("SW3:4")
-	PORT_DIPSETTING(    0x00, DEF_STR( Mono ) )
-	PORT_DIPSETTING(    0x08, DEF_STR( Stereo ) )
+	PORT_DIPNAME( 0x08, 0x08, "Sound" )                PORT_DIPLOCATION("SW3:4")
+	PORT_DIPSETTING(    0x00, DEF_STR(Mono) )
+	PORT_DIPSETTING(    0x08, DEF_STR(Stereo) )
 INPUT_PORTS_END
 
 
@@ -559,14 +559,14 @@ static INPUT_PORTS_START( gryzor )
 	PORT_INCLUDE( contra )
 
 	PORT_MODIFY("DSW2")
-	PORT_DIPNAME( 0x04, 0x00, DEF_STR( Cabinet ) ) PORT_DIPLOCATION("SW2:3")    // Not Used according to manual, used in gryzor sets
-	PORT_DIPSETTING(    0x00, DEF_STR( Upright ) )
-	PORT_DIPSETTING(    0x04, DEF_STR( Cocktail ) )
+	PORT_DIPNAME( 0x04, 0x00, DEF_STR(Cabinet) )       PORT_DIPLOCATION("SW2:3")    // Not Used according to manual, used in gryzor sets
+	PORT_DIPSETTING(    0x00, DEF_STR(Upright) )
+	PORT_DIPSETTING(    0x04, DEF_STR(Cocktail) )
 
 	PORT_MODIFY("DSW3")
-	PORT_DIPNAME( 0x02, 0x02, "Upright Controls" ) PORT_DIPLOCATION("SW3:2")    // Not Used according to manual, used in gryzor sets
-	PORT_DIPSETTING(    0x02, DEF_STR( Single ) )
-	PORT_DIPSETTING(    0x00, DEF_STR( Dual ) )
+	PORT_DIPNAME( 0x02, 0x02, "Upright Controls" )     PORT_DIPLOCATION("SW3:2")    // Not Used according to manual, used in gryzor sets
+	PORT_DIPSETTING(    0x02, DEF_STR(Single) )
+	PORT_DIPSETTING(    0x00, DEF_STR(Dual) )
 INPUT_PORTS_END
 
 
@@ -593,29 +593,24 @@ void contra_state::machine_reset()
 void contra_state::contra(machine_config &config)
 {
 	// basic machine hardware
-	HD6309E(config, m_maincpu, XTAL(24'000'000) / 8); // (HD63C09EP)
+	HD6309E(config, m_maincpu, 24_MHz_XTAL / 8); // (HD63C09EP)
 	m_maincpu->set_addrmap(AS_PROGRAM, &contra_state::main_map);
 	m_maincpu->set_vblank_int("screen", FUNC(contra_state::interrupt));
 
-	MC6809E(config, m_audiocpu, XTAL(3'579'545) / 2); // (HD68B09EP)
+	MC6809E(config, m_audiocpu, 3.579545_MHz_XTAL / 2); // (HD68B09EP)
 	m_audiocpu->set_addrmap(AS_PROGRAM, &contra_state::sound_map);
 
-	config.set_maximum_quantum(attotime::from_hz(6000));  // enough for the sound CPU to read all commands
+	config.set_maximum_quantum(attotime::from_hz(6000)); // enough for the sound CPU to read all commands
 
 	KONAMI_007452_MATH(config, "k007452");
 
 	// video hardware
-	BUFFERED_SPRITERAM8(config, m_buffered_spriteram[0]);
-
-	BUFFERED_SPRITERAM8(config, m_buffered_spriteram[1]);
-
 	SCREEN(config, m_screen, SCREEN_TYPE_RASTER);
-	m_screen->set_refresh_hz(60);
-	m_screen->set_vblank_time(ATTOSECONDS_IN_USEC(2500)); // not accurate
-	m_screen->set_size(37*8, 32*8);
-	m_screen->set_visarea(0*8, 35*8-1, 2*8, 30*8-1);
+	m_screen->set_raw(24_MHz_XTAL / 3, 512, 0, 280, 264, 16, 240); // not verified
 	m_screen->set_screen_update(FUNC(contra_state::screen_update));
 	m_screen->set_palette(m_palette);
+	m_screen->screen_vblank().set(m_k007121[0], FUNC(k007121_device::sprites_buffer));
+	m_screen->screen_vblank().append(m_k007121[1], FUNC(k007121_device::sprites_buffer));
 
 	PALETTE(config, m_palette, FUNC(contra_state::palette));
 	m_palette->set_format(palette_device::xBGR_555, 2 * 8 * 16 * 16);
@@ -623,15 +618,22 @@ void contra_state::contra(machine_config &config)
 	m_palette->set_endianness(ENDIANNESS_LITTLE);
 
 	K007121(config, m_k007121[0], 0, m_palette, gfx_contra_1);
+	m_k007121[0]->set_flipscreen_cb().set(FUNC(contra_state::flipscreen_w<0>));
+	m_k007121[0]->set_flipscreen_cb().append(FUNC(contra_state::flipscreen_w<2>));
+	m_k007121[0]->set_dirtytiles_cb(FUNC(contra_state::dirtytiles<0>));
+
 	K007121(config, m_k007121[1], 0, m_palette, gfx_contra_2);
+	m_k007121[1]->set_flipscreen_cb().set(FUNC(contra_state::flipscreen_w<1>));
+	m_k007121[1]->set_dirtytiles_cb(FUNC(contra_state::dirtytiles<1>));
 
 	// sound hardware
-	SPEAKER(config, "lspeaker").front_left();
-	SPEAKER(config, "rspeaker").front_right();
+	SPEAKER(config, "speaker", 2).front();
 
 	GENERIC_LATCH_8(config, "soundlatch");
 
-	YM2151(config, "ymsnd", XTAL(3'579'545)).add_route(0, "lspeaker", 0.60).add_route(1, "rspeaker", 0.60);
+	ym2151_device &ymsnd(YM2151(config, "ymsnd", 3.579545_MHz_XTAL));
+	ymsnd.add_route(0, "speaker", 0.60, 0);
+	ymsnd.add_route(1, "speaker", 0.60, 1);
 }
 
 

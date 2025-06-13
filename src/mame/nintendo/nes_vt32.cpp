@@ -222,24 +222,10 @@ void nes_vt32_base_state::configure_soc(nes_vt02_vt03_soc_device* soc)
 	soc->extra_read_3_callback().set(FUNC(nes_vt32_base_state::extrain_r<3>));
 }
 
-uint8_t nes_vt32_base_state::upper_412c_r()
-{
-	logerror("%s: upper_412c_r\n", machine().describe_context());
-	return 0x00;
-}
-
-uint8_t nes_vt32_base_state::upper_412d_r()
-{
-	logerror("%s: upper_412d_r\n", machine().describe_context());
-	return 0x00;
-}
-
-void nes_vt32_base_state::upper_412c_w(uint8_t data)
-{
-	logerror("%s: upper_412c_w %02x\n", machine().describe_context(), data);
-}
-
-
+// TODO: these should be in the SoC devices - upper_412d_r gets read, compared against, and another register written based on the result (maybe detecting SoC type?)
+uint8_t nes_vt32_base_state::upper_412c_r() { logerror("%s: nes_vt32_base_state:upper_412c_r\n", machine().describe_context());	return 0x00; }
+uint8_t nes_vt32_base_state::upper_412d_r() { logerror("%s: nes_vt32_base_state:upper_412d_r\n", machine().describe_context());	return 0x00; }
+void nes_vt32_base_state::upper_412c_w(uint8_t data) { logerror("%s: nes_vt32_base_state:upper_412c_w %02x\n", machine().describe_context(), data); }
 
 
 static INPUT_PORTS_START( nes_vt32 )
@@ -366,6 +352,12 @@ ROM_START( myaass )
 	ROM_LOAD( "s29gl256.u2", 0x00000, 0x2000000, CRC(71a3298d) SHA1(5a2441ae5a8bf3e5efe9f22843ad2b8ef2df0f40) )
 ROM_END
 
+ROM_START( myaasa )
+	ROM_REGION( 0x2000000, "mainrom", 0 )
+	ROM_LOAD( "mx29gl256el.u2", 0x00000, 0x2000000, CRC(1882264c) SHA1(e594b5cea634fadc4aac217b6d651be72a3024c0) )
+ROM_END
+
+
 
 ROM_START( fcpocket )
 	ROM_REGION( 0x8000000, "mainrom", 0 )
@@ -381,6 +373,18 @@ ROM_START( matet220 )
 	ROM_REGION( 0x2000000, "mainrom", 0 )
 	ROM_LOAD( "gamervtetris_s29gl128n10tfi01_0001227e.bin", 0x00000, 0x1000000, CRC(ac244e56) SHA1(89897f5f65f55a46bf0d6b5ca534ca31c79a0658) )
 	ROM_IGNORE(0x100)
+ROM_END
+
+ROM_START( matet100 )
+	ROM_REGION( 0x2000000, "mainrom", 0 )
+	ROM_LOAD( "picotetris_s29gl064n90tfi04_0001227e.bin", 0x00000, 0x800000, CRC(7d9296f2) SHA1(0db5883028d14783d0abff1f7672e59534b0e513) )
+	ROM_IGNORE(0x100)
+ROM_END
+
+ROM_START( lxpcsp )
+	ROM_REGION( 0x4000000, "mainrom", 0 )
+	// standard flash ROM
+	ROM_LOAD( "s29gl512n11tfi02.u2", 0x00000, 0x4000000, CRC(113e22f2) SHA1(c57184131db3f3c82d09d7757f0977223698f62c) )
 ROM_END
 
 } // anonymous namespace
@@ -401,11 +405,20 @@ CONS( 201?, dgunl3202, 0,  0,  nes_vt32_32mb, nes_vt32, nes_vt32_unk_state, empt
 
 // many of the games don't work or have scrambled graphics, it writes 0xc0 to vtfp_411e_encryption_state_w in such cases
 CONS( 201?, myaass,    0,  0,  nes_vt32_32mb, nes_vt32, nes_vt32_unk_state, empty_init, "dreamGEAR", "My Arcade All Star Stadium - Pocket Player (307-in-1)", MACHINE_NOT_WORKING )
+CONS( 201?, myaasa,    0,  0,  nes_vt32_32mb, nes_vt32, nes_vt32_unk_state, empty_init, "dreamGEAR", "My Arcade All Star Arena - Pocket Player (307-in-1)", MACHINE_NOT_WORKING )
 
+
+// Some games (eg F22) are scrambled like in myaass
+// These use a 16x16x8bpp packed tile mode for the main menu which seems more like a VT3xx feature, but VT3xx extended video regs not written?
+// also access 3e00 (not 3f00) for palette on said screens?
+CONS( 2021, matet220,  0,         0,  nes_vt32_32mb,     nes_vt32, nes_vt32_unk_state, empty_init, "dreamGEAR", "My Arcade Tetris (DGUNL-7030, Gamer V, with 220 bonus games)", MACHINE_NOT_WORKING )
 CONS( 2021, matet300,  0,         0,  nes_vt32_32mb,     nes_vt32, nes_vt32_unk_state, empty_init, "dreamGEAR", "My Arcade Tetris (DGUNL-7029, Go Gamer, with 300 bonus games)", MACHINE_NOT_WORKING )
 
-// some games (eg F22) are scrambled like in myaass
-CONS( 2021, matet220,  0,         0,  nes_vt32_32mb,     nes_vt32, nes_vt32_unk_state, empty_init, "dreamGEAR", "My Arcade Tetris (DGUNL-7030, Gamer V, with 220 bonus games)", MACHINE_NOT_WORKING )
+// unknown tech level, uses vt32 style opcode scramble and palette, lots of unmapped accesses though
+CONS( 2021, matet100,  0,        0,  nes_vt32_32mb,      nes_vt32, nes_vt32_unk_state, empty_init, "dreamGEAR", "My Arcade Tetris (DGUNL-7027, Pico Player, with 100+ bonus games)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_GRAPHICS ) // box says 100+ bonus games
 
 // Use DIP switch to select console or cartridge, as cartridge is fake and just toggles a GPIO
 CONS( 2016, fcpocket,  0,  0,  nes_vt32_4x16mb,   nes_vt32_fp, nes_vt32_unk_state, empty_init, "<unknown>",   "FC Pocket 600 in 1", MACHINE_IMPERFECT_GRAPHICS | MACHINE_IMPERFECT_SOUND )  // has external banking (2x 32mbyte banks)
+
+// uses VT32 style encryption at least, boots in this driver but shows garbage
+CONS( 2020, lxpcsp,    0,  0,  nes_vt32_32mb, nes_vt32, nes_vt32_unk_state, empty_init,    "Lexibook", "Power Console - Marvel Spider-Man", MACHINE_NOT_WORKING )

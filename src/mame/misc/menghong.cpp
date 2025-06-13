@@ -548,6 +548,7 @@ ROM_START( jzst )
 	ROM_REGION( 0x0100, "pic_data", ROMREGION_ERASEFF )
 ROM_END
 
+// 疯狂斗地主II (Fēngkuáng Dòu Dìzhǔ II)
 // PCB is very similar to the one documented at the top, but with HY03 instead of HY04 and standard ROMs instead of flash
 ROM_START( fkddz2 )
 	ROM_REGION32_LE( 0x1000000, "flash", ROMREGION_ERASEFF )
@@ -564,6 +565,7 @@ ROM_START( fkddz2 )
 	ROM_REGION( 0x0100, "pic_data", ROMREGION_ERASEFF )
 ROM_END
 
+// 极品斗地主 (Jípǐn Dòu Dìzhǔ)
 // Sealy 2005.7 PCB
 // PCB is very similar to the one documented at the top, but with KEY02 instead of HY04 and standard ROMs instead of flash
 ROM_START( jpddz )
@@ -611,13 +613,30 @@ ROM_START( sandayi )
 	ROM_REGION( 0x0100, "pic_data", ROMREGION_ERASEFF )
 ROM_END
 
+// 漂亮金花2 (Piàoliang Jīnhuā 2)
+ROM_START( pljh2 ) // this PCB has an Amazon-LF
+	ROM_REGION32_LE( 0x1000000, "flash", ROMREGION_ERASEFF )
+	ROM_LOAD( "igsm2403.u19", 0x000000, 0x400000, CRC(2538f872) SHA1(14f9a48fc77bdea077a9d5974ad2b8c7ff4b87b2) )
+	ROM_LOAD( "igss2402.u18", 0x400000, 0x400000, CRC(a16c85f6) SHA1(4587cc9d3933fa34cb8728451812760cad2c1d36) )
+	ROM_LOAD( "igsm2401.u17", 0x800000, 0x400000, CRC(20ca030b) SHA1(791a27e19566662231c3e197e171e1e1272e7d57) )
+
+	ROM_REGION( 0x0400000, "maincpu", 0 )
+	ROM_LOAD( "igsl2404.u13", 0x000000, 0x0400000, CRC(03164a2b) SHA1(68b7479911f0cafab24bf1d58738fdaf8f939d9c) ) // 1ST AND 2ND HALF IDENTICAL
+
+	ROM_REGION( 0x4280, "pic", 0 )
+	ROM_LOAD("sl-01", 0x000000, 0x4280, NO_DUMP )
+
+	ROM_REGION( 0x0100, "pic_data", ROMREGION_ERASEFF )
+ROM_END
+
 } // anonymous namespace
 
 
 GAME( 2004?, menghong,  0,        menghong, crzyddz2, menghong_state, empty_init,    ROT0, "Sealy", "Meng Hong Lou",            MACHINE_NOT_WORKING | MACHINE_UNEMULATED_PROTECTION )
 GAME( 2004?, menghonga, menghong, menghong, crzyddz2, menghong_state, empty_init,    ROT0, "Sealy", "Meng Hong Lou (earlier)",  MACHINE_NOT_WORKING | MACHINE_UNEMULATED_PROTECTION )
 GAME( 2006,  jzst,      fkddz2,   crzyddz2, crzyddz2, menghong_state, empty_init,    ROT0, "Sealy", "Jue Zhan Shanghai Tan",    MACHINE_NOT_WORKING | MACHINE_UNEMULATED_PROTECTION )
-GAME( 2006,  fkddz2,    0,        crzyddz2, crzyddz2, menghong_state, empty_init,    ROT0, "Sealy", "Feng Kuang Dou Di Zhu II", MACHINE_NOT_WORKING | MACHINE_UNEMULATED_PROTECTION )
-GAME( 2005,  jpddz,     0,        crzyddz2, crzyddz2, menghong_state, empty_init,    ROT0, "Sealy", "Jipin Dou Di Zhu (set 1)", MACHINE_NOT_WORKING | MACHINE_UNEMULATED_PROTECTION ) // this one boots
-GAME( 2005,  jpddza,    jpddz,    crzyddz2, crzyddz2, menghong_state, empty_init,    ROT0, "Sealy", "Jipin Dou Di Zhu (set 2)", MACHINE_NOT_WORKING | MACHINE_UNEMULATED_PROTECTION ) // this one doesn't
+GAME( 2006,  fkddz2,    0,        crzyddz2, crzyddz2, menghong_state, empty_init,    ROT0, "Sealy", "Fengkuang Dou Dizhu II",   MACHINE_NOT_WORKING | MACHINE_UNEMULATED_PROTECTION )
+GAME( 2005,  jpddz,     0,        crzyddz2, crzyddz2, menghong_state, empty_init,    ROT0, "Sealy", "Jipin Dou Dizhu (set 1)",  MACHINE_NOT_WORKING | MACHINE_UNEMULATED_PROTECTION ) // this one boots
+GAME( 2005,  jpddza,    jpddz,    crzyddz2, crzyddz2, menghong_state, empty_init,    ROT0, "Sealy", "Jipin Dou Dizhu (set 2)",  MACHINE_NOT_WORKING | MACHINE_UNEMULATED_PROTECTION ) // this one doesn't
 GAME( 2005,  sandayi,   0,        crzyddz2, crzyddz2, menghong_state, empty_init,    ROT0, "Sealy", "San Da Yi",                MACHINE_NOT_WORKING | MACHINE_UNEMULATED_PROTECTION )
+GAME( 200?,  pljh2,     0,        crzyddz2, crzyddz2, menghong_state, empty_init,    ROT0, "Sealy", "Piaoliang Jinhua 2",       MACHINE_NOT_WORKING | MACHINE_UNEMULATED_PROTECTION )

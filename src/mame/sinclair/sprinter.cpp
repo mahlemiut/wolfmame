@@ -907,7 +907,7 @@ void sprinter_state::accel_control_r(u8 data)
 				case 1: m_acc_dir = 0b00100101; break; // LD C,C % % fill by constant
 				case 2: m_acc_dir = 0b00001001; break; // LD D,D % % load count accelerator
 				case 3: m_acc_dir = 0b00010101; break; // LD E,E % % fill by constant VERTICAL
-				case 4: m_acc_dir = 0b01000001; break; // LD H,H % % duble byte fn
+				case 4: m_acc_dir = 0b01000001; break; // LD H,H % % double byte fn
 				case 5: m_acc_dir = 0b00100111; break; // LD L,L % % copy line
 				case 6: m_acc_dir = 0b00000000; break; // HALT
 				case 7: m_acc_dir = 0b00010111; break; // LD A,A % % copy line VERTICAL
@@ -1932,17 +1932,16 @@ void sprinter_state::sprinter(machine_config &config)
 	m_maincpu->zc_callback<0>().append(m_maincpu, FUNC(z84c015_device::txcb_w));
 	m_maincpu->zc_callback<2>().set(m_maincpu, FUNC(z84c015_device::trg3));
 
-	SPEAKER(config, "lspeaker").front_left();
-	SPEAKER(config, "rspeaker").front_right();
+	SPEAKER(config, "speakers", 2).front();
 
 	ay8910_device &ay8910(AY8910(config.replace(), "ay8912", X_SP / 24));
-	ay8910.add_route(0, "lspeaker", 0.50);
-	ay8910.add_route(1, "lspeaker", 0.25);
-	ay8910.add_route(1, "rspeaker", 0.25);
-	ay8910.add_route(2, "rspeaker", 0.50);
+	ay8910.add_route(0, "speakers", 0.50, 0);
+	ay8910.add_route(1, "speakers", 0.25, 0);
+	ay8910.add_route(1, "speakers", 0.25, 1);
+	ay8910.add_route(2, "speakers", 0.50, 1);
 
-	DAC_16BIT_R2R(config, m_ldac, 0).add_route(ALL_OUTPUTS, "lspeaker", 0.5);
-	DAC_16BIT_R2R(config, m_rdac, 0).add_route(ALL_OUTPUTS, "rspeaker", 0.5);
+	DAC_16BIT_R2R(config, m_ldac, 0).add_route(ALL_OUTPUTS, "speakers", 0.5, 0);
+	DAC_16BIT_R2R(config, m_rdac, 0).add_route(ALL_OUTPUTS, "speakers", 0.5, 1);
 
 	subdevice<gfxdecode_device>("gfxdecode")->set_info(gfx_sprinter);
 }

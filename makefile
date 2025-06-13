@@ -34,6 +34,7 @@
 # NO_USE_MIDI = 1
 # NO_USE_PORTAUDIO = 1
 # NO_USE_PULSEAUDIO = 1
+# NO_USE_PIPEWIRE = 1
 # USE_TAPTUN = 1
 # USE_PCAP = 1
 # USE_QTDEBUG = 1
@@ -150,7 +151,11 @@ PLATFORM := x86
 else ifeq ($(MSYSTEM),CLANGARM64)
 PLATFORM := arm64
 else # MSYSTEM
-OSARCH := $(shell reg query "HKLM\System\CurrentControlSet\Control\Session Manager\Environment" /v PROCESSOR_ARCHITECTURE)
+
+# Get system processor architecture. Note that PROCESSOR_ARCHITECTURE local
+# environment variable is for the currently running process, so we go through
+# the registry instead.
+OSARCH := $(shell reg query "HKLM\System\CurrentControlSet\Control\Session Manager\Environment" -v PROCESSOR_ARCHITECTURE)
 ifneq ($(findstring ARM64,$(OSARCH)),)
 PLATFORM := arm64
 else # OSARCH
@@ -327,8 +332,6 @@ else # windows
 UNAME    := $(shell uname -mps)
 TARGETOS := $(OS)
 
-ARCHITECTURE := _x86
-
 ifeq ($(firstword $(filter x86_64,$(UNAME))),x86_64)
 ARCHITECTURE := _x64
 else ifeq ($(firstword $(filter amd64,$(UNAME))),amd64)
@@ -341,6 +344,8 @@ else ifeq ($(firstword $(filter powerpc64,$(UNAME))),powerpc64)
 ARCHITECTURE := _x64
 else ifeq ($(firstword $(filter s390x,$(UNAME))),s390x)
 ARCHITECTURE := _x64
+else
+ARCHITECTURE := _x86
 endif
 
 endif # windows
@@ -728,6 +733,10 @@ endif
 
 ifdef NO_USE_PULSEAUDIO
 PARAMS += --NO_USE_PULSEAUDIO='$(NO_USE_PULSEAUDIO)'
+endif
+
+ifdef NO_USE_PIPEWIRE
+PARAMS += --NO_USE_PIPEWIRE='$(NO_USE_PIPEWIRE)'
 endif
 
 ifdef USE_QTDEBUG
@@ -1519,7 +1528,7 @@ endif
 
 ifeq (posix,$(SHELLTYPE))
 $(GENDIR)/version.cpp: makefile $(GENDIR)/git_desc | $(GEN_FOLDERS)
-	@echo '#define BARE_BUILD_VERSION "0.276"' > $@
+	@echo '#define BARE_BUILD_VERSION "0.277"' > $@
 	@echo '#define BARE_VCS_REVISION "$(NEW_GIT_VERSION)"' >> $@
 	@echo 'extern const char bare_build_version[];' >> $@
 	@echo 'extern const char bare_vcs_revision[];' >> $@
@@ -1529,7 +1538,7 @@ $(GENDIR)/version.cpp: makefile $(GENDIR)/git_desc | $(GEN_FOLDERS)
 	@echo 'const char build_version[] = BARE_BUILD_VERSION "W (" BARE_VCS_REVISION ")";' >> $@
 else
 $(GENDIR)/version.cpp: makefile $(GENDIR)/git_desc | $(GEN_FOLDERS)
-	@echo #define BARE_BUILD_VERSION "0.276" > $@
+	@echo #define BARE_BUILD_VERSION "0.277" > $@
 	@echo #define BARE_VCS_REVISION "$(NEW_GIT_VERSION)" >> $@
 	@echo extern const char bare_build_version[]; >> $@
 	@echo extern const char bare_vcs_revision[]; >> $@

@@ -32,7 +32,7 @@
 #include "specnext_sprites.h"
 #include "specnext_tiles.h"
 
-#include "bus/spectrum/zxbus.h"
+#include "bus/spectrum/zxbus/bus.h"
 #include "cpu/z80/z80n.h"
 #include "machine/i2cmem.h"
 #include "machine/spi_sdcard.h"
@@ -3473,7 +3473,7 @@ void specnext_state::tbblue(machine_config &config)
 	DAC_8BIT_R2R(config, m_dac[2], 0).add_route(ALL_OUTPUTS, "speakers", 0.75, 1);
 	DAC_8BIT_R2R(config, m_dac[3], 0).add_route(ALL_OUTPUTS, "speakers", 0.75, 1);
 
-	config.device_remove("ay8912");
+	config.device_remove("ay_slot");
 	for (auto i = 0; i < 3; ++i)
 	{
 		YM2149(config, m_ay[i], 14_MHz_XTAL / 8)

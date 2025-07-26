@@ -123,7 +123,7 @@ private:
 	SED1520_UPDATE_CB(sed1520_update);
 
 	u32 input_r();
-	void control_w(u32 data);
+	void control_w(offs_t offset, u32 data, u32 mem_mask = ~0);
 	u32 rom_r(offs_t offset);
 	void power_off();
 
@@ -264,8 +264,11 @@ u32 risc2500_state::input_r()
 	return data;
 }
 
-void risc2500_state::control_w(u32 data)
+void risc2500_state::control_w(offs_t offset, u32 data, u32 mem_mask)
 {
+	if (mem_mask != 0xffffffff)
+		logerror("control_w unexpected mem_mask %08X\n", mem_mask);
+
 	// lcd
 	if (BIT(m_control & ~data, 27))
 	{
@@ -336,8 +339,8 @@ void risc2500_state::risc2500_mem(address_map &map)
 	map(0x00000000, 0x001fffff).view(m_boot_view);
 	m_boot_view[0](0x00000000, 0x0003ffff).r(FUNC(risc2500_state::rom_r));
 
-	map(0x01800000, 0x01800003).r(FUNC(risc2500_state::disable_bootrom_r));
 	map(0x01000000, 0x01000003).rw(FUNC(risc2500_state::input_r), FUNC(risc2500_state::control_w));
+	map(0x01800000, 0x01800003).r(FUNC(risc2500_state::disable_bootrom_r));
 	map(0x02000000, 0x0203ffff).r(FUNC(risc2500_state::rom_r));
 }
 
@@ -456,24 +459,24 @@ ROM_START( risc2500 ) // v1.04 21-Oct-92
 	ROM_REGION( 0x40000, "maincpu", ROMREGION_ERASE00 )
 	ROM_LOAD("st17_a22_u_7.u7", 0x000000, 0x020000, CRC(84a06178) SHA1(66f4d9f53de6da865a3ebb4af1d6a3e245c59a3c) ) // 27C010A-12
 
-	ROM_REGION( 221204, "screen", 0 )
-	ROM_LOAD("risc2500.svg", 0, 221204, CRC(5f845271) SHA1(3ce80b6d132d854b4157ae548e15a60bea1960a4) )
+	ROM_REGION( 221222, "screen", 0 )
+	ROM_LOAD("risc2500.svg", 0, 221222, CRC(73076886) SHA1(d278f071f8a92201a5aba59ad1c99234a389118f) )
 ROM_END
 
 ROM_START( risc2500a ) // v1.03 14-Oct-92
 	ROM_REGION( 0x40000, "maincpu", ROMREGION_ERASE00 )
 	ROM_LOAD("st17_a15.u7", 0x000000, 0x020000, CRC(7a707e82) SHA1(87187fa58117a442f3abd30092cfcc2a4d7c7efc) ) // 27C010A-15
 
-	ROM_REGION( 221204, "screen", 0 )
-	ROM_LOAD("risc2500.svg", 0, 221204, CRC(5f845271) SHA1(3ce80b6d132d854b4157ae548e15a60bea1960a4) )
+	ROM_REGION( 221222, "screen", 0 )
+	ROM_LOAD("risc2500.svg", 0, 221222, CRC(73076886) SHA1(d278f071f8a92201a5aba59ad1c99234a389118f) )
 ROM_END
 
 ROM_START( montreux ) // v1.00 10-Dec-94
 	ROM_REGION( 0x40000, "maincpu", 0 )
 	ROM_LOAD("rt17b_103_u_7.u7", 0x000000, 0x040000, CRC(db374cf3) SHA1(44dd60d56779084326c3dfb41d2137ebf0b4e0ac) ) // 27C020-15
 
-	ROM_REGION( 221204, "screen", 0 )
-	ROM_LOAD("risc2500.svg", 0, 221204, CRC(5f845271) SHA1(3ce80b6d132d854b4157ae548e15a60bea1960a4) )
+	ROM_REGION( 221222, "screen", 0 )
+	ROM_LOAD("risc2500.svg", 0, 221222, CRC(73076886) SHA1(d278f071f8a92201a5aba59ad1c99234a389118f) )
 ROM_END
 
 } // anonymous namespace

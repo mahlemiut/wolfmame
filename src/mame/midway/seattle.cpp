@@ -1587,17 +1587,17 @@ static INPUT_PORTS_START( vaportrx )
 	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
 
 	PORT_MODIFY("SYSTEM")
-	PORT_BIT( 0x0004, IP_ACTIVE_LOW, IPT_BUTTON1 ) PORT_CODE(KEYCODE_Z) PORT_NAME("Left Trigger")
+	PORT_BIT( 0x0004, IP_ACTIVE_LOW, IPT_BUTTON1 ) PORT_NAME("Left Trigger")
 
 	PORT_MODIFY("IN1")
 	PORT_BIT( 0x000f, IP_ACTIVE_LOW, IPT_UNUSED )
-	PORT_BIT( 0x0010, IP_ACTIVE_LOW, IPT_BUTTON3 ) PORT_CODE(KEYCODE_X) PORT_NAME("Right Trigger")
-	PORT_BIT( 0x0020, IP_ACTIVE_LOW, IPT_BUTTON2 ) PORT_CODE(KEYCODE_A) PORT_NAME("Left Thumb")
-	PORT_BIT( 0x0040, IP_ACTIVE_LOW, IPT_BUTTON4 ) PORT_CODE(KEYCODE_S) PORT_NAME("Right Thumb")
+	PORT_BIT( 0x0010, IP_ACTIVE_LOW, IPT_BUTTON3 ) PORT_NAME("Right Trigger")
+	PORT_BIT( 0x0020, IP_ACTIVE_LOW, IPT_BUTTON2 ) PORT_NAME("Left Thumb")
+	PORT_BIT( 0x0040, IP_ACTIVE_LOW, IPT_BUTTON4 ) PORT_NAME("Right Thumb")
 	PORT_BIT( 0x0180, IP_ACTIVE_LOW, IPT_UNUSED )
-	PORT_BIT( 0x0200, IP_ACTIVE_LOW, IPT_BUTTON5 ) PORT_CODE(KEYCODE_Q) PORT_NAME("Left View")
+	PORT_BIT( 0x0200, IP_ACTIVE_LOW, IPT_BUTTON5 ) PORT_NAME("Left View")
 	PORT_BIT( 0x0400, IP_ACTIVE_LOW, IPT_UNUSED )
-	PORT_BIT( 0x0800, IP_ACTIVE_LOW, IPT_BUTTON6 ) PORT_CODE(KEYCODE_W) PORT_NAME("Right View")
+	PORT_BIT( 0x0800, IP_ACTIVE_LOW, IPT_BUTTON6 ) PORT_NAME("Right View")
 	PORT_BIT( 0xf000, IP_ACTIVE_LOW, IPT_UNUSED )
 
 	PORT_MODIFY("AN1")
@@ -2171,7 +2171,7 @@ void seattle_state::sfrush(machine_config &config)
 
 	// 5 Channel output (4 Channel input connected to Quad Amp PCB)
 	SPEAKER(config, "speaker", 4).corners();
-	//SPEAKER(config, "subwoofer").seat(); Not implemented, Quad Amp PCB output;
+	//SPEAKER(config, "subwoofer").lfe(); Not implemented, Quad Amp PCB output;
 
 	ATARI_CAGE_SEATTLE(config, m_cage, 0);
 	m_cage->set_speedup(0x5236);
@@ -2201,7 +2201,7 @@ void seattle_state::sfrushrk(machine_config &config)
 
 	// 5 Channel output (4 Channel input connected to Quad Amp PCB)
 	SPEAKER(config, "speaker", 4).corners();
-	//SPEAKER(config, "subwoofer").seat(); Not implemented, Quad Amp PCB output;
+	//SPEAKER(config, "subwoofer").lfe(); Not implemented, Quad Amp PCB output;
 
 	ATARI_CAGE_SEATTLE(config, m_cage, 0);
 	m_cage->set_speedup(0x5329);

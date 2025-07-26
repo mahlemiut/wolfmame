@@ -6,6 +6,13 @@
 
     Emulation by Bryan McPhail, mish@tendril.co.uk
 
+BTANB: some awkward priorities, eg:
+- stage indicator (bottom-left) hiding behind the grass on stage 1, and behind
+  the water on stage 2
+- stage 3 painting with the bloody tear, the tear has higher priority than
+  the player character
+- stage 3 boss, when he jumps down, he's behind the background candlelights
+
 ***************************************************************************/
 
 #include "emu.h"
@@ -20,7 +27,6 @@
 #include "sound/k007232.h"
 #include "sound/k051649.h"
 #include "sound/ymopl.h"
-#include "video/bufsprite.h"
 
 #include "emupal.h"
 #include "screen.h"
@@ -83,14 +89,12 @@ private:
 	template <uint8_t Which> void draw_sprites(bitmap_ind16 &bitmap, const rectangle &cliprect, bitmap_ind8 &priority_bitmap);
 	uint32_t screen_update(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);
 
+	template <uint8_t Which> void flipscreen_w(int state) { m_tilemap[Which]->set_flip(state ? (TILEMAP_FLIPY | TILEMAP_FLIPX) : 0); }
 	template <uint8_t Which> void pf_video_w(offs_t offset, uint8_t data);
 	void gfxbank_w(uint8_t data) { m_gfx_bank = data; }
 	uint8_t gfxbank_r() { return m_gfx_bank; }
 	void bankswitch_w(uint8_t data);
 	void soundirq_w(uint8_t data);
-
-	template <uint8_t Which> void flipscreen_w(int state) { m_tilemap[Which]->set_flip(state ? (TILEMAP_FLIPY | TILEMAP_FLIPX) : 0); }
-	template <uint8_t Which> void dirtytiles() { m_tilemap[Which]->mark_all_dirty(); }
 
 	void sound_bank_w(uint8_t data);
 	void volume_callback(uint8_t data);
@@ -141,8 +145,8 @@ TILEMAP_MAPPER_MEMBER(hcastle_state::tilemap_scan)
 template <uint8_t Which> // 0 = FG, 1 = BG
 TILE_GET_INFO_MEMBER(hcastle_state::get_tile_info)
 {
-	uint8_t ctrl_5 = m_k007121[Which]->ctrlram_r(5);
-	uint8_t ctrl_6 = m_k007121[Which]->ctrlram_r(6);
+	uint8_t ctrl_5 = m_k007121[Which]->ctrl_r(5);
+	uint8_t ctrl_6 = m_k007121[Which]->ctrl_r(6);
 	int bit0 = (ctrl_5 >> 0) & 0x03;
 	int bit1 = (ctrl_5 >> 2) & 0x03;
 	int bit2 = (ctrl_5 >> 4) & 0x03;
@@ -150,11 +154,11 @@ TILE_GET_INFO_MEMBER(hcastle_state::get_tile_info)
 	int attr = m_pf_videoram[Which][tile_index];
 	int tile = m_pf_videoram[Which][tile_index + 0x400];
 	int color = attr & 0x7;
-	int bank =  ((attr & 0x80) >> 7) |
-				((attr >> (bit0 + 2)) & 0x02) |
-				((attr >> (bit1 + 1)) & 0x04) |
-				((attr >> (bit2    )) & 0x08) |
-				((attr >> (bit3 - 1)) & 0x10);
+	int bank = ((attr >> (bit0 + 3)) & 0x01) |
+			((attr >> (bit1 + 2)) & 0x02) |
+			((attr >> (bit2 + 1)) & 0x04) |
+			((attr >> (bit3 + 0)) & 0x08);
+	bank = ((attr & 0x80) >> 7) | (bank << 1);
 
 	tileinfo.set(0,
 			tile + bank * 0x100 + m_pf_bankbase[Which],
@@ -172,14 +176,16 @@ TILE_GET_INFO_MEMBER(hcastle_state::get_tile_info)
 
 void hcastle_state::video_start()
 {
-	m_k007121[0]->set_spriteram(m_spriteram[0]);
-	m_k007121[1]->set_spriteram(m_spriteram[1]);
-
 	// 0 = FG, 1 = BG
 	m_tilemap[0] = &machine().tilemap().create(*m_k007121[0], tilemap_get_info_delegate(*this, FUNC(hcastle_state::get_tile_info<0>)), tilemap_mapper_delegate(*this, FUNC(hcastle_state::tilemap_scan)), 8, 8, 64, 32);
 	m_tilemap[1] = &machine().tilemap().create(*m_k007121[1], tilemap_get_info_delegate(*this, FUNC(hcastle_state::get_tile_info<1>)), tilemap_mapper_delegate(*this, FUNC(hcastle_state::tilemap_scan)), 8, 8, 64, 32);
 
 	m_tilemap[0]->set_transparent_pen(0);
+
+	m_k007121[0]->register_tilemap(m_tilemap[0]);
+	m_k007121[1]->register_tilemap(m_tilemap[1]);
+	m_k007121[0]->set_spriteram(m_spriteram[0]);
+	m_k007121[1]->set_spriteram(m_spriteram[1]);
 }
 
 
@@ -193,7 +199,7 @@ void hcastle_state::video_start()
 template <uint8_t Which> // 0 = FG, 1 = BG
 void hcastle_state::draw_sprites(bitmap_ind16 &bitmap, const rectangle &cliprect, bitmap_ind8 &priority_bitmap)
 {
-	int base_color = (m_k007121[Which]->ctrlram_r(6) & 0x30) * 2;
+	int base_color = (m_k007121[Which]->ctrl_r(6) & 0x30) * 2;
 	int bank_base = (Which == 0) ? 0x4000 * (m_gfx_bank & 1) : 0;
 
 	m_k007121[Which]->sprites_draw(bitmap, cliprect, base_color, 0, bank_base, priority_bitmap, (uint32_t)-1);
@@ -201,14 +207,14 @@ void hcastle_state::draw_sprites(bitmap_ind16 &bitmap, const rectangle &cliprect
 
 uint32_t hcastle_state::screen_update(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect)
 {
-	uint8_t ctrl_1_0 = m_k007121[0]->ctrlram_r(0);
-	uint8_t ctrl_1_1 = m_k007121[0]->ctrlram_r(1);
-	uint8_t ctrl_1_2 = m_k007121[0]->ctrlram_r(2);
-	uint8_t ctrl_1_3 = m_k007121[0]->ctrlram_r(3);
-	uint8_t ctrl_2_0 = m_k007121[1]->ctrlram_r(0);
-	uint8_t ctrl_2_1 = m_k007121[1]->ctrlram_r(1);
-	uint8_t ctrl_2_2 = m_k007121[1]->ctrlram_r(2);
-	uint8_t ctrl_2_3 = m_k007121[1]->ctrlram_r(3);
+	uint8_t ctrl_1_0 = m_k007121[0]->ctrl_r(0);
+	uint8_t ctrl_1_1 = m_k007121[0]->ctrl_r(1);
+	uint8_t ctrl_1_2 = m_k007121[0]->ctrl_r(2);
+	uint8_t ctrl_1_3 = m_k007121[0]->ctrl_r(3);
+	uint8_t ctrl_2_0 = m_k007121[1]->ctrl_r(0);
+	uint8_t ctrl_2_1 = m_k007121[1]->ctrl_r(1);
+	uint8_t ctrl_2_2 = m_k007121[1]->ctrl_r(2);
+	uint8_t ctrl_2_3 = m_k007121[1]->ctrl_r(3);
 
 	m_pf_bankbase[0] = 0x0000;
 	m_pf_bankbase[1] = 0x4000 * ((m_gfx_bank & 2) >> 1);
@@ -228,11 +234,11 @@ uint32_t hcastle_state::screen_update(screen_device &screen, bitmap_ind16 &bitma
 	m_old_pf[1] = m_pf_bankbase[1];
 
 	m_tilemap[1]->set_scrolly(0, ctrl_2_2);
-	m_tilemap[1]->set_scrollx(0, ((ctrl_2_1 << 8) + ctrl_2_0));
+	m_tilemap[1]->set_scrollx(0, (ctrl_2_1 << 8 & 0x100) | ctrl_2_0);
 	m_tilemap[0]->set_scrolly(0, ctrl_1_2);
-	m_tilemap[0]->set_scrollx(0, ((ctrl_1_1 << 8) + ctrl_1_0));
+	m_tilemap[0]->set_scrollx(0, (ctrl_1_1 << 8 & 0x100) | ctrl_1_0);
 
-	//  Sprite priority
+	// Sprite priority
 	//if (ctrl_1_3 & 0x20)
 	if ((m_gfx_bank & 0x04) == 0)
 	{
@@ -288,9 +294,9 @@ void hcastle_state::soundirq_w(uint8_t data)
 void hcastle_state::main_map(address_map &map)
 {
 	map(0x0000, 0x0007).w(m_k007121[0], FUNC(k007121_device::ctrl_w));
-	map(0x0020, 0x003f).ram(); // rowscroll?
+	map(0x0020, 0x005f).rw(m_k007121[0], FUNC(k007121_device::scroll_r), FUNC(k007121_device::scroll_w));
 	map(0x0200, 0x0207).w(m_k007121[1], FUNC(k007121_device::ctrl_w));
-	map(0x0220, 0x023f).ram(); // rowscroll?
+	map(0x0220, 0x025f).rw(m_k007121[1], FUNC(k007121_device::scroll_r), FUNC(k007121_device::scroll_w));
 	map(0x0400, 0x0400).w(FUNC(hcastle_state::bankswitch_w));
 	map(0x0404, 0x0404).w("soundlatch", FUNC(generic_latch_8_device::write));
 	map(0x0408, 0x0408).w(FUNC(hcastle_state::soundirq_w));
@@ -429,46 +435,42 @@ void hcastle_state::hcastle(machine_config &config)
 	// basic machine hardware
 	KONAMI(config, m_maincpu, 24_MHz_XTAL / 2);
 	m_maincpu->set_addrmap(AS_PROGRAM, &hcastle_state::main_map);
-	m_maincpu->set_vblank_int("screen", FUNC(hcastle_state::irq0_line_hold));
 
-	Z80(config, m_audiocpu, 3579545);
+	Z80(config, m_audiocpu, 3.579545_MHz_XTAL);
 	m_audiocpu->set_addrmap(AS_PROGRAM, &hcastle_state::sound_map);
 
 	WATCHDOG_TIMER(config, "watchdog");
 
 	// video hardware
 	screen_device &screen(SCREEN(config, "screen", SCREEN_TYPE_RASTER));
-	screen.set_raw(24_MHz_XTAL / 3, 512, 0, 256, 264, 16, 240); // not verified
+	screen.set_raw(24_MHz_XTAL / 4, 384, 0, 256, 264, 16, 240);
 	screen.set_screen_update(FUNC(hcastle_state::screen_update));
 	screen.set_palette(m_palette);
-	screen.screen_vblank().set(m_k007121[0], FUNC(k007121_device::sprites_buffer));
-	screen.screen_vblank().append(m_k007121[1], FUNC(k007121_device::sprites_buffer));
 
 	PALETTE(config, m_palette, FUNC(hcastle_state::palette)).set_format(palette_device::xBGR_555, 2*8*16*16, 128);
 
-	K007121(config, m_k007121[0], 0, m_palette, gfx_hcastle_1);
+	K007121(config, m_k007121[0], 0, gfx_hcastle_1, m_palette, "screen");
+	m_k007121[0]->set_irq_cb().set_inputline(m_maincpu, KONAMI_IRQ_LINE);
 	m_k007121[0]->set_flipscreen_cb().set(FUNC(hcastle_state::flipscreen_w<0>));
-	m_k007121[0]->set_dirtytiles_cb(FUNC(hcastle_state::dirtytiles<0>));
 
-	K007121(config, m_k007121[1], 0, m_palette, gfx_hcastle_2);
+	K007121(config, m_k007121[1], 0, gfx_hcastle_2, m_palette, "screen");
 	m_k007121[1]->set_flipscreen_cb().set(FUNC(hcastle_state::flipscreen_w<1>));
-	m_k007121[1]->set_dirtytiles_cb(FUNC(hcastle_state::dirtytiles<1>));
 
 	// sound hardware
 	SPEAKER(config, "mono").front_center();
 
 	GENERIC_LATCH_8(config, "soundlatch");
 
-	K007232(config, m_k007232, 3579545);
+	K007232(config, m_k007232, 3.579545_MHz_XTAL);
 	m_k007232->port_write().set(FUNC(hcastle_state::volume_callback));
 	m_k007232->add_route(0, "mono", 0.44);
 	m_k007232->add_route(1, "mono", 0.50);
 
-	ym3812_device &ymsnd(YM3812(config, "ymsnd", 3579545));
+	ym3812_device &ymsnd(YM3812(config, "ymsnd", 3.579545_MHz_XTAL));
 	ymsnd.irq_handler().set_inputline("audiocpu", INPUT_LINE_NMI); // from schematic; NMI handler is just a retn
 	ymsnd.add_route(ALL_OUTPUTS, "mono", 0.70);
 
-	K051649(config, "k051649", 3579545).add_route(ALL_OUTPUTS, "mono", 0.45);
+	K051649(config, "k051649", 3.579545_MHz_XTAL).add_route(ALL_OUTPUTS, "mono", 0.45);
 }
 
 /***************************************************************************/

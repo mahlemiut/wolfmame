@@ -777,6 +777,18 @@ end
 
 --------------------------------------------------
 --
+--@src/devices/video/mr9735.h,VIDEOS["MR9735"] = true
+--------------------------------------------------
+
+if (VIDEOS["MR9735"]~=null) then
+	files {
+		MAME_DIR .. "src/devices/video/mr9735.cpp",
+		MAME_DIR .. "src/devices/video/mr9735.h",
+	}
+end
+
+--------------------------------------------------
+--
 --@src/devices/video/msm6222b.h,VIDEOS["MSM6222B"] = true
 --------------------------------------------------
 
@@ -1766,5 +1778,17 @@ if (VIDEOS["ST7626"]~=null) then
 	files {
 		MAME_DIR .. "src/devices/video/st7626.cpp",
 		MAME_DIR .. "src/devices/video/st7626.h",
+	}
+end
+
+--------------------------------------------------
+--
+--@src/devices/video/serialvfd.h,VIDEOS["SERIALVFD"] = true
+--------------------------------------------------
+
+if (VIDEOS["SERIALVFD"]~=null) then
+	files {
+		MAME_DIR .. "src/devices/video/serialvfd.cpp",
+		MAME_DIR .. "src/devices/video/serialvfd.h",
 	}
 end

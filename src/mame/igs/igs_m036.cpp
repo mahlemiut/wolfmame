@@ -84,9 +84,8 @@ public:
 	void igs_m036(machine_config &config) ATTR_COLD;
 
 	void init_igs_m036() ATTR_COLD;
-	void init_cjdh2() ATTR_COLD;
-	void init_cjddzsp() ATTR_COLD;
-	void init_igsm312() ATTR_COLD;
+	template <const uint8_t (&Key)[0x100]> void init_key() ATTR_COLD;
+	void init_mghammer() ATTR_COLD;
 
 private:
 	uint32_t screen_update_igs_m036(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);
@@ -116,6 +115,45 @@ void igs_m036_state::igs_m036_map(address_map &map)
 static INPUT_PORTS_START( igs_m036 )
 INPUT_PORTS_END
 
+
+void igs_m036_state::igs_m036(machine_config &config)
+{
+	IGS036(config, m_maincpu, 20_MHz_XTAL);
+	m_maincpu->set_addrmap(AS_PROGRAM, &igs_m036_state::igs_m036_map);
+
+	screen_device &screen(SCREEN(config, "screen", SCREEN_TYPE_RASTER));
+	screen.set_refresh_hz(60);
+	screen.set_vblank_time(ATTOSECONDS_IN_USEC(0));
+	screen.set_size(512, 256);
+	screen.set_visarea(0, 512-1, 0, 256-1);
+	screen.set_screen_update(FUNC(igs_m036_state::screen_update_igs_m036));
+	screen.set_palette("palette");
+
+	PALETTE(config, "palette").set_entries(0x200);
+
+	SPEAKER(config, "speaker").front_center();
+	OKIM6295(config, "oki", 1'000'000, okim6295_device::PIN7_LOW).add_route(ALL_OUTPUTS, "speaker", 1.0); // clock and pin 7 not verified
+}
+
+
+void igs_m036_state::igs_m036_tt(machine_config &config)
+{
+	IGS036(config, m_maincpu, 20_MHz_XTAL);
+	m_maincpu->set_addrmap(AS_PROGRAM, &igs_m036_state::igs_m036_map);
+
+	screen_device &screen(SCREEN(config, "screen", SCREEN_TYPE_RASTER));
+	screen.set_refresh_hz(60);
+	screen.set_vblank_time(ATTOSECONDS_IN_USEC(0));
+	screen.set_size(512, 256);
+	screen.set_visarea(0, 512-1, 0, 256-1);
+	screen.set_screen_update(FUNC(igs_m036_state::screen_update_igs_m036));
+	screen.set_palette("palette");
+
+	PALETTE(config, "palette").set_entries(0x200);
+
+	SPEAKER(config, "speaker").front_center();
+	TT5665(config, "tt5665", 4.952_MHz_XTAL, tt5665_device::ss_state::SS_HIGH, 0).add_route(1, "speaker", 1.0);
+}
 
 
 ROM_START( cjdh2 )
@@ -407,12 +445,54 @@ ROM_START( lhfy )
 	ROM_REGION( 0x800000, "tt5665", 0 ) // samples
 	ROM_LOAD( "v-206cn.u19", 0x000000, 0x800000, CRC(f7990ed4) SHA1(e8a72bc0926911ba5c079b02dd324ac060e8c768) ) // same as lhzbgqb
 
-	ROM_REGION( 0x10000000, "gfx", ROMREGION_ERASE00 )
+	ROM_REGION( 0x10000000, "gfx", 0 )
 	// 4x 64MB flash ROMs (U1, U2, U3, U4) mounted onto a custom SODIMM at CN1 with a sticker "CG V206CN"
-	ROM_LOAD( "cg_v206cn.u1", 0x0000000, 0x4000000, NO_DUMP )
-	ROM_LOAD( "cg_v206cn.u2", 0x4000000, 0x4000000, NO_DUMP )
-	ROM_LOAD( "cg_v206cn.u3", 0x8000000, 0x4000000, NO_DUMP )
-	ROM_LOAD( "cg_v206cn.u4", 0xc000000, 0x4000000, NO_DUMP )
+	ROM_LOAD( "cg_v206cn.u1", 0x0000000, 0x4000000, CRC(6abd4a31) SHA1(6c5eefc3671c4192a689cb1e82605e65fec44384) )
+	ROM_LOAD( "cg_v206cn.u2", 0x4000000, 0x4000000, CRC(b37e94b2) SHA1(da9e8b38070412a1b4057ddaf1df65878f3e135a) )
+	ROM_LOAD( "cg_v206cn.u3", 0x8000000, 0x4000000, CRC(b379503c) SHA1(fc7d5c4afcef6a7448cc6547fa73e51378a67b3d) )
+	ROM_LOAD( "cg_v206cn.u4", 0xc000000, 0x4000000, CRC(f96be9f1) SHA1(fe957af2e31007b570c4f4b707400a87be1b4301) )
+ROM_END
+
+
+// 欢乐斗地主 (Huānlè Dòu Dìzhǔ)
+ROM_START( hlddz )
+	ROM_REGION( 0x04000, "maincpu", 0 )
+	// Internal ROM of IGS036 ARM based MCU
+	ROM_LOAD( "hlddz_igs036", 0x00000, 0x4000, NO_DUMP )
+
+	ROM_REGION32_LE( 0x200000, "user1", 0 ) // external ARM data / prg
+	ROM_LOAD( "v-104cn.u11", 0x000000, 0x200000, CRC(abc11224) SHA1(cf8119ac6bb75e63da716d643d89619f8f6cd017) )
+
+	ROM_REGION( 0x800000, "tt5665", 0 ) // samples
+	ROM_LOAD( "v-104cn.u19", 0x000000, 0x800000, CRC(4c2a0c14) SHA1(d98c852273795701a723f4daf7697811acf6e2ff) )
+
+	ROM_REGION( 0x10000000, "gfx", 0 )
+	// 4x 64MB flash ROMs (U1, U2, U3, U4) mounted onto a custom SODIMM at CN1 with a sticker "CG V-104CN"
+	ROM_LOAD( "cg_v-104cn.u1", 0x0000000, 0x4000000, CRC(2b00c8b8) SHA1(6dced939047dd142e75ae6efb1f3cb3ac5188db7) )
+	ROM_LOAD( "cg_v-104cn.u2", 0x4000000, 0x4000000, CRC(42bad72d) SHA1(0a821ed89201b7e14d4ccc93fe2967e60773fb3c) )
+	ROM_LOAD( "cg_v-104cn.u3", 0x8000000, 0x4000000, CRC(b58b4b10) SHA1(d9df10fcb182dc2b01a3b73ac402288facf4eaea) )
+	ROM_LOAD( "cg_v-104cn.u4", 0xc000000, 0x4000000, CRC(c9895b0c) SHA1(532f859d431ab84903485c7c5918529614ea4fe8) )
+ROM_END
+
+
+// 终极斗地主 (Zhōngjí Dòu Dìzhǔ)
+ROM_START( zjddz )
+	ROM_REGION( 0x04000, "maincpu", 0 )
+	// Internal ROM of IGS036 ARM based MCU
+	ROM_LOAD( "zjddz_igs036", 0x00000, 0x4000, NO_DUMP )
+
+	ROM_REGION32_LE( 0x200000, "user1", 0 ) // external ARM data / prg
+	ROM_LOAD( "v-204cn.u11", 0x000000, 0x200000, CRC(c6043975) SHA1(5b7a867e0e3023b831abf35f84f3f60b9ae0e41c) )
+
+	ROM_REGION( 0x800000, "tt5665", 0 ) // samples
+	ROM_LOAD( "v-204cn.u19", 0x000000, 0x800000, CRC(4c2a0c14) SHA1(d98c852273795701a723f4daf7697811acf6e2ff) )
+
+	ROM_REGION( 0x10000000, "gfx", 0 )
+	// 4x 64MB flash ROMs (U1, U2, U3, U4) mounted onto a custom SODIMM at CN1 with a sticker "CG V-204CN"
+	ROM_LOAD( "cg_v-204cn.u1", 0x0000000, 0x4000000, CRC(2b00c8b8) SHA1(6dced939047dd142e75ae6efb1f3cb3ac5188db7) ) // same as hlddz
+	ROM_LOAD( "cg_v-204cn.u2", 0x4000000, 0x4000000, CRC(42bad72d) SHA1(0a821ed89201b7e14d4ccc93fe2967e60773fb3c) ) // "
+	ROM_LOAD( "cg_v-204cn.u3", 0x8000000, 0x4000000, CRC(b58b4b10) SHA1(d9df10fcb182dc2b01a3b73ac402288facf4eaea) ) // "
+	ROM_LOAD( "cg_v-204cn.u4", 0xc000000, 0x4000000, CRC(c9895b0c) SHA1(532f859d431ab84903485c7c5918529614ea4fe8) ) // "
 ROM_END
 
 
@@ -708,76 +788,29 @@ void igs_m036_state::pgm_create_dummy_internal_arm_region()
 
 }
 
-
-
-void igs_m036_state::igs_m036(machine_config &config)
-{
-	IGS036(config, m_maincpu, 20_MHz_XTAL);
-	m_maincpu->set_addrmap(AS_PROGRAM, &igs_m036_state::igs_m036_map);
-
-	screen_device &screen(SCREEN(config, "screen", SCREEN_TYPE_RASTER));
-	screen.set_refresh_hz(60);
-	screen.set_vblank_time(ATTOSECONDS_IN_USEC(0));
-	screen.set_size(512, 256);
-	screen.set_visarea(0, 512-1, 0, 256-1);
-	screen.set_screen_update(FUNC(igs_m036_state::screen_update_igs_m036));
-	screen.set_palette("palette");
-
-	PALETTE(config, "palette").set_entries(0x200);
-
-	SPEAKER(config, "speaker").front_center();
-	OKIM6295(config, "oki", 1'000'000, okim6295_device::PIN7_LOW).add_route(ALL_OUTPUTS, "speaker", 1.0); // clock and pin 7 not verified
-}
-
-
-void igs_m036_state::igs_m036_tt(machine_config &config)
-{
-	IGS036(config, m_maincpu, 20_MHz_XTAL);
-	m_maincpu->set_addrmap(AS_PROGRAM, &igs_m036_state::igs_m036_map);
-
-	screen_device &screen(SCREEN(config, "screen", SCREEN_TYPE_RASTER));
-	screen.set_refresh_hz(60);
-	screen.set_vblank_time(ATTOSECONDS_IN_USEC(0));
-	screen.set_size(512, 256);
-	screen.set_visarea(0, 512-1, 0, 256-1);
-	screen.set_screen_update(FUNC(igs_m036_state::screen_update_igs_m036));
-	screen.set_palette("palette");
-
-	PALETTE(config, "palette").set_entries(0x200);
-
-	SPEAKER(config, "speaker").front_center();
-	TT5665(config, "tt5665", 4.952_MHz_XTAL, tt5665_device::ss_state::SS_HIGH, 0).add_route(1, "speaker", 1.0);
-}
-
-
-
 void igs_m036_state::init_igs_m036()
 {
 	pgm_create_dummy_internal_arm_region();
 }
 
-void igs_m036_state::init_cjdh2()
+template <const uint8_t (&Key)[0x100]>
+void igs_m036_state::init_key()
 {
 	init_igs_m036();
 
-	igs036_decryptor decrypter(cjdh2_key);
+	igs036_decryptor decrypter(Key);
 	decrypter.decrypter_rom((uint16_t*)memregion("user1")->base(), memregion("user1")->bytes(), 0);
 }
 
-void igs_m036_state::init_cjddzsp()
+void igs_m036_state::init_mghammer()
 {
 	init_igs_m036();
 
-	igs036_decryptor decrypter(cjddzsp_key);
+	igs036_decryptor decrypter(mghammer_key);
 	decrypter.decrypter_rom((uint16_t*)memregion("user1")->base(), memregion("user1")->bytes(), 0);
-}
 
-void igs_m036_state::init_igsm312()
-{
-	init_igs_m036();
-
-	igs036_decryptor decrypter(m312cn_key);
-	decrypter.decrypter_rom((uint16_t*)memregion("user1")->base(), memregion("user1")->bytes(), 0);
+	igs036_decryptor decrypter2(mghammer_io_key);
+	decrypter2.decrypter_rom((uint16_t*)memregion("io")->base(), memregion("io")->bytes(), 0);
 }
 
 } // anonymous namespace
@@ -789,48 +822,52 @@ void igs_m036_state::init_igsm312()
 
 ***************************************************************************/
 
-GAME( 200?, cjdh2,    0,     igs_m036,    igs_m036, igs_m036_state, init_cjdh2,    ROT0, "IGS",           "Chao Ji Da Heng 2 (V311CN)", MACHINE_NO_SOUND | MACHINE_NOT_WORKING )
-GAME( 200?, cjdh2a,   cjdh2, igs_m036,    igs_m036, igs_m036_state, init_cjdh2,    ROT0, "IGS",           "Chao Ji Da Heng 2 (V311CNA)", MACHINE_NO_SOUND | MACHINE_NOT_WORKING )
-GAME( 200?, cjdh2b,   cjdh2, igs_m036,    igs_m036, igs_m036_state, init_cjdh2,    ROT0, "IGS",           "Chao Ji Da Heng 2 (V311CNB)", MACHINE_NO_SOUND | MACHINE_NOT_WORKING )
-GAME( 200?, cjdh2c,   cjdh2, igs_m036,    igs_m036, igs_m036_state, init_cjdh2,    ROT0, "IGS",           "Chao Ji Da Heng 2 (V215CN)", MACHINE_NO_SOUND | MACHINE_NOT_WORKING )
-GAME( 200?, cjdh2d,   cjdh2, igs_m036,    igs_m036, igs_m036_state, init_cjdh2,    ROT0, "IGS",           "Chao Ji Da Heng 2 (V311CN, alternate GFX ROMs)", MACHINE_NO_SOUND | MACHINE_NOT_WORKING )
+GAME( 200?, cjdh2,    0,     igs_m036,    igs_m036, igs_m036_state, init_key<cjdh2_key>,    ROT0, "IGS",           "Chao Ji Da Heng 2 (V311CN)", MACHINE_NO_SOUND | MACHINE_NOT_WORKING )
+GAME( 200?, cjdh2a,   cjdh2, igs_m036,    igs_m036, igs_m036_state, init_key<cjdh2_key>,    ROT0, "IGS",           "Chao Ji Da Heng 2 (V311CNA)", MACHINE_NO_SOUND | MACHINE_NOT_WORKING )
+GAME( 200?, cjdh2b,   cjdh2, igs_m036,    igs_m036, igs_m036_state, init_key<cjdh2_key>,    ROT0, "IGS",           "Chao Ji Da Heng 2 (V311CNB)", MACHINE_NO_SOUND | MACHINE_NOT_WORKING )
+GAME( 200?, cjdh2c,   cjdh2, igs_m036,    igs_m036, igs_m036_state, init_key<cjdh2_key>,    ROT0, "IGS",           "Chao Ji Da Heng 2 (V215CN)", MACHINE_NO_SOUND | MACHINE_NOT_WORKING )
+GAME( 200?, cjdh2d,   cjdh2, igs_m036,    igs_m036, igs_m036_state, init_key<cjdh2_key>,    ROT0, "IGS",           "Chao Ji Da Heng 2 (V311CN, alternate GFX ROMs)", MACHINE_NO_SOUND | MACHINE_NOT_WORKING )
 
-GAME( 200?, cjddzsp,  0,     igs_m036_tt, igs_m036, igs_m036_state, init_cjddzsp,  ROT0, "IGS",           "Super Dou Di Zhu Special (V122CN)", MACHINE_NO_SOUND | MACHINE_NOT_WORKING )
+GAME( 200?, cjddzsp,  0,     igs_m036_tt, igs_m036, igs_m036_state, init_key<cjddzsp_key>,  ROT0, "IGS",           "Super Dou Di Zhu Special (V122CN)", MACHINE_NO_SOUND | MACHINE_NOT_WORKING )
 
-GAME( 2007, qhzb,     0,     igs_m036_tt, igs_m036, igs_m036_state, init_cjddzsp,  ROT0, "IGS",           "Que Huang Zheng Ba (V100CN)", MACHINE_NO_SOUND | MACHINE_NOT_WORKING )
+GAME( 2007, qhzb,     0,     igs_m036_tt, igs_m036, igs_m036_state, init_key<qhzb_key>,     ROT0, "IGS",           "Que Huang Zheng Ba (V100CN)", MACHINE_NO_SOUND | MACHINE_NOT_WORKING )
 
-GAME( 2009, lhtb,     0,     igs_m036_tt, igs_m036, igs_m036_state, init_cjddzsp,  ROT0, "IGS",           "Long Hu Tebie Ban (V101CN)", MACHINE_NO_SOUND | MACHINE_NOT_WORKING ) // 龍虎特別版 - Lónghǔ tèbié bǎn
+GAME( 2009, lhtb,     0,     igs_m036_tt, igs_m036, igs_m036_state, init_key<lhtb_key>,     ROT0, "IGS",           "Long Hu Tebie Ban (S101CN)", MACHINE_NO_SOUND | MACHINE_NOT_WORKING ) // 龍虎特別版 - Lónghǔ tèbié bǎn
 
-GAME( 200?, lhzb3in1, 0,     igs_m036_tt, igs_m036, igs_m036_state, init_cjddzsp,  ROT0, "IGS",           "Long Hu Zhengba San He Yi (V100CN)", MACHINE_NO_SOUND | MACHINE_NOT_WORKING ) // 龙虎争霸三合一
+GAME( 2010, lhzb3in1, 0,     igs_m036_tt, igs_m036, igs_m036_state, init_key<lhzb3in1_key>, ROT0, "IGS",           "Long Hu Zhengba San He Yi (V100CN)", MACHINE_NO_SOUND | MACHINE_NOT_WORKING ) // 龙虎争霸三合一
 
-GAME( 200?, igsm312,  0,     igs_m036_tt, igs_m036, igs_m036_state, init_igsm312,  ROT0, "IGS",           "unknown 'IGS 6POKER2' game (V312CN)", MACHINE_NO_SOUND | MACHINE_NOT_WORKING ) // there's very little code and no gfx ROMs, might be a 'set/clear' chip for a gambling game.
+GAME( 200?, igsm312,  0,     igs_m036_tt, igs_m036, igs_m036_state, init_key<m312cn_key>,   ROT0, "IGS",           "unknown 'IGS 6POKER2' game (V312CN)", MACHINE_NO_SOUND | MACHINE_NOT_WORKING ) // there's very little code and no gfx ROMs, might be a 'set/clear' chip for a gambling game.
 
-GAME( 200?, super70s, 0,     igs_m036_tt, igs_m036, igs_m036_state, init_igsm312,  ROT0, "IGS",           "Super 70's (V100US)", MACHINE_NO_SOUND | MACHINE_NOT_WORKING )
+GAME( 200?, super70s, 0,     igs_m036_tt, igs_m036, igs_m036_state, init_igs_m036,          ROT0, "IGS",           "Super 70's (V100US)", MACHINE_NO_SOUND | MACHINE_NOT_WORKING )
 
-GAME( 200?, jhzb,     0,     igs_m036,    igs_m036, igs_m036_state, init_igs_m036, ROT0, "IGS",           "Jin Hua Zhengba (V113CN)", MACHINE_NO_SOUND | MACHINE_NOT_WORKING )
+GAME( 200?, jhzb,     0,     igs_m036,    igs_m036, igs_m036_state, init_igs_m036,          ROT0, "IGS",           "Jin Hua Zhengba (V113CN)", MACHINE_NO_SOUND | MACHINE_NOT_WORKING )
 
-GAME( 200?, jxry,     0,     igs_m036,    igs_m036, igs_m036_state, init_igs_m036, ROT0, "IGS",           "Jixiang Ruyi (V116CN)", MACHINE_NO_SOUND | MACHINE_NOT_WORKING )
+GAME( 200?, jxry,     0,     igs_m036,    igs_m036, igs_m036_state, init_key<jxry_key>,     ROT0, "IGS",           "Jixiang Ruyi (V116CN)", MACHINE_NO_SOUND | MACHINE_NOT_WORKING )
 
-GAME( 200?, dahuaxy,  0,     igs_m036,    igs_m036, igs_m036_state, init_igs_m036, ROT0, "IGS",           "Dahua Xiyou (V201CN)", MACHINE_NO_SOUND | MACHINE_NOT_WORKING )
+GAME( 200?, dahuaxy,  0,     igs_m036,    igs_m036, igs_m036_state, init_key<dahuaxy_key>,  ROT0, "IGS",           "Dahua Xiyou (V201CN)", MACHINE_NO_SOUND | MACHINE_NOT_WORKING )
 
-GAME( 200?, huoqilin, 0,     igs_m036,    igs_m036, igs_m036_state, init_igs_m036, ROT0, "IGS",           "Huo Qilin (V116CN)", MACHINE_NO_SOUND | MACHINE_NOT_WORKING )
+GAME( 200?, huoqilin, 0,     igs_m036,    igs_m036, igs_m036_state, init_igs_m036,          ROT0, "IGS",           "Huo Qilin (V116CN)", MACHINE_NO_SOUND | MACHINE_NOT_WORKING )
 
-GAME( 200?, slqzsp,   0,     igs_m036_tt, igs_m036, igs_m036_state, init_igs_m036, ROT0, "IGS",           "Shuang Long Qiang Zhu Tebie Ban (V104CN)", MACHINE_NO_SOUND | MACHINE_NOT_WORKING )
+GAME( 2008, slqzsp,   0,     igs_m036_tt, igs_m036, igs_m036_state, init_key<slqzsp_key>,   ROT0, "IGS",           "Shuang Long Qiang Zhu Tebie Ban (V104CN)", MACHINE_NO_SOUND | MACHINE_NOT_WORKING )
 
-GAME( 200?, sydh,     0,     igs_m036_tt, igs_m036, igs_m036_state, init_igs_m036, ROT0, "IGS",           "Shayu Daheng (V104CN)", MACHINE_NO_SOUND | MACHINE_NOT_WORKING )
+GAME( 200?, sydh,     0,     igs_m036_tt, igs_m036, igs_m036_state, init_key<sydh_key>,     ROT0, "IGS",           "Shayu Daheng (V104CN)", MACHINE_NO_SOUND | MACHINE_NOT_WORKING )
 
-GAME( 200?, xyddz,    0,     igs_m036_tt, igs_m036, igs_m036_state, init_igs_m036, ROT0, "IGS",           "Xiaoyao Dou Dizhu", MACHINE_NO_SOUND | MACHINE_NOT_WORKING )
+GAME( 200?, xyddz,    0,     igs_m036_tt, igs_m036, igs_m036_state, init_key<xyddz_key>,    ROT0, "IGS",           "Xiaoyao Dou Dizhu (V216CN)", MACHINE_NO_SOUND | MACHINE_NOT_WORKING )
 
-GAME( 200?, cjbq,     0,     igs_m036_tt, igs_m036, igs_m036_state, init_igs_m036, ROT0, "IGS",           "Chaoji Bie Qi (V205CN)", MACHINE_NO_SOUND | MACHINE_NOT_WORKING )
+GAME( 200?, cjbq,     0,     igs_m036_tt, igs_m036, igs_m036_state, init_key<cjbq_key>,     ROT0, "IGS",           "Chaoji Bie Qi (V205CN)", MACHINE_NO_SOUND | MACHINE_NOT_WORKING )
 
-GAME( 200?, cjgdy,    0,     igs_m036_tt, igs_m036, igs_m036_state, init_igs_m036, ROT0, "IGS",           "Chaoji Gan Dengyan (V110CN)", MACHINE_NO_SOUND | MACHINE_NOT_WORKING )
+GAME( 2009, cjgdy,    0,     igs_m036_tt, igs_m036, igs_m036_state, init_key<cjgdy_key>,    ROT0, "IGS",           "Chaoji Gan Dengyan (V110CN)", MACHINE_NO_SOUND | MACHINE_NOT_WORKING )
 
-GAME( 200?, xydn,     0,     igs_m036_tt, igs_m036, igs_m036_state, init_igs_m036, ROT0, "IGS",           "Xiyou Douniu (S110CN)", MACHINE_NO_SOUND | MACHINE_NOT_WORKING )
+GAME( 200?, xydn,     0,     igs_m036_tt, igs_m036, igs_m036_state, init_key<xydn_key>,     ROT0, "IGS",           "Xiyou Douniu (S110CN)", MACHINE_NO_SOUND | MACHINE_NOT_WORKING )
 
-GAME( 200?, mjzhizun, 0,     igs_m036_tt, igs_m036, igs_m036_state, init_igs_m036, ROT0, "IGS",           "Majiang Zhizun (S100CN)", MACHINE_NO_SOUND | MACHINE_NOT_WORKING )
+GAME( 2010, mjzhizun, 0,     igs_m036_tt, igs_m036, igs_m036_state, init_key<mjzhizun_key>, ROT0, "IGS",           "Majiang Zhizun (S100CN)", MACHINE_NO_SOUND | MACHINE_NOT_WORKING )
 
-GAME( 2010, lhfy,     0,     igs_m036_tt, igs_m036, igs_m036_state, init_igsm312,  ROT0, "IGS",           "Long Hu Feng Yun Gao Qing Ban (V206CN)", MACHINE_NO_SOUND | MACHINE_NOT_WORKING )
+GAME( 2010, lhfy,     0,     igs_m036_tt, igs_m036, igs_m036_state, init_key<lhfy_key>,     ROT0, "IGS",           "Long Hu Feng Yun Gao Qing Ban (V206CN)", MACHINE_NO_SOUND | MACHINE_NOT_WORKING )
 
-GAME( 2010, lhzbgqb,  0,     igs_m036_tt, igs_m036, igs_m036_state, init_igsm312,  ROT0, "IGS",           "Long Hu Zheng Ba Gao Qing Ban (V105CN)", MACHINE_NO_SOUND | MACHINE_NOT_WORKING )
+GAME( 20??, hlddz,    0,     igs_m036_tt, igs_m036, igs_m036_state, init_igs_m036,          ROT0, "IGS",           "Huanle Dou Dizhu (V104CN)", MACHINE_NO_SOUND | MACHINE_NOT_WORKING )
 
-GAME( 2015, mghammer, 0,     igs_m036_tt, igs_m036, igs_m036_state, init_igsm312,  ROT0, "IGS / Enheart", "Medal Get Hammer (V100JP)", MACHINE_NO_SOUND | MACHINE_NOT_WORKING )
+GAME( 2010, zjddz,    0,     igs_m036_tt, igs_m036, igs_m036_state, init_key<zjddz_key>,    ROT0, "IGS",           "Zhongji Dou Dizhu (V204CN)", MACHINE_NO_SOUND | MACHINE_NOT_WORKING )
+
+GAME( 2010, lhzbgqb,  0,     igs_m036_tt, igs_m036, igs_m036_state, init_key<lhzbgqb_key>,  ROT0, "IGS",           "Long Hu Zheng Ba Gao Qing Ban (V105CN)", MACHINE_NO_SOUND | MACHINE_NOT_WORKING )
+
+GAME( 2015, mghammer, 0,     igs_m036_tt, igs_m036, igs_m036_state, init_mghammer,          ROT0, "IGS / Enheart", "Medal Get Hammer (V100JP)", MACHINE_NO_SOUND | MACHINE_NOT_WORKING ) // but has S033CN strings?

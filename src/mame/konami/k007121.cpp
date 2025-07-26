@@ -53,16 +53,20 @@ outputs:
 - color code to be output on screen (COA0-COA6)
 
 
-control registers
+control registers:
+
 000:          scroll x (low 8 bits)
-001: -------x scroll x (high bit)
-     ------x- enable rowscroll? (combatsc)
-     -----x-- unknown (flak attack)
+
+001: -------x scroll x (high bit, if tilemap width > 256)
+     ------x- enable row/colscroll instead of normal scroll (combatsc)
+     -----x-- if above is enabled: 0 = rowscroll, 1 = colscroll
      ----x--- this probably selects an alternate screen layout used in combat
               school where tilemap #2 is overlayed on front and doesn't scroll.
               The 32 lines of the front layer can be individually turned on or
               off using the second 32 bytes of scroll RAM.
+
 002:          scroll y
+
 003: -------x bit 13 of the tile code
      ------x- unknown (contra)
      -----x-- might be sprite / tilemap priority (0 = sprites have priority)
@@ -84,10 +88,12 @@ control registers
               visible area from 256 to 240 pixels. This is used by combatsc on
               the scrolling stages, and by labyrunr on the title screen.
      x------- unknown (contra)
+
 004: ----xxxx bits 9-12 of the tile code. Only the bits enabled by the following
               mask are actually used, and replace the ones selected by register
               005.
      xxxx---- mask enabling the above bits
+
 005: selects where in the attribute byte to pick bits 9-12 of the tile code,
      output to pins R12-R15. The bit of the attribute byte to use is the
      specified bit (0-3) + 3, that is one of bits 3-6. Bit 7 is hardcoded as
@@ -97,6 +103,7 @@ control registers
      ----xx-- attribute bit to use for tile code bit 10
      --xx---- attribute bit to use for tile code bit 11
      xx------ attribute bit to use for tile code bit 12
+
 006: ----xxxx select additional effect for bits 3-6 of the tile attribute (the
               same ones indexed by register 005). Note that an attribute bit
               can therefore be used at the same time to be BOTH a tile code bit
@@ -113,15 +120,17 @@ control registers
               to place soldiers behind the stand.
               Use in labyrunr has not been investigated yet.
      --xx---- palette bank (both tiles and sprites, see contra)
+
 007: -------x nmi enable
      ------x- irq enable
      -----x-- firq enable
      ----x--- flip screen
-     ---x---- unknown (contra, labyrunr)
+     ---x---- nmi frequency (0 = 8 times per frame, 1 = 4 times)
 
 TODO:
+- Move tilemap(s) emulation from drivers to this device.
 - As noted above, the maximum number of 64-pixel sprite blocks is 264. MAME
-  doesn't emulate partial sprites at the end of the spritelist. Is's not
+  doesn't emulate partial sprites at the end of the spritelist. It's not
   expected any game relies on this.
 
 BTANB:
@@ -134,21 +143,22 @@ BTANB:
 #include "emu.h"
 #include "k007121.h"
 #include "konami_helper.h"
-#include "tilemap.h"
 
-#define VERBOSE 0
-#define LOG(x) do { if (VERBOSE) logerror x; } while (0)
+#include "screen.h"
 
 
-DEFINE_DEVICE_TYPE(K007121, k007121_device, "k007121", "K007121 Sprite/Tilemap Controller")
+DEFINE_DEVICE_TYPE(K007121, k007121_device, "k007121", "Konami 007121 Video Controller")
 
 k007121_device::k007121_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock)
 	: device_t(mconfig, K007121, tag, owner, clock)
 	, device_gfx_interface(mconfig, *this)
+	, device_video_interface(mconfig, *this)
 	, m_flipscreen(false)
 	, m_spriteram(nullptr)
 	, m_flipscreen_cb(*this)
-	, m_dirtytiles_cb(*this)
+	, m_irq_cb(*this)
+	, m_firq_cb(*this)
+	, m_nmi_cb(*this)
 {
 }
 
@@ -158,14 +168,17 @@ k007121_device::k007121_device(const machine_config &mconfig, const char *tag, d
 
 void k007121_device::device_start()
 {
-	m_dirtytiles_cb.resolve();
-
 	save_item(NAME(m_ctrlram));
+	save_item(NAME(m_scrollram));
 	save_item(NAME(m_flipscreen));
 	save_item(NAME(m_sprites_buffer));
 
 	memset(m_ctrlram, 0, sizeof(m_ctrlram));
+	memset(m_scrollram, 0, sizeof(m_scrollram));
 	memset(m_sprites_buffer, 0, sizeof(m_sprites_buffer));
+
+	m_scanline_timer = timer_alloc(FUNC(k007121_device::scanline), this);
+	m_scanline_timer->adjust(screen().time_until_pos(0), 0);
 }
 
 //-------------------------------------------------
@@ -183,27 +196,36 @@ void k007121_device::device_reset()
     DEVICE HANDLERS
 *****************************************************************************/
 
-uint8_t k007121_device::ctrlram_r(offs_t offset)
-{
-	assert(offset < 8);
-
-	return m_ctrlram[offset];
-}
-
-
 void k007121_device::ctrl_w(offs_t offset, uint8_t data)
 {
-	assert(offset < 8);
+	offset &= 7;
 
 	// associated tilemap(s) should be marked dirty if any of these registers changed
-	static const uint8_t dirtymask[8] = { 0x00, 0x00, 0x00, 0x01, 0xff, 0xff, 0x30, 0x00 };
-	if ((data ^ m_ctrlram[offset]) & dirtymask[offset] && !m_dirtytiles_cb.isnull())
-		m_dirtytiles_cb();
+	static const uint8_t dirtymask[8] = { 0x00, 0x00, 0x00, 0x01, 0xff, 0xff, 0x3f, 0x00 };
+	if ((data ^ m_ctrlram[offset]) & dirtymask[offset])
+	{
+		for (auto &tilemap : m_tilemaps)
+			tilemap->mark_all_dirty();
+	}
 
 	if (offset == 7)
 	{
-		m_flipscreen = BIT(data, 3);
-		m_flipscreen_cb(BIT(data, 3));
+		// clear interrupts
+		if (BIT(~data & m_ctrlram[7], 1))
+			m_irq_cb(CLEAR_LINE);
+
+		if (BIT(~data & m_ctrlram[7], 2))
+			m_firq_cb(CLEAR_LINE);
+
+		if (BIT(~data & m_ctrlram[7], 0))
+			m_nmi_cb(CLEAR_LINE);
+
+		// flipscreen
+		if (BIT(data ^ m_ctrlram[7], 3))
+		{
+			m_flipscreen = BIT(data, 3);
+			m_flipscreen_cb(BIT(data, 3));
+		}
 	}
 
 	m_ctrlram[offset] = data;
@@ -389,9 +411,9 @@ void k007121_device::sprites_draw(bitmap_ind16 &bitmap, const rectangle &cliprec
 	}
 }
 
-void k007121_device::sprites_buffer(int state)
+void k007121_device::sprites_buffer()
 {
-	if (!state || !m_spriteram)
+	if (!m_spriteram)
 		return;
 
 	const uint8_t *source = m_spriteram;
@@ -403,4 +425,39 @@ void k007121_device::sprites_buffer(int state)
 
 	// It's actually a framebuffer, but it's sufficient to just buffer the sprite list.
 	memcpy(m_sprites_buffer, source, sizeof(m_sprites_buffer));
+}
+
+
+/*****************************************************************************
+    INTERRUPTS
+*****************************************************************************/
+
+TIMER_CALLBACK_MEMBER(k007121_device::scanline)
+{
+	int scanline = param;
+
+	// NMI 8 or 4 times per frame
+	const uint8_t nmi_mask = 0x10 << BIT(m_ctrlram[7], 4);
+	if (BIT(m_ctrlram[7], 0) && (scanline & ((nmi_mask << 1) - 1)) == nmi_mask)
+		m_nmi_cb(ASSERT_LINE);
+
+	// vblank
+	if (scanline == 240)
+	{
+		// FIRQ once every other frame
+		if (BIT(m_ctrlram[7], 2) && screen().frame_number() & 1)
+			m_firq_cb(ASSERT_LINE);
+
+		if (BIT(m_ctrlram[7], 1))
+			m_irq_cb(ASSERT_LINE);
+
+		sprites_buffer();
+	}
+
+	// wait for next line
+	scanline += 16;
+	if (scanline >= screen().height())
+		scanline = 0;
+
+	m_scanline_timer->adjust(screen().time_until_pos(scanline), scanline);
 }

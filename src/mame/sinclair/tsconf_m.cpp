@@ -359,8 +359,27 @@ void tsconf_state::draw_sprites(screen_device &screen_d, bitmap_rgb32 &bitmap, c
 
 }
 
+u8 tsconf_state::ram_bank_read(u8 bank, offs_t offset)
+{
+	if (!machine().side_effects_disabled() && ((m_regs[SYS_CONFIG] & 3) == 2)) // 14Mhz
+	{
+		const u16 cpu_hi_addr = ((m_regs[PAGE0 + bank]) << 5) | BIT(offset, 9, 5);
+		if (!(m_regs[CACHE_CONFIG] & (1 << bank)) || (cpu_hi_addr != m_cache_line_addr))
+		{
+			m_cache_line_addr = cpu_hi_addr;
+			m_maincpu->adjust_icount(-2);
+		}
+	}
+
+	return reinterpret_cast<u8 *>(m_bank_ram[bank]->base())[offset];
+}
+
 void tsconf_state::ram_bank_write(u8 bank, offs_t offset, u8 data)
 {
+	const u16 cpu_hi_addr = ((m_regs[PAGE0 + bank]) << 5) | BIT(offset, 9, 5);
+	if (cpu_hi_addr == m_cache_line_addr)
+		m_cache_line_addr = -1; // invalidate cache line
+
 	if (BIT(m_regs[FMAPS], 4))
 	{
 		offs_t machine_addr = PAGE4K(bank) + offset;
@@ -703,9 +722,9 @@ void tsconf_state::tsconf_port_xxaf_w(offs_t port, u8 data)
 	case FMAPS:
 	case TS_CONFIG:
 	case INT_MASK:
+	case CACHE_CONFIG:
 	// TODO
 	case FDD_VIRT:
-	case CACHE_CONFIG:
 		break;
 
 	default:
@@ -750,9 +769,9 @@ void tsconf_state::tsconf_port_f7_w(offs_t offset, u8 data)
 				{
 				case CONF_VERSION:
 				{
-					strcpy((char *)m_fx, "M.A.M.E.");
+					strcpy((char *)m_fx, "MAME");
 					PAIR16 m_ver;
-					m_ver.w = ((22 << 9) | (02 << 5) | 8); // y.m.d
+					m_ver.w = ((25 << 9) | (07 << 5) | 31); // y.m.d
 					m_fx[0x0c] = m_ver.b.l;
 					m_fx[0x0d] = m_ver.b.h;
 					break;
@@ -766,10 +785,8 @@ void tsconf_state::tsconf_port_f7_w(offs_t offset, u8 data)
 				}
 				for (u8 i = 0; i < 0xf; i++)
 				{
-					m_glukrs->address_w(0xf0 + i);
-					m_glukrs->data_w(m_fx[i]);
+					m_glukrs->write_direct(0xf0 + i, m_fx[i]);
 				}
-				m_glukrs->address_w(0xf0);
 			}
 			else
 			{
@@ -819,14 +836,6 @@ void tsconf_state::tsconf_spi_miso_w(u8 data)
 {
 	m_zctl_di <<= 1;
 	m_zctl_di |= data;
-}
-
-void tsconf_state::tsconf_ay_address_w(u8 data)
-{
-	if ((m_mod_ay->read() == 1) && ((data & 0xfe) == 0xfe))
-		m_ay_selected = data & 1;
-	else
-		m_ay[m_ay_selected]->address_w(data);
 }
 
 IRQ_CALLBACK_MEMBER(tsconf_state::irq_vector)

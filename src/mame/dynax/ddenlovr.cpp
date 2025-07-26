@@ -5153,7 +5153,7 @@ static INPUT_PORTS_START( htengoku )
 	PORT_DIPSETTING(    0x03, DEF_STR(1C_1C) )                                                           // １コイン　１プレイ
 	PORT_DIPSETTING(    0x02, DEF_STR(1C_2C) )                                                           // １コイン　２プレイ
 	PORT_DIPSETTING(    0x01, DEF_STR(1C_5C) )                                                           // １コイン　５プレイ
-	PORT_DIPSETTING(    0x00, "1 Coin/10 Credits" )                                                      // １コイン１０プレイ
+	PORT_DIPSETTING(    0x00, DEF_STR(1C_10C) )                                                          // １コイン１０プレイ
 	PORT_DIPNAME( 0x04, 0x04, "Key-In Rate" )                       PORT_DIPLOCATION("SW 3:3")           // キーインレート
 	PORT_DIPSETTING(    0x00, "5" )      PORT_CONDITION("DSW2", 0x03, EQUALS, 0x03)                      // ×　５
 	PORT_DIPSETTING(    0x00, "10" )     PORT_CONDITION("DSW2", 0x03, EQUALS, 0x02)
@@ -5743,7 +5743,7 @@ static INPUT_PORTS_START( hanakanz )
 	PORT_DIPSETTING(    0x03, DEF_STR(1C_1C) )
 	PORT_DIPSETTING(    0x02, DEF_STR(1C_2C) )
 	PORT_DIPSETTING(    0x01, DEF_STR(1C_5C) )
-	PORT_DIPSETTING(    0x00, "1 Coin/10 Credits" )
+	PORT_DIPSETTING(    0x00, DEF_STR(1C_10C) )
 	PORT_DIPNAME( 0x0c, 0x0c, "Minimum Bet" )                       PORT_DIPLOCATION("SW2:3,4")
 	PORT_DIPSETTING(    0x0c, "1" )
 	PORT_DIPSETTING(    0x08, "2" )
@@ -5901,7 +5901,7 @@ static INPUT_PORTS_START( hkagerou )
 	PORT_DIPSETTING(    0x03, DEF_STR(1C_1C) )                                                           // １コイン　１プレイ
 	PORT_DIPSETTING(    0x02, DEF_STR(1C_2C) )                                                           // １コイン　２プレイ
 	PORT_DIPSETTING(    0x01, DEF_STR(1C_5C) )                                                           // １コイン　５プレイ
-	PORT_DIPSETTING(    0x00, "1 Coin/10 Credits" )                                                      // １コイン１０プレイ
+	PORT_DIPSETTING(    0x00, DEF_STR(1C_10C) )                                                          // １コイン１０プレイ
 	PORT_DIPNAME( 0x0c, 0x0c, "Minimum Bet" )                       PORT_DIPLOCATION("SW2:3,4")          // ゲーム・スタートの最低レート枚数
 	PORT_DIPSETTING(    0x0c, "1" )                                                                      // レート１
 	PORT_DIPSETTING(    0x08, "2" )                                                                      // レート２
@@ -6055,7 +6055,7 @@ static INPUT_PORTS_START( kotbinyo )
 	PORT_DIPSETTING(    0x38, DEF_STR( 1C_1C ) )
 	PORT_DIPSETTING(    0x30, DEF_STR( 1C_2C ) )
 	PORT_DIPSETTING(    0x28, DEF_STR( 1C_5C ) )
-	PORT_DIPSETTING(    0x20, "1 Coin/50 Credits" )
+	PORT_DIPSETTING(    0x20, DEF_STR( 1C_50C ) )
 	PORT_DIPNAME( 0x40, 0x40, DEF_STR( Controls ) )
 	PORT_DIPSETTING(    0x00, "Keyboard" )
 	PORT_DIPSETTING(    0x40, DEF_STR( Joystick ) )
@@ -6202,7 +6202,7 @@ static INPUT_PORTS_START( kotbinsp )
 	PORT_DIPSETTING(    0x38, DEF_STR( 1C_1C ) )
 	PORT_DIPSETTING(    0x30, DEF_STR( 1C_2C ) )
 	PORT_DIPSETTING(    0x28, DEF_STR( 1C_5C ) )
-	PORT_DIPSETTING(    0x20, "1 Coin/50 Credits" )
+	PORT_DIPSETTING(    0x20, DEF_STR( 1C_50C ) )
 	PORT_DIPNAME( 0x40, 0x40, "Unknown 1-6" )
 	PORT_DIPSETTING(    0x40, DEF_STR( Off ) )
 	PORT_DIPSETTING(    0x00, DEF_STR( On ) )
@@ -6279,7 +6279,7 @@ static INPUT_PORTS_START( mjreach1 )
 	PORT_DIPSETTING(    0x03, DEF_STR( 1C_1C ) )
 	PORT_DIPSETTING(    0x02, DEF_STR( 1C_2C ) )
 	PORT_DIPSETTING(    0x01, DEF_STR( 1C_5C ) )
-	PORT_DIPSETTING(    0x00, "1 Coin/10 Credits" )
+	PORT_DIPSETTING(    0x00, DEF_STR( 1C_10C ) )
 	PORT_DIPNAME( 0x0c, 0x0c, "Min Rate To Play" )
 	PORT_DIPSETTING(    0x0c, "1" )
 	PORT_DIPSETTING(    0x08, "2" )
@@ -6434,7 +6434,7 @@ static INPUT_PORTS_START( jongtei )
 	PORT_DIPSETTING(    0x03, DEF_STR( 1C_1C ) )
 	PORT_DIPSETTING(    0x02, DEF_STR( 1C_2C ) )
 	PORT_DIPSETTING(    0x01, DEF_STR( 1C_5C ) )
-	PORT_DIPSETTING(    0x00, "1 Coin/10 Credits" )
+	PORT_DIPSETTING(    0x00, DEF_STR( 1C_10C ) )
 	PORT_DIPNAME( 0x0c, 0x0c, "Min Rate To Play" )
 	PORT_DIPSETTING(    0x0c, "1" )
 	PORT_DIPSETTING(    0x08, "2" )
@@ -6549,7 +6549,7 @@ static INPUT_PORTS_START( mjgnight )
 	PORT_DIPSETTING(    0x03, DEF_STR( 1C_1C ) )
 	PORT_DIPSETTING(    0x02, DEF_STR( 1C_2C ) )
 	PORT_DIPSETTING(    0x01, DEF_STR( 1C_5C ) )
-	PORT_DIPSETTING(    0x00, "1 Coin/10 Credits" )
+	PORT_DIPSETTING(    0x00, DEF_STR( 1C_10C ) )
 	PORT_DIPNAME( 0x04, 0x04, DEF_STR( Unknown ) )
 	PORT_DIPSETTING(    0x04, DEF_STR( Off ) )
 	PORT_DIPSETTING(    0x00, DEF_STR( On ) )
@@ -6644,7 +6644,7 @@ static INPUT_PORTS_START( mjchuuka )
 	PORT_DIPSETTING(    0x03, DEF_STR( 1C_1C ) )
 	PORT_DIPSETTING(    0x02, DEF_STR( 1C_2C ) )
 	PORT_DIPSETTING(    0x01, DEF_STR( 1C_5C ) )
-	PORT_DIPSETTING(    0x00, "1 Coin/10 Credits" )
+	PORT_DIPSETTING(    0x00, DEF_STR( 1C_10C ) )
 	PORT_DIPNAME( 0x0c, 0x0c, "Min Rate To Play" )
 	PORT_DIPSETTING(    0x0c, "1" )
 	PORT_DIPSETTING(    0x08, "2" )
@@ -6799,7 +6799,7 @@ static INPUT_PORTS_START( mjschuka )
 	PORT_DIPSETTING(    0x03, DEF_STR( 1C_1C ) )
 	PORT_DIPSETTING(    0x02, DEF_STR( 1C_2C ) )
 	PORT_DIPSETTING(    0x01, DEF_STR( 1C_5C ) )
-	PORT_DIPSETTING(    0x00, "1 Coin/10 Credits" )
+	PORT_DIPSETTING(    0x00, DEF_STR( 1C_10C ) )
 	PORT_DIPNAME( 0x0c, 0x0c, "Min Rate To Play" )
 	PORT_DIPSETTING(    0x0c, "1" )
 	PORT_DIPSETTING(    0x08, "2" )
@@ -7151,7 +7151,7 @@ static INPUT_PORTS_START( mjmyster )
 	PORT_DIPSETTING(    0x06, DEF_STR(1C_1C) )       PORT_CONDITION("FAKE", 0x01, EQUALS, 0x01)   // 1コイン  1プレイ
 	PORT_DIPSETTING(    0x04, DEF_STR(1C_2C) )       PORT_CONDITION("FAKE", 0x01, EQUALS, 0x01)   // 1コイン  2プレイ
 	PORT_DIPSETTING(    0x02, DEF_STR(1C_5C) )       PORT_CONDITION("FAKE", 0x01, EQUALS, 0x01)   // 1コイン  5プレイ
-	PORT_DIPSETTING(    0x00, "1 Coin/10 Credits" )  PORT_CONDITION("FAKE", 0x01, EQUALS, 0x01)   // 1コイン 10プレイ
+	PORT_DIPSETTING(    0x00, DEF_STR(1C_10C) )      PORT_CONDITION("FAKE", 0x01, EQUALS, 0x01)   // 1コイン 10プレイ
 	PORT_DIPSETTING(    0x04, DEF_STR(2C_1C) )       PORT_CONDITION("FAKE", 0x01, EQUALS, 0x00)
 	PORT_DIPSETTING(    0x02, DEF_STR(2C_2C) )       PORT_CONDITION("FAKE", 0x01, EQUALS, 0x00)
 	PORT_DIPSETTING(    0x06, DEF_STR(1C_1C) )       PORT_CONDITION("FAKE", 0x01, EQUALS, 0x00)
@@ -7304,7 +7304,7 @@ static INPUT_PORTS_START( hginga )
 	PORT_DIPSETTING(    0x03, DEF_STR(1C_1C) )                                                           // １コイン　１プレイ
 	PORT_DIPSETTING(    0x02, DEF_STR(1C_2C) )                                                           // １コイン　２プレイ
 	PORT_DIPSETTING(    0x01, DEF_STR(1C_5C) )                                                           // １コイン　５プレイ
-	PORT_DIPSETTING(    0x00, "1 Coin/10 Credits" )                                                      // １コイン１０プレイ
+	PORT_DIPSETTING(    0x00, DEF_STR(1C_10C) )                                                          // １コイン１０プレイ
 	PORT_DIPNAME( 0x0c, 0x0c, "Minimum Bet" )                       PORT_DIPLOCATION("SW2:3,4")          // 最低　ベットレート
 	PORT_DIPSETTING(    0x0c, "1" )                                                                      // レート１
 	PORT_DIPSETTING(    0x08, "2" )                                                                      // レート２
@@ -7465,7 +7465,7 @@ static INPUT_PORTS_START( hgokou )
 	PORT_DIPSETTING(    0x03, DEF_STR( 1C_1C ) )
 	PORT_DIPSETTING(    0x02, DEF_STR( 1C_2C ) )
 	PORT_DIPSETTING(    0x01, DEF_STR( 1C_5C ) )
-	PORT_DIPSETTING(    0x00, "1 Coin 10 Credits" )
+	PORT_DIPSETTING(    0x00, DEF_STR( 1C_10C ) )
 	PORT_DIPNAME( 0x0c, 0x0c, "Minimum Bet" )              PORT_DIPLOCATION("SW2:3,4")
 	PORT_DIPSETTING(    0x0c, "1" )
 	PORT_DIPSETTING(    0x08, "2" )
@@ -7694,7 +7694,7 @@ static INPUT_PORTS_START( mjmyornt )
 	PORT_DIPSETTING(    0x06, DEF_STR(1C_1C) )       PORT_CONDITION("DSW5", 0x01, EQUALS, 0x01)   // １コイン　　　１プレイ
 	PORT_DIPSETTING(    0x04, DEF_STR(1C_2C) )       PORT_CONDITION("DSW5", 0x01, EQUALS, 0x01)   // １コイン　　　２プレイ
 	PORT_DIPSETTING(    0x02, DEF_STR(1C_5C) )       PORT_CONDITION("DSW5", 0x01, EQUALS, 0x01)   // １コイン　　　５プレイ
-	PORT_DIPSETTING(    0x00, "1 Coin/10 Credits" )  PORT_CONDITION("DSW5", 0x01, EQUALS, 0x01)   // １コイン　　１０プレイ
+	PORT_DIPSETTING(    0x00, DEF_STR(1C_10C) )      PORT_CONDITION("DSW5", 0x01, EQUALS, 0x01)   // １コイン　　１０プレイ
 	PORT_DIPSETTING(    0x02, DEF_STR(2C_2C) )       PORT_CONDITION("DSW5", 0x01, EQUALS, 0x00)
 	PORT_DIPSETTING(    0x06, DEF_STR(1C_1C) )       PORT_CONDITION("DSW5", 0x01, EQUALS, 0x00)
 	PORT_DIPSETTING(    0x00, DEF_STR(2C_3C) )       PORT_CONDITION("DSW5", 0x01, EQUALS, 0x00)
@@ -7726,7 +7726,7 @@ static INPUT_PORTS_START( mjmyorn2 )
 	PORT_DIPSETTING(    0x06, DEF_STR(1C_1C) )       PORT_CONDITION("DSW5", 0x01, EQUALS, 0x01)
 	PORT_DIPSETTING(    0x04, DEF_STR(1C_2C) )       PORT_CONDITION("DSW5", 0x01, EQUALS, 0x01)
 	PORT_DIPSETTING(    0x02, DEF_STR(1C_5C) )       PORT_CONDITION("DSW5", 0x01, EQUALS, 0x01)
-	PORT_DIPSETTING(    0x00, "1 Coin/10 Credits" )  PORT_CONDITION("DSW5", 0x01, EQUALS, 0x01)
+	PORT_DIPSETTING(    0x00, DEF_STR(1C_10C) )      PORT_CONDITION("DSW5", 0x01, EQUALS, 0x01)
 	PORT_DIPSETTING(    0x04, DEF_STR(2C_1C) )       PORT_CONDITION("DSW5", 0x01, EQUALS, 0x00) // this setting differs from mjmyornt
 	PORT_DIPSETTING(    0x02, DEF_STR(2C_2C) )       PORT_CONDITION("DSW5", 0x01, EQUALS, 0x00)
 	PORT_DIPSETTING(    0x06, DEF_STR(1C_1C) )       PORT_CONDITION("DSW5", 0x01, EQUALS, 0x00)
@@ -8097,7 +8097,7 @@ static INPUT_PORTS_START( sryudens )
 	PORT_DIPSETTING(    0x03, DEF_STR( 1C_1C ) )
 	PORT_DIPSETTING(    0x02, DEF_STR( 1C_2C ) )
 	PORT_DIPSETTING(    0x01, DEF_STR( 1C_5C ) )
-	PORT_DIPSETTING(    0x00, "1 Coin/10 Credits" )
+	PORT_DIPSETTING(    0x00, DEF_STR( 1C_10C ) )
 	PORT_DIPNAME( 0x0c, 0x0c, "Min Rate To Play" )
 	PORT_DIPSETTING(    0x0c, "1" )
 	PORT_DIPSETTING(    0x08, "2" )
@@ -8252,7 +8252,7 @@ static INPUT_PORTS_START( seljan2 )
 	PORT_DIPSETTING(    0x03, DEF_STR( 1C_1C ) )
 	PORT_DIPSETTING(    0x02, DEF_STR( 1C_2C ) )
 	PORT_DIPSETTING(    0x01, DEF_STR( 1C_5C ) )
-	PORT_DIPSETTING(    0x00, "1 Coin/10 Credits" )
+	PORT_DIPSETTING(    0x00, DEF_STR( 1C_10C ) )
 	PORT_DIPNAME( 0x0c, 0x0c, "Min Rate To Play" )
 	PORT_DIPSETTING(    0x0c, "1" )
 	PORT_DIPSETTING(    0x08, "2" )
@@ -8407,7 +8407,7 @@ static INPUT_PORTS_START( janshinp )
 	PORT_DIPSETTING(    0x03, DEF_STR( 1C_1C ) )
 	PORT_DIPSETTING(    0x02, DEF_STR( 1C_2C ) )
 	PORT_DIPSETTING(    0x01, DEF_STR( 1C_5C ) )
-	PORT_DIPSETTING(    0x00, "1 Coin/10 Credits" )
+	PORT_DIPSETTING(    0x00, DEF_STR( 1C_10C ) )
 	PORT_DIPNAME( 0x0c, 0x0c, "Min Rate To Play" )
 	PORT_DIPSETTING(    0x0c, "1" )
 	PORT_DIPSETTING(    0x08, "2" )
@@ -8561,7 +8561,7 @@ static INPUT_PORTS_START( dtoyoken )
 	PORT_DIPSETTING(    0x03, DEF_STR( 1C_1C ) )
 	PORT_DIPSETTING(    0x02, DEF_STR( 1C_2C ) )
 	PORT_DIPSETTING(    0x01, DEF_STR( 1C_5C ) )
-	PORT_DIPSETTING(    0x00, "1 Coin/10 Credits" )
+	PORT_DIPSETTING(    0x00, DEF_STR( 1C_10C ) )
 	PORT_DIPNAME( 0x0c, 0x0c, "Min Rate To Play" )
 	PORT_DIPSETTING(    0x0c, "1" )
 	PORT_DIPSETTING(    0x08, "2" )
@@ -12788,6 +12788,33 @@ ROM_START( hnrose )
 	ROM_LOAD( "00801.2a", 0x000000, 0x200000, CRC(3e9f7a5a) SHA1(c4d79d250fbff7922b19da4029529e2d0d1a1a0f) ) // 1xxxxxxxxxxxxxxxxxxxx = 0xFF
 ROM_END
 
+
+/***************************************************************************
+
+Mahjong Sweet Academy
+
+Techno-Top, Limited
+
+TTL.0030 sticker
+
+Has 4 banks of 10 DIP switches
+
+***************************************************************************/
+
+ROM_START( mjswacad )
+	ROM_REGION( 0x80000, "maincpu", 0 )
+	ROM_LOAD( "01002_2.5b", 0x00000, 0x80000, CRC(dfb1e304) SHA1(98eae32bce63223871f17dacb9dc5b0f4e484a14) )
+
+	ROM_REGION( 0x800000, "blitter", 0 )
+	ROM_LOAD( "01003.7b",  0x000000, 0x200000, CRC(1df7a355) SHA1(3122570a845bb046936e8296423636281b39cc4a) )
+	ROM_LOAD( "01004.8b",  0x200000, 0x200000, CRC(198904d4) SHA1(d34a297cd08c227767808dfa695573ef596022c9) )
+	ROM_LOAD( "01005.9b",  0x400000, 0x200000, CRC(4dbcf7cf) SHA1(8bf4eaff1a280b2d5bf1221dc516647936e146d7) )
+	ROM_LOAD( "01006.11b", 0x600000, 0x200000, CRC(d407e19c) SHA1(a63ac099ad9fb6b7e1ea8b3a8785c94d961284a6) )
+
+	ROM_REGION( 0x200000, "oki", 0 )
+	ROM_LOAD( "01001.2b", 0x000000, 0x200000, CRC(4b84f45c) SHA1(2ad92b15986d88d4c9254f43ce251a0ebd90a48b) ) // 1xxxxxxxxxxxxxxxxxxxx = 0xFF
+ROM_END
+
 } // anonymous namespace
 
 
@@ -12882,7 +12909,9 @@ GAME( 2000, jongteia,    jongtei,  jongteia,  jongtei,    hanakanz_state, empty_
 
 GAME( 2000, mjgnight,    0,        mjgnight,  mjgnight,   hanakanz_state, empty_init,    ROT0, "Techno-Top",                                  "Mahjong Gorgeous Night (Japan, TSM003-01)",                      MACHINE_NO_COCKTAIL  )
 
-GAME( 2000, hnrose,      0,        hnrose,    hnrose,     hanakanz_state, empty_init,    ROT0, "Techno-Top",                                  "Hanafuda Night Rose (Japan, TSM008-04)",                         MACHINE_NOT_WORKING | MACHINE_NO_COCKTAIL  )
+GAME( 2000, hnrose,      0,        hnrose,    hnrose,     hanakanz_state, empty_init,    ROT0, "Techno-Top",                                  "Hanafuda Night Rose (Japan, TSM008-04)",                         MACHINE_NOT_WORKING | MACHINE_NO_COCKTAIL )
+
+GAME( 2000, mjswacad,    0,        mjgnight,  mjgnight,   hanakanz_state, empty_init,    ROT0, "Techno-Top",                                  "Mahjong Sweet Academy (Japan, TSM010-002)",                      MACHINE_NOT_WORKING | MACHINE_NO_COCKTAIL ) // needs verifying of inputs, outputs (DIP sheet available)
 
 GAME( 2000, jongoh,      0,        jongoh,    seljan2,    ddenlovr_state, empty_init,    ROT0, "Techno-Top",                                  "Mahjong Jongoh (Japan, TTL800-03-04)",                           MACHINE_NOT_WORKING | MACHINE_NO_COCKTAIL ) // needs verifying of inputs, outputs
 

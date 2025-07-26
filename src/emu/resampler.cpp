@@ -135,13 +135,13 @@
 // length.  The filter itself is made very traditionally, by
 // multiplying a sinc by a Hann window.
 
-// The filter size is selected by maximizing the latency to 5ms and
-// capping the length at 400, which experimentally seems to ensure a
-// sharp rejection of more than 100dB in every case.
+// The default filter size is selected by maximizing the latency to 5ms
+// and capping the length at 400, which experimentally seems to ensure
+// a sharp rejection of more than 100dB in every case.
 
 // Finally, remember that up and downsampling steps multiply the
-// amplitude by a constant (upsampling divides by k, downsamply
-// multiply by k in fact).  To compensate for that and numerical
+// amplitude by a constant (upsampling divides by k, downsampling
+// multiplies by k in fact).  To compensate for that and numerical
 // errors the easiest way to to normalize each phase-filter
 // independently to ensure the sum of their coefficients is 1.  It is
 // easy to see why it works: a constant input signal must be
@@ -159,10 +159,8 @@ audio_resampler_hq::audio_resampler_hq(u32 fs, u32 ft, float latency, u32 max_or
 	m_ftm = fs / gcd;
 	m_fsm = ft / gcd;
 
-	// Compute the per-phase filter length to limit the latency to 5ms and capping it
-	m_order_per_lane = u32(fs * latency * 2);
-	if(m_order_per_lane > max_order_per_lane)
-		m_order_per_lane = max_order_per_lane;
+	// Compute the per-phase filter length to limit the latency and capping it
+	m_order_per_lane = std::clamp(u32(fs * latency * 2), 2U, max_order_per_lane);
 
 	// Reduce the number of phases to be less than max_lanes
 	m_phase_shift = 0;
@@ -175,17 +173,15 @@ audio_resampler_hq::audio_resampler_hq(u32 fs, u32 ft, float latency, u32 max_or
 	u32 filter_length = m_order_per_lane * m_phases;
 	if((filter_length & 1) == 0)
 		filter_length --;
-	u32 hlen = filter_length / 2;
+	u32 hlen = std::max(1U, filter_length / 2);
 
 	// Prepare the per-phase filters
 	m_coefficients.resize(m_phases);
 	for(u32 i = 0; i != m_phases; i++)
 		m_coefficients[i].resize(m_order_per_lane, 0.0);
 
-	// Select the filter cutoff.  Keep it in audible range.
+	// Select the filter cutoff.
 	double cutoff = std::min(fs/2.0, ft/2.0);
-	if(cutoff > 20000)
-		cutoff = 20000;
 
 	// Compute the filter and send the coefficients to the appropriate phase
 	auto set_filter = [this](u32 i, float v) { m_coefficients[i % m_phases][i / m_phases] = v; };
@@ -312,7 +308,7 @@ void audio_resampler_hq::apply_copy(const emu::detail::output_buffer_flat<sample
 		const float *filter = m_coefficients[phase >> m_phase_shift].data();
 		for(u32 k = 0; k != m_order_per_lane; k++)
 			acc += *filter++ * *s1--;
-		*d = acc * gain;
+		*d = std::clamp(int(acc * gain), -32768, 32767);
 		d += dchannels;
 		phase += m_delta;
 		s += m_skip;
@@ -341,7 +337,7 @@ void audio_resampler_hq::apply_add(const emu::detail::output_buffer_flat<sample_
 		const float *filter = m_coefficients[phase >> m_phase_shift].data();
 		for(u32 k = 0; k != m_order_per_lane; k++)
 			acc += *filter++ * *s1--;
-		*d += acc * gain;
+		*d = std::clamp(*d + int(acc * gain), -32768, 32767);
 		d += dchannels;
 		phase += m_delta;
 		s += m_skip;
@@ -553,7 +549,7 @@ void audio_resampler_lofi::apply_copy(const emu::detail::output_buffer_flat<samp
 	s16 *d = dest.data() + destc;
 	for(u32 sample = 0; sample != samples; sample++) {
 		u32 cphase = phase >> 12;
-		*d = gain * (- s0 * interpolation_table[0][0x1000-cphase] + s1 * interpolation_table[1][0x1000-cphase] + s2 * interpolation_table[1][cphase] - s3 * interpolation_table[0][cphase]);
+		*d = std::clamp(int(gain * (- s0 * interpolation_table[0][0x1000-cphase] + s1 * interpolation_table[1][0x1000-cphase] + s2 * interpolation_table[1][cphase] - s3 * interpolation_table[0][cphase])), -32768, 32767);
 		d += dchannels;
 
 		phase += m_step;
@@ -604,7 +600,7 @@ void audio_resampler_lofi::apply_add(const emu::detail::output_buffer_flat<sampl
 	s16 *d = dest.data() + destc;
 	for(u32 sample = 0; sample != samples; sample++) {
 		u32 cphase = phase >> 12;
-		*d += gain * (- s0 * interpolation_table[0][0x1000-cphase] + s1 * interpolation_table[1][0x1000-cphase] + s2 * interpolation_table[1][cphase] - s3 * interpolation_table[0][cphase]);
+		*d = std::clamp(*d + int(gain * (- s0 * interpolation_table[0][0x1000-cphase] + s1 * interpolation_table[1][0x1000-cphase] + s2 * interpolation_table[1][cphase] - s3 * interpolation_table[0][cphase])), -32768, 32767);
 		d += dchannels;
 
 		phase += m_step;

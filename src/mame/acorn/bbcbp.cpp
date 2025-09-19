@@ -292,6 +292,10 @@ void bbcbp_state::update_sdb()
 {
 	uint8_t const latch = m_latch->output_state();
 
+	// sound
+	if (!BIT(latch, 0))
+		m_sn->write(m_sdb);
+
 	// speech
 	if (m_vsp)
 	{
@@ -519,7 +523,6 @@ void bbcbp_state::bbcbp(machine_config &config)
 	config.set_default_layout(layout_bbc);
 
 	LS259(config, m_latch);
-	m_latch->q_out_cb<0>().set([this](int state) { if (!state) m_sn->write(m_sdb); });
 	m_latch->q_out_cb<3>().set(m_kbd, FUNC(bbc_kbd_device::write_kb_en));
 	m_latch->q_out_cb<6>().set_output("capslock_led");
 	m_latch->q_out_cb<7>().set_output("shiftlock_led");
@@ -598,8 +601,8 @@ void bbcbp_state::bbcbp(machine_config &config)
 	centronics.set_output_latch(latch);
 
 	upd7002_device &upd7002(UPD7002(config, "upd7002", 16_MHz_XTAL / 16));
-	upd7002.set_get_analogue_callback(FUNC(bbcbp_state::get_analogue_input));
-	upd7002.set_eoc_callback(m_sysvia, FUNC(via6522_device::write_cb1));
+	upd7002.get_analogue_callback().set(m_analog, FUNC(bbc_analogue_slot_device::ch_r));
+	upd7002.eoc_callback().set(m_sysvia, FUNC(via6522_device::write_cb1));
 
 	BBC_ANALOGUE_SLOT(config, m_analog, bbc_analogue_devices, nullptr);
 	m_analog->lpstb_handler().set(m_sysvia, FUNC(via6522_device::write_cb2));
@@ -860,9 +863,6 @@ ROM_START(acw443)
 
 	ROM_REGION(0x40000, "vsm", ROMREGION_ERASE00)
 	ROM_LOAD("cm62024.bin", 0x3c000, 0x4000, CRC(98e1bf9e) SHA1(b369809275cb67dfd8a749265e91adb2d2558ae6))
-
-	DISK_REGION("1mhzbus:awhd:scsi:0:acb4000a:image")
-	DISK_IMAGE("acw_panos14", 0, BAD_DUMP SHA1(9b9bad7197c9b1193342d9d60fe3f7a465afd99a)) // NEC D5126 with clean Panos 1.4 installation
 ROM_END
 
 

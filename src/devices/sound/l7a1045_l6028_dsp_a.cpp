@@ -28,12 +28,18 @@
         a = sample end address, bits 23-4 if looping, ignored for one-shot
         r = sample rate in 4.12 fixed point relative to 44100 Hz (0x1000 = 44100 Hz)
 
-    2  ----------------   ????????????????   ????????????????
-        All bits unknown.  Data is usually 0000 4000 C000 for one-shot and
-        something more complex for looping samples.
+    2  ----------------   mmmmmmmmmmmmmmmm   bbbbbbbbbbbbbbbb
+        b = loop length.  Loop start = sample end - loop length.
+        m = 2's complement negative of the loop length multiplier, in the same
+            4.12 fixed point format as the sample rate.
+            A multiplier of 0x1000 means b is exactly the loop length, whereas
+            a multiplier of 0x0800 means b is double the loop length so you must
+            divide it by 2 to get the actual loop length.
 
-        Happy suggests the second word is bits 20-4 of the loop start
-        address, but that does not line up with reality.  Needs more research.
+        If bit 15 of m is NOT set, then the base is the offset from the start of the sample
+        to the loop start, and the end of the sample is the loop start plus the multiplier.
+        This is currently speculation based on HNG64 behavior.  Once the MPC3000 runs it should
+        be possible to better understand this.
 
     3  ----------------   vvvvvvvvvvvvvvvv   ----------------
         v = volume envelope starting value (16 bit, maaaaybe signed?)
@@ -51,14 +57,15 @@
         R = filter resonance (4 bits, 0 = 1.0, 0xf = 0.0)
         r = filter cutoff frequency envelope rate in 8.8 fixed point
 
-    7  ----------------   eeeeeeeeeeeedddd   llllllllrrrrrrrr left/right volume
+    7  ----------------   aaaaaaaaeeeedddd   llllllllrrrrrrrr left/right volume
         e = delay effect parameters, unknown encoding
         d = routing destination?  MPC3000 has 8 discrete outputs plus a stereo master pair.
             The 8 discrete outputs are 4 stereo pairs, and the master pair appears to be
             a mix of the other 4 pairs.
+            HNG64 uses f for normal output, 2 for rear speakers, and 6 for subwoofer.
         l = left volume (8 bit, 0-255)
         r = right volume (8 bit, 0-255)
-        (Is this correct or is the volume 16 bits and d is a panpot?)
+        a = volume when non-default speaker is selected for HNG64 (8 bit, 0-255)
 
     8  ----------------   ----------------   ---------------- (read only?)
 
@@ -68,11 +75,6 @@
         Unknown, written once on bootup for HNG64 games.
 
     TODO:
-    - sams64 and sams64_2 sometimes have samples get stuck on.  Other games do not
-      seem to have this problem.  Why?
-    - Sample format seems wrong.
-    - Filter parameters are guesswork.  Cutoff frequency seems right, but
-      resonance is guesswork.  Getting the MPC3000 usable will help a lot.
     - How does the delay effect work?
     - How does DMA work?
 
@@ -106,7 +108,6 @@ void l7a1045_sound_device::device_start()
 	save_item(STRUCT_MEMBER(m_voice, start));
 	save_item(STRUCT_MEMBER(m_voice, end));
 	save_item(STRUCT_MEMBER(m_voice, step));
-	save_item(STRUCT_MEMBER(m_voice, mode));
 	save_item(STRUCT_MEMBER(m_voice, pos));
 	save_item(STRUCT_MEMBER(m_voice, frac));
 	save_item(STRUCT_MEMBER(m_voice, l_volume));
@@ -120,25 +121,12 @@ void l7a1045_sound_device::device_start()
 	save_item(STRUCT_MEMBER(m_voice, flt_step));
 	save_item(STRUCT_MEMBER(m_voice, flt_pos));
 	save_item(STRUCT_MEMBER(m_voice, flt_resonance));
-	save_item(STRUCT_MEMBER(m_voice, x1));
-	save_item(STRUCT_MEMBER(m_voice, x2));
-	save_item(STRUCT_MEMBER(m_voice, y1));
-	save_item(STRUCT_MEMBER(m_voice, y2));
-	save_item(STRUCT_MEMBER(m_voice, a1));
-	save_item(STRUCT_MEMBER(m_voice, a2));
-	save_item(STRUCT_MEMBER(m_voice, b0));
-	save_item(STRUCT_MEMBER(m_voice, b1));
-	save_item(STRUCT_MEMBER(m_voice, b2));
+	save_item(STRUCT_MEMBER(m_voice, b));
+	save_item(STRUCT_MEMBER(m_voice, l));
 	save_item(NAME(m_key));
 	save_item(NAME(m_audiochannel));
 	save_item(NAME(m_audioregister));
 	save_item(STRUCT_MEMBER(m_audiodat, dat));
-
-	// init all voices' filters to the Nyquist frequency and transparent resonance
-	for (l7a1045_voice &voice: m_voice)
-	{
-		set_filter(voice, m_sample_rate / 2.0f, 0.707f);
-	}
 }
 
 void l7a1045_sound_device::device_reset()
@@ -171,11 +159,14 @@ void l7a1045_sound_device::sound_stream_update(sound_stream &stream)
 
 				if ((start + pos) >= end)
 				{
-					pos = vptr->pos = 0;
+					pos = (vptr->end - vptr->start) - vptr->loop_start;
 				}
 				const uint32_t address = (start + pos) & (m_rom.length() - 1);
 				data = m_rom[address];
-				sample = int8_t(data & 0xfc) << (3 - (data & 3));
+				sample = (data & 0xfc) >> 2;
+				if(sample & 0x20)
+					sample -= 0x40;
+				sample <<= 4+2*(~data & 3);
 				frac += step;
 
 				// volume envelope processing
@@ -210,23 +201,23 @@ void l7a1045_sound_device::sound_stream_update(sound_stream &stream)
 				}
 				vptr->flt_pos &= 0xff;
 
-				const double cutoff = ((double)m_sample_rate) * ((double)vptr->flt_freq / 0x10000);
-				const double resonance = //vptr->flt_resonance ?
-					(double)vptr->flt_resonance / 15.0f; // : 0.707f;
-				set_filter(*vptr, cutoff, resonance);
+				// low pass filter processing using a chamberlin configuration
+				// q is 0..1 where 1 is normal and 0 is self-resonating
+				// k is 0..2 where 2 is nyquist (2 * sin(pi * fc/fs))
+				//    B(0) = L(0) = 0
+				//    H' = x0 - L - B  (highpass)
+				//    B' = B + k * H'  (bandpass)
+				//    L' = L + k * B'  (lowpass)
+				//    y0 = L'
+				// (fwiw, if you want notch it's H' + L)
 
-				// low pass filter processing - this is a direct form 2 biquad implementation
-				const double fsample = sample / 32768.0f;
-				const double output = vptr->b0 * fsample + vptr->b1 * vptr->x1 + vptr->b2 * vptr->x2 - vptr->a1 * vptr->y1 - vptr->a2 * vptr->y2;
-				vptr->x2 = vptr->x1;
-				vptr->x1 = fsample;
-				vptr->y2 = vptr->y1;
-				vptr->y1 = output;
+				const int32_t h = sample - vptr->l - vptr->b + ((vptr->flt_resonance * vptr->b) >> 4);
+				vptr->b += (vptr->flt_freq * h) >> 15;
+				vptr->l += (vptr->flt_freq * vptr->b) >> 15;
 
-				const int32_t fout = (output * 32768.0f);
-				const int64_t left = (fout * (uint64_t(vptr->l_volume) * uint64_t(vptr->env_volume))) >> 17;
-				const int64_t right = (fout * (uint64_t(vptr->r_volume) * uint64_t(vptr->env_volume))) >> 17;
-
+				const int32_t fout = vptr->l;
+				const int64_t left = (fout * (uint64_t(vptr->l_volume) * uint64_t(vptr->env_volume))) >> 24;
+				const int64_t right = (fout * (uint64_t(vptr->r_volume) * uint64_t(vptr->env_volume))) >> 24;
 				stream.add_int(0, j, left, 32768);
 				stream.add_int(1, j, right, 32768);
 			}
@@ -315,29 +306,27 @@ void l7a1045_sound_device::sound_data_w(offs_t offset, uint16_t data)
 			vptr->pos = 0;
 			vptr->frac = 0;
 			// clear the filter state too
-			vptr->x1 = vptr->x2 = vptr->y1 = vptr->y2 = 0.0;
+			vptr->flt_pos = 0;
+			vptr->l = vptr->b = 0;
 			break;
 
 		// loop end address and pitch step
 		case 0x01:
-			if ((m_audiodat[2][m_audiochannel].dat[0] == 0xc000) && (m_audiodat[2][m_audiochannel].dat[1] == 0x4000))
-			{
-				vptr->end = m_rom.length() - 1;
-				vptr->mode = false;
-			}
-			else
-			{
-				vptr->end = (m_audiodat[m_audioregister][m_audiochannel].dat[2] & 0x000f) << (16 + 4);
-				vptr->end |= (m_audiodat[m_audioregister][m_audiochannel].dat[1] & 0xffff) << (4);
-				vptr->mode = true;
-				vptr->end &= m_rom.length() - 1;
-			}
+			vptr->end = (m_audiodat[m_audioregister][m_audiochannel].dat[2] & 0x000f) << (16 + 4);
+			vptr->end |= (m_audiodat[m_audioregister][m_audiochannel].dat[1] & 0xffff) << (4);
+			vptr->end &= m_rom.length() - 1;
 
 			vptr->step = m_audiodat[m_audioregister][m_audiochannel].dat[0] & 0xffff;
 			break;
 
-		// unknown exactly what this does
+		// loop start, encoded weirdly
 		case 0x02:
+			{
+				const uint32_t multiplier = (m_audiodat[m_audioregister][m_audiochannel].dat[1] ^ 0xffff) + 1;
+				const uint32_t base = m_audiodat[m_audioregister][m_audiochannel].dat[0];
+
+				vptr->loop_start = (base * multiplier) >> 12;
+			}
 			break;
 
 		// starting envelope volume
@@ -354,20 +343,16 @@ void l7a1045_sound_device::sound_data_w(offs_t offset, uint16_t data)
 
 		// reg 5 = starting lowpass cutoff frequency
 		case 0x05:
-			vptr->flt_freq = m_audiodat[m_audioregister][m_audiochannel].dat[1];
-			vptr->flt_pos = 0;
-
+			if (vptr->flt_pos == 0)
 			{
-				const double cutoff = ((double)m_sample_rate) * ((double)vptr->flt_freq / 0x10000);
-				set_filter(*vptr, cutoff, 0.707f);
-				vptr->x1 = vptr->x2 = vptr->y1 = vptr->y2 = 0.0;
+				vptr->flt_freq = m_audiodat[m_audioregister][m_audiochannel].dat[1];
 			}
 			break;
 
 		// reg 6 = lowpass cutoff target, resonance, and step rate
 		case 0x06:
 			vptr->flt_target = m_audiodat[m_audioregister][m_audiochannel].dat[1] & 0xfff0;
-			vptr->flt_resonance = (m_audiodat[m_audioregister][m_audiochannel].dat[1] & 0x000f) ^ 0xf;
+			vptr->flt_resonance = m_audiodat[m_audioregister][m_audiochannel].dat[1] & 0x000f;
 			vptr->flt_step = m_audiodat[m_audioregister][m_audiochannel].dat[0];
 			break;
 
@@ -423,28 +408,18 @@ void l7a1045_sound_device::sound_status_w(uint16_t data)
 		vptr->frac = 0;
 		vptr->pos = 0;
 		m_key |= 1 << m_audiochannel;
+
+		// alternate interpretation of loop parameters (works well for the crowd in xrally but not yet TRUSTED)
+		if ((!BIT(m_audiodat[2][m_audiochannel].dat[1], 15)) && (vptr->end != 0xfffff0))
+		{
+			vptr->loop_start = uint32_t(m_audiodat[2][m_audiochannel].dat[0]);
+			vptr->end = vptr->start + uint32_t(m_audiodat[2][m_audiochannel].dat[1]) + vptr->loop_start;
+		}
 	}
 	else    // key off
 	{
 		m_key &= ~(1 << m_audiochannel);
 	}
-}
-
-// sets up parameters for biquad resonant low pass 12 dB/octave filter for a voice
-// cutoff in Hz, resonance is 0 to 1.
-void l7a1045_sound_device::set_filter(l7a1045_voice &voice, double cutoff, double resonance)
-{
-	const double omega = 2.0 * M_PI * cutoff / (double)m_sample_rate;
-	const double sin_omega = sin(omega);
-	const double cos_omega = cos(omega);
-	const double alpha = sin_omega / (2.0 * resonance);
-	const double a0 = 1.0 + alpha;
-
-	voice.b0 = (1.0 - cos_omega) / (2.0 * a0);
-	voice.b1 = (1.0 - cos_omega) / a0;
-	voice.b2 = (1.0 - cos_omega) / (2.0 * a0);
-	voice.a1 = (-2.0 * cos_omega) / a0;
-	voice.a2 = (1.0 - alpha) / a0;
 }
 
 // TODO: stub functions not really used

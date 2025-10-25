@@ -3223,7 +3223,8 @@ void ioport_manager::record_init()
 
 	// get the base time
 	system_time systime;
-	machine().base_datetime(systime);
+	systime.set(std::time(nullptr));
+
 
 	// fill in the header
 	inp_header header;
@@ -3253,7 +3254,7 @@ void ioport_manager::record_end(const char *message)
 		// write end date to header
 		system_time systime;
 		uint8_t data[8];
-		machine().current_datetime(systime);
+		systime.set(std::time(nullptr));
 		m_record_stream = util::zlib_write(*m_record_file, 1, 16384);  // disable compression
  		m_record_file->seek(0x38,SEEK_SET);  // TODO: modernise this to match use of the header class
 		data[0x00] = systime.time >> 0;

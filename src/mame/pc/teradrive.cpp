@@ -51,10 +51,10 @@ TODO:
 
 TODO (MD side):
 - some games (orunnersj, timekillu, rhythmld and late SGDK games) fails on Z80 bus request stuff;
-- dashdes: is a flickerfest during gameplay;
+- dashdes: is a flickerfest during gameplay (fixed?);
 - sonic2/combatca: no interlace support in 2-players mode;
 - dheadj: scrolling issues in stage 4-1 (blocks overflowing with );
-- shangon/skitchin: one line off during gameplay;
+- skitchin: one line off during gameplay;
 - caesar: no sound;
 - gynougj: stray tile on top-left of title screen;
 
@@ -642,7 +642,7 @@ void teradrive_state::md_68k_map(address_map &map)
 		})
 	);
 //  map(0xc00000, 0xdfffff) VDP and PSG (with mirrors and holes)
-//	$d00000 alias required by earthdef
+//  $d00000 alias required by earthdef
 	map(0xc00000, 0xc0001f).mirror(0x100000).m(m_md_vdp, FUNC(ym7101_device::if16_map));
 	map(0xe00000, 0xe0ffff).mirror(0x1f0000).ram(); // Work RAM, usually accessed at $ff0000
 }

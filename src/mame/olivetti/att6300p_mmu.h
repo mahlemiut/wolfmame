@@ -18,11 +18,7 @@ public:
 	// construction/destruction
 	att6300p_mmu_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock);
 
-	// All CPU accesses are directed to the MMU via these calls
-	uint16_t mem_r(offs_t offset, uint16_t mem_mask);
-	void mem_w(offs_t offset, uint16_t data, uint16_t mem_mask);
-	uint16_t io_r(offs_t offset, uint16_t mem_mask);
-	void io_w(offs_t offset, uint16_t data, uint16_t mem_mask);
+	auto trapio_callback() { return m_trapio.bind(); }
 
 	// MMU configuration
 	void set_protected_mode_enabled(bool enabled);
@@ -33,7 +29,11 @@ public:
 	void set_io_read_traps_enabled(bool enabled);
 	void set_io_write_traps_enabled(bool enabled);
 
-	auto trapio_callback() { return m_trapio.bind(); }
+	// All CPU accesses are directed to the MMU via these calls
+	uint16_t mem_r(offs_t offset, uint16_t mem_mask);
+	void mem_w(offs_t offset, uint16_t data, uint16_t mem_mask);
+	uint16_t io_r(offs_t offset, uint16_t mem_mask);
+	void io_w(offs_t offset, uint16_t data, uint16_t mem_mask);
 
 protected:
 	// device-level overrides
@@ -68,16 +68,16 @@ private:
 
 	// Per-port IO protection flags
 	enum {
-		IO_PROT_NOTRAP			= 2,
-		IO_PROT_INHIBIT_READ	= 4,
-		IO_PROT_INHIBIT_WRITE	= 8,
+		IO_PROT_NOTRAP          = 2,
+		IO_PROT_INHIBIT_READ    = 4,
+		IO_PROT_INHIBIT_WRITE   = 8,
 	};
 
 	// Flags for trapped IO accesses
 	enum {
-		TRAPIO_FLAG__IORC		= 2,	// Active Low
-		TRAPIO_FLAG__LBHE		= 4,	// Active Low
-		TRAPIO_FLAG_LA0			= 8
+		TRAPIO_FLAG__IORC       = 2,    // Active Low
+		TRAPIO_FLAG__LBHE       = 4,    // Active Low
+		TRAPIO_FLAG_LA0         = 8
 	};
 };
 

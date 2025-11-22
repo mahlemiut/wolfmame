@@ -104,11 +104,11 @@ void ym7101_device::device_start()
 	save_item(STRUCT_MEMBER(m_command, latch));
 	save_item(STRUCT_MEMBER(m_command, address));
 	save_item(STRUCT_MEMBER(m_command, code));
-//  save_item(STRUCT_MEMBER(m_command, write_state));
+	//save_item(STRUCT_MEMBER(m_command, write_state));
 
 	save_item(STRUCT_MEMBER(m_dma, source_address));
 	save_item(STRUCT_MEMBER(m_dma, length));
-//  save_item(STRUCT_MEMBER(m_dma, mode));
+	//save_item(STRUCT_MEMBER(m_dma, mode));
 	save_item(STRUCT_MEMBER(m_dma, active));
 	save_item(STRUCT_MEMBER(m_dma, fill));
 
@@ -904,8 +904,8 @@ void ym7101_device::prepare_tile_line(int scanline)
 	const u16 tile_mask = 0x7ff;
 	//const u16 page_mask[] = { 0x7ff, 0x1fff, 0x1fff, 0x1fff };
 
-//	const u16 m_hpage = page_masks[m_hsz];
-//	const u16 m_vpage = page_masks[m_vsz];
+	//const u16 m_hpage = page_masks[m_hsz];
+	//const u16 m_vpage = page_masks[m_vsz];
 
 	// AV Artisan games will set plane B base with 0x18000
 	const u32 plane_a_name_base = (m_plane_a_name_table & m_vram_mask) >> 1;
@@ -1032,7 +1032,7 @@ void ym7101_device::prepare_tile_line(int scanline)
 
 bool ym7101_device::render_line(int scanline)
 {
-	if (scanline >= 224)
+	if (scanline > 224)
 		return false;
 
 	uint32_t *p = &m_bitmap.pix(scanline);
@@ -1139,6 +1139,7 @@ u8 ym7101_device::mix_sh(u8 dot_a, u8 dot_b, u8 dot_sprite)
 
 TIMER_CALLBACK_MEMBER(ym7101_device::scan_timer_callback)
 {
+	const int irq_ticks = 32;
 	int scanline = param;
 
 	// TODO: to execution pipeline
@@ -1146,7 +1147,7 @@ TIMER_CALLBACK_MEMBER(ym7101_device::scan_timer_callback)
 	{
 		// mazinsagj hangs on title screen transition with 16
 		// (expects to hit at first non-border hpos?)
-		m_vint_on_timer->adjust(attotime::from_ticks(32, clock()));
+		m_vint_on_timer->adjust(attotime::from_ticks(irq_ticks, clock()));
 		m_vint_pending = 1;
 	}
 
@@ -1162,6 +1163,8 @@ TIMER_CALLBACK_MEMBER(ym7101_device::scan_timer_callback)
 
 	// TODO: should trigger at the end of current display phase
 	// check dracula, galahad, marvlandj, roadrashj on changes
+	// TODO: goldnax3 is now fussy on intro (same as 315-5313 core)
+	// broke on active_scan range from >= to >, which is a requirement for dashdes and shangon ...
 	if (active_scan)
 	{
 		m_vcounter --;
@@ -1172,7 +1175,7 @@ TIMER_CALLBACK_MEMBER(ym7101_device::scan_timer_callback)
 			m_hint_pending = 1;
 			if (m_ie1)
 			{
-				m_hint_on_timer->adjust(attotime::from_ticks(16, clock()));
+				m_hint_on_timer->adjust(attotime::from_ticks(irq_ticks, clock()));
 			}
 			else
 				m_hint_callback(0);

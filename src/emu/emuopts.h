@@ -100,6 +100,7 @@
 #define OPTION_ARTWORK_CROP         "artwork_crop"
 #define OPTION_FALLBACK_ARTWORK     "fallback_artwork"
 #define OPTION_OVERRIDE_ARTWORK     "override_artwork"
+#define OPTION_ARTWORK_FONT         "artwork_font"
 
 // core screen options
 #define OPTION_BRIGHTNESS           "brightness"
@@ -387,6 +388,7 @@ public:
 	bool artwork_crop() const { return bool_value(OPTION_ARTWORK_CROP); }
 	const char *fallback_artwork() const { return value(OPTION_FALLBACK_ARTWORK); }
 	const char *override_artwork() const { return value(OPTION_OVERRIDE_ARTWORK); }
+	const char *artwork_font() const { return value(OPTION_ARTWORK_FONT); }
 
 	// core screen options
 	float brightness() const { return float_value(OPTION_BRIGHTNESS); }

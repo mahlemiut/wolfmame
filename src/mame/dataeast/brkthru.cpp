@@ -149,7 +149,7 @@ Notes:
         VSync = HSync / Vertical Frame Length
               = HSync / (VDisplay + VBlank)
               = 15.625kHz / (240 + 32)
-              = 57.444855Hz (measured 57.40Hz)
+              = 57.444855Hz (measured 57.40Hz on brkthru)
 
 *******************************************************************************/
 
@@ -180,13 +180,15 @@ public:
 		m_maincpu(*this, "maincpu"),
 		m_audiocpu(*this, "audiocpu"),
 		m_gfxdecode(*this, "gfxdecode"),
-		m_palette(*this, "palette")
+		m_palette(*this, "palette"),
+		m_flipswitch(*this, "FLIP")
 	{ }
 
 	void brkthru(machine_config &config);
 	void darwin(machine_config &config);
 
 	DECLARE_INPUT_CHANGED_MEMBER(coin_inserted);
+	DECLARE_INPUT_CHANGED_MEMBER(flipscreen_switch) { flipscreen_w(m_flipscreen); }
 
 protected:
 	virtual void machine_start() override ATTR_COLD;
@@ -213,8 +215,10 @@ private:
 	required_device<cpu_device> m_audiocpu;
 	required_device<gfxdecode_device> m_gfxdecode;
 	required_device<palette_device> m_palette;
+	required_ioport m_flipswitch;
 
 	void control_w(uint8_t data);
+	void flipscreen_w(int state);
 	void bgscroll_w(uint8_t data);
 	void int_enable_w(uint8_t data);
 	void bgram_w(offs_t offset, uint8_t data);
@@ -355,7 +359,7 @@ void brkthru_state::draw_sprites(bitmap_ind16 &bitmap, const rectangle &cliprect
 
 	for (int offs = 0; offs < m_spriteram.bytes(); offs += 4)
 	{
-		if ((m_spriteram[offs] & 0x09) == prio)  // Enable && Low Priority
+		if ((m_spriteram[offs] & 0x09) == prio) // enabled && low priority
 		{
 			int sx = 240 - m_spriteram[offs + 3];
 			if (sx < -7)
@@ -364,27 +368,28 @@ void brkthru_state::draw_sprites(bitmap_ind16 &bitmap, const rectangle &cliprect
 			int sy = 240 - m_spriteram[offs + 2];
 			int code = m_spriteram[offs + 1] + 128 * (m_spriteram[offs] & 0x06);
 			int color = (m_spriteram[offs] & 0xe0) >> 5;
-			if (m_flipscreen)
+			int flip = flip_screen();
+			if (flip)
 			{
 				sx = 240 - sx;
 				sy = 240 - sy;
 			}
 
-			if (m_spriteram[offs] & 0x10)    // double height
+			if (m_spriteram[offs] & 0x10) // double height
 			{
-				m_gfxdecode->gfx(9)->transpen(bitmap, cliprect, code & ~1, color, m_flipscreen, m_flipscreen, sx, m_flipscreen ? sy + 16 : sy - 16, 0);
-				m_gfxdecode->gfx(9)->transpen(bitmap, cliprect, code | 1, color, m_flipscreen, m_flipscreen, sx, sy, 0);
+				m_gfxdecode->gfx(9)->transpen(bitmap, cliprect, code & ~1, color, flip, flip, sx, flip ? sy + 16 : sy - 16, 0);
+				m_gfxdecode->gfx(9)->transpen(bitmap, cliprect, code | 1, color, flip, flip, sx, sy, 0);
 
 				// redraw with wraparound
-				m_gfxdecode->gfx(9)->transpen(bitmap, cliprect, code & ~1, color, m_flipscreen, m_flipscreen, sx,(m_flipscreen ? sy + 16 : sy - 16) + 256, 0);
-				m_gfxdecode->gfx(9)->transpen(bitmap, cliprect, code | 1, color, m_flipscreen, m_flipscreen, sx, sy + 256, 0);
+				m_gfxdecode->gfx(9)->transpen(bitmap, cliprect, code & ~1, color, flip, flip, sx,(flip ? sy + 16 : sy - 16) + 256, 0);
+				m_gfxdecode->gfx(9)->transpen(bitmap, cliprect, code | 1, color, flip, flip, sx, sy + 256, 0);
 			}
 			else
 			{
-				m_gfxdecode->gfx(9)->transpen(bitmap, cliprect, code, color, m_flipscreen, m_flipscreen, sx, sy, 0);
+				m_gfxdecode->gfx(9)->transpen(bitmap, cliprect, code, color, flip, flip, sx, sy, 0);
 
 				// redraw with wraparound
-				m_gfxdecode->gfx(9)->transpen(bitmap, cliprect, code, color, m_flipscreen, m_flipscreen, sx, sy + 256, 0);
+				m_gfxdecode->gfx(9)->transpen(bitmap, cliprect, code, color, flip, flip, sx, sy + 256, 0);
 			}
 		}
 	}
@@ -417,6 +422,13 @@ uint32_t brkthru_state::screen_update(screen_device &screen, bitmap_ind16 &bitma
  *
  *************************************/
 
+void brkthru_state::flipscreen_w(int state)
+{
+	// screen flip is handled both by software and hardware
+	flip_screen_set(state ^ m_flipswitch->read());
+	m_flipscreen = state;
+}
+
 void brkthru_state::control_w(uint8_t data)
 {
 	// bit 0-2 = ROM bank select
@@ -430,12 +442,7 @@ void brkthru_state::control_w(uint8_t data)
 	}
 
 	// bit 6 = screen flip
-	if (m_flipscreen != (data & 0x40))
-	{
-		m_flipscreen = data & 0x40;
-		m_bg_tilemap->set_flip(m_flipscreen ? (TILEMAP_FLIPY | TILEMAP_FLIPX) : 0);
-		m_fg_tilemap->set_flip(m_flipscreen ? (TILEMAP_FLIPY | TILEMAP_FLIPX) : 0);
-	}
+	flipscreen_w(BIT(data, 6));
 
 	// bit 7 = high bit of scroll
 	m_bgscroll = (m_bgscroll & 0xff) | ((data & 0x80) << 1);
@@ -545,7 +552,7 @@ static INPUT_PORTS_START( brkthru )
 	PORT_BIT( 0x10, IP_ACTIVE_LOW, IPT_JOYSTICK_LEFT ) PORT_8WAY PORT_COCKTAIL
 	PORT_BIT( 0x20, IP_ACTIVE_LOW, IPT_JOYSTICK_RIGHT ) PORT_8WAY PORT_COCKTAIL
 	PORT_BIT( 0x40, IP_ACTIVE_LOW, IPT_UNKNOWN )
-	PORT_BIT( 0x80, IP_ACTIVE_LOW, IPT_CUSTOM ) PORT_READ_LINE_DEVICE_MEMBER("screen", FUNC(screen_device::vblank))   // used only by the self test
+	PORT_BIT( 0x80, IP_ACTIVE_LOW, IPT_CUSTOM ) PORT_READ_LINE_DEVICE_MEMBER("screen", FUNC(screen_device::vblank)) // used only by the self test
 
 	PORT_START("DSW1")
 	PORT_DIPNAME( 0x03, 0x03, DEF_STR( Coin_A ) ) PORT_DIPLOCATION("SW1:1,2")
@@ -582,28 +589,29 @@ static INPUT_PORTS_START( brkthru )
 	PORT_DIPSETTING(    0x04, "10000/20000 Points" )
 	PORT_DIPSETTING(    0x0c, "20000/30000 Points" )
 	PORT_DIPSETTING(    0x08, "20000/40000 Points" )
-	PORT_DIPNAME( 0x10, 0x10, DEF_STR( Allow_Continue ) ) PORT_DIPLOCATION("SW2:5") // Manual says ALWAYS OFF
-	PORT_DIPSETTING(    0x00, DEF_STR( No ) )
-	PORT_DIPSETTING(    0x10, DEF_STR( Yes ) )
-	// According to the manual, bit 5 should control Flip Screen
-//  PORT_DIPNAME( 0x20, 0x20, DEF_STR( Flip_Screen ) ) PORT_DIPLOCATION("SW2:6")
-//  PORT_DIPSETTING(    0x20, DEF_STR( Off ) )
-//  PORT_DIPSETTING(    0x00, DEF_STR( On ) )
-	// SW2:7,8 ALWAYS OFF according to the manual
+	PORT_SERVICE_DIPLOC( 0x10, IP_ACTIVE_LOW, "SW2:5" )
+	// SW2:6,7,8: can't be read by software, see FLIP for SW2:6, and SW2:7,8 are ALWAYS OFF according to the manual
 	PORT_BIT( 0x20, IP_ACTIVE_LOW, IPT_COIN1 ) PORT_CHANGED_MEMBER(DEVICE_SELF, FUNC(brkthru_state::coin_inserted), 0)
 	PORT_BIT( 0x40, IP_ACTIVE_LOW, IPT_COIN2 ) PORT_CHANGED_MEMBER(DEVICE_SELF, FUNC(brkthru_state::coin_inserted), 0)
 	PORT_BIT( 0x80, IP_ACTIVE_LOW, IPT_SERVICE1 ) PORT_CHANGED_MEMBER(DEVICE_SELF, FUNC(brkthru_state::coin_inserted), 0)
+
+	PORT_START("FLIP") // hardware switch
+	PORT_DIPNAME( 0x01, 0x00, DEF_STR( Flip_Screen ) ) PORT_DIPLOCATION("SW2:6") PORT_CHANGED_MEMBER(DEVICE_SELF, FUNC(brkthru_state::flipscreen_switch), 0)
+	PORT_DIPSETTING(    0x00, DEF_STR( Off ) )
+	PORT_DIPSETTING(    0x01, DEF_STR( On ) )
 INPUT_PORTS_END
 
-static INPUT_PORTS_START( brkthruj )
+static INPUT_PORTS_START( brkthruu )
 	PORT_INCLUDE( brkthru )
 
 	PORT_MODIFY("DSW2_COIN")
-	PORT_SERVICE_DIPLOC( 0x10, IP_ACTIVE_LOW, "SW2:5" )
+	PORT_DIPNAME( 0x10, 0x10, DEF_STR( Allow_Continue ) ) PORT_DIPLOCATION("SW2:5") // Manual says ALWAYS OFF
+	PORT_DIPSETTING(    0x00, DEF_STR( No ) )
+	PORT_DIPSETTING(    0x10, DEF_STR( Yes ) )
 INPUT_PORTS_END
 
 static INPUT_PORTS_START( brkthrut )
-	PORT_INCLUDE( brkthru )
+	PORT_INCLUDE( brkthruu )
 
 	PORT_MODIFY("DSW1")
 	PORT_DIPNAME( 0x03, 0x03, DEF_STR( Coin_A ) ) PORT_DIPLOCATION("SW1:1,2")
@@ -622,16 +630,16 @@ static INPUT_PORTS_START( darwin )
 	PORT_INCLUDE( brkthru )
 
 	PORT_MODIFY("DSW1")
-	PORT_DIPUNKNOWN_DIPLOC( 0x10, 0x10, "SW1:5" )   // Manual says must be OFF
+	PORT_DIPUNKNOWN_DIPLOC( 0x10, 0x10, "SW1:5" ) // Manual says must be OFF
 	PORT_DIPNAME( 0x20, 0x00, DEF_STR( Cabinet ) ) PORT_DIPLOCATION("SW1:6")
 	PORT_DIPSETTING(    0x00, DEF_STR( Upright ) )
 	PORT_DIPSETTING(    0x20, DEF_STR( Cocktail ) )
 	PORT_DIPNAME( 0x40, 0x40, DEF_STR( Demo_Sounds ) ) PORT_DIPLOCATION("SW1:7")
 	PORT_DIPSETTING(    0x00, DEF_STR( Off ) )
 	PORT_DIPSETTING(    0x40, DEF_STR( On ) )
-	PORT_DIPUNKNOWN_DIPLOC( 0x80, 0x80, "SW1:8" )   // Manual says must be OFF
+	PORT_DIPUNKNOWN_DIPLOC( 0x80, 0x80, "SW1:8" ) // Manual says must be OFF
 
-	PORT_MODIFY("DSW2_COIN")    // modified by Shingo Suzuki 1999/11/02
+	PORT_MODIFY("DSW2_COIN")
 	PORT_DIPNAME( 0x01, 0x01, DEF_STR( Lives ) ) PORT_DIPLOCATION("SW2:1")
 	PORT_DIPSETTING(    0x01, "3" )
 	PORT_DIPSETTING(    0x00, "5" )
@@ -643,14 +651,7 @@ static INPUT_PORTS_START( darwin )
 	PORT_DIPSETTING(    0x08, DEF_STR( Medium ) )
 	PORT_DIPSETTING(    0x04, DEF_STR( Hard ) )
 	PORT_DIPSETTING(    0x00, DEF_STR( Hardest ) )
-	// According to the manual, bit 5 should control Flip Screen
-//  PORT_DIPNAME( 0x20, 0x20, DEF_STR( Flip_Screen ) ) PORT_DIPLOCATION("SW2:6")
-//  PORT_DIPSETTING(    0x20, DEF_STR( Off ) )
-//  PORT_DIPSETTING(    0x00, DEF_STR( On ) )
-	// SW2:5,7,8 ALWAYS OFF according to the manual
-	PORT_BIT( 0x20, IP_ACTIVE_LOW, IPT_COIN1 ) PORT_CHANGED_MEMBER(DEVICE_SELF, FUNC(brkthru_state::coin_inserted), 0)
-	PORT_BIT( 0x40, IP_ACTIVE_LOW, IPT_COIN2 ) PORT_CHANGED_MEMBER(DEVICE_SELF, FUNC(brkthru_state::coin_inserted), 0)
-	PORT_BIT( 0x80, IP_ACTIVE_LOW, IPT_SERVICE1 ) PORT_CHANGED_MEMBER(DEVICE_SELF, FUNC(brkthru_state::coin_inserted), 0)
+	PORT_DIPUNKNOWN_DIPLOC( 0x10, 0x10, "SW2:5" ) // Manual says must be OFF
 INPUT_PORTS_END
 
 
@@ -1072,9 +1073,9 @@ ROM_END
  *************************************/
 
 GAME( 1986, brkthru,   0,       brkthru, brkthru,  brkthru_state, empty_init, ROT0,   "Data East Corporation",                  "Break Thru (World)",          MACHINE_SUPPORTS_SAVE )
-GAME( 1986, brkthruu,  brkthru, brkthru, brkthru,  brkthru_state, empty_init, ROT0,   "Data East USA",                          "Break Thru (US)",             MACHINE_SUPPORTS_SAVE )
-GAME( 1986, brkthruj,  brkthru, brkthru, brkthruj, brkthru_state, empty_init, ROT0,   "Data East Corporation",                  "Kyohkoh-Toppa (Japan)",       MACHINE_SUPPORTS_SAVE )
+GAME( 1986, brkthruu,  brkthru, brkthru, brkthruu, brkthru_state, empty_init, ROT0,   "Data East USA",                          "Break Thru (US)",             MACHINE_SUPPORTS_SAVE )
+GAME( 1986, brkthruj,  brkthru, brkthru, brkthru,  brkthru_state, empty_init, ROT0,   "Data East Corporation",                  "Kyoukou Toppa (Japan)",       MACHINE_SUPPORTS_SAVE )
 GAME( 1986, brkthrut,  brkthru, brkthru, brkthrut, brkthru_state, empty_init, ROT0,   "Data East Corporation (Tecfri license)", "Break Thru (Tecfri license)", MACHINE_SUPPORTS_SAVE )
-GAME( 1986, forcebrk,  brkthru, brkthru, brkthruj, brkthru_state, empty_init, ROT0,   "bootleg",                                "Force Break (bootleg)",       MACHINE_SUPPORTS_SAVE )
+GAME( 1986, forcebrk,  brkthru, brkthru, brkthru,  brkthru_state, empty_init, ROT0,   "bootleg",                                "Force Break (bootleg)",       MACHINE_SUPPORTS_SAVE )
 
 GAME( 1986, darwin,    0,       darwin,  darwin,   brkthru_state, empty_init, ROT270, "Data East Corporation",                  "Darwin 4078 (Japan)",         MACHINE_SUPPORTS_SAVE )

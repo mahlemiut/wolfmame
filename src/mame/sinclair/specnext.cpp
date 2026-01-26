@@ -1,5 +1,6 @@
 // license:BSD-3-Clause
 // copyright-holders:Andrei I. Holub
+// thanks-to:Kev Brady, Peter Ped Helcmanovsky
 /**********************************************************************
     Spectrum Next
 
@@ -145,6 +146,7 @@ public:
 
 protected:
 	virtual void machine_start() override ATTR_COLD;
+	virtual void device_post_load() override ATTR_COLD;
 	virtual void machine_reset() override ATTR_COLD;
 	void reset_hard();
 	virtual void video_start() override ATTR_COLD;
@@ -359,13 +361,14 @@ private:
 	required_ioport m_io_issue;
 	optional_ioport m_io_video;
 	optional_ioport m_io_layers;
-	required_ioport_array<3> m_io_mouse;
+	required_ioport_array<4> m_io_mouse;
 	required_ioport m_io_joy_left;
 	required_ioport m_io_joy_right;
 
 	video_timings_info m_video_timings;
 	rectangle m_clip256x192;
 	rectangle m_clip320x256;
+	int m_video_output_hdmi = -1;
 	int m_page_shadow[8];
 	bool m_bootrom_en;
 	u8 m_port_ff_data;
@@ -913,7 +916,6 @@ void specnext_state::update_video_mode()
 			};
 	}
 
-	const bool is_hdmi = ~m_io_video.read_safe(1) & 1;
 	const int left = m_video_timings.min_hactive << 1;
 	const int top = m_video_timings.min_vactive;
 	const int width = (m_video_timings.max_hc + 1) << 1;
@@ -921,11 +923,13 @@ void specnext_state::update_video_mode()
 	m_clip256x192 = rectangle(left, left + (256 << 1) - 1, top, top + 192 - 1);
 	m_clip320x256 = rectangle(left - (32 << 1), left + ((256 + 32) << 1) - 1, top - 32, top + 192 + 32 - 1);
 
-	m_screen->configure(width, height
-		, is_hdmi
+	rectangle visarea = m_video_output_hdmi
 			? rectangle(m_video_timings.hdmi_xmin << 1, (m_video_timings.hdmi_xmax << 1) | 1, m_video_timings.hdmi_ymin, m_video_timings.hdmi_ymax)
-			: m_clip320x256
-		, HZ_TO_ATTOSECONDS(28_MHz_XTAL / 2) * width * height);
+			: m_clip320x256;
+	// The visarea can't overlap with screen last vpos. Posssibly related to https://github.com/mamedev/mame/pull/9945
+	visarea.max_y = std::min(visarea.max_y, height - 2);
+
+	m_screen->configure(width, height, visarea, HZ_TO_ATTOSECONDS(28_MHz_XTAL / 2) * width * height);
 	m_ula_scr->set_raster_offset(left, top);
 	m_lores->set_raster_offset(left, top);
 	m_tiles->set_raster_offset(left, top);
@@ -934,7 +938,7 @@ void specnext_state::update_video_mode()
 
 	m_eff_nr_03_machine_timing = m_nr_03_machine_timing;
 	m_eff_nr_05_5060 = m_nr_05_5060;
-	LOG("%s: %s %dHz\n", machine_name, is_hdmi ? "HDMI" : "VGA", m_nr_05_5060 ? 60 : 50);
+	LOG("%s@%dHz\n", machine_name, m_nr_05_5060 ? 60 : 50);
 }
 
 u32 specnext_state::screen_update(screen_device &screen, bitmap_rgb32 &bitmap, const rectangle &cliprect)
@@ -2591,8 +2595,12 @@ INTERRUPT_GEN_MEMBER(specnext_state::specnext_interrupt)
 {
 	m_tiles->control_w(m_nr_6b_tm_control); // TODO (1): Santa's Pressie, The Next War
 
-	if (m_eff_nr_05_5060 != m_nr_05_5060 || m_nr_03_machine_timing != m_eff_nr_03_machine_timing)
+	const bool tmp = ~m_io_video.read_safe(0) & 1;
+	if (m_video_output_hdmi != tmp || m_eff_nr_05_5060 != m_nr_05_5060 || m_nr_03_machine_timing != m_eff_nr_03_machine_timing)
+	{
+		m_video_output_hdmi = tmp;
 		update_video_mode();
+	}
 
 	line_irq_adjust();
 	if (!port_ff_interrupt_disable())
@@ -2969,9 +2977,9 @@ void specnext_state::map_io(address_map &map)
 	map(0x000b, 0x000b).mirror(0xff00).lrw8(NAME([this]() { return dma_r(1); }), NAME([this](u8 data) { dma_w(1, data); }));
 	map(0x006b, 0x006b).mirror(0xff00).lrw8(NAME([this]() { return dma_r(0); }), NAME([this](u8 data) { dma_w(0, data); }));
 
-	map(0x0bdf, 0x0bdf).mirror(0xf000).lr8(NAME([this]() -> u8 { return m_io_mouse[0]->read(); }));                 // #fbdf
-	map(0x0fdf, 0x0fdf).mirror(0xf000).lr8(NAME([this]() -> u8 { return ~m_io_mouse[1]->read(); }));                // #ffdf
-	map(0x0adf, 0x0adf).mirror(0xf000).lr8(NAME([this]() -> u8 { return 0x80 | (m_io_mouse[2]->read() & 0x07); })); // #fadf
+	map(0x0bdf, 0x0bdf).mirror(0xf000).lr8(NAME([this]() -> u8 { return m_io_mouse[0]->read(); })); // #fbdf
+	map(0x0fdf, 0x0fdf).mirror(0xf000).lr8(NAME([this]() -> u8 { return m_io_mouse[1]->read(); })); // #ffdf
+	map(0x0adf, 0x0adf).mirror(0xf000).lr8(NAME([this]() -> u8 { return (m_io_mouse[3]->read() << 4) | m_io_mouse[2]->read(); })); // #fadf
 
 	map(0x0037, 0x0037).mirror(0xff00).r(FUNC(specnext_state::kempston_md_r<1>));
 
@@ -3051,12 +3059,16 @@ INPUT_PORTS_START(specnext)
 	PORT_BIT(0xff, 0, IPT_MOUSE_X) PORT_SENSITIVITY(40)
 
 	PORT_START("mouse_input2")
-	PORT_BIT(0xff, 0, IPT_MOUSE_Y) PORT_SENSITIVITY(40)
+	PORT_BIT(0xff, 0, IPT_MOUSE_Y) PORT_REVERSE PORT_SENSITIVITY(40)
 
 	PORT_START("mouse_input3")
-	PORT_BIT(0x01, IP_ACTIVE_LOW, IPT_BUTTON4) PORT_NAME("Left mouse button") PORT_CODE(MOUSECODE_BUTTON2)
-	PORT_BIT(0x02, IP_ACTIVE_LOW, IPT_BUTTON5) PORT_NAME("Right mouse button") PORT_CODE(MOUSECODE_BUTTON1)
-	PORT_BIT(0x04, IP_ACTIVE_LOW, IPT_BUTTON6) PORT_NAME("Middle mouse button") PORT_CODE(MOUSECODE_BUTTON3)
+	PORT_BIT(0x01, IP_ACTIVE_LOW, IPT_BUTTON4) PORT_NAME("Mouse Button Left") PORT_CODE(MOUSECODE_BUTTON1)
+	PORT_BIT(0x02, IP_ACTIVE_LOW, IPT_BUTTON5) PORT_NAME("Mouse Button Right") PORT_CODE(MOUSECODE_BUTTON2)
+	PORT_BIT(0x04, IP_ACTIVE_LOW, IPT_BUTTON6) PORT_NAME("Mouse Button Middle") PORT_CODE(MOUSECODE_BUTTON3)
+	PORT_BIT(0xf8, IP_ACTIVE_HIGH, IPT_UNUSED)
+
+	PORT_START("mouse_input4")
+	PORT_BIT(0x0f, 0, IPT_DIAL_V) PORT_REVERSE PORT_NAME("Mouse Scroll V") PORT_SENSITIVITY(1) PORT_CODE(MOUSECODE_Z)
 
 	PORT_START("JOY_LEFT")
 	PORT_BIT(0x001, IP_ACTIVE_HIGH, IPT_JOYSTICK_RIGHT) PORT_PLAYER(1) PORT_CODE(JOYCODE_HAT1RIGHT) PORT_NAME("Joystick (L) Right") PORT_CODE(JOYCODE_X_RIGHT_SWITCH) PORT_8WAY
@@ -3348,6 +3360,11 @@ void specnext_state::machine_start()
 	save_item(NAME(m_i2c_sda_data));
 }
 
+void specnext_state::device_post_load()
+{
+	m_video_output_hdmi = -1;
+}
+
 void specnext_state::reset_hard()
 {
 	m_nr_02_hard_reset = 0;
@@ -3460,8 +3477,6 @@ void specnext_state::reset_hard()
 
 	// m_port_00_data = 0;
 	m_nr_0a_divmmc_automap_en = 1;
-
-	update_video_mode();
 }
 
 void specnext_state::machine_reset()
@@ -3717,6 +3732,7 @@ void specnext_state::machine_reset()
 	mmu_x2_w(6, 0x00);
 
 	m_ay_select = 0;
+	m_video_output_hdmi = -1;
 }
 
 static const gfx_layout bootrom_charlayout =
@@ -3805,10 +3821,12 @@ void specnext_state::tbblue(machine_config &config)
 	SPI_SDCARD(config, m_sdcards[0], 0);
 	m_sdcards[0]->set_prefer_sdhc();
 	m_sdcards[0]->spi_miso_callback().set(FUNC(specnext_state::spi_miso_w));
+	m_sdcards[0]->set_delays_ext(0, 1); // This is a minimum delay which allows Tha Atic Atac's loader to work.
 
 	SPI_SDCARD(config, m_sdcards[1], 0);
 	m_sdcards[1]->set_prefer_sdhc();
 	m_sdcards[1]->spi_miso_callback().set(FUNC(specnext_state::spi_miso_w));
+	m_sdcards[1]->set_delays_ext(0, 1);
 
 	SPEAKER(config.replace(), "speakers", 2).front();
 	m_speaker->add_route(ALL_OUTPUTS, "speakers", 0.50, 1);
@@ -3851,6 +3869,8 @@ void specnext_state::tbblue(machine_config &config)
 	SPECNEXT_COPPER(config, m_copper, 28_MHz_XTAL);
 	m_copper->out_nextreg_cb().set([this](offs_t offset, u8 data) { m_next_regs.write_byte(offset, data); });
 	m_copper->set_in_until_pos_cb(FUNC(specnext_state::copper_until_pos_r));
+
+	SOFTWARE_LIST(config, "sd_list").set_original("specnext_sd");
 
 	config.device_remove("snapshot");
 }

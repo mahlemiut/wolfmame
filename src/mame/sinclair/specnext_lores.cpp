@@ -80,8 +80,8 @@ void specnext_lores_device::draw(screen_device &screen, bitmap_rgb32 &bitmap, co
 			{
 				for (u8 i = 0; (i < 4 - off4) && ((hpos + i) <= clip.right()); ++i)
 				{
-					*(pix + i) = pen;
-					*(prio + i) |= pcode;
+					pix[i] = pen;
+					prio[i] |= pcode;
 				}
 			}
 			if (off4)
@@ -114,6 +114,8 @@ void specnext_lores_device::device_add_mconfig(machine_config &config)
 
 void specnext_lores_device::device_start()
 {
+	save_item(NAME(m_offset_h));
+	save_item(NAME(m_offset_v));
 	save_item(NAME(m_global_transparent));
 	save_item(NAME(m_lores_palette_select));
 

@@ -348636,7 +348636,7 @@ license:CC0-1.0
 	<software name="ncirc_md">
 		<description>Nightmare Circus (GEN/MD)</description>
 		<year>1995</year>
-		<publisher>TecToy</publisher>
+		<publisher>Tec Toy</publisher>
 		<info name="cores" value="SN76496, YM2612"/>
 		<part name="001" interface="vgm_quik">
 			<feature name="part_id" value="01 - title screen.vgz" />

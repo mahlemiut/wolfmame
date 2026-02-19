@@ -169,7 +169,6 @@ Hardware for the 770Z model.
 #include "cpu/i386/i386.h"
 #include "machine/ds17x85.h"
 #include "machine/pci.h"
-#include "machine/pci-ide.h"
 #include "machine/i82443bx_host.h"
 #include "machine/i82371eb_isa.h"
 #include "machine/i82371eb_ide.h"
@@ -258,7 +257,7 @@ void thinkpad600_state::thinkpad600_base(machine_config &config)
 	mcu.set_addrmap(AS_PROGRAM, &thinkpad600_state::mcu_map);
 //  mcu.set_disable();
 
-	DS17485(config, "rtc", 16'000'000); // Dallas DS17485S-5, unknown clock
+	DS17485(config, "rtc", XTAL(32'768)); // Dallas DS17485S-5, unknown clock
 }
 
 void thinkpad600_state::thinkpad600e(machine_config &config)
@@ -271,6 +270,7 @@ void thinkpad600_state::thinkpad600e(machine_config &config)
 	// TODO: PCI config space guessed from a Fujitsu Lifebook, confirm me for ThinkPad
 	PCI_ROOT(config, "pci", 0);
 	I82443BX_HOST(config, "pci:00.0", 0, "maincpu", 64*1024*1024);
+
 	i82371eb_isa_device &isa(I82371EB_ISA(config, "pci:07.0", 0, m_maincpu));
 	isa.boot_state_hook().set([](u8 data) { /* printf("%02x\n", data); */ });
 	isa.smi().set_inputline("maincpu", INPUT_LINE_SMI);
@@ -281,7 +281,7 @@ void thinkpad600_state::thinkpad600e(machine_config &config)
 
 	I82371EB_USB (config, "pci:07.2", 0);
 	I82371EB_ACPI(config, "pci:07.3", 0);
-	LPC_ACPI     (config, "pci:07.3:acpi", 0);
+	ACPI_PIIX4   (config, "pci:07.3:acpi");
 	SMBUS        (config, "pci:07.3:smbus", 0);
 
 //  TODO: modem at "pci:10.0"

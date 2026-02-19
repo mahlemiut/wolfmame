@@ -274,16 +274,7 @@ Notes:
 
 
 #include "emu.h"
-#include "cpu/i386/i386.h"
-#include "cpu/mcs51/i80c51.h"
-#include "machine/pci.h"
-#include "machine/pci-ide.h"
-#include "machine/pci-smbus.h"
-#include "machine/i82443bx_host.h"
-#include "machine/i82371eb_isa.h"
-#include "machine/i82371eb_ide.h"
-#include "machine/i82371eb_acpi.h"
-#include "machine/i82371eb_usb.h"
+
 #include "bus/isa/isa_cards.h"
 #include "bus/pci/virge_pci.h"
 //#include "bus/rs232/hlemouse.h"
@@ -291,7 +282,16 @@ Notes:
 //#include "bus/rs232/rs232.h"
 //#include "bus/rs232/sun_kbd.h"
 //#include "bus/rs232/terminal.h"
+#include "cpu/i386/i386.h"
+#include "cpu/mcs51/i80c51.h"
 #include "machine/fdc37c93x.h"
+#include "machine/i82443bx_host.h"
+#include "machine/i82371eb_isa.h"
+#include "machine/i82371eb_ide.h"
+#include "machine/i82371eb_acpi.h"
+#include "machine/i82371eb_usb.h"
+#include "machine/pci.h"
+#include "machine/pci-smbus.h"
 #include "video/voodoo_pci.h"
 
 namespace {
@@ -386,7 +386,7 @@ void midway_quicksilver2_state::midqslvr(machine_config &config)
 	I82443BX_BRIDGE(config, "pci:01.0", 0 ); //"pci:01.0:00.0");
 	//I82443BX_AGP   (config, "pci:01.0:00.0");
 
-	i82371eb_isa_device &isa(I82371EB_ISA(config, "pci:07.0", 0, m_maincpu));
+	i82371eb_isa_device &isa(I82371EB_ISA(config, "pci:07.0", 0, m_maincpu, true));
 	isa.boot_state_hook().set([](u8 data) { /* printf("%02x\n", data); */ });
 	isa.smi().set_inputline("maincpu", INPUT_LINE_SMI);
 
@@ -396,7 +396,7 @@ void midway_quicksilver2_state::midqslvr(machine_config &config)
 
 	I82371EB_USB (config, "pci:07.2", 0);
 	I82371EB_ACPI(config, "pci:07.3", 0);
-	LPC_ACPI     (config, "pci:07.3:acpi", 0);
+	ACPI_PIIX4   (config, "pci:07.3:acpi");
 	SMBUS        (config, "pci:07.3:smbus", 0);
 
 	ISA16_SLOT(config, "board4", 0, "pci:07.0:isabus", isa_internal_devices, "fdc37m707", true).set_option_machine_config("fdc37m707", superio_config);

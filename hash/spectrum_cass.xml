@@ -1322,7 +1322,7 @@ license:CC0-1.0
 	</software>
 
 	<software name="aburner">
-		<description>Afterburner</description>
+		<description>After Burner</description>
 		<year>1988</year>
 		<publisher>Activision</publisher>
 		<part name="cass1" interface="spectrum_cass">
@@ -1343,7 +1343,7 @@ license:CC0-1.0
 	</software>
 
 	<software name="aburnerm" cloneof="aburner">
-		<description>Afterburner (MCM)</description>
+		<description>After Burner (MCM)</description>
 		<year>1988</year>
 		<publisher>MCM Software</publisher>
 		<part name="cass1" interface="spectrum_cass">
@@ -1359,7 +1359,7 @@ license:CC0-1.0
 	</software>
 
 	<software name="aburnerhs" cloneof="aburner">
-		<description>Afterburner (The Hit Squad)</description>
+		<description>After Burner (The Hit Squad)</description>
 		<year>1988</year>
 		<publisher>The Hit Squad</publisher>
 		<part name="cass" interface="spectrum_cass">
@@ -162922,7 +162922,7 @@ Side B - Game 2: Superkid in Space (Atlantis Software)
 Tape 1 - Side A: Batman
 Tape 1 - Side B: Rambo III
 Tape 2 - Side A: RoboCop / Dragon Ninja
-Tape 2 - Side B: Afterburner
+Tape 2 - Side B: After Burner
 ]]></notes>
 
 		<part name="cass1" interface="spectrum_cass">

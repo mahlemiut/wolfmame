@@ -228092,7 +228092,7 @@ stick to CPC-Power disks, when available)
 
 	<!-- Identifying Afterburner (1988)(Activision)[h ACME].dsk... --> <!-- Mostly GoodCPC -->
 	<software name="afterbur0a" cloneof="m_aburn" supported="no">
-		<description>Afterburner (Activision)[h ACME] &amp; Slug</description>
+		<description>After Burner (Activision)[h ACME] &amp; Slug</description>
 		<year>1988</year>
 		<publisher>&lt;unknown&gt;</publisher>
 		<part name="flop1" interface="floppy_3">
@@ -278486,7 +278486,7 @@ Shortnames are chosen to "preview" the content:
 
 	<!-- Identifying Afterburner (1988)(Activision).dsk... --> <!-- Mostly GoodCPC -->
 	<software name="aburners1" cloneof="aburner">
-		<description>Afterburner (Spa?, Alt)</description>
+		<description>After Burner (Spa?, Alt)</description>
 		<year>1988</year>
 		<publisher>Activision</publisher>
 		<part name="flop1" interface="floppy_3">
@@ -278498,7 +278498,7 @@ Shortnames are chosen to "preview" the content:
 
 	<!-- Identifying After Burner #1 (nongoodcpc).dsk... --> <!-- NonGoodCPC -->
 	<software name="aburners2" cloneof="aburner">
-		<description>Afterburner (Spa?, Alt 2)</description>
+		<description>After Burner (Spa?, Alt 2)</description>
 		<year>1988</year>
 		<publisher>Activision</publisher>
 		<part name="flop1" interface="floppy_3">
@@ -278510,7 +278510,7 @@ Shortnames are chosen to "preview" the content:
 
 	<!-- Identifying After Burner #2 (nongoodcpc).dsk... --> <!-- NonGoodCPC -->
 	<software name="aburners3" cloneof="aburner">
-		<description>Afterburner (Spa?, Alt 3)</description>
+		<description>After Burner (Spa?, Alt 3)</description>
 		<year>1988</year>
 		<publisher>Activision</publisher>
 		<part name="flop1" interface="floppy_3">
@@ -278522,7 +278522,7 @@ Shortnames are chosen to "preview" the content:
 
 	<!-- Identifying After Burner #3 (nongoodcpc).dsk... --> <!-- NonGoodCPC -->
 	<software name="aburners4" cloneof="aburner">
-		<description>Afterburner (Spa?, Alt 4)</description>
+		<description>After Burner (Spa?, Alt 4)</description>
 		<year>1988</year>
 		<publisher>Activision</publisher>
 		<part name="flop1" interface="floppy_3">
@@ -278558,7 +278558,7 @@ Shortnames are chosen to "preview" the content:
 
 	<!-- Identifying Afterburner (1988)(Activision)[cr CACH][t Celtic Gang].dsk... --> <!-- Mostly GoodCPC -->
 	<software name="aburner_t4" cloneof="aburner">
-		<description>Afterburner (UK, Trained by CACH &amp; Le Celtic Gang)</description>
+		<description>After Burner (UK, Trained by CACH &amp; Le Celtic Gang)</description>
 		<year>1988</year>
 		<publisher>Activision</publisher>
 		<part name="flop1" interface="floppy_3">
@@ -278570,7 +278570,7 @@ Shortnames are chosen to "preview" the content:
 
 	<!-- Identifying Afterburner (1988)(Activision)[cr Enrique Soft].dsk... --> <!-- Mostly GoodCPC -->
 	<software name="aburner_c1" cloneof="aburner">
-		<description>Afterburner (UK, Cracked by Enrique Soft)</description>
+		<description>After Burner (UK, Cracked by Enrique Soft)</description>
 		<year>1988</year>
 		<publisher>Activision</publisher>
 		<part name="flop1" interface="floppy_3">
@@ -278582,7 +278582,7 @@ Shortnames are chosen to "preview" the content:
 
 	<!-- Identifying After Burner #1 [a] (nongoodcpc).dsk... --> <!-- NonGoodCPC -->
 	<software name="aburner_c1a" cloneof="aburner">
-		<description>Afterburner (UK, Cracked by Enrique Soft, Alt)</description>
+		<description>After Burner (UK, Cracked by Enrique Soft, Alt)</description>
 		<year>1988</year>
 		<publisher>Activision</publisher>
 		<part name="flop1" interface="floppy_3">
@@ -278594,7 +278594,7 @@ Shortnames are chosen to "preview" the content:
 
 	<!-- Identifying After Burner #2 [a] (nongoodcpc).dsk... --> <!-- NonGoodCPC -->
 	<software name="aburner_c2" cloneof="aburner">
-		<description>Afterburner (UK, Cracked by Toto &amp; Rick)</description>
+		<description>After Burner (UK, Cracked by Toto &amp; Rick)</description>
 		<year>1988</year>
 		<publisher>Activision</publisher>
 		<part name="flop1" interface="floppy_3">

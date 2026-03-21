@@ -840,7 +840,7 @@ void chloe_state::machine_start()
 	save_item(NAME(m_reg_selected));
 	save_item(NAME(m_divmmc_paged));
 	save_item(NAME(m_divmmc_ctrl));
-	save_pointer(NAME(m_uno_regs_data), 256);
+	save_item(NAME(m_uno_regs_data));
 	save_item(NAME(m_palpen_selected));
 	save_item(NAME(m_dma_hilo));
 	save_item(NAME(m_dma_src_latch));
@@ -896,7 +896,8 @@ void chloe_state::video_start()
 	spectrum_128_state::video_start();
 
 	const u8 *ram = m_ram->pointer();
-	m_ula_scr->set_host_ram_ptr(ram);
+	m_ula_scr->set_bram_bank5_ptr(ram + (5 << 14));
+	m_ula_scr->set_bram_bank7_ptr(ram + (7 << 14));
 }
 
 

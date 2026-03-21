@@ -169,33 +169,33 @@ static const uint8_t fcmp_cr_table_source[32] =
 	/* ...V. */ 0x4,
 	/* ...VC */ 0x8,
 	/* ..Z.. */ 0x2,
-	/* ..Z.C */ 0xa,
+	/* ..Z.C */ 0x2,
 	/* ..ZV. */ 0x2,
-	/* ..ZVC */ 0xa,
+	/* ..ZVC */ 0x2,
 	/* .S... */ 0x4,
 	/* .S..C */ 0x8,
 	/* .S.V. */ 0x4,
 	/* .S.VC */ 0x8,
 	/* .SZ.. */ 0x2,
-	/* .SZ.C */ 0xa,
+	/* .SZ.C */ 0x2,
 	/* .SZV. */ 0x2,
-	/* .SZVC */ 0xa,
-	/* U.... */ 0x5,
-	/* U...C */ 0x9,
-	/* U..V. */ 0x5,
-	/* U..VC */ 0x9,
-	/* U.Z.. */ 0x3,
-	/* U.Z.C */ 0xb,
-	/* U.ZV. */ 0x3,
-	/* U.ZVC */ 0xb,
-	/* US... */ 0x5,
-	/* US..C */ 0x9,
-	/* US.V. */ 0x5,
-	/* US.VC */ 0x9,
-	/* USZ.. */ 0x3,
-	/* USZ.C */ 0xb,
-	/* USZV. */ 0x3,
-	/* USZVC */ 0xb
+	/* .SZVC */ 0x2,
+	/* U.... */ 0x1,
+	/* U...C */ 0x1,
+	/* U..V. */ 0x1,
+	/* U..VC */ 0x1,
+	/* U.Z.. */ 0x1,
+	/* U.Z.C */ 0x1,
+	/* U.ZV. */ 0x1,
+	/* U.ZVC */ 0x1,
+	/* US... */ 0x1,
+	/* US..C */ 0x1,
+	/* US.V. */ 0x1,
+	/* US.VC */ 0x1,
+	/* USZ.. */ 0x1,
+	/* USZ.C */ 0x1,
+	/* USZV. */ 0x1,
+	/* USZVC */ 0x1
 };
 
 
@@ -1575,18 +1575,11 @@ void ppc_device::ppccom_tlb_flush()
 
 void ppc_device::ppccom_get_dsisr()
 {
-	int intent = 0;
+	int intent = (m_core->param1 & 1) ? TR_WRITE : TR_READ;
 
-	if (m_core->param1 & 1)
-	{
-		intent = TR_WRITE;
-	}
-	else
-	{
-		intent = TR_READ;
-	}
-
-	m_core->param1 = ppccom_translate_address_internal(intent, false, m_core->param0);
+	offs_t address = m_core->param0;
+	m_core->param1 = ppccom_translate_address_internal(intent, false, address);
+	m_core->param0 = address;
 }
 
 /*-------------------------------------------------
@@ -2825,7 +2818,7 @@ void ppc_device::ppc4xx_spu_timer_reset()
 		attotime charperiod = clockperiod * (divisor * 16 * bpc);
 		m_spu.timer->adjust(charperiod, 0, charperiod);
 		if (PRINTF_SPU)
-			printf("ppc4xx_spu_timer_reset: baud rate = %.0f\n", charperiod.as_hz() * bpc);
+			osd_printf_debug("ppc4xx_spu_timer_reset: baud rate = %.0f\n", charperiod.as_hz() * bpc);
 	}
 
 	/* otherwise, disable the timer */
@@ -2924,7 +2917,7 @@ uint8_t ppc4xx_device::ppc4xx_spu_r(offs_t offset)
 			break;
 	}
 	if (PRINTF_SPU)
-		printf("spu_r(%d) = %02X\n", offset, result);
+		osd_printf_debug("spu_r(%d) = %02X\n", offset, result);
 	return result;
 }
 
@@ -2938,7 +2931,7 @@ void ppc4xx_device::ppc4xx_spu_w(offs_t offset, uint8_t data)
 	uint8_t oldstate, newstate;
 
 	if (PRINTF_SPU)
-		printf("spu_w(%d) = %02X\n", offset, data);
+		osd_printf_debug("spu_w(%d) = %02X\n", offset, data);
 	switch (offset)
 	{
 		/* clear error bits */

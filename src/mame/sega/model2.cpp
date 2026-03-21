@@ -147,7 +147,7 @@ TIMER_CALLBACK_MEMBER(model2_state::irq_mask_delayed_update)
 
 	// sound interrupt is asserted if either RxRDY or TxRDY is active
 	const u32 line = 1 << 10;
-	if ((m_uart->status_r() & 0x03) && (m_intena & line))
+	if ((m_uart->txrdy_r() || m_uart->rxrdy_r()) && (m_intena & line))
 	{
 		m_intreq |= line;
 		irq_update();
@@ -2462,7 +2462,7 @@ void model2_state::sound_ready_w(int state)
 {
 	// sound interrupt is asserted if either RxRDY or TxRDY is active
 	const u32 line = 1 << 10;
-	if ((m_uart->status_r() & 0x03) && (m_intena & line))
+	if ((m_uart->txrdy_r() || m_uart->rxrdy_r()) && (m_intena & line))
 	{
 		m_intreq |= line;
 		irq_update();
@@ -2513,8 +2513,6 @@ void model2_state::scsp_irq(offs_t offset, u8 data)
 
 /*****************************************************************************/
 
-#define VIDEO_CLOCK         XTAL(32'000'000)
-
 void model2_state::model2_timers(machine_config &config)
 {
 	timer_device &timer0(TIMER(config, "timer0"));
@@ -2537,7 +2535,7 @@ void model2_state::model2_screen(machine_config &config)
 	SCREEN(config, m_screen, SCREEN_TYPE_RASTER);
 	m_screen->set_video_attributes(VIDEO_UPDATE_AFTER_VBLANK);
 	// TODO: from System 24, might not be accurate for Model 2
-	m_screen->set_raw(VIDEO_CLOCK/2, 656, 0/*+69*/, 496/*+69*/, 424, 0/*+25*/, 384/*+25*/);
+	m_screen->set_raw(32_MHz_XTAL/2, 656, 0/*+69*/, 496/*+69*/, 424, 0/*+25*/, 384/*+25*/);
 	m_screen->set_screen_update(FUNC(model2_state::screen_update));
 	m_screen->screen_vblank().set(FUNC(model2_state::screen_vblank));
 

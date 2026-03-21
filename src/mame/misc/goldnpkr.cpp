@@ -4789,7 +4789,7 @@ static INPUT_PORTS_START( megadpkr )
 	PORT_BIT( 0xe0, IP_ACTIVE_LOW, IPT_UNUSED )
 
 	PORT_START("IN0-3")
-	PORT_BIT( 0x01, IP_ACTIVE_LOW, IPT_GAMBLE_SERVICE ) PORT_NAME("Menu")
+	PORT_BIT( 0x01, IP_ACTIVE_LOW, IPT_SERVICE1 ) PORT_NAME("Menu")
 	PORT_BIT( 0x02, IP_ACTIVE_LOW, IPT_UNKNOWN ) // not used?
 	PORT_BIT( 0x04, IP_ACTIVE_LOW, IPT_COIN2 ) PORT_NAME("Note")
 	PORT_BIT( 0x08, IP_ACTIVE_LOW, IPT_COIN1 ) PORT_NAME("Credit")
@@ -12575,7 +12575,7 @@ ROM_START( pokersis )
 
 	ROM_REGION( 0x1800, "gfx1", 0 )
 	ROM_FILL(                 0x0000, 0x1000, 0x0000 )   // filling the R-G bitplanes
-	ROM_COPY( "gfx", 0x14800, 0x1000, 0x0800 )      // text and suppossed 1bpp gfx
+	ROM_COPY( "gfx", 0x14800, 0x1000, 0x0800 )      // text and supposed 1bpp gfx
 
 	ROM_REGION( 0x1800, "gfx2", 0 )
 	ROM_COPY( "gfx", 0x04000, 0x0000, 0x0800 )  // cards gfx, bitplane 1

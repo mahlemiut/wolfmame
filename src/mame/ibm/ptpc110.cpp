@@ -175,10 +175,10 @@ private:
 
 void ptpc110_state::main_map(address_map &map)
 {
-//	map(0x0000'0000, 0x0009'ffff).ram();
+//  map(0x0000'0000, 0x0009'ffff).ram();
 //  map(0x000a'0000, 0x000b'ffff).rw(m_vga, FUNC(f65535_vga_device::mem_r), FUNC(f65535_vga_device::mem_w));
 //  map(0x000c'0000, 0x000f'ffff).rom().region("bios", 0);
-//	map(0x0100'0000, 0x0107'ffff).ram();
+//  map(0x0100'0000, 0x0107'ffff).ram();
 	map(0xfffc'0000, 0xffff'ffff).rom().region("bios", 0);
 }
 
@@ -302,7 +302,7 @@ void ptpc110_state::ptpc110(machine_config &config)
 	keybc.kbd_irq().set(m_chipset, FUNC(vl82c420_device::irq01_w));
 	keybc.kbd_clk().set("kbd", FUNC(pc_kbdc_device::clock_write_from_mb));
 	keybc.kbd_data().set("kbd", FUNC(pc_kbdc_device::data_write_from_mb));
-	keybc.aux_irq().set(m_chipset, FUNC(vl82c420_device::irq04_w));
+	keybc.aux_irq().set(m_chipset, FUNC(vl82c420_device::irq12_w));
 	keybc.aux_clk().set("aux", FUNC(pc_kbdc_device::clock_write_from_mb));
 	keybc.aux_data().set("aux", FUNC(pc_kbdc_device::data_write_from_mb));
 

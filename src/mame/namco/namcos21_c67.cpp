@@ -1,16 +1,33 @@
 // license:BSD-3-Clause
 // copyright-holders:Phil Stroffolino
 /*
-    NOTES:
 
-    Air Combat:
-         priority issues
+TODO (2026 update):
+- how the 3d rasterizer really selects banks 1 & 2? aircomb is the odd one, it has a red shaded
+  bank from time to time;
+- lamp/vibration outputs, from MCU? (particularly starblad);
+- aircomb: z-fighting issue on attract mode with the plane renders (after the first title screen),
+  and on pilot parachuting with a time over;
+- aircomb: sprites blends badly with background pen when warning appears and the src target is the sky color
+  (i.e. pen 0xff with current handling);
+- aircomb: level select/continue screen draws with a red backdrop pen, should be pure black
+  according to refs;
+- aircomb: missing background on attract mode ranking screen (masking? cfr. shared/namco_c355spr.cpp);
+- aircomb: bad sprite colors on debriefing medal screen, throws an IDC overflow when finishing
+  the Ace course + extra stage;
+- cybsled: https://mametesters.org/view.php?id=6302
+- solvalou: https://mametesters.org/view.php?id=2085
+- solvalou: black screen on service mode, is it due of the various hacks or it's in shared/namco_c355spr.cpp?;
+- solvalou: new game transition should fill green on terrain instead of white-ish (comes from 3d
+  render);
+- starblad: service mode has heavy sprite glitches if entered from live gameplay (verify)
 
-TODO:   namcoic.c: in StarBlade, the sprite list is stored at a different location during startup tests.
-        What register controls this?
+NOTES:
+- aircomb: intro cockpit closure is one pixel off on left edge, confirmed btanb from ref;
 
-TODO:   Map lamps/vibration outputs as used by StarBlade (and possibly other titles).
-        These likely involve the MCU.
+TODO:
+- namcoic.c: in StarBlade, the sprite list is stored at a different location during startup tests.
+  What register controls this?
 
 ---------------------------------------------------------------------------
 
@@ -251,9 +268,7 @@ Namco System 21 Video Hardware
 */
 
 #include "emu.h"
-#include "screen.h"
-#include "emupal.h"
-#include "speaker.h"
+
 #include "cpu/m68000/m68000.h"
 #include "cpu/m6805/m6805.h"
 #include "cpu/m6809/m6809.h"
@@ -269,7 +284,12 @@ Namco System 21 Video Hardware
 #include "namcos21_3d.h"
 #include "sound/c140.h"
 #include "sound/ymopm.h"
+
 #include "emupal.h"
+#include "screen.h"
+#include "speaker.h"
+
+#include "solvalou.lh"
 
 #define ENABLE_LOGGING      0
 
@@ -399,16 +419,35 @@ u32 namcos21_c67_state::screen_update(screen_device &screen, bitmap_ind16 &bitma
 	int pivot = 3;
 	bitmap.fill(0xff, cliprect);
 	screen.priority().fill(0, cliprect);
+
+	// solvalou after POST, definitely blanks screen
+	if (!BIT(m_video_enable, 6))
+		return 0;
+
 	m_c355spr->build_sprite_list_and_render_sprites(cliprect); // TODO : buffered?
+
+	const u16 pri1 = (m_palette->read16_ext(0) >> 8) & 7;
+//	const u16 pri2 = (m_palette->read16_ext(1) >> 8) & 7; // always '2'?
 
 	m_c355spr->draw(screen, bitmap, cliprect, 2);
 
 	m_namcos21_3d->copy_visible_poly_framebuffer(bitmap, cliprect, 0x7fc0, 0x7ffe);
 
-	m_c355spr->draw(screen, bitmap, cliprect, 0);
-	m_c355spr->draw(screen, bitmap, cliprect, 1);
-
-	m_namcos21_3d->copy_visible_poly_framebuffer(bitmap, cliprect, 0, 0x7fbf);
+	switch(pri1)
+	{
+		case 0: // aircomb mission select & gameplay
+			m_namcos21_3d->copy_visible_poly_framebuffer(bitmap, cliprect, 0, 0x7fbf);
+			m_c355spr->draw(screen, bitmap, cliprect, 0);
+			m_c355spr->draw(screen, bitmap, cliprect, 1);
+			break;
+		case 4: // default gameplay for all games, aircomb attract mode
+		case 2: // TODO: starblad/solvalou when going in service mode
+		default:
+			m_c355spr->draw(screen, bitmap, cliprect, 0);
+			m_c355spr->draw(screen, bitmap, cliprect, 1);
+			m_namcos21_3d->copy_visible_poly_framebuffer(bitmap, cliprect, 0, 0x7fbf);
+			break;
+	}
 
 	/* draw high priority 2d sprites */
 	for (int pri = pivot; pri < 8; pri++)
@@ -423,12 +462,14 @@ u16 namcos21_c67_state::video_enable_r()
 	return m_video_enable;
 }
 
+// bit 6: video enable
+// other bits unknown (if ever used)
 void namcos21_c67_state::video_enable_w(offs_t offset, u16 data, u16 mem_mask)
 {
-	COMBINE_DATA( &m_video_enable ); /* 0x40 = enable */
-	if (m_video_enable != 0 && m_video_enable != 0x40)
+	COMBINE_DATA( &m_video_enable );
+	if (m_video_enable & ~0x40)
 	{
-		logerror("%s: unexpected video_enable_w=0x%x\n", machine().describe_context(), m_video_enable);
+		popmessage("Video Enable %04x!", m_video_enable);
 	}
 }
 
@@ -858,8 +899,7 @@ void namcos21_c67_state::namcos21(machine_config &config)
 	NAMCO_C355SPR(config, m_c355spr, 0);
 	m_c355spr->set_screen(m_screen);
 	m_c355spr->set_palette(m_palette);
-	m_c355spr->set_scroll_offsets(0x26, 0x19);
-	m_c355spr->set_tile_callback(namco_c355spr_device::c355_obj_code2tile_delegate());
+	m_c355spr->set_scroll_offsets(0, 0x20);
 	m_c355spr->set_mix_callback(FUNC(namcos21_c67_state::sprite_mix_callback));
 	m_c355spr->set_color_base(0x1000);
 	m_c355spr->set_external_prifill(true);
@@ -1265,7 +1305,7 @@ void namcos21_c67_state::init_solvalou()
 // uses 5x TMS320C25 (C67, has internal ROM - dumped)
 GAME( 1991, starblad,  0,        starblad, starblad,   namcos21_c67_state, empty_init,    ROT0,    "Namco", "Starblade (ST2, World)",                     MACHINE_IMPERFECT_GRAPHICS )
 GAME( 1991, starbladj, starblad, starblad, starblad,   namcos21_c67_state, empty_init,    ROT0,    "Namco", "Starblade (ST1, Japan)",                     MACHINE_IMPERFECT_GRAPHICS )
-GAME( 1991, solvalou,  0,        solvalou, s21default, namcos21_c67_state, init_solvalou, ROT0,    "Namco", "Solvalou (SV1, Japan)",                      MACHINE_IMPERFECT_GRAPHICS | MACHINE_NOT_WORKING )
+GAMEL(1991, solvalou,  0,        solvalou, s21default, namcos21_c67_state, init_solvalou, ROT0,    "Namco", "Solvalou (SV1, Japan)",                      MACHINE_IMPERFECT_GRAPHICS | MACHINE_NOT_WORKING, layout_solvalou )
 GAME( 1992, aircomb,   0,        aircomb,  aircomb,    namcos21_c67_state, empty_init,    ROT0,    "Namco", "Air Combat (AC2, US)",                       MACHINE_NOT_WORKING | MACHINE_IMPERFECT_GRAPHICS ) // There's code for a SCI, is it even possible to play multiplayer?
 GAME( 1992, aircombj,  aircomb,  aircomb,  aircomb,    namcos21_c67_state, empty_init,    ROT0,    "Namco", "Air Combat (AC1, Japan)",                    MACHINE_NOT_WORKING | MACHINE_IMPERFECT_GRAPHICS )
 GAME( 1993, cybsled,   0,        cybsled,  cybsled,    namcos21_c67_state, empty_init,    ROT0,    "Namco", "Cyber Sled (CY2, World)",                    MACHINE_IMPERFECT_GRAPHICS | MACHINE_NODEVICE_LAN | MACHINE_NOT_WORKING )

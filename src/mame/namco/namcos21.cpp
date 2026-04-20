@@ -471,7 +471,10 @@ void namcos21_state::winrun_bitmap_draw(bitmap_ind16 &bitmap, const rectangle &c
 			{
 			case 0xff:
 				break;
-			// TODO: additive blending? winrun car select uses register [0xc] for a xscroll value
+			// TODO: additive blending?
+			// - winrun car select uses register [0xc] for a xscroll value
+			// - winrun windshield during gameplay (reversed 0x6000 and 0x4000 bases?)
+			// NOTE: very similar to namcos21_c67_state::sprite_mix_callback
 			case 0x00:
 				pDest[sx] = (pDest[sx]&0x1fff)+0x4000;
 				break;
@@ -491,9 +494,27 @@ uint32_t namcos21_state::screen_update(screen_device &screen, bitmap_ind16 &bitm
 {
 	bitmap.fill(0, cliprect);
 
-	m_namcos21_3d->copy_visible_poly_framebuffer(bitmap, cliprect, 0x7fc0, 0x7ffe);
-	m_namcos21_3d->copy_visible_poly_framebuffer(bitmap, cliprect, 0, 0x7fbf);
-	winrun_bitmap_draw(bitmap,cliprect);
+	// entries 0 and 1 unused parts controls priority mixing
+	const u16 pri = (m_palette->read16_ext(1) >> 8) & 7;
+
+	switch(pri)
+	{
+		case 5: // title screen for all games here
+			m_namcos21_3d->copy_visible_poly_framebuffer(bitmap, cliprect, 0x7fc0, 0x7ffe);
+			winrun_bitmap_draw(bitmap,cliprect);
+			m_namcos21_3d->copy_visible_poly_framebuffer(bitmap, cliprect, 0, 0x7fbf);
+			break;
+		case 0: // service mode
+			winrun_bitmap_draw(bitmap,cliprect);
+			break;
+		case 2: // gameplay
+		default:
+			m_namcos21_3d->copy_visible_poly_framebuffer(bitmap, cliprect, 0x7fc0, 0x7ffe);
+			m_namcos21_3d->copy_visible_poly_framebuffer(bitmap, cliprect, 0, 0x7fbf);
+			winrun_bitmap_draw(bitmap,cliprect);
+			break;
+	}
+
 
 	//popmessage("%04x %04x %04x|%04x %04x",m_winrun_gpu_register[0],m_winrun_gpu_register[2/2],m_winrun_gpu_register[4/2],m_winrun_gpu_register[0xa/2],m_winrun_gpu_register[0xc/2]);
 

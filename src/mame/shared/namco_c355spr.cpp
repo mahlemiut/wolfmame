@@ -20,10 +20,10 @@
     TODO: verify which boards use which chips
 
 
-    dragongun does a masking trick on the dragon during the attract intro, it should not be visible but rather
+    dragngun does a masking trick on the dragon during the attract intro, it should not be visible but rather
     cause the fire to be invisible in the shape of the dragon
-    dragongun 'waterfall' prior to one of the bosses also needs correct priority
-
+    dragngun 'waterfall' prior to one of the bosses also needs correct priority
+    aircomb ranking screen during attract also seems masking related
 
     relative to the start of the sprite area these offets are typically used
     it is not clear if this is implemented in a single RAM chip, or multiple on some boards
@@ -71,6 +71,7 @@ namco_c355spr_device::namco_c355spr_device(const machine_config &mconfig, device
 	device_t(mconfig, type, tag, owner, clock),
 	device_gfx_interface(mconfig, *this),
 	device_video_interface(mconfig, *this),
+	m_code2tile(*this),
 	m_pri_cb(*this, DEVICE_SELF, FUNC(namco_c355spr_device::default_priority)),
 	m_mix_cb(*this, DEVICE_SELF, FUNC(namco_c355spr_device::default_mix)),
 	m_read_spritetile(*this, DEVICE_SELF, FUNC(namco_c355spr_device::read_spritetile)),
@@ -257,6 +258,7 @@ void namco_c355spr_device::device_start()
 	gfx(0)->set_colorbase(m_colbase);
 	gfx(0)->set_granularity(m_granularity);
 
+	m_code2tile.resolve();
 	m_pri_cb.resolve();
 
 	screen().register_screen_bitmap(m_renderbitmap);
@@ -288,7 +290,6 @@ void namco_c355spr_device::device_start()
 	m_mix_cb.resolve();
 
 	save_item(NAME(m_position));
-
 }
 
 void namco_c355spr_device::device_stop()
@@ -409,11 +410,6 @@ u16 namco_c355spr_device::read_spritelist(int entry, int whichlist)
 }
 
 
-int namco_c355spr_device::default_code2tile(int code)
-{
-	return code;
-}
-
 void namco_c355spr_device::build_sprite_list(int no)
 {
 	/* draw the sprites */
@@ -470,11 +466,15 @@ void namco_c355spr_device::render_sprites(const rectangle cliprect)
 							sprite_screen_width = (sprite_ptr->zoomx[ind] * 16 + 0x8000) >> 16;
 						}
 
+						// TODO: offset is also affected?
+						int tile = sprite_ptr->tile[ind];
+						if (!m_code2tile.isnull())
+							tile = m_code2tile(tile);
 						zdrawgfxzoom(
 							m_renderbitmap,
 							clip,
 							gfx(0),
-							m_code2tile(sprite_ptr->tile[ind]) + sprite_ptr->offset,
+							tile + sprite_ptr->offset,
 							sprite_ptr->color,
 							sprite_ptr->flipx, sprite_ptr->flipy,
 							sprite_ptr->x[ind] >> 16, sprite_ptr->y[ind] >> 16,
@@ -528,20 +528,12 @@ void namco_c355spr_device::get_single_sprite(u16 which, c355_sprite *sprite_ptr,
 	int xscroll = util::sext<s16>(m_position[1], 9);
 	int yscroll = util::sext<s16>(m_position[0], 9);
 
+	/* Medium Resolution: system21 adjust */
 	if (screen().height() > 384)
-	{ /* Medium Resolution: system21 adjust */
-			xscroll = util::sext<s16>(m_position[1], 10);
-			if (yscroll < 0)
-			{ /* solvalou */
-				yscroll += 0x20;
-			}
-			yscroll += 0x10;
-	}
-	else
-	{
-		xscroll += m_scrolloffs[0];
-		yscroll += m_scrolloffs[1];
-	}
+		xscroll = util::sext<s16>(m_position[1], 10);
+
+	xscroll += m_scrolloffs[0];
+	yscroll += m_scrolloffs[1];
 
 	hpos -= xscroll;
 	vpos -= yscroll;
@@ -656,4 +648,3 @@ void namco_c355spr_device::get_single_sprite(u16 which, c355_sprite *sprite_ptr,
 		source_height_remaining -= 16;
 	} /* next row */
 }
-

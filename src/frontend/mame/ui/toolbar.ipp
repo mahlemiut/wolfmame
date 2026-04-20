@@ -42,7 +42,7 @@ char const *const toolbar_icons_svg[] = {
 			"<path fill='#ffffff' d='m 59,38 v 34 a 10,4 0 0,0 10,4 v 8 h -36 v -8 a 10,4 0 0,0 10,-4 v -23 a 8,4 0 0,0 -8,-4 v -6 z' />"
 		"</svg>",
 		// record
-		u8"<?xml version='1.0' encoding='UTF-8' standalone='no'?>"
+		"<?xml version='1.0' encoding='UTF-8' standalone='no'?>"
 		"<svg width='16.0px' height='16.0px' viewBox='0 0 16.0 16.0' version='1.1' id='SVGRoot' xmlns='http://www.w3.org/2000/svg' xmlns:svg='http://www.w3.org/2000/svg'>"
 		"<defs id='defs9' />"
 			"<g id='layer1'>"
@@ -50,7 +50,7 @@ char const *const toolbar_icons_svg[] = {
 			"</g>"
 		"</svg>",
 		// playback
-		u8"<?xml version='1.0' encoding='UTF-8' standalone='no'?>"
+		"<?xml version='1.0' encoding='UTF-8' standalone='no'?>"
 		"<svg width='16.0px' height='16.0px' viewBox='0 0 16.0 16.0' version='1.1' id='SVGRoot' xmlns='http://www.w3.org/2000/svg' xmlns:svg='http://www.w3.org/2000/svg'>"
 			"<defs id='defs9' />"
 			"<g id='layer1'>"

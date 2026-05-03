@@ -1755,7 +1755,7 @@ uint32_t mame_ui_manager::handler_ingame()
 	if (machine().ui_input().pressed(IPT_UI_MENU))
 	{
 		m_ui_target = &current_ui_target();
-		if (!machine().paused() && options().menu_pause())
+		if (!machine().paused() && options().menu_pause() && !machine().ioport().get_record_file())
 		{
 			machine().pause();
 			m_paused_for_menu = true;

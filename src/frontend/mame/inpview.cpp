@@ -178,7 +178,9 @@ void input_viewer::render_input()
 {
 	int port = 0;
 	char txt[6];
-	float height = mame_machine_manager::instance()->ui().get_line_height();
+//	render_container& ui = machine().render().ui_container();
+	render_target& target = machine().render().ui_target();
+	float height = mame_machine_manager::instance()->ui().get_line_height(target);
 
 	if(m_player < 1 || m_player > 10)
 		return;  // invalid player
@@ -189,7 +191,6 @@ void input_viewer::render_input()
 		return;
 	}
 
-	render_container& ui = machine().render().ui_container();
 	machine().render().ui_container().add_quad(0.0f,1.0f-(float)(inptype[m_layout].lines*height),1.0f,1.0f,BGCOL,NULL,PRIMFLAG_BLENDMODE(BLENDMODE_ALPHA));
 	while(inptype[m_layout].inp[port].port != -1)
 	{
@@ -200,7 +201,7 @@ void input_viewer::render_input()
 			if(input_port_used(inptype[m_layout].inp[port].port,0) != 0)
 			{
 				int col = inptype[m_layout].inp[port].colour;
-				mame_machine_manager::instance()->ui().draw_text_full(ui,txt,(float)(inptype[m_layout].inp[port].x * CHARACTER_WIDTH),1.0f - (float)(height * inptype[m_layout].inp[port].line),1.0f,ui::text_layout::text_justify::LEFT,ui::text_layout::word_wrapping::NEVER,mame_ui_manager::OPAQUE_,col,0,NULL,NULL);
+				mame_machine_manager::instance()->ui().draw_text_full(target,txt,(float)(inptype[m_layout].inp[port].x * CHARACTER_WIDTH),1.0f - (float)(height * inptype[m_layout].inp[port].line),1.0f,ui::text_layout::text_justify::LEFT,ui::text_layout::word_wrapping::NEVER,mame_ui_manager::OPAQUE_,col,0,NULL,NULL);
 			}
 		}
 		else
@@ -208,7 +209,7 @@ void input_viewer::render_input()
 			if(input_port_used(inptype[m_layout].inp[port].port,m_player-1) != 0)
 			{
 				int col = inptype[m_layout].inp[port].colour;
-				mame_machine_manager::instance()->ui().draw_text_full(ui,txt,(float)(inptype[m_layout].inp[port].x * CHARACTER_WIDTH),1.0f - (float)(height * inptype[m_layout].inp[port].line),1.0f,ui::text_layout::text_justify::LEFT,ui::text_layout::word_wrapping::NEVER,mame_ui_manager::OPAQUE_,col,0,NULL,NULL);
+				mame_machine_manager::instance()->ui().draw_text_full(target,txt,(float)(inptype[m_layout].inp[port].x * CHARACTER_WIDTH),1.0f - (float)(height * inptype[m_layout].inp[port].line),1.0f,ui::text_layout::text_justify::LEFT,ui::text_layout::word_wrapping::NEVER,mame_ui_manager::OPAQUE_,col,0,NULL,NULL);
 			}
 		}
 		port++;
@@ -218,8 +219,9 @@ void input_viewer::render_input()
 void input_viewer::render_dips()
 {
 	render_container& ui = machine().render().ui_container();
+	render_target& target = machine().render().ui_target();
 	int dip_num = 0;
-	float height = mame_machine_manager::instance()->ui().get_line_height();
+	float height = mame_machine_manager::instance()->ui().get_line_height(target);
 	int x;
 
 	// determine number of DIP switches to display
@@ -263,7 +265,7 @@ void input_viewer::render_dips()
 					}
 				}
 				sprintf(txt,"%s : %s [%s]",dip.c_str(),value,def);
-				mame_machine_manager::instance()->ui().draw_text_full(ui,txt,0.0f,1.0f - (float)(height * x),1.0f,ui::text_layout::text_justify::LEFT,ui::text_layout::word_wrapping::NEVER,mame_ui_manager::OPAQUE_,COL_WHITE,0,NULL,NULL);
+				mame_machine_manager::instance()->ui().draw_text_full(target,txt,0.0f,1.0f - (float)(height * x),1.0f,ui::text_layout::text_justify::LEFT,ui::text_layout::word_wrapping::NEVER,mame_ui_manager::OPAQUE_,COL_WHITE,0,NULL,NULL);
 				x--;
 			}
 		}

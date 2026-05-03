@@ -285,11 +285,11 @@ bool menu_select_game::handle(event const *ev)
 					break;
 
 				case IPT_UI_RECINP:
-					menu::stack_push<ui_menu_record_inp>(ui(),container(),system->driver);
+					menu::stack_push<ui_menu_record_inp>(ui(),target(),system->driver);
 					break;
 
 				case IPT_UI_PLAYINP:
-					menu::stack_push<ui_menu_playback_inp>(ui(),container(),system->driver);
+					menu::stack_push<ui_menu_playback_inp>(ui(),target(),system->driver);
 					break;
 				}
 			}

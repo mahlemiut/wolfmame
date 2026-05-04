@@ -133,8 +133,6 @@ void nubus_laserview_device::device_start()
 	m_vram = std::make_unique<u32[]>(VRAM_SIZE / sizeof(u32));
 	install_bank(slotspace, slotspace + VRAM_SIZE - 1, &m_vram[0]);
 	u32 mirror = slotno() << 20;
-	printf("slotno %x\n", slotno());
-	printf("%s: Installing VRAM at %08x-%08x (mirror %08x)\n", machine().describe_context().c_str(), slotspace, slotspace + VRAM_SIZE - 1, slotspace + mirror);
 	install_bank(slotspace+mirror, slotspace+mirror+VRAM_SIZE-1, &m_vram[0]);
 
 	nubus().install_device(slotspace+0xB0000, slotspace+0xBFFFF, emu::rw_delegate(*this, FUNC(nubus_laserview_device::regs_r)), emu::rw_delegate(*this, FUNC(nubus_laserview_device::regs_w)));

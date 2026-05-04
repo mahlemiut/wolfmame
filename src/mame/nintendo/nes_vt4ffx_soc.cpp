@@ -398,30 +398,6 @@ void vt4ffx_soc_noswap_device::device_start()
 	m_encryption_allowed = false;
 }
 
-void vt4ffx_soc_noswap_device::vt369_map(address_map &map)
-{
-	vt4ffx_soc_base_device::vt369_map(map);
-
-	map(0x4169, 0x4169).w(FUNC(vt4ffx_soc_noswap_device::encryption_4169_w));
-}
-
-
-void vt4ffx_soc_noswap_device::encryption_4169_w(u8 data)
-{
-	if (m_encryption_allowed)
-	{
-		if (data == 0x01)
-			downcast<rp2a03_core_swap_op_d5_d6&>(*m_maincpu).set_encryption_state(false);
-		else if (data == 0x00)
-			downcast<rp2a03_core_swap_op_d5_d6&>(*m_maincpu).set_encryption_state(true);
-		else
-			logerror("%s: encryption_4169_w %02x\n", machine().describe_context(), data);
-	}
-	else
-	{
-		logerror("%s: encryption_4169_w %02x on SoC with no support (check!)\n", machine().describe_context(), data);
-	}
-}
 
 void vt4ffx_soc_vibesswap_device::device_add_mconfig(machine_config &config)
 {

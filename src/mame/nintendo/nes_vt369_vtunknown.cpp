@@ -131,7 +131,6 @@ public:
 	void vt36x_swap_2mb(machine_config &config) ATTR_COLD;
 	void vt36x_swap_4mb(machine_config &config) ATTR_COLD;
 	void vt36x_swap_8mb(machine_config &config) ATTR_COLD;
-	void vt36x_swap_16mb(machine_config &config) ATTR_COLD;
 	void vt36x_swap_512kb(machine_config &config) ATTR_COLD;
 
 	void vt36x_altswap(machine_config &config) ATTR_COLD;
@@ -480,12 +479,6 @@ void vt36x_state::vt36x_swap_8mb(machine_config &config)
 {
 	vt36x_swap(config);
 	m_soc->set_addrmap(AS_PROGRAM, &vt36x_state::vt_external_space_map_8mbyte);
-}
-
-void vt36x_state::vt36x_swap_16mb(machine_config &config)
-{
-	vt36x_swap(config);
-	m_soc->set_addrmap(AS_PROGRAM, &vt36x_state::vt_external_space_map_16mbyte);
 }
 
 void vt36x_state::vt36x_altswap(machine_config &config)
@@ -1963,9 +1956,9 @@ CONS( 200?, jl2050,    0,        0,  vt36x_16mb, vt369, vt36x_state, empty_init,
 // the menus are very different to the plug-in TV version found in ppgc200g
 CONS( 201?, supr200,    0,        0,  vt36x_swap_8mb, vt369, vt36x_state, empty_init, "Fizz Creations",  "Supreme 200 (handheld)", MACHINE_IMPERFECT_GRAPHICS | MACHINE_IMPERFECT_SOUND )
 
-CONS( 201?, tiger108,  0,        0,  vt36x_4mb, vt369, vt36x_state, empty_init, "Zebra AS / Tiger Retail", "Spillekonsol Game console - 108-in-1", MACHINE_IMPERFECT_GRAPHICS )
+CONS( 201?, tiger108,  0,        0,  vt36x_swap_4mb, vt369, vt36x_state, empty_init, "Zebra AS / Tiger Retail", "Spillekonsol Game console - 108-in-1", MACHINE_IMPERFECT_GRAPHICS )
 
-CONS( 201?, gon100,    0,        0,  vt36x_4mb, vt369, vt36x_state, empty_init, "<unknown>", "Game On 100-in-1", MACHINE_IMPERFECT_GRAPHICS )
+CONS( 201?, gon100,    0,        0,  vt36x_swap_4mb, vt369, vt36x_state, empty_init, "<unknown>", "Game On 100-in-1", MACHINE_IMPERFECT_GRAPHICS )
 
 CONS( 201?, d12power,  0,        0,  vt36x_16mb, vt369, vt36x_state, empty_init, "SZDiiER", "Power - Charging and playing games (D12) (416-in-1)", MACHINE_IMPERFECT_GRAPHICS )
 

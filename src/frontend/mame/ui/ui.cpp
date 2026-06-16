@@ -1782,9 +1782,9 @@ uint32_t mame_ui_manager::handler_ingame()
 	if (inp.pressed(IPT_UI_RESET_MACHINE))
 		if (!if_recording_or_playing_back_stop_and_return_true(machine()))
 			machine().schedule_hard_reset();
-		if (inp.pressed(IPT_UI_SOFT_RESET))
-			if (!if_recording_or_playing_back_stop_and_return_true(machine()))
-				machine().schedule_soft_reset();
+	if (inp.pressed(IPT_UI_SOFT_RESET))
+		if (!if_recording_or_playing_back_stop_and_return_true(machine()))
+			machine().schedule_soft_reset();
 
 	// handle a request to display graphics/palette
 	if (inp.pressed(IPT_UI_SHOW_GFX) && !machine().ioport().get_record_file())

@@ -8,6 +8,7 @@
 #include "mame.h"
 #include "ui/uimain.h"
 #include "ui/ui.h"
+#include "input.h"
 #include "render.h"
 #include "inpview.h"
 #include "utf8.h"

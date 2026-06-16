@@ -238,6 +238,8 @@ if BUSES["A2KBD"] then
 		MAME_DIR .. "src/devices/bus/a2kbd/a2kbd.h",
 		MAME_DIR .. "src/devices/bus/a2kbd/am100kbd.cpp",
 		MAME_DIR .. "src/devices/bus/a2kbd/am100kbd.h",
+		MAME_DIR .. "src/devices/bus/a2kbd/autokbd.cpp",
+		MAME_DIR .. "src/devices/bus/a2kbd/autokbd.h",
 		MAME_DIR .. "src/devices/bus/a2kbd/ivelultrkb.cpp",
 		MAME_DIR .. "src/devices/bus/a2kbd/ivelultrkb.h",
 		MAME_DIR .. "src/devices/bus/a2kbd/kb200.cpp",
@@ -2883,6 +2885,8 @@ if BUSES["ISA"] then
 		MAME_DIR .. "src/devices/bus/isa/ibm_speech.h",
 		MAME_DIR .. "src/devices/bus/isa/ide.cpp",
 		MAME_DIR .. "src/devices/bus/isa/ide.h",
+		MAME_DIR .. "src/devices/bus/isa/dsi32.cpp",
+		MAME_DIR .. "src/devices/bus/isa/dsi32.h",
 		MAME_DIR .. "src/devices/bus/isa/lbaenhancer.cpp",
 		MAME_DIR .. "src/devices/bus/isa/lbaenhancer.h",
 		MAME_DIR .. "src/devices/bus/isa/lpt.cpp",
@@ -5881,6 +5885,8 @@ if BUSES["TI99"] then
 		MAME_DIR .. "src/devices/bus/ti99/sidecar/arcturus.h",
 		MAME_DIR .. "src/devices/bus/ti99/sidecar/speechsyn.cpp",
 		MAME_DIR .. "src/devices/bus/ti99/sidecar/speechsyn.h",
+		MAME_DIR .. "src/devices/bus/ti99/sidecar/thermal.cpp",
+		MAME_DIR .. "src/devices/bus/ti99/sidecar/thermal.h",
 	}
 end
 

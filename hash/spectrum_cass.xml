@@ -33817,7 +33817,7 @@ Side B - Game 3: The Living Daylights - The Computer Game
 			<dataarea name="cass" size="193368">
 				<rom name="mega mix - alternate - tape 4 - side 2.tzx" size="193368" crc="17c7d04b" sha1="fec9bcd4097140f54aec45b8bf5e2f9ad3dc8d8a"/>
 			</dataarea>
-		</part>		
+		</part>
 	</software>
 
 
@@ -54823,7 +54823,7 @@ Side B: Once Upon a Lily Pad
 	</software>
 
 	<software name="bravesta">
-		<description>Brave Starr</description>
+		<description>BraveStarr</description>
 		<year>1987</year>
 		<publisher>Go!</publisher>
 		<part name="cass" interface="spectrum_cass">
@@ -54834,7 +54834,7 @@ Side B: Once Upon a Lily Pad
 	</software>
 
 	<software name="bravesta_a" cloneof="bravesta">
-		<description>Brave Starr (Kixx)</description>
+		<description>BraveStarr (Kixx)</description>
 		<year>1987</year>
 		<publisher>Kixx</publisher>
 		<part name="cass" interface="spectrum_cass">
@@ -54845,7 +54845,7 @@ Side B: Once Upon a Lily Pad
 	</software>
 
 	<software name="bravesta_b" cloneof="bravesta">
-		<description>Brave Starr (Erbe)</description>
+		<description>BraveStarr (Erbe)</description>
 		<year>1987</year>
 		<publisher>Erbe Software</publisher>
 		<part name="cass" interface="spectrum_cass">
@@ -147870,7 +147870,7 @@ Game 4 - Char-Wallah
 	</software>
 
 	<software name="thunderc">
-		<description>Thundercats (Elite)</description>
+		<description>ThunderCats (Elite)</description>
 		<year>1987</year>
 		<publisher>Elite System</publisher>
 		<part name="cass1" interface="spectrum_cass">
@@ -147886,7 +147886,7 @@ Game 4 - Char-Wallah
 	</software>
 
 	<software name="thunderc_a" cloneof="thunderc">
-		<description>Thundercats (Encore)</description>
+		<description>ThunderCats (Encore)</description>
 		<year>1989</year>
 		<publisher>Encore</publisher>
 		<part name="cass1" interface="spectrum_cass">
@@ -147902,7 +147902,7 @@ Game 4 - Char-Wallah
 	</software>
 
 	<software name="thunderc_b" cloneof="thunderc">
-		<description>Thundercats (MCM, double case)</description>
+		<description>ThunderCats (MCM, double case)</description>
 		<year>1988</year>
 		<publisher>MCM Software</publisher>
 		<part name="cass" interface="spectrum_cass">
@@ -147913,7 +147913,7 @@ Game 4 - Char-Wallah
 	</software>
 
 	<software name="thunderc_c" cloneof="thunderc">
-		<description>Thundercats (Elite, alt)</description>
+		<description>ThunderCats (Elite, alt)</description>
 		<year>1987</year>
 		<publisher>Elite System</publisher>
 		<part name="cass1" interface="spectrum_cass">
@@ -147929,7 +147929,7 @@ Game 4 - Char-Wallah
 	</software>
 
 	<software name="thunderc_d" cloneof="thunderc">
-		<description>Thundercats (MCM, small case)</description>
+		<description>ThunderCats (MCM, small case)</description>
 		<year>1987</year>
 		<publisher>MCM Software</publisher>
 		<part name="cass" interface="spectrum_cass">

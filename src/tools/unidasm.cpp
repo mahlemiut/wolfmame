@@ -135,6 +135,7 @@ using util::BIT;
 #include "cpu/mn10300/mn103dasm.h"
 #include "cpu/mpk1839/kl1839vm1dasm.h"
 #include "cpu/msm65x2/msm65x2d.h"
+#include "cpu/mylife/mylifed.h"
 #include "cpu/nanoprocessor/nanoprocessor_dasm.h"
 #include "cpu/nec/necdasm.h"
 #include "cpu/nios2/nios2dasm.h"
@@ -227,13 +228,12 @@ using util::BIT;
 #include "cpu/z8000/8000dasm.h"
 
 #include "corestr.h"
-#include "eminline.h"
-#include "endianness.h"
 #include "ioprocs.h"
 #include "osdfile.h"
 #include "strformat.h"
 
 #include <algorithm>
+#include <bit>
 #include <cctype>
 #include <cstdio>
 #include <cstdlib>
@@ -357,13 +357,13 @@ struct nec_unidasm_t : nec_disassembler::config
 } nec_unidasm;
 
 
-static constexpr auto le = util::endianness::little;
-static constexpr auto be = util::endianness::big;
+static constexpr auto le = std::endian::little;
+static constexpr auto be = std::endian::big;
 
 struct dasm_table_entry
 {
 	const char *            name;
-	util::endianness        endian;
+	std::endian             endian;
 	int8_t                  pcshift;
 	std::function<util::disasm_interface *()> alloc;
 };
@@ -563,6 +563,7 @@ static const dasm_table_entry dasm_table[] =
 	{ "mn1870",          be,  0, []() -> util::disasm_interface * { return new mn1870_disassembler; } },
 	{ "mn1880",          be,  0, []() -> util::disasm_interface * { return new mn1880_disassembler; } },
 	{ "msm65x2",         le,  0, []() -> util::disasm_interface * { return new msm65x2_disassembler; } },
+	{ "mylife",          le, -1, []() -> util::disasm_interface * { return new mylife_disassembler; } },
 	{ "nanoprocessor",   le,  0, []() -> util::disasm_interface * { return new hp_nanoprocessor_disassembler; } },
 	{ "nec",             le,  0, []() -> util::disasm_interface * { return new nec_disassembler(&nec_unidasm); } },
 	{ "nios2",           le,  0, []() -> util::disasm_interface * { return new nios2_disassembler; } },
@@ -1340,7 +1341,7 @@ int disasm_file(util::random_read &file, u64 length, options &opts)
 	// Compute the pc wraparound
 	offs_t pclength = opts.dasm->pcshift < 0 ? rounded_size >> -opts.dasm->pcshift : rounded_size << opts.dasm->pcshift;
 	offs_t limit = opts.basepc + pclength;
-	offs_t pc_mask = limit ? util::make_bitmask<offs_t>(32 - count_leading_zeros_32(limit - 1)) : 0xffffffff;
+	offs_t pc_mask = limit ? util::make_bitmask<offs_t>(std::bit_width(limit - 1)) : 0xffffffff;
 
 	// Compute the page wraparound
 	offs_t page_mask = flags & util::disasm_interface::PAGED ? (1 << disasm->page_address_bits()) - 1 : 0;
@@ -1387,7 +1388,7 @@ int disasm_file(util::random_read &file, u64 length, options &opts)
 	}
 
 	// Compute the shift amount from pc delta to granularity-sized elements
-	u32 granularity_shift = 31 - count_leading_zeros_32(disasm->opcode_alignment());
+	u32 granularity_shift = std::bit_width(disasm->opcode_alignment()) - 1;
 
 	// Number of pc steps to disassemble
 	u32 count = pclength;
@@ -1397,7 +1398,7 @@ int disasm_file(util::random_read &file, u64 length, options &opts)
 
 	// pc to string conversion
 	std::function<std::string (offs_t pc)> pc_to_string;
-	int aw = 32 - count_leading_zeros_32(pc_mask);
+	int aw = std::bit_width(pc_mask);
 	bool is_octal = opts.octal; // Parameter?  Per-cpu config?
 	if((flags & util::disasm_interface::PAGED2LEVEL) == util::disasm_interface::PAGED2LEVEL) {
 		int bits1 = disasm->page_address_bits();

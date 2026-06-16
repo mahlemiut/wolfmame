@@ -83938,7 +83938,7 @@ stick to CPC-Power disks, when available)
 
 	<!-- Identifying Thundercats - The Lost Eye Of Thundera (UK) (1987) [Original].zip... --> <!-- CPC Power -->
 	<software name="thunderc" supported="no">
-		<description>Thundercats - The Lost Eye of Thundera (UK) [Original]</description>
+		<description>ThunderCats: The Lost Eye of Thundera (UK) [Original]</description>
 		<year>1987</year>
 		<publisher>&lt;unknown&gt;</publisher>
 		<part name="flop1" interface="floppy_3">
@@ -83950,7 +83950,7 @@ stick to CPC-Power disks, when available)
 
 	<!-- Identifying Thundercats - The Lost Eye Of Thundera (UK) (1987).zip... --> <!-- CPC Power -->
 	<software name="thunderc01" cloneof="thunderc" supported="no">
-		<description>Thundercats - The Lost Eye of Thundera (UK)</description>
+		<description>ThunderCats: The Lost Eye of Thundera (UK)</description>
 		<year>1987</year>
 		<publisher>&lt;unknown&gt;</publisher>
 		<part name="flop1" interface="floppy_3">
@@ -87293,7 +87293,7 @@ stick to CPC-Power disks, when available)
 
 	<!-- Identifying Usagi Yojimbo (UK) (1988) (CPM) [Original].zip... --> <!-- CPC Power -->
 	<software name="usagiyoj" supported="no">
-		<description>Usagi Yojimbo (UK) (CPM) [Original]</description>
+		<description>Samurai Warrior: The Battles of... Usagi Yojimbo (UK) (CPM) [Original]</description>
 		<year>1988</year>
 		<publisher>&lt;unknown&gt;</publisher>
 		<part name="flop1" interface="floppy_3">
@@ -87305,7 +87305,7 @@ stick to CPC-Power disks, when available)
 
 	<!-- Identifying Usagi Yojimbo (UK) (1988) (v2) (CPM) [Original].zip... --> <!-- CPC Power -->
 	<software name="usagiyoj01" cloneof="usagiyoj" supported="no">
-		<description>Usagi Yojimbo (UK) (v2) (CPM) [Original]</description>
+		<description>Samurai Warrior: The Battles of... Usagi Yojimbo (UK) (v2) (CPM) [Original]</description>
 		<year>1988</year>
 		<publisher>&lt;unknown&gt;</publisher>
 		<part name="flop1" interface="floppy_3">
@@ -87317,7 +87317,7 @@ stick to CPC-Power disks, when available)
 
 	<!-- Identifying Usagi Yojimbo (UK) (1988).zip... --> <!-- CPC Power -->
 	<software name="usagiyoj02" cloneof="usagiyoj" supported="no">
-		<description>Usagi Yojimbo (UK)</description>
+		<description>Samurai Warrior: The Battles of... Usagi Yojimbo (UK)</description>
 		<year>1988</year>
 		<publisher>&lt;unknown&gt;</publisher>
 		<part name="flop1" interface="floppy_3">
@@ -90453,7 +90453,7 @@ stick to CPC-Power disks, when available)
 
 	<!-- Identifying Yie Ar Kung Fu II (UK) (1986) [Original] (Weak Sectors).zip... --> <!-- CPC Power -->
 	<software name="yiearkun" supported="no">
-		<description>Yie Ar Kung Fu II (UK) [Original] (Weak Sectors)</description>
+		<description>Yie Ar Kung-Fu II (UK) [Original] (Weak Sectors)</description>
 		<year>1986</year>
 		<publisher>&lt;unknown&gt;</publisher>
 		<part name="flop1" interface="floppy_3">
@@ -90465,7 +90465,7 @@ stick to CPC-Power disks, when available)
 
 	<!-- Identifying Yie Ar Kung Fu II (UK) (1986).zip... --> <!-- CPC Power -->
 	<software name="yiearkun01" cloneof="yiearkun" supported="no">
-		<description>Yie Ar Kung Fu II (UK)</description>
+		<description>Yie Ar Kung-Fu II (UK)</description>
 		<year>1986</year>
 		<publisher>&lt;unknown&gt;</publisher>
 		<part name="flop1" interface="floppy_3">
@@ -110994,7 +110994,7 @@ stick to CPC-Power disks, when available)
 
 	<!-- Identifying Yie Ar Kung Fu (E).dsk... --> <!-- CPC Base -->
 	<software name="yiearkun04" cloneof="yiearkun" supported="no">
-		<description>Yie Ar Kung Fu (Euro)</description>
+		<description>Yie Ar Kung-Fu (Euro)</description>
 		<year>19??</year>
 		<publisher>&lt;unknown&gt;</publisher>
 		<part name="flop1" interface="floppy_3">
@@ -150620,7 +150620,7 @@ stick to CPC-Power disks, when available)
 
 	<!-- Identifying Thundercats (1987)(Elite Systems)[cr Aragorn][t Aragorn].dsk... --> <!-- Mostly GoodCPC -->
 	<software name="thunderc02" cloneof="thunderc" supported="no">
-		<description>Thundercats (Elite Systems)[cr Aragorn][t Aragorn]</description>
+		<description>ThunderCats (Elite Systems)[cr Aragorn][t Aragorn]</description>
 		<year>1987</year>
 		<publisher>&lt;unknown&gt;</publisher>
 		<part name="flop1" interface="floppy_3">
@@ -187731,7 +187731,7 @@ stick to CPC-Power disks, when available)
 
 	<!-- Identifying Thundercats (UK) (1987) [b1].dsk... --> <!-- GoodCPC -->
 	<!--<software name="thunderc03" cloneof="thunderc" supported="no">
-	    <description>Thundercats (UK) [b1]</description>
+	    <description>ThunderCats (UK) [b1]</description>
 	    <year>1987</year>
 	    <publisher>&lt;unknown&gt;</publisher>
 	    <part name="flop1" interface="floppy_3">
@@ -189196,7 +189196,7 @@ stick to CPC-Power disks, when available)
 
 	<!-- Identifying Usagi Yojimbo (UK) (19xx).dsk... --> <!-- GoodCPC -->
 	<software name="usagiyoj03" cloneof="usagiyoj" supported="no">
-		<description>Usagi Yojimbo (UK, Alt)</description>
+		<description>Samurai Warrior: The Battles of... Usagi Yojimbo (UK, Alt)</description>
 		<year>19??</year>
 		<publisher>&lt;unknown&gt;</publisher>
 		<part name="flop1" interface="floppy_3">
@@ -190960,7 +190960,7 @@ stick to CPC-Power disks, when available)
 
 	<!-- Identifying Yie Ar Kung Fu (UK) (1985) [a1].dsk... --> <!-- GoodCPC -->
 	<software name="yiearkun07" cloneof="yiearkun" supported="no">
-		<description>Yie Ar Kung Fu (UK) [a1]</description>
+		<description>Yie Ar Kung-Fu (UK) [a1]</description>
 		<year>1985</year>
 		<publisher>&lt;unknown&gt;</publisher>
 		<part name="flop1" interface="floppy_3">
@@ -190972,7 +190972,7 @@ stick to CPC-Power disks, when available)
 
 	<!-- Identifying Yie Ar Kung Fu (UK) (1985) [h1].dsk... --> <!-- GoodCPC -->
 	<software name="yiearkun08" cloneof="yiearkun" supported="no">
-		<description>Yie Ar Kung Fu (UK) [h1]</description>
+		<description>Yie Ar Kung-Fu (UK) [h1]</description>
 		<year>1985</year>
 		<publisher>&lt;unknown&gt;</publisher>
 		<part name="flop1" interface="floppy_3">
@@ -190984,7 +190984,7 @@ stick to CPC-Power disks, when available)
 
 	<!-- Identifying Yie Ar Kung Fu 2 (UK) (1986) [a1].dsk... --> <!-- GoodCPC -->
 	<software name="yiearkun09" cloneof="yiearkun" supported="no">
-		<description>Yie Ar Kung Fu 2 (UK) [a1]</description>
+		<description>Yie Ar Kung-Fu 2 (UK) [a1]</description>
 		<year>1986</year>
 		<publisher>&lt;unknown&gt;</publisher>
 		<part name="flop1" interface="floppy_3">
@@ -216587,7 +216587,7 @@ stick to CPC-Power disks, when available)
 
 	<!-- Identifying Thundercats (nongoodcpc).dsk... --> <!-- NonGoodCPC -->
 	<software name="thunderc04" cloneof="thunderc" supported="no">
-		<description>Thundercats</description>
+		<description>ThunderCats</description>
 		<year>19??</year>
 		<publisher>&lt;unknown&gt;</publisher>
 		<part name="flop1" interface="floppy_3">

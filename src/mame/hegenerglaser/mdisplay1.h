@@ -13,6 +13,8 @@
 
 #include "video/pwm.h"
 
+#include <optional>
+
 
 class mephisto_display1_device : public device_t
 {
@@ -27,20 +29,21 @@ public:
 	void data_w(u8 data);
 
 protected:
-	// device-level overrides
-	virtual void device_start() override ATTR_COLD;
+	// device_t implementation
 	virtual void device_add_mconfig(machine_config &config) override ATTR_COLD;
+	virtual void device_config_complete() override ATTR_COLD;
+	virtual void device_start() override ATTR_COLD;
 
 private:
 	required_device<pwm_display_device> m_lcd_pwm;
-	output_finder<4> m_digits;
+	std::optional<output_finder<4> > m_digits;
 	devcb_write8 m_output_digit;
 
 	int m_common;
 	u32 m_digit_data;
 
-	void update_lcd();
 	void lcd_pwm_w(offs_t offset, u64 data);
+	void update_lcd();
 };
 
 

@@ -979,13 +979,13 @@ static INPUT_PORTS_START( ataxx )
 	PORT_BIT( 0xfe, IP_ACTIVE_LOW, IPT_UNUSED )
 
 	PORT_START("AN0")       /* 0x00 - analog X */
-	PORT_BIT( 0xff, 0x00, IPT_TRACKBALL_X ) PORT_SENSITIVITY(100) PORT_KEYDELTA(10) PORT_PLAYER(1)
+	PORT_BIT( 0xff, 0x00, IPT_TRACKBALL_X ) PORT_SENSITIVITY(80) PORT_KEYDELTA(4) PORT_PLAYER(1)
 	PORT_START("AN1")       /* 0x01 - analog Y */
-	PORT_BIT( 0xff, 0x00, IPT_TRACKBALL_Y ) PORT_SENSITIVITY(100) PORT_KEYDELTA(10) PORT_PLAYER(1)
+	PORT_BIT( 0xff, 0x00, IPT_TRACKBALL_Y ) PORT_SENSITIVITY(80) PORT_KEYDELTA(4) PORT_PLAYER(1)
 	PORT_START("AN2")       /* 0x02 - analog X */
-	PORT_BIT( 0xff, 0x00, IPT_TRACKBALL_X ) PORT_SENSITIVITY(100) PORT_KEYDELTA(10) PORT_PLAYER(2)
+	PORT_BIT( 0xff, 0x00, IPT_TRACKBALL_X ) PORT_SENSITIVITY(80) PORT_KEYDELTA(4) PORT_PLAYER(2)
 	PORT_START("AN3")       /* 0x03 - analog Y */
-	PORT_BIT( 0xff, 0x00, IPT_TRACKBALL_Y ) PORT_SENSITIVITY(100) PORT_KEYDELTA(10) PORT_PLAYER(2)
+	PORT_BIT( 0xff, 0x00, IPT_TRACKBALL_Y ) PORT_SENSITIVITY(80) PORT_KEYDELTA(4) PORT_PLAYER(2)
 INPUT_PORTS_END
 
 
@@ -1195,7 +1195,7 @@ void redline_state::redline(machine_config &config)
 	m_master->set_addrmap(AS_IO, &redline_state::master_redline_map_io);
 
 	/* sound hardware */
-	REDLINE_80186(config, m_sound, 0).set_master_cpu_tag(m_master);
+	REDLINE_80186(config, m_sound).set_master_cpu_tag(m_master);
 }
 
 
@@ -1236,7 +1236,7 @@ void ataxx_state::ataxx(machine_config &config)
 	ataxx_video(config);
 
 	/* sound hardware */
-	ATAXX_80186(config, m_sound, 0).set_master_cpu_tag(m_master);
+	ATAXX_80186(config, m_sound).set_master_cpu_tag(m_master);
 }
 
 

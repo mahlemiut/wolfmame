@@ -158101,7 +158101,7 @@ Version without loading screen, maybe a pre-release
 	</software>
 
 	<software name="wwfwrest">
-		<description>WWF Wrestle Mania</description>
+		<description>WWF WrestleMania</description>
 		<year>1991</year>
 		<publisher>Ocean</publisher>
 		<part name="cass1" interface="spectrum_cass">
@@ -158117,7 +158117,7 @@ Version without loading screen, maybe a pre-release
 	</software>
 
 	<software name="wwfwrest_b" cloneof="wwfwrest">
-		<description>WWF Wrestle Mania (The Hit Squad)</description>
+		<description>WWF WrestleMania (The Hit Squad)</description>
 		<year>1991</year>
 		<publisher>The Hit Squad</publisher>
 		<part name="cass1" interface="spectrum_cass">
@@ -158133,7 +158133,7 @@ Version without loading screen, maybe a pre-release
 	</software>
 
 	<software name="wwfwrest_d" cloneof="wwfwrest">
-		<description>WWF Wrestle Mania (Erbe)</description>
+		<description>WWF WrestleMania (Erbe)</description>
 		<year>1991</year>
 		<publisher>Erbe Software</publisher>
 		<part name="cass1" interface="spectrum_cass">

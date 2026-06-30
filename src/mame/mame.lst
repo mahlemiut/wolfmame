@@ -597,6 +597,11 @@ s3000xl
 cd3000i
 cd3000xl
 
+@source:akai/s900.cpp
+s900
+s950
+s950scsi
+
 @source:akai/x7000.cpp
 s612
 s700
@@ -2774,16 +2779,16 @@ pwrinst2a
 pwrinst2j
 pwrinst2ja
 sailormn
+sailormne
 sailormnh
-sailormnj
 sailormnk
-sailormnn
+sailormnne
 sailormnnh
 sailormnnj
 sailormnnk
 sailormnnt
 sailormnnu
-sailormno
+sailormnoe
 sailormnoh
 sailormnoj
 sailormnok
@@ -16560,6 +16565,7 @@ sfiii
 sfiii2
 sfiii2h
 sfiii2j
+sfiii2a
 sfiii2n
 sfiii3
 sfiii3j
@@ -17215,6 +17221,9 @@ bit90
 
 @source:coleco/wrinkles.cpp
 wrinkles
+
+@source:colonial/sb80.cpp
+sb80
 
 @source:comad/funybubl.cpp
 funybubl
@@ -20224,7 +20233,32 @@ scrablexa
 tmbaskb
 
 @source:handheld/hh_mediatek_mt6260a.cpp
-sonicwtc
+atw_avbp
+atw_barb
+atw_batm
+atw_dp
+atw_enc
+atw_fz
+atw_fz2
+atw_gaby
+atw_hpot
+atw_jwld
+atw_lilo
+atw_lol
+atw_lola
+atw_mine
+atw_mv
+atw_mva
+atw_paw
+atw_pepa
+atw_pok
+atw_rbh
+atw_ryan
+atw_soni
+atw_spdm
+atw_swst
+atw_swy
+atw_toys
 
 @source:handheld/hh_pic16.cpp
 drdunk
@@ -20619,6 +20653,7 @@ monty
 @source:handheld/mylife.cpp
 mylife
 mylifei
+mylifes
 
 @source:handheld/pensebem.cpp
 pbem2017
@@ -30252,7 +30287,6 @@ pkboram
 pkrboram
 pkts
 tpkboram
-tpkborama
 tpkg2
 
 @source:misc/brglitz.cpp
@@ -31770,6 +31804,7 @@ super98
 superdbl
 techtrna
 techtrnb
+unkdep
 unkicpf40
 unkicpf80
 videtrna
@@ -33164,10 +33199,11 @@ smotor
 
 @source:misc/smsmcorp.cpp
 secondch
-sureshot
-smsjoker
 sms4in1
 sms4in1a
+smsjoker
+smsjokera
+sureshot
 trvhang
 trvhanga
 
@@ -35523,6 +35559,7 @@ gamezn2
 hs36blk
 hs36red
 joysti30
+lg600fr
 lxnoddy
 majgnc
 majkon
@@ -35579,6 +35616,7 @@ cybar120
 dturbogt
 gujtv108
 joypad65
+lxplasma
 mc_dcat8
 mc_dcat8a
 msiwwe
@@ -35685,6 +35723,7 @@ lxcmcyfzb
 lxcmcyls
 lxcmcypj
 lxcmcypp
+lxcmcypp75
 lxcmcyppa
 lxcmcysp
 lxcmcyspa
@@ -37459,6 +37498,7 @@ phoenixgu
 phoenixha
 phoenixi
 phoenixj
+phoenixjpl
 phoenixs
 phoenixt
 pleiadbl
@@ -38441,6 +38481,7 @@ grand_l3
 grand_l4
 hs_l3
 hs_l4
+hs_uc
 rdkng_l1
 rdkng_l2
 rdkng_l3
@@ -41845,6 +41886,7 @@ abcopd
 abcopj
 abcopjd
 aburner
+aburner131
 aburner2
 aburner2g
 gprider
@@ -42781,6 +42823,7 @@ setaroula
 setaroulm
 simpsonjr
 sokonuke
+spkings
 stg
 superbar
 thunderl
@@ -45473,7 +45516,11 @@ buggychl
 buggychlt
 
 @source:taito/capr1.cpp
+csesame
 cspin2
+
+@source:taito/capr2.cpp
+csesame2
 
 @source:taito/caprcyc.cpp
 caprcyc
@@ -45670,6 +45717,9 @@ pitnrunb
 @source:taito/pkspirit.cpp
 pkspirit
 shun
+
+@source:taito/pres2k.cpp
+pres2k
 
 @source:taito/qix.cpp
 complexx
@@ -47246,6 +47296,10 @@ pasopia
 pasopia7
 pasopia7lcd
 
+@source:toshiba/t250.cpp
+t200
+t250
+
 @source:trainer/amico2k.cpp
 amico2k
 
@@ -47411,6 +47465,7 @@ omar2
 rbitgen
 
 @source:tvgames/elan_ep3a19a.cpp
+lexiig10
 tvbg3a
 tvbg3b
 tvbg3c
@@ -47468,25 +47523,26 @@ mobigos
 mobigo2
 
 @source:tvgames/generalplus_gpl16250_nand.cpp
-wlsair60
-kiugames
+beambox
 jak_camp
 jak_car2
+jak_duck
 jak_gtg
-jak_sspop
-jak_hmhsm
 jak_hmg2
+jak_hmhsm
 jak_hmpt
 jak_hsmg2
-jak_umdf
-jak_duck
+jak_sspop
 jak_swc
-jak_wdzh
-jak_wdbg
 jak_tsm
-vbaby
+jak_umdf
+jak_wdbg
+jak_wdzh
+kiugames
 mgtfit
-beambox
+tiviboo
+vbaby
+wlsair60
 
 @source:tvgames/generalplus_gpl16250_rom.cpp
 beijuehh
@@ -47655,6 +47711,7 @@ sstarkar
 
 @source:tvgames/spg29x.cpp
 bratzlfe
+gameclik
 hyprscan
 jak_bbh
 jak_bbsf
@@ -47803,6 +47860,7 @@ jak_xmenp
 jak_capc
 jak_care
 jak_dbz
+jak_dbza
 jak_disf
 jak_disn
 jak_dora
@@ -47840,10 +47898,11 @@ tvtchsb
 arcade3d
 cybrtvbb
 cybrtvfe
-lexizeus
-lexiseal
 discpal
 disppal
+lexiseal
+lexizeus
+pokermor
 vgcaplet
 vgcap35
 vsplus
@@ -49361,6 +49420,7 @@ notetakr
 
 @source:xerox/xerox820.cpp
 bigboard
+bigboard5
 mk82
 mk83
 mojmikro

@@ -211,6 +211,7 @@ const options_entry emu_options::s_option_entries[] =
 	{ OPTION_UI_MOUSE,                                   "1",         core_options::option_type::BOOLEAN,    "display UI mouse cursor" },
 	{ OPTION_LANGUAGE ";lang",                           "",          core_options::option_type::STRING,     "set UI display language" },
 	{ OPTION_NVRAM_SAVE ";nvwrite",                      "1",         core_options::option_type::BOOLEAN,    "save NVRAM data on exit" },
+	{ OPTION_RTC_TIME,                                   nullptr,     core_options::option_type::STRING,     "start emulation with time" },
 	{ OPTION_INPVIEW ";iv",                              "0",         core_options::option_type::INTEGER,    "displays the input of the specified player on-screen" },
 	{ OPTION_INPLAYOUT ";il",                            "standard",  core_options::option_type::STRING,     "sets the layout for -inpview (standard, mahjong, dualstick, neogeo, 6button)" },
 

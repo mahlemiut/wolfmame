@@ -2623,6 +2623,29 @@ Not extensively tested
 
 <!-- !Generic Applications -->
 
+	<software name="98eiwa">
+		<!-- Origin: Neo Kobe Collection -->
+		<description>98 Eiwa Jiten</description>
+		<year>1987</year>
+		<publisher>ハイスコア (Hi-Score)</publisher>
+		<notes><![CDATA[
+English-Japanese Dictionary
+]]></notes>
+		<info name="alt_title" value="98英和辞典" />
+		<part name="flop1" interface="floppy_5_25">
+			<feature name="part_id" value="Disk 1"/>
+			<dataarea name="flop" size="1261568">
+				<rom name="98 eiwa jiten (disk 1).hdm" size="1261568" crc="3377cdc0" sha1="aef25da61971675ae5db6cd68ff8ecabc65e5225" offset="0" />
+			</dataarea>
+		</part>
+		<part name="flop2" interface="floppy_5_25">
+			<feature name="part_id" value="Disk 2"/>
+			<dataarea name="flop" size="1261568">
+				<rom name="98 eiwa jiten (disk 2).hdm" size="1261568" crc="61396602" sha1="9f7e01c08b477403d04f32a165cd38d25775c059" offset="0" />
+			</dataarea>
+		</part>
+	</software>
+
 	<software name="98lespro" supported="no">
 		<description>98 Lesson Pro</description>
 		<year>1990</year>
@@ -3636,26 +3659,6 @@ Throws a "excution file has been renamed" warning during MEGDOS boot
 		<part name="flop2" interface="floppy_5_25">
 			<dataarea name="flop" size="746496">
 				<rom name="98 note no hissu aminosan [b].img" size="746496" crc="ee60cb77" sha1="5540f386bb708cff61e41387c9760184083fcad8" offset="0" status="baddump" />
-			</dataarea>
-		</part>
-	</software>
-
-	<software name="98eiwa">
-		<!-- Origin: Neo Kobe Collection -->
-		<description>98 Eiwa Jiten</description>
-		<year>1987</year>
-		<publisher>ハイスコア (Hi-Score)</publisher>
-		<info name="alt_title" value="98英和辞典" />
-		<part name="flop1" interface="floppy_5_25">
-			<feature name="part_id" value="Disk 1"/>
-			<dataarea name="flop" size="1261568">
-				<rom name="98 eiwa jiten (disk 1).hdm" size="1261568" crc="3377cdc0" sha1="aef25da61971675ae5db6cd68ff8ecabc65e5225" offset="0" />
-			</dataarea>
-		</part>
-		<part name="flop2" interface="floppy_5_25">
-			<feature name="part_id" value="Disk 2"/>
-			<dataarea name="flop" size="1261568">
-				<rom name="98 eiwa jiten (disk 2).hdm" size="1261568" crc="61396602" sha1="9f7e01c08b477403d04f32a165cd38d25775c059" offset="0" />
 			</dataarea>
 		</part>
 	</software>
@@ -8607,12 +8610,16 @@ Errors with "Put the retail disk A into the drive", [FDC] chrn=(2, 1, -17, 512)
 		</part>
 	</software>
 
-	<!-- Black screen on boot -->
-	<software name="blckonyx">
+	<software name="blckonyx" supported="no">
 		<description>The Black Onyx</description>
 		<year>1984</year>
 		<publisher>B·P·S (Bullet-Proof Software)</publisher>
+		<notes><![CDATA[
+For pc9801f or pc9801vm
+Not extensively tested (language barrier, requires an user disk save after character creation)
+]]></notes>
 		<info name="alt_title" value="ザ・ブラックオニキス" />
+		<info name="usage" value="Needs floppy 2DD density select dip enabled. Strike CR at How Many Files, load &quot;START&quot; then run" />
 		<part name="flop1" interface="floppy_5_25">
 			<dataarea name="flop" size="688304">
 				<rom name="onyx.d88" size="688304" crc="5187be3d" sha1="9c68c5f8fb97f14a9f8f8e8f96d688dd2c8db2f8" offset="0" />
@@ -27935,6 +27942,9 @@ Hangs after Game Arts logo, expects buffer at $27a50 to be 0
 		<description>Kawaisou Monogatari</description>
 		<year>1988</year>
 		<publisher>システムソフト (SystemSoft)</publisher>
+		<notes><![CDATA[
+Throws [FDC] DISK ERROR when clicking GAME START, CHRN=(0, 0, 3, 1024) and R=5 for Disk B
+]]></notes>
 		<info name="alt_title" value="かわいそう物語" />
 		<part name="flop1" interface="floppy_5_25">
 			<feature name="part_id" value="Disk A"/>
@@ -43166,6 +43176,7 @@ Cannot install, gets stuck at "please insert disk and press mouse" prompt, tests
 		<year>1986</year>
 		<publisher>アスキー (ASCII)</publisher>
 		<info name="alt_title" value="ザ・スクリーマー" />
+		<info name="developer" value="MagicalZoo" />
 		<part name="flop1" interface="floppy_5_25">
 			<dataarea name="flop" size="1265664">
 				<rom name="the screamer (1985)(magical zoo).fdi" size="1265664" crc="86f2163d" sha1="2d73222c8e7372f32b529798d0da60b36c875053" offset="0" />

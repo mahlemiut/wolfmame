@@ -590,6 +590,11 @@ mpc2000xl
 @source:akai/mpc3000.cpp
 mpc3000
 
+@source:akai/s1000.cpp
+s1000
+s1000pb
+s1100
+
 @source:akai/s3000.cpp
 s2000
 s3000
@@ -17188,6 +17193,7 @@ bg_maxa
 ccorsario
 ccorsarioa
 charles
+eurbingo7
 gladiador
 mltpoints
 neptunp2
@@ -17829,7 +17835,7 @@ kchampvs3
 kchampvs4
 karateda
 
-@source:dataeast/kingobox.cpp
+@source:dataeast/kingofb.cpp
 kingofb
 kingofbj
 ringking
@@ -17961,6 +17967,7 @@ cookbib
 cookbiba
 dquizgo
 fncywld
+fncywlda
 funkyjetb
 magipur
 htchctch
@@ -18444,6 +18451,9 @@ tontonba
 cgenie
 cgenienz
 
+@source:eaca/genie3.cpp
+genie3de
+
 @source:edevices/diverboy.cpp
 diverboy
 tumblebed
@@ -18713,6 +18723,7 @@ pwrflip
 fever13
 goldstrk
 lastbank
+lastbank130j
 lpierrot
 mir7hg
 mir7hgt
@@ -20924,6 +20935,9 @@ d6809
 @source:homebrew/dcebridge.cpp
 dcebridge
 
+@source:homebrew/et532.cpp
+et532
+
 @source:homebrew/gigatron.cpp
 gigatron
 
@@ -21011,6 +21025,9 @@ ultim809
 
 @source:homebrew/uzebox.cpp
 uzebox
+
+@source:homebrew/we816.cpp
+we816
 
 @source:homebrew/z80clock.cpp
 z80clock
@@ -29913,6 +29930,7 @@ ampkr2b1
 ampkr2b2
 ampkr2b3
 ampkr2b4
+ampkr2b5
 ampkr2jsp
 ampkr2jspa
 ampkr2jspb
@@ -29932,8 +29950,8 @@ amspdwya
 
 @source:misc/amstarz80.cpp
 holddraw
-unkamst
-unkamsta
+holddrawa
+holddrawb
 
 @source:misc/amusco.cpp
 amusco
@@ -32098,11 +32116,13 @@ frtgenieb
 frtgeniec
 frtgenied
 jungleyo
+jungleyoa
 kingfrt
 magjack
 magjacka
 magjackb
 magjackc
+magjackd
 magjackp
 magjackpa
 
@@ -32751,27 +32771,6 @@ ncarrera
 
 @source:misc/neomania.cpp
 neomania
-
-@source:misc/neoprint.cpp
-98best44
-neoprint
-npcartv1
-npcramen
-npeurver
-npeurver2
-npfpit
-npft
-npmillen
-npotogib
-nppopeye
-nprsp
-npspscv
-npscv1
-npskv
-npsprg98
-npsprgv4
-npssr2
-npusagif
 
 @source:misc/news.cpp
 news
@@ -34176,6 +34175,7 @@ zelost
 @source:namco/namconb1.cpp
 gslgr94j
 gslgr94u
+gslgr94ua
 gslugrsj
 gunbuletj
 gunbuletw
@@ -36122,6 +36122,7 @@ powerinsc
 powerinsj
 powerinspj
 powerinspu
+puzlwrld
 raphero
 rapheroa
 redfoxwp2
@@ -39830,6 +39831,7 @@ psion3a2_it
 psion3a2_ru
 psion3a2_us
 psion3c
+psion3c_de
 psion3mx
 psion3mx_fr
 psion3mx_nl
@@ -39843,6 +39845,7 @@ psion5mx
 psion5mx_fr
 psion5mxp
 psion5mxp_de
+psion618c
 revo
 revo_de
 revo_fr
@@ -43131,6 +43134,9 @@ pg675
 pg685
 pg685oua12
 
+@source:siemens/s97801.cpp
+s97801
+
 @source:sigma/nyny.cpp
 nyny
 nynyg
@@ -43458,6 +43464,9 @@ caramball
 @source:skeleton/cardinal.cpp
 cardinal
 
+@source:skeleton/carnival37.cpp
+carniv37
+
 @source:skeleton/cbnt2039.cpp
 cbnt2039
 
@@ -43506,6 +43515,9 @@ cortex
 
 @source:skeleton/cosmicos.cpp
 cosmicos
+
+@source:skeleton/cosmo68k.cpp
+exfever
 
 @source:skeleton/cp1.cpp
 cp1
@@ -43870,6 +43882,9 @@ lilith
 @source:skeleton/lms46.cpp
 lms46
 
+@source:skeleton/luckyjkr.cpp
+luckyjkr
+
 @source:skeleton/madmoney2.cpp
 madmoney2
 
@@ -44152,6 +44167,32 @@ sols5e
 
 @source:skeleton/squale.cpp
 squale
+
+@source:skeleton/st25.cpp
+alphar
+amarillo
+arenau
+avanti
+ballermn
+bgaction
+bigkick
+blizzard
+boosters
+colossos
+cttower
+galaktca
+jamaica
+macaor
+majesto
+matrixx
+mtclssic
+purpurr
+robin
+spasch
+stakeoff
+tango
+tobago
+xeno
 
 @source:skeleton/sterz80.cpp
 tongzi
@@ -44694,6 +44735,27 @@ ms5pcb
 svcpcb
 svcpcba
 
+@source:snk/neoprint.cpp
+98best44
+neoprint
+npcartv1
+npcramen
+npeurver
+npeurver2
+npfpit
+npft
+npmillen
+npotogib
+nppopeye
+nprsp
+npspscv
+npscv1
+npskv
+npsprg98
+npsprgv4
+npssr2
+npusagif
+
 @source:snk/ngp.cpp
 ngp
 ngpc
@@ -44820,6 +44882,9 @@ t650c
 
 @source:sony/dfs500.cpp
 dfs500
+
+@source:sony/dpsd7.cpp
+dpsd7
 
 @source:sony/dpsv55.cpp
 dpsv55
@@ -47472,6 +47537,15 @@ tvbg3c
 tvbg6a
 tvbg6b
 
+@source:tvgames/bk139in1.cpp
+bk139in1
+dgun3944
+lxcymls
+lxcympp
+lxcymsm
+lxcyrace
+starbuck
+
 @source:tvgames/elan_eu3a05.cpp
 airblsjs
 bratzra
@@ -47519,7 +47593,10 @@ tomyeggb
 
 @source:tvgames/generalplus_gpl16250_mobigo.cpp
 mobigo
+mobigof
 mobigos
+
+@source:tvgames/generalplus_gpl16250_mobigo2.cpp
 mobigo2
 
 @source:tvgames/generalplus_gpl16250_nand.cpp
@@ -47586,19 +47663,12 @@ wrlshunt
 anpanbd
 anpaneng
 anpanm15
-bk139in1
 bkrankp
-dgun3944
 jspodred
-lxcymls
-lxcympp
-lxcymsm
-lxcyrace
 pokegac2
 pokegac2y
 pokegach
 prailpls
-starbuck
 vmastspi
 wildking
 
@@ -48755,6 +48825,7 @@ spinlbrku
 spinlbrkup
 svolly91
 turbofrc
+turbofrcj
 turbofrco
 turbofrcu
 turbofrcua
@@ -49423,10 +49494,17 @@ bigboard
 bigboard5
 mk82
 mk83
+mk84
 mojmikro
 x168
+x1685
+x168em
+x168s
 x820
 x820ii
+x820iilp
+x820ii5
+x820iis
 
 @source:yachiyo/atamanot.cpp
 atamanot
@@ -49664,6 +49742,11 @@ jackrabts
 monymony
 monymony2
 monymony3
+
+@source:zilog/s8k.cpp
+s8000
+s8000v1
+s8000s2
 
 @source:zpa/iq151.cpp
 iq151

@@ -1,12 +1,5 @@
 // license:BSD-3-Clause
 // copyright-holders:Curt Coder
-/*
-
-    TODO:
-
-    - connect CAPS LOCK to charom A12 on international variants
-
-*/
 
 #include "emu.h"
 #include "screen.h"
@@ -15,6 +8,7 @@
 #include "bus/c64/exp.h"
 #include "bus/cbmiec/cbmiec.h"
 #include "bus/cbmiec/c1571.h"
+#include "bus/cbmiec/c1571cr.h"
 #include "bus/cbmiec/c1581.h"
 #include "bus/vic20/user.h"
 #include "bus/pet/cass.h"
@@ -79,6 +73,7 @@ public:
 		m_caps(*this, "CAPS"),
 		m_40_80(*this, "40_80"),
 		m_portswap(*this, "JOYSWAP"),
+		m_charom_jumper(*this, "CHAROM_A12"),
 		m_z80en(0),
 		m_loram(1),
 		m_hiram(1),
@@ -88,16 +83,22 @@ public:
 		m_va14(1),
 		m_va15(1),
 		m_clrbank(0),
+		m_ioacc(0),
 		m_cnt1(1),
 		m_sp1(1),
 		m_iec_data_out(1),
+		m_iec_atn(1),
+		m_iec_clk(1),
+		m_iec_data(1),
+		m_iec_srq_out(1),
 		m_cass_rd(1),
 		m_iec_srq(1),
 		m_vic_k(0x07),
-		m_caps_lock(1)
+		m_caps_lock(1),
+		m_charom_caps(0)
 	{ }
 
-	required_device<cpu_device> m_maincpu;
+	required_device<z80_device> m_maincpu;
 	required_device<m8502_device> m_subcpu;
 	required_device<input_merger_device> m_nmi;
 	required_device<mos8722_device> m_mmu;
@@ -124,6 +125,7 @@ public:
 	required_ioport m_caps;
 	required_ioport m_40_80;
 	optional_ioport m_portswap;
+	required_ioport m_charom_jumper;
 
 	virtual void machine_start() override ATTR_COLD;
 	virtual void machine_reset() override ATTR_COLD;
@@ -133,6 +135,7 @@ public:
 	uint8_t read_memory(offs_t offset, offs_t vma, int ba, int aec, int z80io);
 	void write_memory(offs_t offset, offs_t vma, uint8_t data, int ba, int aec, int z80io);
 	inline void update_iec();
+	TIMER_CALLBACK_MEMBER(iec_sync_tick);
 
 	uint8_t z80_r(offs_t offset);
 	void z80_w(offs_t offset, uint8_t data);
@@ -144,6 +147,9 @@ public:
 	uint8_t vic_colorram_r(offs_t offset);
 
 	void mmu_z80en_w(int state);
+	void mmu_busack_w(int state);
+	void vic_ba_w(int state);
+	void update_rdy();
 	void mmu_fsdir_w(int state);
 	int mmu_game_r();
 	int mmu_exrom_r();
@@ -209,20 +215,31 @@ public:
 	int m_va14;
 	int m_va15;
 	int m_clrbank;
+	int m_ioacc;
 
 	// fast serial state
 	int m_cnt1;
 	int m_sp1;
 	int m_iec_data_out;
 
+	// deferred IEC bus output state
+	bool m_iec_atn;
+	bool m_iec_clk;
+	bool m_iec_data;
+	bool m_iec_srq_out;
+	emu_timer *m_iec_sync_timer;
+
 	// interrupt state
 	int m_exp_dma;
+	int m_vic_ba;
+	int m_busack;
 	int m_cass_rd;
 	int m_iec_srq;
 
 	// keyboard state
 	uint8_t m_vic_k;
 	int m_caps_lock;
+	int m_charom_caps;
 
 	int m_user_pa2;
 	int m_user_pb;
@@ -370,6 +387,7 @@ uint8_t c128_state::read_memory(offs_t offset, offs_t vma, int ba, int aec, int 
 	int plaout = read_pla(offset, ca, vma, ba, rw, aec, z80io, ms3, ms2, ms1, ms0);
 
 	m_clrbank = BIT(plaout, PLA_OUT_CLRBANK);
+	m_ioacc = !BIT(plaout, PLA_OUT_IOACC);
 
 	if (!BIT(plaout, PLA_OUT_CASENB))
 	{
@@ -402,11 +420,11 @@ uint8_t c128_state::read_memory(offs_t offset, offs_t vma, int ba, int aec, int 
 	}
 	if (!BIT(plaout, PLA_OUT_CHAROM))
 	{
-		data = m_charom->base()[(ms3 << 12) | (ta & 0xf00) | sa];
+		data = m_charom->base()[((m_charom_caps ? m_caps_lock : ms3) << 12) | (ta & 0xf00) | sa];
 	}
 	if (!BIT(plaout, PLA_OUT_COLORRAM) && aec)
 	{
-		data = m_color_ram[(m_clrbank << 10) | (ta & 0x300) | sa] & 0x0f;
+		data = (data & 0xf0) | (m_color_ram[(m_clrbank << 10) | (ta & 0x300) | sa] & 0x0f);
 	}
 	if (!BIT(plaout, PLA_OUT_VIC))
 	{
@@ -480,6 +498,7 @@ void c128_state::write_memory(offs_t offset, offs_t vma, uint8_t data, int ba, i
 	int plaout = read_pla(offset, ca, vma, ba, rw, aec, z80io, ms3, ms2, ms1, ms0);
 
 	m_clrbank = BIT(plaout, PLA_OUT_CLRBANK);
+	m_ioacc = !BIT(plaout, PLA_OUT_IOACC);
 
 	if (!BIT(plaout, PLA_OUT_CASENB) && !BIT(plaout, PLA_OUT_DWE))
 	{
@@ -604,10 +623,15 @@ void c128_state::z80_io_w(offs_t offset, uint8_t data)
 
 uint8_t c128_state::read(offs_t offset)
 {
-	int ba = 1, aec = 1, z80io = 1;
+	int ba = m_vic->ba_r(), aec = 1, z80io = 1;
 	offs_t vma = 0;
 
-	return read_memory(offset, vma, ba, aec, z80io);
+	uint8_t data = read_memory(offset, vma, ba, aec, z80io);
+
+	if (!machine().side_effects_disabled())
+		m_vic->cpu_access(m_ioacc);
+
+	return data;
 }
 
 
@@ -617,10 +641,21 @@ uint8_t c128_state::read(offs_t offset)
 
 void c128_state::write(offs_t offset, uint8_t data)
 {
-	int ba = 1, aec = 1, z80io = 1;
+	if (m_exp_dma)
+		return;
+
+	int ba = m_vic->ba_r(), aec = 1, z80io = 1;
 	offs_t vma = 0;
 
+	if (offset < 0x0002)
+	{
+		data = m_vic->bus_r();
+	}
+
 	write_memory(offset, vma, data, ba, aec, z80io);
+
+	if (!machine().side_effects_disabled())
+		m_vic->cpu_access(m_ioacc);
 }
 
 
@@ -630,7 +665,7 @@ void c128_state::write(offs_t offset, uint8_t data)
 
 uint8_t c128_state::vic_videoram_r(offs_t offset)
 {
-	int ba = 0, aec = 0, z80io = 1;
+	int ba = m_vic->ba_r(), aec = 0, z80io = 1;
 
 	return read_memory(0, offset, ba, aec, z80io);
 }
@@ -642,6 +677,15 @@ uint8_t c128_state::vic_videoram_r(offs_t offset)
 
 uint8_t c128_state::vic_colorram_r(offs_t offset)
 {
+	if (m_vic->aec_r() && m_z80en)
+	{
+		// the CPU is halted by RDY on its next read, so the bus carries the byte at the address it
+		// presents rather than a latched opcode; that address is the internal PC for opcode and operand
+		// fetches (pcbase() is still the previous instruction, as the VIC runs its cycle first)
+		auto dis = machine().disable_side_effects();
+		return read(m_subcpu->get_internal_pc()) & 0x0f;
+	}
+
 	return m_color_ram[(m_clrbank << 10) | offset];
 }
 
@@ -733,10 +777,10 @@ INPUT_CHANGED_MEMBER( c128_state::caps_lock )
 static INPUT_PORTS_START( c128 )
 	PORT_START( "ROW0" )
 	PORT_BIT( 0x80, IP_ACTIVE_LOW, IPT_KEYBOARD ) PORT_NAME("Crsr Down Up") PORT_CODE(KEYCODE_RALT)        PORT_CHAR(UCHAR_MAMEKEY(DOWN)) PORT_CHAR(UCHAR_MAMEKEY(UP))
-	PORT_BIT( 0x40, IP_ACTIVE_LOW, IPT_KEYBOARD ) PORT_CODE(KEYCODE_F3)                                    PORT_CHAR(UCHAR_MAMEKEY(F5))
-	PORT_BIT( 0x20, IP_ACTIVE_LOW, IPT_KEYBOARD ) PORT_CODE(KEYCODE_F2)                                    PORT_CHAR(UCHAR_MAMEKEY(F3))
-	PORT_BIT( 0x10, IP_ACTIVE_LOW, IPT_KEYBOARD ) PORT_CODE(KEYCODE_F1)                                    PORT_CHAR(UCHAR_MAMEKEY(F1))
-	PORT_BIT( 0x08, IP_ACTIVE_LOW, IPT_KEYBOARD ) PORT_CODE(KEYCODE_F4)                                    PORT_CHAR(UCHAR_MAMEKEY(F7))
+	PORT_BIT( 0x40, IP_ACTIVE_LOW, IPT_KEYBOARD ) PORT_CODE(KEYCODE_F3) PORT_CHAR(UCHAR_MAMEKEY(F5)) PORT_CHAR(UCHAR_MAMEKEY(F6))
+	PORT_BIT( 0x20, IP_ACTIVE_LOW, IPT_KEYBOARD ) PORT_CODE(KEYCODE_F2) PORT_CHAR(UCHAR_MAMEKEY(F3)) PORT_CHAR(UCHAR_MAMEKEY(F4))
+	PORT_BIT( 0x10, IP_ACTIVE_LOW, IPT_KEYBOARD ) PORT_CODE(KEYCODE_F1) PORT_CHAR(UCHAR_MAMEKEY(F1)) PORT_CHAR(UCHAR_MAMEKEY(F2))
+	PORT_BIT( 0x08, IP_ACTIVE_LOW, IPT_KEYBOARD ) PORT_CODE(KEYCODE_F4) PORT_CHAR(UCHAR_MAMEKEY(F7)) PORT_CHAR(UCHAR_MAMEKEY(F8))
 	PORT_BIT( 0x04, IP_ACTIVE_LOW, IPT_KEYBOARD ) PORT_NAME("Crsr Right Left") PORT_CODE(KEYCODE_RCONTROL) PORT_CHAR(UCHAR_MAMEKEY(RIGHT)) PORT_CHAR(UCHAR_MAMEKEY(LEFT))
 	PORT_BIT( 0x02, IP_ACTIVE_LOW, IPT_KEYBOARD ) PORT_NAME("Return") PORT_CODE(KEYCODE_ENTER)             PORT_CHAR(13)
 	PORT_BIT( 0x01, IP_ACTIVE_LOW, IPT_KEYBOARD ) PORT_NAME("INST DEL") PORT_CODE(KEYCODE_BACKSPACE)       PORT_CHAR(8) PORT_CHAR(UCHAR_MAMEKEY(INSERT))
@@ -858,6 +902,11 @@ static INPUT_PORTS_START( c128 )
 	PORT_CONFNAME( 0x01, 0x00, "Swap joystick ports" )
 	PORT_CONFSETTING( 0x01, "Joystick in swapped port" )
 	PORT_CONFSETTING( 0x00, "Joystick in assigned port" )
+
+	PORT_START( "CHAROM_A12" )
+	PORT_CONFNAME( 0x01, 0x00, "Character ROM A12" )
+	PORT_CONFSETTING( 0x00, "128/64" )
+	PORT_CONFSETTING( 0x01, "CAPS LOCK" )
 INPUT_PORTS_END
 
 
@@ -900,6 +949,11 @@ static INPUT_PORTS_START( c128_de )
 
 	PORT_MODIFY( "CAPS" )
 	PORT_BIT( 0x01, IP_ACTIVE_LOW, IPT_KEYBOARD ) PORT_NAME("ASCII/DIN") PORT_CODE(KEYCODE_F8) PORT_TOGGLE PORT_CHANGED_MEMBER(DEVICE_SELF, FUNC(c128_state::caps_lock), 0)
+
+	PORT_MODIFY( "CHAROM_A12" )
+	PORT_CONFNAME( 0x01, 0x01, "Character ROM A12" )
+	PORT_CONFSETTING( 0x00, "128/64" )
+	PORT_CONFSETTING( 0x01, "CAPS LOCK" )
 INPUT_PORTS_END
 
 
@@ -1037,6 +1091,11 @@ static INPUT_PORTS_START( c128_se )
 
 	PORT_MODIFY( "CAPS" )
 	PORT_BIT( 0x01, IP_ACTIVE_LOW, IPT_KEYBOARD ) PORT_NAME("CAPS LOCK ASCII/CC") PORT_CODE(KEYCODE_F8) PORT_TOGGLE PORT_CHANGED_MEMBER(DEVICE_SELF, FUNC(c128_state::caps_lock), 0)
+
+	PORT_MODIFY( "CHAROM_A12" )
+	PORT_CONFNAME( 0x01, 0x01, "Character ROM A12" )
+	PORT_CONFSETTING( 0x00, "128/64" )
+	PORT_CONFSETTING( 0x01, "CAPS LOCK" )
 INPUT_PORTS_END
 
 
@@ -1053,23 +1112,42 @@ void c128_state::mmu_z80en_w(int state)
 {
 	if (state)
 	{
-		m_maincpu->set_input_line(INPUT_LINE_HALT, ASSERT_LINE);
-		m_subcpu->set_input_line(INPUT_LINE_HALT, CLEAR_LINE);
-
-		if (m_reset)
-		{
-			m_subcpu->reset();
-
-			m_reset = 0;
-		}
+		m_maincpu->set_input_line(Z80_INPUT_LINE_BUSREQ, ASSERT_LINE);
 	}
 	else
 	{
-		m_maincpu->set_input_line(INPUT_LINE_HALT, CLEAR_LINE);
-		m_subcpu->set_input_line(INPUT_LINE_HALT, ASSERT_LINE);
+		m_maincpu->set_input_line(Z80_INPUT_LINE_BUSREQ, CLEAR_LINE);
 	}
 
 	m_z80en = state;
+}
+
+void c128_state::mmu_busack_w(int state)
+{
+	m_busack = state;
+
+	update_rdy();
+
+	if (state == ASSERT_LINE && m_reset)
+	{
+		m_subcpu->reset();
+
+		m_reset = 0;
+	}
+}
+
+void c128_state::vic_ba_w(int state)
+{
+	m_vic_ba = state;
+
+	m_maincpu->set_input_line(INPUT_LINE_HALT, state ? CLEAR_LINE : ASSERT_LINE);
+
+	update_rdy();
+}
+
+void c128_state::update_rdy()
+{
+	m_subcpu->set_input_line(M8502_RDY_LINE, (m_busack && m_vic_ba && !m_exp_dma) ? ASSERT_LINE : CLEAR_LINE);
 }
 
 void c128_state::mmu_fsdir_w(int state)
@@ -1129,7 +1207,9 @@ uint8_t c128_state::sid_potx_r()
 	case 3:
 		if (cur1->has_pot_x() && cur2->has_pot_x())
 		{
-			data = 1 / (1 / cur1->read_pot_x() + 1 / cur2->read_pot_x());
+			const unsigned pot1 = cur1->read_pot_x();
+			const unsigned pot2 = cur2->read_pot_x();
+			data = (pot1 + pot2) ? (pot1 * pot2) / (pot1 + pot2) : 0;
 		}
 		else if (cur1->has_pot_x())
 		{
@@ -1158,7 +1238,9 @@ uint8_t c128_state::sid_poty_r()
 	case 3:
 		if (cur1->has_pot_y() && cur2->has_pot_y())
 		{
-			data = 1 / (1 / cur1->read_pot_y() + 1 / cur2->read_pot_y());
+			const unsigned pot1 = cur1->read_pot_y();
+			const unsigned pot2 = cur2->read_pot_y();
+			data = (pot1 + pot2) ? (pot1 * pot2) / (pot1 + pot2) : 0;
 		}
 		else if (cur1->has_pot_y())
 		{
@@ -1393,8 +1475,8 @@ void c128_state::cia2_pa_w(uint8_t data)
 	m_user->write_m(BIT(data, 2));
 
 	// IEC bus
-	m_iec->host_atn_w(!BIT(data, 3));
-	m_iec->host_clk_w(!BIT(data, 4));
+	m_iec_atn = !BIT(data, 3);
+	m_iec_clk = !BIT(data, 4);
 	m_iec_data_out = BIT(data, 5);
 
 	update_iec();
@@ -1486,6 +1568,14 @@ void c128_state::update_cia1_flag()
 	m_cia1->flag_w(m_cass_rd & m_iec_srq);
 }
 
+TIMER_CALLBACK_MEMBER(c128_state::iec_sync_tick)
+{
+	m_iec->host_atn_w(m_iec_atn);
+	m_iec->host_clk_w(m_iec_clk);
+	m_iec->host_data_w(m_iec_data);
+	m_iec->host_srq_w(m_iec_srq_out);
+}
+
 inline void c128_state::update_iec()
 {
 	int fsdir = m_mmu->fsdir_r();
@@ -1500,7 +1590,7 @@ inline void c128_state::update_iec()
 
 	if (fsdir) data_out &= m_sp1;
 
-	m_iec->host_data_w(data_out);
+	m_iec_data = data_out;
 
 	// fast serial clock in
 	m_cia1->cnt_w(fsdir || m_iec_srq);
@@ -1510,7 +1600,9 @@ inline void c128_state::update_iec()
 
 	if (fsdir) srq_out &= m_cnt1;
 
-	m_iec->host_srq_w(srq_out);
+	m_iec_srq_out = srq_out;
+
+	m_iec_sync_timer->adjust(attotime::zero);
 }
 
 void c128_state::iec_srq_w(int state)
@@ -1532,7 +1624,7 @@ void c128_state::iec_data_w(int state)
 
 uint8_t c128_state::exp_dma_cd_r(offs_t offset)
 {
-	int ba = 0, aec = 1, z80io = 1;
+	int ba = m_vic->ba_r(), aec = 1, z80io = 1;
 	offs_t vma = 0;
 
 	return read_memory(offset, vma, ba, aec, z80io);
@@ -1540,17 +1632,17 @@ uint8_t c128_state::exp_dma_cd_r(offs_t offset)
 
 void c128_state::exp_dma_cd_w(offs_t offset, uint8_t data)
 {
-	int ba = 0, aec = 1, z80io = 1;
+	int ba = m_vic->ba_r(), aec = 1, z80io = 1;
 	offs_t vma = 0;
 
-	return write_memory(offset, data, vma, ba, aec, z80io);
+	write_memory(offset, vma, data, ba, aec, z80io);
 }
 
 void c128_state::exp_dma_w(int state)
 {
 	m_exp_dma = state;
 
-	check_interrupts();
+	update_rdy();
 }
 
 void c128_state::exp_reset_w(int state)
@@ -1566,9 +1658,8 @@ void c128_state::exp_reset_w(int state)
 //  SLOT_INTERFACE( c128dcr_iec_devices )
 //-------------------------------------------------
 
-[[maybe_unused]] void c128dcr_iec_devices(device_slot_interface &device)
+void c128dcr_iec_devices(device_slot_interface &device)
 {
-	device.option_add("c1571", C1571);
 	device.option_add("c1571cr", C1571CR);
 }
 
@@ -1594,6 +1685,8 @@ void c128d81_iec_devices(device_slot_interface &device)
 
 void c128_state::machine_start()
 {
+	m_iec_sync_timer = timer_alloc(FUNC(c128_state::iec_sync_tick), this);
+
 	// initialize memory
 	uint8_t data = 0xff;
 
@@ -1602,6 +1695,10 @@ void c128_state::machine_start()
 		m_ram->pointer()[offset] = data;
 		if (!(offset % 64)) data ^= 0xff;
 	}
+
+	m_exp_dma = CLEAR_LINE;
+	m_vic_ba = ASSERT_LINE;
+	m_busack = CLEAR_LINE;
 
 	// state saving
 	save_item(NAME(m_z80en));
@@ -1617,11 +1714,18 @@ void c128_state::machine_start()
 	save_item(NAME(m_cnt1));
 	save_item(NAME(m_sp1));
 	save_item(NAME(m_iec_data_out));
+	save_item(NAME(m_iec_atn));
+	save_item(NAME(m_iec_clk));
+	save_item(NAME(m_iec_data));
+	save_item(NAME(m_iec_srq_out));
 	save_item(NAME(m_exp_dma));
+	save_item(NAME(m_vic_ba));
+	save_item(NAME(m_busack));
 	save_item(NAME(m_cass_rd));
 	save_item(NAME(m_iec_srq));
 	save_item(NAME(m_vic_k));
 	save_item(NAME(m_caps_lock));
+	save_item(NAME(m_charom_caps));
 	save_item(NAME(m_user_pa2));
 	save_item(NAME(m_user_pb));
 }
@@ -1629,18 +1733,8 @@ void c128_state::machine_start()
 
 void c128_state::machine_reset()
 {
-	m_maincpu->reset();
 	m_reset = 1;
-
-	m_mmu->reset();
-	m_vic->reset();
-	m_vdc->reset();
-	m_sid->reset();
-	m_cia1->reset();
-	m_cia2->reset();
-
-	m_iec->reset();
-	m_exp->reset();
+	m_charom_caps = m_charom_jumper->read();
 
 	m_user->write_3(0);
 	m_user->write_3(1);
@@ -1666,6 +1760,8 @@ void c128_state::softlists(machine_config &config, const char *filter)
 	SOFTWARE_LIST(config, "cart_list_vic10").set_original("vic10").set_filter(filter);
 	SOFTWARE_LIST(config, "flop_list_c64_orig").set_compatible("c64_flop_orig").set_filter(filter);
 	SOFTWARE_LIST(config, "flop_list_c64_misc").set_compatible("c64_flop_misc").set_filter(filter);
+	SOFTWARE_LIST(config, "hdd_list").set_original("c64_hdd").set_filter(filter);
+	SOFTWARE_LIST(config, "sdcard_list").set_original("cbm_sd").set_filter(filter);
 }
 
 
@@ -1676,14 +1772,16 @@ void c128_state::softlists(machine_config &config, const char *filter)
 void c128_state::ntsc(machine_config &config)
 {
 	// basic hardware
-	Z80(config, m_maincpu, XTAL(14'318'181)*2/3.5/2);
+	Z80(config, m_maincpu, XTAL(14'318'181)*2/3.5/4);
 	m_maincpu->set_addrmap(AS_PROGRAM, &c128_state::z80_mem);
 	m_maincpu->set_addrmap(AS_IO, &c128_state::z80_io);
+	m_maincpu->busack_cb().set(FUNC(c128_state::mmu_busack_w));
 
 	M8502(config, m_subcpu, XTAL(14'318'181)*2/3.5/8);
 	m_subcpu->read_callback().set(FUNC(c128_state::cpu_r));
 	m_subcpu->write_callback().set(FUNC(c128_state::cpu_w));
-	m_subcpu->set_pulls(0x07, 0x20);
+	m_subcpu->set_pulls(0x07, 0x88);
+	m_subcpu->set_floating_falloff(0x80, 53000);
 	m_subcpu->set_addrmap(AS_PROGRAM, &c128_state::m8502_mem);
 	config.set_perfect_quantum(m_subcpu);
 
@@ -1701,7 +1799,7 @@ void c128_state::ntsc(machine_config &config)
 	m_vdc->set_show_border_area(true);
 	m_vdc->set_char_width(8);
 
-	screen_device &screen_vdc(SCREEN(config, SCREEN_VDC_TAG, SCREEN_TYPE_RASTER));
+	screen_device &screen_vdc(SCREEN(config, SCREEN_VDC_TAG));
 	screen_vdc.set_refresh_hz(60);
 	screen_vdc.set_size(640, 200);
 	screen_vdc.set_visarea(0, 640-1, 0, 200-1);
@@ -1710,12 +1808,13 @@ void c128_state::ntsc(machine_config &config)
 	MOS8564(config, m_vic, XTAL(14'318'181)*2/3.5);
 	m_vic->set_cpu(m_subcpu);
 	m_vic->irq_callback().set("irq", FUNC(input_merger_device::in_w<1>));
+	m_vic->ba_callback().set(FUNC(c128_state::vic_ba_w));
 	m_vic->k_callback().set(FUNC(c128_state::vic_k_w));
 	m_vic->set_screen(SCREEN_VIC_TAG);
 	m_vic->set_addrmap(0, &c128_state::vic_videoram_map);
 	m_vic->set_addrmap(1, &c128_state::vic_colorram_map);
 
-	screen_device &screen_vic(SCREEN(config, SCREEN_VIC_TAG, SCREEN_TYPE_RASTER));
+	screen_device &screen_vic(SCREEN(config, SCREEN_VIC_TAG));
 	screen_vic.set_refresh_hz(VIC6567_VRETRACERATE);
 	screen_vic.set_size(VIC6567_COLUMNS, VIC6567_LINES);
 	screen_vic.set_visarea(0, VIC6567_VISIBLECOLUMNS - 1, 0, VIC6567_VISIBLELINES - 1);
@@ -1827,9 +1926,11 @@ void c128_state::c128(machine_config &config)
 void c128_state::c128dcr(machine_config &config)
 {
 	ntsc(config);
-	cbm_iec_slot_device::add(config, m_iec, "c1571"); // TODO c1571cr
+	cbm_iec_slot_device::add(config, m_iec, nullptr);
 	m_iec->srq_callback().set(FUNC(c128_state::iec_srq_w));
 	m_iec->data_callback().set(FUNC(c128_state::iec_data_w));
+
+	CBM_IEC_SLOT(config.replace(), "iec8", 8, c128dcr_iec_devices, "c1571cr").set_fixed(true);
 }
 
 
@@ -1844,7 +1945,7 @@ void c128_state::c128d81(machine_config &config)
 	m_iec->srq_callback().set(FUNC(c128_state::iec_srq_w));
 	m_iec->data_callback().set(FUNC(c128_state::iec_data_w));
 
-	CBM_IEC_SLOT(config.replace(), "iec8", 8, c128d81_iec_devices, "c1563");
+	CBM_IEC_SLOT(config.replace(), "iec8", 8, c128d81_iec_devices, "c1563").set_fixed(true);
 }
 
 
@@ -1855,14 +1956,16 @@ void c128_state::c128d81(machine_config &config)
 void c128_state::pal(machine_config &config)
 {
 	// basic hardware
-	Z80(config, m_maincpu, XTAL(17'734'472)*2/4.5/2);
+	Z80(config, m_maincpu, XTAL(17'734'472)*2/4.5/4);
 	m_maincpu->set_addrmap(AS_PROGRAM, &c128_state::z80_mem);
 	m_maincpu->set_addrmap(AS_IO, &c128_state::z80_io);
+	m_maincpu->busack_cb().set(FUNC(c128_state::mmu_busack_w));
 
 	M8502(config, m_subcpu, XTAL(17'734'472)*2/4.5/8);
 	m_subcpu->read_callback().set(FUNC(c128_state::cpu_r));
 	m_subcpu->write_callback().set(FUNC(c128_state::cpu_w));
-	m_subcpu->set_pulls(0x07, 0x20);
+	m_subcpu->set_pulls(0x07, 0x88);
+	m_subcpu->set_floating_falloff(0x80, 53000);
 	m_subcpu->set_addrmap(AS_PROGRAM, &c128_state::m8502_mem);
 	config.set_perfect_quantum(m_subcpu);
 
@@ -1880,7 +1983,7 @@ void c128_state::pal(machine_config &config)
 	m_vdc->set_show_border_area(true);
 	m_vdc->set_char_width(8);
 
-	screen_device &screen_vdc(SCREEN(config, SCREEN_VDC_TAG, SCREEN_TYPE_RASTER));
+	screen_device &screen_vdc(SCREEN(config, SCREEN_VDC_TAG));
 	screen_vdc.set_refresh_hz(60);
 	screen_vdc.set_size(640, 200);
 	screen_vdc.set_visarea(0, 640-1, 0, 200-1);
@@ -1889,12 +1992,13 @@ void c128_state::pal(machine_config &config)
 	mos8566_device &mos8566(MOS8566(config, MOS8566_TAG, XTAL(17'734'472)*2/4.5));
 	mos8566.set_cpu(M8502_TAG);
 	mos8566.irq_callback().set("irq", FUNC(input_merger_device::in_w<1>));
+	mos8566.ba_callback().set(FUNC(c128_state::vic_ba_w));
 	mos8566.k_callback().set(FUNC(c128_state::vic_k_w));
 	mos8566.set_screen(SCREEN_VIC_TAG);
 	mos8566.set_addrmap(0, &c128_state::vic_videoram_map);
 	mos8566.set_addrmap(1, &c128_state::vic_colorram_map);
 
-	screen_device &screen_vic(SCREEN(config, SCREEN_VIC_TAG, SCREEN_TYPE_RASTER));
+	screen_device &screen_vic(SCREEN(config, SCREEN_VIC_TAG));
 	screen_vic.set_refresh_hz(VIC6569_VRETRACERATE);
 	screen_vic.set_size(VIC6569_COLUMNS, VIC6569_LINES);
 	screen_vic.set_visarea(0, VIC6569_VISIBLECOLUMNS - 1, 0, VIC6569_VISIBLELINES - 1);
@@ -2006,9 +2110,11 @@ void c128_state::c128pal(machine_config &config)
 void c128_state::c128dcrp(machine_config &config)
 {
 	pal(config);
-	cbm_iec_slot_device::add(config, m_iec, "c1571"); // TODO c1571cr
+	cbm_iec_slot_device::add(config, m_iec, nullptr);
 	m_iec->srq_callback().set(FUNC(c128_state::iec_srq_w));
 	m_iec->data_callback().set(FUNC(c128_state::iec_data_w));
+
+	CBM_IEC_SLOT(config.replace(), "iec8", 8, c128dcr_iec_devices, "c1571cr").set_fixed(true);
 }
 
 
@@ -2041,13 +2147,17 @@ ROM_START( c128 )
 	ROMX_LOAD( "318018-04.u33", 0x4000, 0x4000, CRC(9f9c355b) SHA1(d53a7884404f7d18ebd60dd3080c8f8d71067441), ROM_BIOS(3) )
 	ROMX_LOAD( "318019-04.u34", 0x8000, 0x4000, CRC(6e2c91a7) SHA1(c4fb4a714e48a7bf6c28659de0302183a0e0d6c0), ROM_BIOS(3) )
 	ROMX_LOAD( "quicksilver128.u35", 0xc000, 0x4000, CRC(c2e74338) SHA1(916cdcc62eb631073aa7f096815dcf33b3229ca8), ROM_BIOS(3) )
+	ROM_SYSTEM_BIOS( 4, "c1571dd3", "Dolphin-DOS v3" )
+	ROMX_LOAD( "318018-04.u33", 0x4000, 0x4000, CRC(9f9c355b) SHA1(d53a7884404f7d18ebd60dd3080c8f8d71067441), ROM_BIOS(4) )
+	ROMX_LOAD( "318019-04.u34", 0x8000, 0x4000, CRC(6e2c91a7) SHA1(c4fb4a714e48a7bf6c28659de0302183a0e0d6c0), ROM_BIOS(4) )
+	ROMX_LOAD( "kernal-dolphin128.u35", 0xc000, 0x4000, CRC(6f4ebff0) SHA1(0eeae6182d49136594b4f473917420607a828ec0), ROM_BIOS(4) )
 
 	ROM_REGION( 0x2000, "charom", 0 )
 	ROM_LOAD( "390059-01.u18", 0x0000, 0x2000, CRC(6aaaafe6) SHA1(29ed066d513f2d5c09ff26d9166ba23c2afb2b3f) )
 
 	ROM_REGION( 0xc88, MOS8721_TAG, 0 )
 	// converted from http://www.zimmers.net/anonftp/pub/cbm/firmware/computers/c128/8721-reduced.zip/8721-reduced.txt
-	ROM_LOAD( "8721r3.u11", 0x000, 0xc88, BAD_DUMP CRC(154db186) SHA1(ccadcdb1db3b62c51dc4ce60fe6f96831586d297) )
+	ROM_LOAD( "8721r3.u11", 0x000, 0xc88, CRC(154db186) SHA1(ccadcdb1db3b62c51dc4ce60fe6f96831586d297) )
 ROM_END
 
 #define rom_c128p       rom_c128
@@ -2079,7 +2189,7 @@ ROM_START( c128_de )
 
 	ROM_REGION( 0xc88, MOS8721_TAG, 0 )
 	// converted from http://www.zimmers.net/anonftp/pub/cbm/firmware/computers/c128/8721-reduced.zip/8721-reduced.txt
-	ROM_LOAD( "8721r3.u11", 0x000, 0xc88, BAD_DUMP CRC(154db186) SHA1(ccadcdb1db3b62c51dc4ce60fe6f96831586d297) )
+	ROM_LOAD( "8721r3.u11", 0x000, 0xc88, CRC(154db186) SHA1(ccadcdb1db3b62c51dc4ce60fe6f96831586d297) )
 ROM_END
 
 
@@ -2125,7 +2235,7 @@ ROM_START( c128cr )
 
 	ROM_REGION( 0xc88, MOS8721_TAG, 0 )
 	// converted from http://www.zimmers.net/anonftp/pub/cbm/firmware/computers/c128/8721-reduced.zip/8721-reduced.txt
-	ROM_LOAD( "8721r3.u11", 0x000, 0xc88, BAD_DUMP CRC(154db186) SHA1(ccadcdb1db3b62c51dc4ce60fe6f96831586d297) )
+	ROM_LOAD( "8721r3.u11", 0x000, 0xc88, CRC(154db186) SHA1(ccadcdb1db3b62c51dc4ce60fe6f96831586d297) )
 ROM_END
 
 
@@ -2165,7 +2275,7 @@ ROM_START( c128dcr_de )
 
 	ROM_REGION( 0xc88, MOS8721_TAG, 0 )
 	// converted from http://www.zimmers.net/anonftp/pub/cbm/firmware/computers/c128/8721-reduced.zip/8721-reduced.txt
-	ROM_LOAD( "8721r3.u11", 0x000, 0xc88, BAD_DUMP CRC(154db186) SHA1(ccadcdb1db3b62c51dc4ce60fe6f96831586d297) )
+	ROM_LOAD( "8721r3.u11", 0x000, 0xc88, CRC(154db186) SHA1(ccadcdb1db3b62c51dc4ce60fe6f96831586d297) )
 ROM_END
 
 
@@ -2184,7 +2294,7 @@ ROM_START( c128dcr_se )
 
 	ROM_REGION( 0xc88, MOS8721_TAG, 0 )
 	// converted from http://www.zimmers.net/anonftp/pub/cbm/firmware/computers/c128/8721-reduced.zip/8721-reduced.txt
-	ROM_LOAD( "8721r3.u11", 0x000, 0xc88, BAD_DUMP CRC(154db186) SHA1(ccadcdb1db3b62c51dc4ce60fe6f96831586d297) )
+	ROM_LOAD( "8721r3.u11", 0x000, 0xc88, CRC(154db186) SHA1(ccadcdb1db3b62c51dc4ce60fe6f96831586d297) )
 ROM_END
 
 } // anonymous namespace

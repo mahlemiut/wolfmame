@@ -93,6 +93,7 @@ DEFINE_DEVICE_TYPE(ATMEL_29C020,             atmel_29c020_device,             "a
 DEFINE_DEVICE_TYPE(AMD_29F010,               amd_29f010_device,               "amd_29f010",               "AMD 29F010 Flash")
 DEFINE_DEVICE_TYPE(AMD_29F040,               amd_29f040_device,               "amd_29f040",               "AMD 29F040 Flash")
 DEFINE_DEVICE_TYPE(AMD_29F080,               amd_29f080_device,               "amd_29f080",               "AMD 29F080 Flash")
+DEFINE_DEVICE_TYPE(AMD_29F032,               amd_29f032_device,               "amd_29f032",               "AMD 29F032 Flash")
 DEFINE_DEVICE_TYPE(AMD_29F400T,              amd_29f400t_device,              "amd_29f400t",              "AMD 29F400T Flash")
 DEFINE_DEVICE_TYPE(AMD_29F800T,              amd_29f800t_device,              "amd_29f800t",              "AMD 29F800T Flash")
 DEFINE_DEVICE_TYPE(AMD_29F800B_16BIT,        amd_29f800b_16bit_device,        "amd_29f800b_16bit",        "AMD 29F800B Flash (16-bit)")
@@ -104,12 +105,14 @@ DEFINE_DEVICE_TYPE(FUJITSU_29F016A,          fujitsu_29f016a_device,          "m
 DEFINE_DEVICE_TYPE(FUJITSU_29DL164BD,        fujitsu_29dl164bd_device,        "mbm29dl164bd",             "Fujitsu MBM29DL164BD Flash")
 DEFINE_DEVICE_TYPE(FUJITSU_29LV002TC,        fujitsu_29lv002tc_device,        "mbm29lv002tc",             "Fujitsu MBM29LV002TC Flash")
 DEFINE_DEVICE_TYPE(FUJITSU_29LV800B,         fujitsu_29lv800b_device,         "mbm29lv800b",              "Fujitsu MBM29LV800B Flash")
+DEFINE_DEVICE_TYPE(FUJITSU_29LV160B,         fujitsu_29lv160b_device,         "mbm29lv160b",              "Fujitsu MBM29LV160B Flash")
 DEFINE_DEVICE_TYPE(INTEL_E28F400B,           intel_e28f400b_device,           "intel_e28f400b",           "Intel E28F400B Flash")
 DEFINE_DEVICE_TYPE(MACRONIX_29F008TC,        macronix_29f008tc_device,        "macronix_29f008tc",        "Macronix 29F008TC Flash")
 DEFINE_DEVICE_TYPE(MACRONIX_29F1610MC,       macronix_29f1610mc_device,       "macronix_29f1610mc",       "Macronix 29F1610MC Flash")
 DEFINE_DEVICE_TYPE(MACRONIX_29F1610MC_16BIT, macronix_29f1610mc_16bit_device, "macronix_29f1610mc_16bit", "Macronix 29F1610MC Flash (16-bit)")
 DEFINE_DEVICE_TYPE(MACRONIX_29L001MC,        macronix_29l001mc_device,        "macronix_29l001mc",        "Macronix 29L001MC Flash")
 DEFINE_DEVICE_TYPE(MACRONIX_29LV160TMC,      macronix_29lv160tmc_device,      "macronix_29lv160tmc",      "Macronix 29LV160TMC Flash")
+DEFINE_DEVICE_TYPE(MACRONIX_29LV320ETTI,     macronix_29lv320etti_device,     "macronix_29lv320etti",     "Macronix 29LV320ETTI Flash")
 DEFINE_DEVICE_TYPE(ST_M29W640GB,             st_m29w640gb_device,             "st_m29w640gb",             "ST M29W640GB Flash")
 DEFINE_DEVICE_TYPE(ST_M29W640FT,             st_m29w640ft_device,             "st_m29w640ft",             "ST M29W640FT Flash")
 DEFINE_DEVICE_TYPE(TMS_29F040,               tms_29f040_device,               "tms_29f040",               "Texas Instruments 29F040 Flash")
@@ -208,6 +211,9 @@ fujitsu_29lv002tc_device::fujitsu_29lv002tc_device(const machine_config &mconfig
 fujitsu_29lv800b_device::fujitsu_29lv800b_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock)
 	: intelfsh16_device(mconfig, FUJITSU_29LV800B, tag, owner, clock, 0x100000, MFG_FUJITSU, 0x225b) { m_bot_boot_sector = true; }
 
+fujitsu_29lv160b_device::fujitsu_29lv160b_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock)
+	: intelfsh16_device(mconfig, FUJITSU_29LV160B, tag, owner, clock, 0x200000, MFG_FUJITSU, 0x2249) { m_bot_boot_sector = true; }
+
 sharp_lh28f016s_device::sharp_lh28f016s_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock)
 	: intelfsh8_device(mconfig, SHARP_LH28F016S, tag, owner, clock, 0x200000, MFG_INTEL, 0xaa) { }
 
@@ -224,13 +230,16 @@ atmel_49f4096_device::atmel_49f4096_device(const machine_config &mconfig, const 
 	: intelfsh16_device(mconfig, ATMEL_49F4096, tag, owner, clock, 0x80000, MFG_ATMEL, 0x92) { m_sector_is_16k = true; }
 
 amd_29f010_device::amd_29f010_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock)
-	: intelfsh8_device(mconfig, AMD_29F010, tag, owner, clock, 0x20000, MFG_AMD, 0x20) { }
+	: intelfsh8_device(mconfig, AMD_29F010, tag, owner, clock, 0x20000, MFG_AMD, 0x20) { m_sector_is_16k = true; }
 
 amd_29f040_device::amd_29f040_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock)
 	: intelfsh8_device(mconfig, AMD_29F040, tag, owner, clock, 0x80000, MFG_AMD, 0xa4) { }
 
 amd_29f080_device::amd_29f080_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock)
 	: intelfsh8_device(mconfig, AMD_29F080, tag, owner, clock, 0x100000, MFG_AMD, 0xd5) { m_addrmask = 0x7ff; }
+
+amd_29f032_device::amd_29f032_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock)
+	: intelfsh8_device(mconfig, AMD_29F032, tag, owner, clock, 0x400000, MFG_AMD, 0x41) { m_addrmask = 0x7ff; }
 
 amd_29f400t_device::amd_29f400t_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock)
 	: intelfsh8_device(mconfig, AMD_29F400T, tag, owner, clock, 0x80000, MFG_AMD, 0x23) { m_top_boot_sector = true; }
@@ -267,6 +276,9 @@ macronix_29l001mc_device::macronix_29l001mc_device(const machine_config &mconfig
 
 macronix_29lv160tmc_device::macronix_29lv160tmc_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock)
 	: intelfsh8_device(mconfig, MACRONIX_29LV160TMC, tag, owner, clock, 0x20000, MFG_MACRONIX, 0x49) { m_sector_is_16k = true; }
+
+macronix_29lv320etti_device::macronix_29lv320etti_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock)
+	: intelfsh8_device(mconfig, MACRONIX_29LV320ETTI, tag, owner, clock, 0x400000, MFG_MACRONIX, 0x22A7) { m_top_boot_sector = true; }
 
 st_m29w640gb_device::st_m29w640gb_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock)
 	: intelfsh8_device(mconfig, ST_M29W640GB, tag, owner, clock, 0x800000, MFG_ST, 0x227e) { m_bot_boot_sector = true; m_device_id2 = 0x2210; m_device_id3 = 0x2200; }

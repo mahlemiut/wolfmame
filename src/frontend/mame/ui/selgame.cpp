@@ -26,7 +26,6 @@
 #include "luaengine.h"
 #include "mame.h"
 
-#include "corestr.h"
 #include "drivenum.h"
 #include "emuopts.h"
 #include "fileio.h"
@@ -34,10 +33,14 @@
 #include "romload.h"
 #include "softlist_dev.h"
 #include "uiinput.h"
+
+#include "corestr.h"
+#include "ioprocsstream.h"
 #include "unicode.h"
 
 #include <cstring>
 #include <iterator>
+#include <locale>
 #include <memory>
 
 
@@ -1075,7 +1078,13 @@ void menu_select_game::filter_selected(int index)
 					emu_file file(ui().options().ui_path(), OPEN_FLAG_WRITE | OPEN_FLAG_CREATE | OPEN_FLAG_CREATE_PATHS);
 					if (!file.open(util::string_format("custom_%s_filter.ini", emulator_info::get_configname())))
 					{
-						filter.save_ini(file, 0);
+						{
+							util::owritestream str(file);
+							str.imbue(std::locale::classic());
+
+							filter.save_ini(str, 0);
+							str << std::flush;
+						}
 						file.close();
 					}
 				}

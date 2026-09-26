@@ -14,9 +14,12 @@
 *.png   -text
 *.ppm   -text
 
+*.odt   -text
+
 *.bdf   eol=crlf
 
 *.zip   -text
+*.zst   -text
 
 record   -text
 playback -text

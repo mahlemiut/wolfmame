@@ -1663,7 +1663,7 @@ void wgp_state::wgp(machine_config &config)
 	adc.in_callback<5>().set(FUNC(wgp_state::unknown_r));
 
 	// video hardware
-	screen_device &screen(SCREEN(config, "screen", SCREEN_TYPE_RASTER));
+	screen_device &screen(SCREEN(config, "screen"));
 	screen.set_refresh_hz(60);
 	screen.set_vblank_time(ATTOSECONDS_IN_USEC(0));
 	screen.set_size(40*8, 32*8);
@@ -2005,7 +2005,7 @@ void wgp_state::init_wgp()
 
 void wgp_state::init_wgp2()
 {
-	// Code patches to prevent failure in memory checks
+	// HACK: Code patches to prevent failure in memory checks
 	u16 *ROM = (u16 *)memregion("sub")->base();
 	ROM[0x8008 / 2] = 0x0;
 	ROM[0x8010 / 2] = 0x0;

@@ -7,6 +7,7 @@
 
 #include "bus/centronics/ctronics.h"
 #include "bus/nec_fdd/pc80s31k.h"
+#include "bus/pc8801/pc8801_exp.h"
 #include "cpu/z80/z80.h"
 #include "imagedev/cassette.h"
 #include "imagedev/snapquik.h"
@@ -30,7 +31,7 @@
 
 #define Z80_TAG         "maincpu"
 #define N80SR_ROM_TAG   "n80sr_rom"
-#define I8251_TAG       "i8251"
+#define I8251_TAG       "usart"
 #define I8257_TAG       "i8257"
 #define UPD1990A_TAG    "upd1990a"
 #define UPD3301_TAG     "upd3301"
@@ -50,6 +51,7 @@ public:
 		, m_crtc(*this, UPD3301_TAG)
 		, m_crtc_palette(*this, "crtc_palette")
 		, m_dma(*this, I8257_TAG)
+		, m_cmt_usart(*this, I8251_TAG)
 		, m_cassette(*this, "cassette")
 		, m_cgrom(*this, CGROM_TAG)
 	{}
@@ -68,12 +70,34 @@ protected:
 	required_device<upd3301_device> m_crtc;
 	required_device<palette_device> m_crtc_palette;
 	required_device<i8257_device> m_dma;
+	required_device<i8251_device> m_cmt_usart;
 	required_device<cassette_image_device> m_cassette;
 	required_memory_region m_cgrom;
 
 	void port10_w(uint8_t data);
 
 	void port30_w(u8 data);
+
+	// CMT receive path
+	void usart_w(offs_t offset, u8 data);
+	int cmt_cdin_r();
+	TIMER_CALLBACK_MEMBER(cmt_poll_cb);
+	TIMER_CALLBACK_MEMBER(cmt_rxc_cb);
+	void cmt_update_rxc();
+	void cmt_reset_demod();
+
+	emu_timer *m_cmt_poll_timer = nullptr;
+	emu_timer *m_cmt_rxc_timer = nullptr;
+	attotime m_cmt_last_edge = attotime::never;
+	attotime m_cmt_spinup_until = attotime::zero;
+	u8 m_cmt_baud_sel = 0;      // port $30 BS2/BS1
+	u8 m_cmt_br_factor = 1;     // from the 8251 mode instruction
+	u8 m_cmt_half_2400 = 0;
+	u8 m_cmt_half_1200 = 0;
+	u8 m_cmt_motor = 0;
+	int m_cmt_level = 0;
+	int m_cmt_rxc_state = 0;
+	bool m_cmt_expect_mode = true;
 	virtual void machine_start() override ATTR_COLD;
 	void set_screen_frequency(bool is_24KHz) { m_screen_is_24KHz = is_24KHz; }
 	bool get_screen_frequency() { return m_screen_is_24KHz; }
@@ -144,6 +168,7 @@ public:
 		, m_beep(*this, "beeper")
 		, m_ram(*this, RAM_TAG)
 		, m_rom(*this, Z80_TAG)
+		, m_exp(*this, "exp")
 		, m_exp_view(*this, "exp_view")
 	{ }
 
@@ -163,6 +188,7 @@ protected:
 	required_device<beep_device> m_beep;
 	required_device<ram_device> m_ram;
 	required_memory_region m_rom;
+	required_device<pc8801_exp_slot_device> m_exp;
 	memory_view m_exp_view;
 
 	DECLARE_SNAPSHOT_LOAD_MEMBER(snapshot_cb);

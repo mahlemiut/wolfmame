@@ -18,6 +18,7 @@
 #include "ui/menu.h"
 #include "audit.h"
 #include "util/path.h"
+#include "fileio.h"
 
 #include <functional>
 #include <optional>

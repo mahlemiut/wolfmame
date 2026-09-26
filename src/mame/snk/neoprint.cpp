@@ -520,7 +520,7 @@ void neoprint_state::neoprint(machine_config &config)
 
 	GFXDECODE(config, m_gfxdecode, m_palette, gfx_neoprint);
 
-	SCREEN(config, m_screen, SCREEN_TYPE_RASTER);
+	SCREEN(config, m_screen);
 	m_screen->set_refresh_hz(60);
 	m_screen->set_vblank_time(ATTOSECONDS_IN_USEC(0));
 	m_screen->set_size(64*8, 32*8);
@@ -566,7 +566,7 @@ void neoprint_state::nprsp(machine_config &config)
 
 	GFXDECODE(config, m_gfxdecode, m_palette, gfx_neoprint);
 
-	SCREEN(config, m_screen, SCREEN_TYPE_RASTER);
+	SCREEN(config, m_screen);
 	m_screen->set_refresh_hz(60);
 	m_screen->set_vblank_time(ATTOSECONDS_IN_USEC(0));
 	m_screen->set_size(64*8, 32*8);
@@ -915,7 +915,8 @@ ROM_START( npeurver2 ) // NP 1.30 19970430 string
 	// c5-c8 not populated
 ROM_END
 
-/* FIXME: get rid of these two, probably something to do with irq3 and camera / printer devices */
+// FIXME: get rid of these patches
+// probably something to do with irq3 and camera / printer devices
 void neoprint_state::init_npcartv1()
 {
 	uint16_t *ROM = (uint16_t *)memregion("maincpu")->base();

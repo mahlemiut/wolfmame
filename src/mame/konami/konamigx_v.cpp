@@ -100,64 +100,27 @@ K055673_CB_MEMBER(konamigx_state::type2_sprite_callback)
 {
 	int num = code;
 	int c18 = color;
+	const int effect = ((color >> 8) & 0b11) << K055555_MIXSHIFT;
 
 	code = m_k053247_vrcbk[num >> 14] | (num & 0x3fff);
 	c18 = K053247GX_combine_c18(c18);
-	color = K055555GX_decode_objcolor(c18);
+	color = K055555GX_decode_objcolor(c18) | effect;
 	priority_mask = K055555GX_decode_inpri(c18);
 }
 
 K055673_CB_MEMBER(konamigx_state::dragoonj_sprite_callback)
 {
-	int num, op, pri, c18;
+	int num = code;
+	int c18 = color;
 
-	num = code;
 	code = m_k053247_vrcbk[num >> 14] | (num & 0x3fff);
-
-	c18  = pri = color;
-	op   = m_opri;
-	pri  = (pri & 0x200) ? 4 : pri >> 4 & 0xf;
-	op  &= m_oinprion;
-	pri &=~m_oinprion;
-	priority_mask = pri | op;
-
 	c18 = K053247GX_combine_c18(c18);
+
+	// attribute bits 9:8 are not a mix code here: applying them makes the attract logo, clock and effects translucent
+	// Bit meaning is unknown
+	// See https://youtu.be/xt5O4gAnTho?t=106
 	color = K055555GX_decode_objcolor(c18);
-}
-
-K055673_CB_MEMBER(konamigx_state::salmndr2_sprite_callback)
-{
-	int num, op, pri, c18;
-
-	num = code;
-	code = m_k053247_vrcbk[num >> 14] | (num & 0x3fff);
-
-	c18  = pri = color;
-	op   = m_opri;
-	pri  = pri >> 4 & 0x3f;
-	op  &= m_oinprion;
-	pri &=~m_oinprion;
-	priority_mask = pri | op;
-
-	c18 = K053247GX_combine_c18(c18);
-	color = K055555GX_decode_objcolor(c18);
-}
-
-K055673_CB_MEMBER(konamigx_state::le2_sprite_callback)
-{
-	int num, op, pri;
-
-	num = code;
-	code = m_k053247_vrcbk[num >> 14] | (num & 0x3fff);
-
-	pri = color;
-	color &= 0x1f;
-
-	op   = m_opri;
-	pri &= 0xf0;
-	op  &= m_oinprion;
-	pri &=~m_oinprion;
-	priority_mask = pri | op;
+	priority_mask = K055555GX_decode_inpri(c18);
 }
 
 int konamigx_state::K055555GX_decode_vmixcolor(int layer, int &color) // (see p.62 7.2.6 and p.27 3.3)
@@ -783,7 +746,7 @@ void konamigx_state::gx_draw_basic_tilemaps(screen_device &screen, bitmap_rgb32 
 {
 	const u8 disp = m_k055555->K055555_read_register(K55_INPUT_ENABLES);
 
-	if (!(disp & (1 << layer))) return;
+	if (!BIT(disp, layer)) return;
 
 	set_brightness(layer);
 
@@ -791,27 +754,31 @@ void konamigx_state::gx_draw_basic_tilemaps(screen_device &screen, bitmap_rgb32 
 	const u8 j = mixerflags >> layer2 & 3;
 
 	u32 flags = 0;
-	if (mixerflags & 1 << (layer + 12)) flags |= K056382_DRAW_FLAG_FORCE_XYSCROLL;
+	if (BIT(mixerflags, layer + 12)) flags |= K056382_DRAW_FLAG_FORCE_XYSCROLL;
 
 	// what the layer records as the topmost screen for gx_draw_deferred_shadows:
 	// its priority code, or 0xff like the back color when SHD ON keeps shadows off it
 	const u8 topmost = BIT(m_k055555->K055555_read_register(K55_SHD_ON), layer) ? pri : 0xff;
 
-	// Category 0 is the tiles with no mix code of their own: they blend with
-	// the layer's internal code (V INMIX where V INMIX ON routes it).
-	// Categories 1-3 are the tiles whose colour bits 5:4 carry a mix code
-	// (the tile callback, K055555 p.62 7.2.6): each is drawn with that code's
-	// K054338 level. Every tile blends with its own code, rather than all of
-	// them with the code of whichever tile the callback saw last.
+	// A tile's category is assigned via the mix code bits from the tile callback.
+	// V INMIX ON selects, per bit, whether the mix code comes from the tile or
+	// from V INMIX, so each category is drawn with the '338 level of the code
+	// that results. Every tile blends with its own code, and resolving it here
+	// keeps cached tiles right when a game rewrites V INMIX or V INMIX ON.
+	const u8 von = m_vmixon >> layer2 & 3;
+	const u8 internal = m_vinmix >> layer2 & von;
+
+	if (j == GXMIX_BLEND_FORCE || von == 3)
+	{
+		// every tile blends with the same code
+		const int mix = (j == GXMIX_BLEND_FORCE) ? (mixerflags >> (layer2 + 16) & 3) : internal;
+		gx_draw_tilemap_category(screen, bitmap, cliprect, layer, 0, flags | TILEMAP_DRAW_ALL_CATEGORIES, m_k054338->set_alpha_level(mix), topmost);
+		return;
+	}
+
 	for (u8 cat = 0; cat < 4; cat++)
 	{
-		int mix;
-		if (j == GXMIX_BLEND_FORCE)
-			mix = mixerflags >> (layer2 + 16) & 3;
-		else if (cat == 0)
-			mix = (m_vinmix >> layer2 & 3) & (m_vmixon >> layer2 & 3);
-		else
-			mix = cat;
+		const int mix = (cat & ~von) | internal;
 		gx_draw_tilemap_category(screen, bitmap, cliprect, layer, cat, flags, m_k054338->set_alpha_level(mix), topmost);
 	}
 }
@@ -839,24 +806,24 @@ void konamigx_state::gx_draw_tilemap_category(screen_device &screen, bitmap_rgb3
 	// what is under it, per channel and clamped, so black adds nothing and
 	// stays transparent. tilemap.cpp has no additive draw, so the
 	// category goes through an indexed scratch bitmap first.
-	if (!m_gx_tile_scratch || m_gx_tile_scratch->width() < bitmap.width() || m_gx_tile_scratch->height() < bitmap.height())
-		m_gx_tile_scratch = std::make_unique<bitmap_ind16>(bitmap.width(), bitmap.height());
-	m_gx_tile_scratch->fill(0xffff, cliprect);
-	m_k056832->tilemap_draw(screen, *m_gx_tile_scratch, cliprect, layer, flags, top_pri, top_mask);
+	if (m_gx_tile_scratch.width() < bitmap.width() || m_gx_tile_scratch.height() < bitmap.height())
+		m_gx_tile_scratch.resize(bitmap.width(), bitmap.height());
+	m_gx_tile_scratch.fill(0xffff, cliprect);
+	m_k056832->tilemap_draw(screen, m_gx_tile_scratch, cliprect, layer, flags, top_pri, top_mask);
 
 	pen_t const *const pens = m_palette->pens();
 	const u32 mul = u32(alpha) + 1;   // 255 is a full add
 	for (int y = cliprect.top(); y <= cliprect.bottom(); y++)
 	{
-		u16 const *const src = &m_gx_tile_scratch->pix(y);
+		u16 const *const src = &m_gx_tile_scratch.pix(y);
 		u32 *const dst = &bitmap.pix(y);
 		for (int x = cliprect.left(); x <= cliprect.right(); x++)
 		{
 			if (src[x] == 0xffff) continue;
 			const u32 s = pens[src[x]];
 			const u32 scaled = ((((s >> 16) & 0xff) * mul >> 8) << 16)
-			                 | ((((s >> 8) & 0xff) * mul >> 8) << 8)
-			                 | ((s & 0xff) * mul >> 8);
+							 | ((((s >> 8) & 0xff) * mul >> 8) << 8)
+							 | ((s & 0xff) * mul >> 8);
 			dst[x] = add_blend_r32(dst[x], scaled);
 		}
 	}
@@ -1112,13 +1079,11 @@ K056832_CB_MEMBER(konamigx_state::type2_tile_callback)
 
 	code = (m_gx_tilebanks[(d & 0xe000) >> 13] << 13) + (d & 0x1fff);
 
-	// The tile's own mix code (K055555 p.62 7.2.6): its colour bits 5:4 where
-	// V INMIX ON does not route them to the palette, V INMIX's where it does.
-	// It becomes the tile's category, and gx_draw_basic_tilemaps draws each
-	// category with that code's K054338 level. -1 (V INMIX ON = 3, no bits
-	// from the tile) is category 0, the layer's internal code.
-	const int emx = K055555GX_decode_vmixcolor(layer, color);
-	priority = emx > 0 ? emx : 0;
+	// The tile's mix code bits are its colour bits 5:4 (K055555 p.62 7.2.6).
+	// They become the tile's category, and gx_draw_basic_tilemaps resolves
+	// them against V INMIX ON when it draws.
+	priority = color >> 4 & 3;
+	K055555GX_decode_vmixcolor(layer, color);
 }
 
 // The mix code was read from attr bits 5:4 (salmndr2) and 7:6 (alpha) here
@@ -1299,7 +1264,7 @@ VIDEO_START_MEMBER(konamigx_state, konamigx_type4)
 	m_k056832->set_layer_offs(2, -24, 0);
 	m_k056832->set_layer_offs(3, -22, 0);
 
-	K053936_wraparound_enable(0, 0);
+	K053936_wraparound_enable(0, 1);
 	K053936GP_set_offset(0, -36, 1);
 
 	m_gx_rushingheroes_hack = 1;
@@ -1326,7 +1291,7 @@ VIDEO_START_MEMBER(konamigx_state, konamigx_type4_vsn)
 	m_k056832->set_layer_offs(2, -48, 0);
 	m_k056832->set_layer_offs(3, -48, 0);
 
-	K053936_wraparound_enable(0, 1); // wraparound doesn't work properly with the custom drawing function anyway, see the crowd in vsnet and rushhero
+	K053936_wraparound_enable(0, 1);
 	K053936GP_set_offset(0, -30, 0);
 
 	m_gx_rushingheroes_hack = 1;
@@ -1513,7 +1478,8 @@ void konamigx_state::type1_draw_terrain(screen_device &screen)
 				}
 				continue;
 			}
-			for (int y = top; y < limit[x]; y++)
+			int const bottom = std::min(limit[x], ground + 1);
+			for (int y = top; y < bottom; y++)
 			{
 				m_type1_terrain->pix(y, x) = pen;
 				m_type1_terrain_priority->pix(y, x) = parameter;
@@ -1544,7 +1510,7 @@ void konamigx_state::type1_mix_terrain(bitmap_rgb32 &bitmap, const rectangle &cl
 	{
 		// Match the GX mixer's existing approximation for additive modes.
 		int const level = m_k054338->set_alpha_level((m & ~mix_mask) | mix_internal);
-		alpha[m] = (level & 0x100) ? (~level & 0xff) : (level & 0xff);
+		alpha[m] = level & 0xff;
 	}
 	pen_t const *const paldata = m_palette->pens();
 	for (int y = cliprect.min_y; y <= cliprect.max_y; y++)

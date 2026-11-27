@@ -81,6 +81,7 @@ protected:
 	virtual const tiny_rom_entry *device_rom_region() const override ATTR_COLD;
 	virtual void device_add_mconfig(machine_config &config) override ATTR_COLD;
 	virtual ioport_constructor device_input_ports() const override ATTR_COLD;
+	virtual void device_config_complete() override ATTR_COLD;
 
 	// device_ieee488_interface implementation
 	virtual void ieee488_ifc(int state) override;
@@ -93,6 +94,8 @@ private:
 		LED_READY
 	};
 
+	uint8_t boot_r(offs_t offset);
+
 	uint8_t ppi0_pa_r();
 	void ppi0_pb_w(uint8_t data);
 	uint8_t ppi0_pc_r();
@@ -104,12 +107,18 @@ private:
 
 	void hardbox_io(address_map &map) ATTR_COLD;
 	void hardbox_mem(address_map &map) ATTR_COLD;
+	void hardbox_m1(address_map &map) ATTR_COLD;
 
 	required_device<cpu_device> m_maincpu;
 	required_device<corvus_hdc_device> m_hdc;
+	required_region_ptr<uint8_t> m_rom;
+	memory_view m_boot_mem;
+	memory_view m_boot_m1;
+	required_ioport m_sw1;
 	output_finder<3> m_leds;
 
 	int m_ifc;  // Tracks previous state of IEEE-488 IFC line
+	bool m_boot_cnt;
 };
 
 
@@ -159,8 +168,43 @@ const tiny_rom_entry *hardbox_device::device_rom_region() const
 
 void hardbox_device::hardbox_mem(address_map &map)
 {
-	map(0x0000, 0x3fff).ram();
+	map(0x0000, 0x3fff).ram().share("ram");
 	map(0xe000, 0xffff).rom().region(Z80_TAG, 0);
+	map(0x0000, 0xffff).view(m_boot_mem);
+	m_boot_mem[0](0x0000, 0x0fff).mirror(0xf000).rom().region(Z80_TAG, 0);
+}
+
+void hardbox_device::hardbox_m1(address_map &map)
+{
+	map(0x0000, 0x3fff).ram().share("ram");
+	map(0xe000, 0xffff).rom().region(Z80_TAG, 0);
+	map(0x0000, 0xffff).view(m_boot_m1);
+	m_boot_m1[0](0x0000, 0xffff).r(FUNC(hardbox_device::boot_r));
+}
+
+uint8_t hardbox_device::boot_r(offs_t offset)
+{
+	/* The Z80 starts at address 0x0000 but the HardBox has RAM there and
+	   needs to start from the BIOS at 0xe000.  The PCB has logic and a
+	   74S287 PROM that temporarily changes the memory map so that the
+	   IC3 EPROM at 0xe000 is mapped to 0x0000 for the first instruction
+	   fetch only.  The instruction normally at 0xe000 is an absolute jump
+	   into the ROM.  On reset, the Z80 will fetch it from 0x0000 and set
+	   its PC, then the normal map will be restored on the next
+	   instruction fetch. */
+	if (!machine().side_effects_disabled())
+	{
+		if (!m_boot_cnt)
+		{
+			m_boot_cnt = true;
+		}
+		else
+		{
+			m_boot_mem.disable();
+			m_boot_m1.disable();
+		}
+	}
+	return m_rom[offset & 0x0fff];
 }
 
 
@@ -183,6 +227,9 @@ void hardbox_device::hardbox_io(address_map &map)
 
 uint8_t hardbox_device::ppi0_pa_r()
 {
+	if (!m_bus->sample_ready(*m_maincpu))
+		return 0xff;
+
 	return m_bus->dio_r() ^ 0xff;
 }
 
@@ -193,13 +240,7 @@ void hardbox_device::ppi0_pb_w(uint8_t data)
 
 uint8_t hardbox_device::ppi0_pc_r()
 {
-	uint8_t data = ioport("SW1")->read();
-
-	/* DIP switches on PC1,PC2,PC3 configure the IEEE-488 primary address.
-	   We get the address from the slot instead. */
-	data |= ((m_slot->get_address() - 8) << 1) ^ 0xff;
-
-	return data;
+	return m_sw1->read();
 }
 
 //-------------------------------------------------
@@ -208,6 +249,9 @@ uint8_t hardbox_device::ppi0_pc_r()
 
 uint8_t hardbox_device::ppi1_pa_r()
 {
+	if (!m_bus->sample_ready(*m_maincpu))
+		return 0xff;
+
 	/*
 
 	  bit     description
@@ -324,6 +368,7 @@ void hardbox_device::device_add_mconfig(machine_config &config)
 	// basic machine hardware
 	Z80(config, m_maincpu, XTAL(8'000'000)/2);
 	m_maincpu->set_addrmap(AS_PROGRAM, &hardbox_device::hardbox_mem);
+	m_maincpu->set_addrmap(AS_OPCODES, &hardbox_device::hardbox_m1);
 	m_maincpu->set_addrmap(AS_IO, &hardbox_device::hardbox_io);
 
 	// devices
@@ -379,6 +424,19 @@ ioport_constructor hardbox_device::device_input_ports() const
 }
 
 
+//-------------------------------------------------
+//  device_config_complete - default the address
+//  switches to the slot address
+//-------------------------------------------------
+
+void hardbox_device::device_config_complete()
+{
+	int const address = configured_address();
+	if (address >= 8)
+		set_switch_default("SW1", 0x0e, ~(address - 8) << 1);
+}
+
+
 
 //**************************************************************************
 //  LIVE DEVICE
@@ -393,8 +451,13 @@ hardbox_device::hardbox_device(const machine_config &mconfig, const char *tag, d
 	, device_ieee488_interface(mconfig, *this)
 	, m_maincpu(*this, Z80_TAG)
 	, m_hdc(*this, "corvus")
+	, m_rom(*this, Z80_TAG)
+	, m_boot_mem(*this, "bootmem")
+	, m_boot_m1(*this, "bootm1")
+	, m_sw1(*this, "SW1")
 	, m_leds(*this, "led%u", 0U)
 	, m_ifc(0)
+	, m_boot_cnt(false)
 {
 }
 
@@ -406,6 +469,7 @@ hardbox_device::hardbox_device(const machine_config &mconfig, const char *tag, d
 void hardbox_device::device_start()
 {
 	save_item(NAME(m_ifc));
+	save_item(NAME(m_boot_cnt));
 }
 
 
@@ -417,18 +481,9 @@ void hardbox_device::device_start()
 
 void hardbox_device::device_reset_after_children()
 {
-	/* The Z80 starts at address 0x0000 but the HardBox has RAM there and
-	   needs to start from the BIOS at 0xe000.  The PCB has logic and a
-	   74S287 PROM that temporarily changes the memory map so that the
-	   IC3 EPROM at 0xe000 is mapped to 0x0000 for the first instruction
-	   fetch only.  The instruction normally at 0xe000 is an absolute jump
-	   into the ROM.  On reset, the Z80 will fetch it from 0x0000 and set
-	   its PC, then the normal map will be restored before the next
-	   instruction fetch.  Here we just set the PC to 0xe000 after the Z80
-	   resets, which has the same effect. */
-	// FIXME: use a memory_view to do this properly
-
-	m_maincpu->set_state_int(Z80_PC, 0xe000);
+	m_boot_mem.select(0);
+	m_boot_m1.select(0);
+	m_boot_cnt = false;
 }
 
 
@@ -440,7 +495,7 @@ void hardbox_device::ieee488_ifc(int state)
 {
 	if (!m_ifc && state)
 	{
-		device_reset();
+		reset();
 	}
 
 	m_ifc = state;

@@ -86,6 +86,7 @@ protected:
 	virtual const tiny_rom_entry *device_rom_region() const override ATTR_COLD;
 	virtual void device_add_mconfig(machine_config &config) override ATTR_COLD;
 	virtual ioport_constructor device_input_ports() const override ATTR_COLD;
+	virtual void device_config_complete() override ATTR_COLD { set_address_default(8, 0x07); }
 
 	// device_ieee488_interface implementation
 	virtual void ieee488_atn(int state) override;
@@ -102,7 +103,7 @@ protected:
 	void add_common_devices(machine_config &config);
 	inline void update_ieee_signals();
 
-	uint8_t dio_r() { return m_bus->dio_r(); };
+	uint8_t dio_r();
 	void dio_w(uint8_t data) { m_bus->dio_w(this, data); };
 	uint8_t riot1_pa_r();
 	void riot1_pa_w(uint8_t data);
@@ -293,11 +294,27 @@ void c2040_device::c2040_fdc_mem(address_map &map)
 
 
 //-------------------------------------------------
+//  riot6532 uc1
+//-------------------------------------------------
+
+uint8_t c2040_device::dio_r()
+{
+	if (!m_bus->sample_ready(*m_maincpu))
+		return 0xff;
+
+	return m_bus->dio_r();
+}
+
+
+//-------------------------------------------------
 //  riot6532 ue1
 //-------------------------------------------------
 
 uint8_t c2040_device::riot1_pa_r()
 {
+	if (!m_bus->sample_ready(*m_maincpu))
+		return 0xff;
+
 	/*
 
 	    bit     description
@@ -364,6 +381,9 @@ void c2040_device::riot1_pa_w(uint8_t data)
 
 uint8_t c2040_device::riot1_pb_r()
 {
+	if (!m_bus->sample_ready(*m_maincpu))
+		return 0xff;
+
 	/*
 
 	    bit     description
@@ -382,7 +402,7 @@ uint8_t c2040_device::riot1_pb_r()
 	uint8_t data = 0;
 
 	// device number selection
-	data |= m_slot->get_address() - 8;
+	data |= m_address->read();
 
 	// data accepted in
 	data |= m_bus->ndac_r() << 6;

@@ -1410,8 +1410,9 @@ std::vector<bool> floppy_image_format_t::generate_bitstream_from_track(int track
 			min_delta = 0;
 			max_delta = 0;
 
-			// Try to go back 16 flux changes from the end of the track, or at most at the start
-			int flux_to_step = 16;
+			// Start far enough back (or at the start of the track) for the PLL to lock, before the
+			// index, onto data written a few percent off the nominal cell
+			int flux_to_step = 256;
 			cur_entry = tbuf.size()-1;
 			while(cur_entry > 0 && flux_to_step) {
 				if((tbuf[cur_entry] & floppy_image::MG_MASK) == floppy_image::MG_F)
@@ -1520,6 +1521,9 @@ std::vector<bool> floppy_image_format_t::generate_bitstream_from_track(int track
 			break;
 		}
 	}
+	// the run-up was spent locking: keep its phase errors out of max_delta
+	cpll.min_delta = 0;
+	cpll.max_delta = 0;
 	for(;;) {
 		auto r = cpll.get();
 		if(r.second)
@@ -1636,6 +1640,8 @@ std::vector<std::vector<uint8_t>> floppy_image_format_t::extract_sectors_from_bi
 		if(shift_reg == 0x4489) {
 			uint16_t header;
 			uint32_t pos = i+1;
+			if(pos == bitstream.size())
+				pos = 0;
 			do {
 				header = 0;
 				for(int j=0; j<16; j++)
@@ -1647,16 +1653,24 @@ std::vector<std::vector<uint8_t>> floppy_image_format_t::extract_sectors_from_bi
 				// thanks to the precharging
 			} while(header == 0x4489 && pos > i);
 
+			// A mark that ends at or past the index ends the scan: the
+			// rest of the track was scanned from its start
+			bool const wrapped = pos <= i;
+
 			// fe, ff
 			if(header == 0x5554 || header == 0x5555) {
 				if(idblk_count < 100)
 					idblk[idblk_count++] = pos;
+				if(wrapped)
+					break;
 				i = pos-1;
 			}
 			// f8, f9, fa, fb
 			if(header == 0x554a || header == 0x5549 || header == 0x5544 || header == 0x5545) {
 				if(dblk_count < 100)
 					dblk[dblk_count++] = pos;
+				if(wrapped)
+					break;
 				i = pos-1;
 			}
 		}
@@ -2416,6 +2430,26 @@ std::vector<std::vector<uint8_t>> floppy_image_format_t::extract_sectors_from_tr
 }
 
 
+bool floppy_image_format_t::find_gcr5_data_block(const uint32_t *hblk, uint32_t hblk_count, const uint32_t *dblk, uint32_t dblk_count, uint32_t index, uint32_t track_size, uint32_t &pos)
+{
+	uint32_t const next = (index + 1 < hblk_count) ? hblk[index + 1] : (hblk[0] + track_size);
+	uint32_t const *const data = std::upper_bound(dblk, dblk + dblk_count, hblk[index]);
+
+	uint32_t start;
+	if(data != dblk + dblk_count)
+		start = *data;
+	else if(dblk_count)
+		start = dblk[0] + track_size;
+	else
+		return false;
+
+	if(start >= next)
+		return false;
+
+	pos = start % track_size;
+	return true;
+}
+
 std::vector<std::vector<uint8_t>> floppy_image_format_t::extract_sectors_from_bitstream_gcr5(const std::vector<bool> &bitstream, int head, int tracks)
 {
 	std::vector<std::vector<uint8_t>> sectors;
@@ -2475,7 +2509,8 @@ std::vector<std::vector<uint8_t>> floppy_image_format_t::extract_sectors_from_bi
 			continue;
 		}
 
-		pos = dblk[i];
+		if(!find_gcr5_data_block(hblk, hblk_count, dblk, dblk_count, i, bitstream.size(), pos))
+			continue;
 		block_id = sbyte_gcr5_r(bitstream, pos);
 
 		if (track > tracks) track -= tracks;
@@ -2550,7 +2585,8 @@ std::vector<std::vector<uint8_t>> floppy_image_format_t::extract_sectors_from_bi
 		[[maybe_unused]] uint8_t track = sbyte_gcr5_r(bitstream, pos);
 		uint8_t sector = sbyte_gcr5_r(bitstream, pos);
 
-		pos = dblk[i];
+		if(!find_gcr5_data_block(hblk, hblk_count, dblk, dblk_count, i, bitstream.size(), pos))
+			continue;
 		block_id = sbyte_gcr5_r(bitstream, pos);
 
 		if(sectors.size() <= sector)
